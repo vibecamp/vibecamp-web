@@ -14,5 +14,7 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
 }
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
-  getLayout?: (page: ReactElement) => ReactNode
+  getLayout?: GetLayoutFn
 }
+
+export type GetLayoutFn = (content: ReactElement) => ReactNode

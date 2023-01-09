@@ -1,40 +1,29 @@
-import Head from 'next/head'
+import { GetStaticProps } from "next";
+import DynamicPage, { pageToLink, Props as DynamicPageProps } from "../components/DynamicPage";
+import { getPublicPages, Page } from "../data/content";
+import getMainLayout from "../layouts/main-layout";
+import { NextPageWithLayout } from "./_app";
 
-import styles from './index.module.scss'
-import { NextPageWithLayout } from './_app'
+type Params = { page_id: string }
 
-const Index: NextPageWithLayout = () => {
-  return (
-    <>
-      <Head>
-        <title>vibecamp</title>
-        <meta name="description" content="vibe.camp" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <div className={styles.headSection}>
-        <div className={styles.stars}>
-          {starsData.map((style, index) =>
-            <div
-              className={styles.star}
-              style={style}
-              key={index}
-            />)}
-        </div>
-
-        VIBECAMP
-        <img src="/twitter.png" />
-      </div>
-    </>
-  )
+const HomePage: NextPageWithLayout<DynamicPageProps> = (props) => {
+    return (
+        <DynamicPage {...props} />
+    )
 }
 
-const starsData = new Array(50).fill(null).map(() => ({
-  left: Math.floor(Math.random() * 100) + '%',
-  top: Math.floor(Math.random() * 100) + '%',
-  '--size': Math.floor(Math.random() * 4 + 1) + 'px',
-  '--delay': Math.floor(Math.random() * 100) / 100 + 's'
-}))
+HomePage.getLayout = getMainLayout({ largeBanner: true })
 
-export default Index
+export const getStaticProps: GetStaticProps<DynamicPageProps, Params> = async ({ params }) => {
+    const pages = await getPublicPages()
+    const page = pages.find(page => page.page_id === '') as Page
+
+    return {
+        props: {
+            navLinks: pages.map(pageToLink),
+            page
+        }
+    }
+}
+
+export default HomePage

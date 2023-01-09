@@ -1,6 +1,5 @@
-.headSection {
+.headerSection {
     background: bottom/contain no-repeat url("/trees.png"), linear-gradient(0deg, #eacc9d, #ea6152);
-    height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -9,6 +8,11 @@
     font-size: 70px;
     color: white;
     text-shadow: rgb(0, 0, 0) -1px -1px 3px, rgb(0, 0, 0) 1px -1px 3px, rgb(0, 0, 0) -1px 1px 3px, rgb(0, 0, 0) 1px 1px 3px;
+    height: 450px;
+
+    &.largeBanner {
+        height: 100vh;
+    }
 
     .stars {
         position: absolute;
@@ -38,8 +42,16 @@
     }
 }
 
-.contentSection {
-    height: 800px;
+.footerSection {
+    padding: 60px;
+    border-top: 2px solid white;
+
+    .donateLink {
+        display: block;
+        font-family: SunshineKiddy;
+        text-align: center;
+        font-size: 48px;
+    }
 }
 
 @keyframes shine {

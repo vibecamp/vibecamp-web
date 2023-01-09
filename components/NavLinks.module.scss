@@ -1,0 +1,24 @@
+.links {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+
+    >a {
+        border: none;
+        color: #fff;
+        transition: background-color .2s ease-in-out, color .2s ease-in-out;
+        display: block;
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 3;
+        outline: none;
+        padding: 0 2rem;
+        text-transform: uppercase;
+
+        font-family: "Source Sans Pro", Helvetica, sans-serif;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    }
+}
