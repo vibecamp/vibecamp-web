@@ -1,0 +1,60 @@
+.headSection {
+    background: bottom/contain no-repeat url("/trees.png"), linear-gradient(0deg, #eacc9d, #ea6152);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: SunshineKiddy;
+    font-size: 70px;
+    color: white;
+    text-shadow: rgb(0, 0, 0) -1px -1px 3px, rgb(0, 0, 0) 1px -1px 3px, rgb(0, 0, 0) -1px 1px 3px, rgb(0, 0, 0) 1px 1px 3px;
+
+    .stars {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 300px;
+
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            height: var(--size);
+            width: var(--size);
+            background: white;
+
+            animation-name: shine;
+            animation-duration: 2s;
+            animation-iteration-count: infinite;
+            animation-delay: var(--delay);
+        }
+    }
+
+    img {
+        max-height: 80px;
+        max-width: 80px;
+        margin-top: 30px;
+    }
+}
+
+.contentSection {
+    height: 800px;
+}
+
+@keyframes shine {
+    0% {
+        box-shadow: 0px 0px 4px white;
+        opacity: 1;
+    }
+
+    50% {
+        box-shadow: 0px 0px 15px white;
+        opacity: 0.8;
+    }
+
+    100% {
+        box-shadow: 0px 0px 4px white;
+        opacity: 1;
+    }
+}
