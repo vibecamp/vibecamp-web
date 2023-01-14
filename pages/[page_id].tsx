@@ -27,7 +27,10 @@ export const getStaticProps: GetStaticProps<DynamicPageProps, Params> = async ({
 
     return {
         props: {
-            navLinks: pages.map(pageToLink),
+            navLinks: [
+                { label: 'Home', href: '/' },
+                ...pages.filter(page => page.page_id !== '').map(pageToLink)
+            ],
             page
         }
     }

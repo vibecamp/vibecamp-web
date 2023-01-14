@@ -1,4 +1,5 @@
 import MarkdownIt from "markdown-it"
+import Head from "next/head"
 import { FC } from "react"
 import { Page } from "../data/content"
 
@@ -15,6 +16,9 @@ const DynamicPage: FC<Props> = ({ navLinks, page }) => {
     const html = md.render(page.content)
 
     return <>
+        <Head>
+            <title>{page.title}</title>
+        </Head>
         <NavLinks links={navLinks} />
         <main
             className={styles.content}
