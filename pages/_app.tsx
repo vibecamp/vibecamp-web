@@ -1,7 +1,8 @@
 import './globals.scss'
-import type { AppProps } from 'next/app'
+import { AppProps } from 'next/app'
 import { NextPage } from 'next'
-import { ReactElement, ReactNode } from 'react'
+import { ReactElement, ReactNode, useEffect } from 'react'
+import { useRouter } from 'next/router'
 
 type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout
@@ -9,6 +10,15 @@ type AppPropsWithLayout = AppProps & {
 
 export default function App({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (router.pathname !== '/admin') {
+      document.body.classList.add('main-theme')
+    } else {
+      document.body.classList.remove('main-theme')
+    }
+  })
 
   return <>
     {getLayout(<Component {...pageProps} />)}

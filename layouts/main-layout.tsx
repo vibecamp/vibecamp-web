@@ -1,4 +1,4 @@
-import Link from "../components/Link";
+import Link from "../components/common/Link";
 import { GetLayoutFn } from "../pages/_app";
 
 import styles from './main-layout.module.scss'

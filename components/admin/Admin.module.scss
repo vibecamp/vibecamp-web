@@ -1,0 +1,10 @@
+.admin {
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+    height: 100vh;
+
+    > :not(:last-child) {
+        border-right: 1px solid gray;
+    }
+}

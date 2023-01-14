@@ -1,6 +1,6 @@
 
 import { FC } from 'react'
-import Link from './Link'
+import Link from './common/Link'
 import styles from './NavLinks.module.scss'
 
 export type Props = {

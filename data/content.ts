@@ -3,9 +3,12 @@ export type Page = {
     page_id: string,
     title: string,
     content: string,
-    visibility_level: 'public',
+    visibility_level: VisibilityLevel,
     nav_order: number | null
 }
+
+export const VISIBILITY_LEVELS = ['public', 'applicants', 'ticket_holders', 'admins'] as const
+export type VisibilityLevel = typeof VISIBILITY_LEVELS[number]
 
 export async function getPublicPages(): Promise<readonly Page[]> {
     return [

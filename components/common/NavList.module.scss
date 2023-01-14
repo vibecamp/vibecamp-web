@@ -1,0 +1,19 @@
+.navList {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0;
+    flex-shrink: 0;
+
+    >button {
+        appearance: none;
+        padding: 0.5em 1em;
+        background: none;
+        border: none;
+        border-bottom: 1px solid gray;
+        font-size: 16px;
+
+        &.selected {
+            background: rgba(0, 0, 0, 0.2);
+        }
+    }
+}

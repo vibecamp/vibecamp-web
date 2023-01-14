@@ -1,0 +1,16 @@
+.editSection,
+.previewSection {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.editSection {
+    >:not(:first-child) {
+        margin-top: 1em;
+    }
+}
+
+.previewSection {}

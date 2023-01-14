@@ -11,14 +11,44 @@ html {
 
 html,
 body {
+  font-family: Roboto, sans-serif;
+}
+
+body.main-theme {
   background: var(--color-primary);
   color: white;
-  font-family: Roboto, sans-serif;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+article {
+  padding: 20px 60px 60px 60px;
+  max-width: 800px;
+  margin: 0 auto;
+  font-weight: 300;
+
+  h1, h2, h3, h4, h5, h6 {}
+
+  h2 {
+    font-family: SunshineKiddy;
+    text-align: center;
+    font-size: 3.5rem;
+  }
+
+  p {
+    line-height: 1.5em;
+  }
+
+  ul {
+    padding-inline-start: 20px;
+  }
+
+  >*+* {
+    margin-top: 20px;
+  }
 }
 
 @font-face {
