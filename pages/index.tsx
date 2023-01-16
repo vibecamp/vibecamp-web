@@ -1,6 +1,6 @@
 import { GetStaticProps } from "next";
-import DynamicPage, { pageToLink, Props as DynamicPageProps } from "../components/DynamicPage";
-import { getPublicPages, Page } from "../data/content";
+import DynamicPage, { Props as DynamicPageProps } from "../components/DynamicPage";
+import { getPublicLinks, getPublicPages, Page } from "../data/content";
 import getMainLayout from "../layouts/main-layout";
 import { NextPageWithLayout } from "./_app";
 
@@ -17,13 +17,11 @@ HomePage.getLayout = getMainLayout({ largeBanner: true })
 export const getStaticProps: GetStaticProps<DynamicPageProps, Params> = async ({ params }) => {
     const pages = await getPublicPages()
     const page = pages.find(page => page.page_id === '') as Page
+    const navLinks = await getPublicLinks()
 
     return {
         props: {
-            navLinks: [
-                { label: 'Home', href: '/' },
-                ...pages.filter(page => page.page_id !== '').map(pageToLink)
-            ],
+            navLinks,
             page
         }
     }

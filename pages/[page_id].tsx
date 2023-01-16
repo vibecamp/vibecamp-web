@@ -1,6 +1,6 @@
 import { GetStaticPaths, GetStaticProps } from "next";
 import DynamicPage, { pageToLink, Props as DynamicPageProps } from "../components/DynamicPage";
-import { getPublicPages, Page as DynamicPageWithLayout } from "../data/content";
+import { getPublicLinks, getPublicPages, Page as DynamicPageWithLayout } from "../data/content";
 import getMainLayout from "../layouts/main-layout";
 import { NextPageWithLayout } from "./_app";
 
@@ -24,13 +24,11 @@ export const getStaticPaths: GetStaticPaths<Params> = async () => {
 export const getStaticProps: GetStaticProps<DynamicPageProps, Params> = async ({ params }) => {
     const pages = await getPublicPages()
     const page = pages.find(page => page.page_id === params?.page_id) as DynamicPageWithLayout
+    const navLinks = await getPublicLinks()
 
     return {
         props: {
-            navLinks: [
-                { label: 'Home', href: '/' },
-                ...pages.filter(page => page.page_id !== '').map(pageToLink)
-            ],
+            navLinks,
             page
         }
     }

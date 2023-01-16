@@ -7,8 +7,6 @@ export type Props = {
     links: readonly LinkInfo[]
 }
 
-export type LinkInfo = { label: string, href: string }
-
 const NavLinks: FC<Props> = ({ links }) => {
 
     return (
