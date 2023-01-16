@@ -36,18 +36,23 @@ article {
   h2 {
     font-family: SunshineKiddy;
     text-align: center;
-    font-size: 1.8rem;
+    font-size: 30px;
 
     @media(min-width: $mobile-width) {
-      font-size: 3.5rem;
+      font-size: 56px;
     }
+  }
+
+  h3 {
+    font-size: 22px;
   }
 
   p {
     line-height: 1.5em;
   }
 
-  ul {
+  ul,
+  ol {
     padding-inline-start: 20px;
   }
 

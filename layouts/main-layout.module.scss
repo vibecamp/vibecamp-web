@@ -1,7 +1,6 @@
 @import '../pages/variables.scss';
 
 .headerSection {
-    background: linear-gradient(0deg, #eacc9d, #ea6152);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -12,6 +11,13 @@
     color: white;
     text-shadow: rgb(0, 0, 0) -1px -1px 3px, rgb(0, 0, 0) 1px -1px 3px, rgb(0, 0, 0) -1px 1px 3px, rgb(0, 0, 0) 1px 1px 3px;
     height: 600px;
+    background: linear-gradient(0deg, #eacc9d, #ea6152);
+    background-size: 200%;
+    animation-name: shift-sky;
+    animation-duration: 5s;
+    animation-iteration-count: infinite;
+    animation-delay: var(--delay);
+    animation-direction: alternate;
 
     @media(min-width: $mobile-width) {
         font-size: 100px;
@@ -40,6 +46,7 @@
             animation-duration: 2s;
             animation-iteration-count: infinite;
             animation-delay: var(--delay);
+            animation-direction: alternate;
         }
     }
 
@@ -63,7 +70,7 @@
     &::after {
         content: '';
         position: absolute;
-        bottom: 0;
+        bottom: -1px;
         left: 0;
         width: 100%;
         max-height: 50%;
@@ -90,6 +97,15 @@
     }
 }
 
+@keyframes shift-sky {
+    0% {
+        background-position: 0px 0px;
+    }
+    100% {
+        background-position: 0px -200px;
+    }
+}
+
 @keyframes shine {
     0% {
         box-shadow: 0px 0px 2px white, 0px 0px 5px white;
@@ -97,15 +113,9 @@
         opacity: 1;
     }
 
-    50% {
+    100% {
         box-shadow: 0px 0px 5px white, 0px 0px 25px white;
         transform: scale(1.0);
         opacity: 0.8;
-    }
-
-    100% {
-        box-shadow: 0px 0px 2px white, 0px 0px 5px white;
-        transform: scale(1.2);
-        opacity: 1;
     }
 }
