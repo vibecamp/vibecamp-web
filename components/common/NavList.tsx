@@ -7,9 +7,10 @@ type Props<T extends string> = {
     options: readonly Option<T>[],
     value: T | null | undefined,
     onChange: (value: T) => void,
+    onAddButtonClick?: () => void
 }
 
-const NavList = <T extends string,>({ options, value, onChange }: Props<T>) => {
+const NavList = <T extends string,>({ options, value, onChange, onAddButtonClick }: Props<T>) => {
 
     return (
         <div className={styles.navList}>
@@ -24,6 +25,11 @@ const NavList = <T extends string,>({ options, value, onChange }: Props<T>) => {
                     </button>
                 )
             })}
+
+            {onAddButtonClick &&
+                <button onClick={onAddButtonClick}>
+                    + Add
+                </button>}
         </div>
     )
 }

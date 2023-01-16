@@ -16,7 +16,7 @@ HomePage.getLayout = getMainLayout({ largeBanner: true })
 
 export const getStaticProps: GetStaticProps<DynamicPageProps, Params> = async ({ params }) => {
     const pages = await getPublicPages()
-    const page = pages.find(page => page.page_id === '') as Page
+    const page = pages.find(page => page.page_id === '<index>') as Page
     const navLinks = await getPublicLinks()
 
     return {

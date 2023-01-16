@@ -9,8 +9,10 @@
         padding: 0.5em 1em;
         background: none;
         border: none;
-        border-bottom: 1px solid gray;
+        border-bottom: var(--border);
         font-size: 16px;
+        cursor: pointer;
+        text-align: left;
 
         &.selected {
             background: rgba(0, 0, 0, 0.2);

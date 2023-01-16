@@ -7,7 +7,12 @@
 }
 
 html {
+  // main theme
   --color-primary: #52272b;
+
+  // admin
+  --border-radius: 5px;
+  --border: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 html,

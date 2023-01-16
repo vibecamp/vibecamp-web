@@ -19,13 +19,17 @@ const Pages: FC = React.memo(() => {
     const existingPages = existingPagesResult.kind === 'value' ? existingPagesResult.value : null
 
     const navOptions = useMemo(() =>
-        existingPages?.slice().sort((a, b) => (a.nav_order ?? 0) - (b.nav_order ?? 0)).map(page => ({ label: page.title, value: page.page_id })) ?? []
+        existingPages?.map(page => ({ label: page.title, value: page.page_id })) ?? []
         , [existingPages])
 
     const selectPage = useCallback((pageId: string) => {
         const existing = existingPages?.find(page => page.page_id === pageId)
         setSelectedPage(JSON.parse(JSON.stringify(existing)))
     }, [existingPages])
+
+    const addPage = useCallback(() => {
+        setSelectedPage(JSON.parse(JSON.stringify(NEW_PAGE)))
+    }, [])
 
     const handleIDChange = useCallback((value: string) => {
         setSelectedPage(selectedPage => produce(selectedPage, selectedPage => {
@@ -38,6 +42,10 @@ const Pages: FC = React.memo(() => {
     const handleTitleChange = useCallback((value: string) => {
         setSelectedPage(selectedPage => produce(selectedPage, selectedPage => {
             if (selectedPage) {
+                if (selectedPage.page_id === '' || selectedPage.page_id === titleToId(selectedPage.title)) {
+                    selectedPage.page_id = titleToId(value)
+                }
+
                 selectedPage.title = value
             }
         }))
@@ -59,12 +67,18 @@ const Pages: FC = React.memo(() => {
         }))
     }, [])
 
+    // const handleNavOrderChange = useCallback((value: string) => {
+    //     setSelectedPage(selectedPage => produce(selectedPage, selectedPage => {
+    //         if (selectedPage) {
+    //             selectedPage.nav_order = Number(value)
+    //         }
+    //     }))
+    // }, [])
+
     const selectedPageContent = selectedPage?.content ?? ''
     const [previewHtml, setPreviewHtml] = useState('')
     const renderPreviewHtmlDebounced = useMemo(() => debounce((selectedPageContent: string) => {
-        if (selectedPage) {
-            setPreviewHtml(renderMarkdown(selectedPageContent))
-        }
+        setPreviewHtml(renderMarkdown(selectedPageContent))
     }, 200), [])
     useEffect(() =>
         renderPreviewHtmlDebounced(selectedPageContent)
@@ -76,15 +90,16 @@ const Pages: FC = React.memo(() => {
                 options={navOptions}
                 value={selectedPage?.page_id}
                 onChange={selectPage}
+                onAddButtonClick={addPage}
             />
 
             <div className={styles.editSection}>
                 {selectedPage && <>
-                    <Input label='ID' value={selectedPage.page_id} onChange={handleIDChange} />
                     <Input label='Title' value={selectedPage.title} onChange={handleTitleChange} />
+                    <Input label='ID (Page URL)' value={selectedPage.page_id} onChange={handleIDChange} />
                     <TextArea label='Content' value={selectedPage.content} onChange={handleContentChange} />
                     <Dropdown label='Visibility' value={selectedPage.visibility_level} onChange={handleVisibilityChange} options={VISIBILITY_OPTIONS} />
-                    <Input label='Nav order' value={selectedPage.nav_order + ''} onChange={handleNavOrderChange} />
+                    {/* <Input label='Nav order' value={selectedPage.nav_order + ''} onChange={handleNavOrderChange} /> */}
                 </>}
             </div>
 
@@ -95,6 +110,17 @@ const Pages: FC = React.memo(() => {
         </>
     )
 })
+
+function titleToId(title: string) {
+    return encodeURIComponent(title.replaceAll(/[\s]+/g, '-').replaceAll(/[',?#$!()]/g, ''))
+}
+
+const NEW_PAGE: Page = {
+    page_id: '',
+    title: '',
+    content: '',
+    visibility_level: 'admins'
+}
 
 const VISIBILITY_OPTIONS = VISIBILITY_LEVELS.map(stringToOption)
 
