@@ -1,5 +1,6 @@
+import debounce from "debounce"
 import produce from "immer"
-import React, { FC, useCallback, useMemo, useState } from "react"
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react"
 import { getPublicPages, Page, VisibilityLevel, VISIBILITY_LEVELS } from "../../../data/content"
 import { usePromise } from "../../../hooks/usePromise"
 import { renderMarkdown } from "../../../utils/markdown"
@@ -58,15 +59,16 @@ const Pages: FC = React.memo(() => {
         }))
     }, [])
 
-    const handleNavOrderChange = useCallback((value: string) => {
-        setSelectedPage(selectedPage => produce(selectedPage, selectedPage => {
-            if (selectedPage) {
-                selectedPage.nav_order = Number(value)
-            }
-        }))
-    }, [])
-
-    const previewHtml = useMemo(() => selectedPage ? renderMarkdown(selectedPage.content) : '', [selectedPage])
+    const selectedPageContent = selectedPage?.content ?? ''
+    const [previewHtml, setPreviewHtml] = useState('')
+    const renderPreviewHtmlDebounced = useMemo(() => debounce((selectedPageContent: string) => {
+        if (selectedPage) {
+            setPreviewHtml(renderMarkdown(selectedPageContent))
+        }
+    }, 200), [])
+    useEffect(() =>
+        renderPreviewHtmlDebounced(selectedPageContent)
+        , [renderPreviewHtmlDebounced, selectedPageContent])
 
     return (
         <>
