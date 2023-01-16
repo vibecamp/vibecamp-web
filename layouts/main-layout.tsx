@@ -17,7 +17,9 @@ const getMainLayout = ({ largeBanner }: { largeBanner: boolean }): GetLayoutFn =
                         />)}
                 </div>
 
-                VIBECAMP
+                <Link href="/">
+                    VIBECAMP
+                </Link>
 
                 <img src="/twitter.png" />
             </header>

@@ -1,8 +1,9 @@
+@import './variables.scss';
+
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
-  image-rendering: crisp-edges;
 }
 
 html {
@@ -25,7 +26,7 @@ a {
 }
 
 article {
-  padding: 20px 60px 60px 60px;
+  padding: 20px 40px 60px 40px;
   max-width: 800px;
   margin: 0 auto;
   font-weight: 300;
@@ -35,7 +36,11 @@ article {
   h2 {
     font-family: SunshineKiddy;
     text-align: center;
-    font-size: 3.5rem;
+    font-size: 1.8rem;
+
+    @media(min-width: $mobile-width) {
+      font-size: 3.5rem;
+    }
   }
 
   p {
@@ -47,7 +52,11 @@ article {
   }
 
   >*+* {
-    margin-top: 20px;
+    padding-top: 20px; // padding instead of margin so anchor links look nice
+  }
+
+  a {
+    text-decoration: underline;
   }
 }
 

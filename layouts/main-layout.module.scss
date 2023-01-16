@@ -1,14 +1,21 @@
+@import '../pages/variables.scss';
+
 .headerSection {
-    background: bottom/contain repeat-x url("/trees.png"), linear-gradient(0deg, #eacc9d, #ea6152);
+    background: linear-gradient(0deg, #eacc9d, #ea6152);
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     font-family: SunshineKiddy;
-    font-size: 70px;
+    font-size: 50px;
     color: white;
     text-shadow: rgb(0, 0, 0) -1px -1px 3px, rgb(0, 0, 0) 1px -1px 3px, rgb(0, 0, 0) -1px 1px 3px, rgb(0, 0, 0) 1px 1px 3px;
     height: 600px;
+
+    @media(min-width: $mobile-width) {
+        font-size: 100px;
+    }
 
     &.largeBanner {
         height: 100vh;
@@ -20,6 +27,7 @@
         left: 0;
         width: 100%;
         height: 300px;
+        pointer-events: none;
 
         .star {
             position: absolute;
@@ -35,22 +43,50 @@
         }
     }
 
+    >a, >img {
+        z-index: 1;
+    }
+
     img {
-        max-height: 80px;
-        max-width: 80px;
+        max-height: 60px;
+        max-width: 60px;
         margin-top: 30px;
+
+
+        @media(min-width: $mobile-width) {
+            max-height: 80px;
+            max-width: 80px;
+        }
+
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-height: 50%;
+        height: 400px;
+        image-rendering: crisp-edges;
+        background: bottom left 100px/contain repeat-x url("/trees.png");
+
     }
 }
 
 .footerSection {
     padding: 60px;
-    border-top: 2px solid white;
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
 
     .donateLink {
         display: block;
         font-family: SunshineKiddy;
         text-align: center;
-        font-size: 48px;
+        font-size: 32px;
+
+        @media(min-width: $mobile-width) {
+            font-size: 48px;
+        }
     }
 }
 

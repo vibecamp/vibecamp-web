@@ -7,16 +7,18 @@ export type Props = {
     href: string,
     children: ReactNode,
     openInNewTab?: boolean,
+    onClick?: () => void,
 }
 
-const Link: FC<Props> = React.memo(({ className, style, href, children, openInNewTab }) => {
+const Link: FC<Props> = React.memo(({ className, style, href, children, openInNewTab, onClick }) => {
     const linkProps = useMemo(() => ({
         className,
         style,
         href,
         target: openInNewTab ? '_blank' : undefined,
         rel: openInNewTab ? 'noreferrer' : undefined,
-        children
+        children,
+        onClick
     } as const), [children, className, href, openInNewTab, style])
 
     if (href.startsWith('/') && !openInNewTab) {

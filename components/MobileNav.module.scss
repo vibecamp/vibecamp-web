@@ -1,0 +1,54 @@
+.openButtonContainer,
+.nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.openButton,
+.closeButton {
+    appearance: none;
+    background: none;
+    border: none;
+
+    cursor: pointer;
+    padding: 15px;
+
+    >svg {
+        width: 30px;
+        height: 30px;
+        fill: white;
+    }
+}
+
+.closeButton {}
+
+.nav {
+    transition: transform 0.2s ease-out;
+    background: var(--color-primary);
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    >.closeButton {
+        align-self: flex-end;
+    }
+
+    >a {
+        display: block;
+        padding: 15px 30px;
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+
+        &:last-of-type {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    }
+
+    &:not(.isOpen) {
+        transform: translateX(100vw);
+    }
+
+}
