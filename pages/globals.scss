@@ -20,6 +20,10 @@ body.main-theme {
   color: white;
 }
 
+body.no-scroll {
+  overflow-y: hidden;
+}
+
 a {
   color: inherit;
   text-decoration: none;

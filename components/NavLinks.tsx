@@ -1,5 +1,6 @@
 
 import { FC } from 'react'
+import { LinkInfo } from '../data/content'
 import Link from './common/Link'
 import styles from './NavLinks.module.scss'
 

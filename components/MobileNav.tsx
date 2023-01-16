@@ -1,19 +1,19 @@
 
-import { FC, useCallback, useState } from 'react'
+import { FC, useCallback, useContext } from 'react'
+import { LinkInfo } from '../data/content'
+import { MobileNavOpenContext } from '../pages/_app'
 import Link from './common/Link'
 
 import styles from './MobileNav.module.scss'
-import { LinkInfo } from './NavLinks'
 
 export type Props = {
     links: readonly LinkInfo[]
 }
 
 const MobileNav: FC<Props> = ({ links }) => {
-    const [isOpen, setIsOpen] = useState(false)
-    const open = useCallback(() => setIsOpen(true), [])
-    const close = useCallback(() => setIsOpen(false), [])
-    const toggle = useCallback(() => setIsOpen(isOpen => !isOpen), [])
+    const { isOpen, setIsOpen } = useContext(MobileNavOpenContext)
+    const open = useCallback(() => setIsOpen(true), [setIsOpen])
+    const close = useCallback(() => setIsOpen(false), [setIsOpen])
 
     return (
         <>

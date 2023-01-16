@@ -1,7 +1,7 @@
 import './globals.scss'
 import { AppProps } from 'next/app'
 import { NextPage } from 'next'
-import { ReactElement, ReactNode, useEffect } from 'react'
+import React, { FC, ReactElement, ReactNode, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 
 type AppPropsWithLayout = AppProps & {
@@ -12,16 +12,12 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page)
   const router = useRouter()
 
-  useEffect(() => {
-    if (router.pathname !== '/admin') {
-      document.body.classList.add('main-theme')
-    } else {
-      document.body.classList.remove('main-theme')
-    }
-  })
+  useBodyClass('main-theme', router.pathname !== '/admin')
 
   return <>
-    {getLayout(<Component {...pageProps} />)}
+    <MobileNavOpenContextProvider>
+      {getLayout(<Component {...pageProps} />)}
+    </MobileNavOpenContextProvider>
   </>
 }
 
@@ -30,3 +26,27 @@ export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
 }
 
 export type GetLayoutFn = (content: ReactElement) => ReactNode
+
+export const MobileNavOpenContext = React.createContext({ isOpen: false, setIsOpen: (isOpen: boolean) => { } })
+
+const MobileNavOpenContextProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  useBodyClass('no-scroll', isOpen)
+
+  return (
+    <MobileNavOpenContext.Provider value={{ isOpen, setIsOpen }}>
+      {children}
+    </MobileNavOpenContext.Provider>
+  )
+}
+
+function useBodyClass(className: string, condition: boolean) {
+  useEffect(() => {
+    if (condition) {
+      document.body.classList.add(className)
+    } else {
+      document.body.classList.remove(className)
+    }
+  })
+}
