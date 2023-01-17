@@ -31,6 +31,7 @@ const Pages: FC = React.memo(() => {
         const existing = existingPages?.find(page => page.page_id === selectedPageId)
         if (existing) {
             setEditingPage(JSON.parse(JSON.stringify(existing)))
+            renderPreviewHtml(existing.content)
         }
     }, [existingPages, selectedPageId])
 
@@ -108,9 +109,10 @@ const Pages: FC = React.memo(() => {
 
     const selectedPageContent = editingPage?.content ?? ''
     const [previewHtml, setPreviewHtml] = useState('')
-    const renderPreviewHtmlDebounced = useMemo(() => debounce((selectedPageContent: string) => {
+    const renderPreviewHtml = useCallback((selectedPageContent: string) => {
         setPreviewHtml(renderMarkdown(selectedPageContent))
-    }, 200), [])
+    }, [])
+    const renderPreviewHtmlDebounced = useMemo(() => debounce(renderPreviewHtml, 200), [renderPreviewHtml])
     useEffect(() =>
         renderPreviewHtmlDebounced(selectedPageContent)
         , [renderPreviewHtmlDebounced, selectedPageContent])
