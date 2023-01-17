@@ -2,7 +2,6 @@ import Head from "next/head"
 import { FC } from "react"
 import { LinkInfo, Page } from "../data/content"
 import useIsOnMobile from "../hooks/useIsOnMobile"
-import { renderMarkdown } from "../utils/markdown"
 
 import styles from './DynamicPage.module.scss'
 import MobileNav from "./MobileNav"
@@ -11,10 +10,10 @@ import NavLinks from "./NavLinks"
 export type Props = {
     navLinks: readonly LinkInfo[],
     page: Page,
+    html: string,
 }
 
-const DynamicPage: FC<Props> = ({ navLinks, page }) => {
-    const html = renderMarkdown(page.content)
+const DynamicPage: FC<Props> = ({ navLinks, page, html }) => {
     const isOnMobile = useIsOnMobile()
 
     return <>
