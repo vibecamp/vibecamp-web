@@ -1,5 +1,6 @@
 import Link from "../components/common/Link";
 import { GetLayoutFn } from "../pages/_app";
+import { STARS_DATA } from "../utils/stars";
 
 import styles from './main-layout.module.scss'
 
@@ -9,7 +10,7 @@ const getMainLayout = ({ largeBanner }: { largeBanner: boolean }): GetLayoutFn =
         <div>
             <header className={styles.headerSection + (largeBanner ? ` ${styles.largeBanner}` : ``)}>
                 <div className={styles.stars}>
-                    {starsData.map((style, index) =>
+                    {STARS_DATA.map((style, index) =>
                         <div
                             className={styles.star}
                             style={style}
@@ -34,12 +35,5 @@ const getMainLayout = ({ largeBanner }: { largeBanner: boolean }): GetLayoutFn =
         </div>
     )
 }
-
-const starsData = new Array(50).fill(null).map(() => ({
-    left: Math.floor(Math.random() * 100) + '%',
-    top: Math.floor(Math.random() * 100) + '%',
-    '--size': Math.floor(Math.random() * 4 + 1) + 'px',
-    '--delay': Math.floor(Math.random() * 100) / 100 + 's'
-}))
 
 export default getMainLayout
