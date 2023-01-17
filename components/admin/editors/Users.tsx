@@ -7,8 +7,8 @@ const Users: FC = React.memo(() => {
         <>
             <NavList
                 options={[]}
-            // value={selectedPage?.page_id}
-            // onChange={selectPage}
+                value={''}
+                onChange={() => { }}
             />
 
         </>
