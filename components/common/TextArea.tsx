@@ -1,6 +1,5 @@
 
 import React, { ChangeEvent, FC } from "react"
-import Spacer from "./Spacer"
 
 import styles from './TextArea.module.scss'
 
@@ -21,7 +20,6 @@ const TextArea: FC<Props> = React.memo(({ label, placeholder, value, onChange })
             <div className={styles.label}>
                 {label}
             </div>
-            <Spacer size={1} />
             <textarea className={styles.textarea} value={value} onChange={handleChange} />
         </div>
     )

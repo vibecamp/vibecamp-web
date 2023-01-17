@@ -1,6 +1,5 @@
 
 import React, { ChangeEvent, FC } from "react"
-import Spacer from "./Spacer"
 
 import styles from './Input.module.scss'
 
@@ -21,7 +20,6 @@ const Input: FC<Props> = React.memo(({ label, placeholder, value, onChange }) =>
             <div className={styles.label}>
                 {label}
             </div>
-            <Spacer size={1} />
             <input value={value} onChange={handleChange} />
         </div>
     )

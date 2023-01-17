@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 
-export function usePromise<T>(fn: () => Promise<T> | T): UsePromiseState<T> {
+export function usePromise<T>(fn: () => Promise<T> | T) {
     const [invoke, state] = usePromiseLazy(fn)
 
     useEffect(() => {
         invoke()
     }, [invoke])
 
-    return (
+    return [
+        invoke,
         state.kind === 'unsent'
-            ? { kind: 'loading' }
+            ? { kind: 'loading' } as const
             : state
-    )
+    ] as const
 }
 
 export function usePromiseLazy<T>(fn: () => Promise<T> | T) {
@@ -26,7 +27,7 @@ export function usePromiseLazy<T>(fn: () => Promise<T> | T) {
             const res = fn()
 
             if (res instanceof Promise) {
-                res
+                return res
                     .then((value: T) => {
                         if (closureId === lastRequestId.current) {
                             setState({ kind: 'value', value })

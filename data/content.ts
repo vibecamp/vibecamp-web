@@ -10,23 +10,38 @@ export const VISIBILITY_LEVELS = ['public', 'applicants', 'ticket_holders', 'adm
 export type VisibilityLevel = typeof VISIBILITY_LEVELS[number]
 
 export async function getPublicPages(): Promise<readonly Page[]> {
-    return [
-        {
-            page_id: "<index>",
-            title: "vibecamp",
-            content: '## WHY VIBECAMP?\nSuccessful beyond our wildest dreams, vibecamp is the yearly mini festival we memed into existence.\n\n2020’s lockdowns affected everyone, challenging our standing routines of being social, thoughtful, and active in the world. Many of us directed our unused energy online, forging new connections and friendships, and finding communities to be part of across the internet. Our corner of Twitter has somehow become the intersection of hundreds or thousands of these people and communities, sharing our ideas, humor, and goodwill with one another no matter where we are in the world. \n\nWhile interacting on Twitter or Discord is delightful, all along we’ve looked forward to the chance to get to know each other in person. As lockdowns end and travel resumes, many of us have been able to do just that, cementing what were just internet friendships in the real world. We’ve realized that the energy and excitement of this community isn’t just a product of pandemic loneliness, and we really do have the potential to do amazing things! We just need a reason to come together. \n\nvibecamp is that reason. We recognized that nothing was standing in the way of creating an event that would multiply the creative energy, excitement, and joy that our diverse and far-flung online community sparks in all of us. Of course, we also want to throw a big party. But this is a party with a purpose, for celebrating our community in its entirety, and there’s no better way than to highlight the diverse subgroups that make sharing Twitter with one another so weird and fun. \n\nThere are no definitions for who belongs at vibecamp. There are no clear boundaries for the membership of ingroup. There is only the constant, undeniable sense of a community disorganized around collective appreciation of our separate, special uniqueness. At vibecamp, we will explore what that means, and share what we all can bring to the table. We can’t wait to see you there.\n\nSubscribe to our mailing list and follow @vibecamp_ on Twitter to stay informed on ticket sales and other cool stuff.',
-            visibility_level: 'public'
-        },
-        {
-            page_id: 'communityvalues',
-            title: "Community Values",
-            content: '## COMMUNITY VALUES\nWe don’t generally like rules governing behavior, but we’re aware that it’s up to the organizing team to set the tone for vibecamp.\n\nBeyond ‘just vibe, bro’, here are a few things we wanted to tell y’all:\n\nLargely, identifying misconduct will be at the discretion of the org team. We will have people wearing t-shirts marked ‘fae’ onsite who will escalate issues to the org team if necessary. We, the vibecamp org team, reserve the right to ask anyone to leave vibecamp without a refund if we feel it is an appropriate step to take.\n\n### Things that we will have zero tolerance for include:\n\n- acts of physical or sexual assualt (enthusiastic consent and the safety of attendees is VERY important to us)\n- publicly doxxing the names of pseudonymous attendees (don’t be a dick)\n- taking and posting photographs/videos/speech that contain people who have not consented to such (again-don’t be a dick, people)\nBy default, respect attendees’ anonymity – don’t take or post pics/videos/transcripts and don’t name or imply names unless everyone involved is on board with you doing so. The Chatham House Rule is a great one for this community – You can talk about what was said or what happened, but don’t make it easy to tell who said/did what unless you have explicit consent. Please don\'t mention Camp Champions in your tweets – only tag @vibecamp_. Oh, and also NO DRUGS! \n\nvibecamp is our baby. We’ve collectively spent hundreds – probably thousands – of hours working to bring this vision to life. We want to be able to hang out with friends old and new, and have a great time together! If any attendees are acting in a way that makes you uncomfortable, please don’t hesitate to bring it to our attention directly, or to a fae volunteer who can contact us. We won’t be able to be everywhere at once and we will do what we can to make this a space where we can all be comfortable in our unique selves.\n\n### So what is it that we do want to see there?\n\nYOU, in all of your glorious weirdness. Wear costumes (or don’t)! Make art! Play, talk, dance, meet new people! Touch grass! Curiosity and kindness are values we stan. We will have a crazy range of viewpoints and political leanings represented among attendees. This is a perfect opportunity to let go of what artificially divides us and meet one another as humans.\n\n### It’s hard to put a finger on our exact values as a community, because we are so diverse and illegible, but here’s our short list:\n\n- participation rather than spectatorship\n- fulfilling conversations\n- illegibility and the ability to go meta\n- gentle, friendly pranksterishness\n- building an IRL home for ingroup\n- using social media to connect people who wouldn’t have met otherwise\n- personal and collective growth\n- deep, meaningful connection\n\nWhile we’re not totally sure what form(s) vibecamp will take over time, we’re sure of a few things. vibecamp is far more than just a bunch of internet strangers getting together for the first time at scale – it is the fulfillment of a dream, a crucial next step along the path towards a better future. We have such incredible people in this community, so much creativity, passion, and talent. Fostering connections between all of us means creating the conditions necessary for amazing people to get together to share thoughts and ideas and begin planning even greater endeavors together.\n\nIn the fullness of time we envision vibecamp moving around the world, spawning regional weekend get-togethers that happen more than once a year, and perhaps eventually culminating in purchasing land for a central event location year round. Stay tuned! Give us feedback! Offer your skills and passion! Create what you want to see! We can’t do it without you.',
-            visibility_level: 'public'
-        },
-        {
-            page_id: 'faq',
-            title: 'FAQ',
-            content: `
+    return PAGES
+}
+
+export async function savePage(page: Page): Promise<void> {
+    const existing = PAGES.find(p => p.page_id === page.page_id)
+
+    if (existing) {
+        Object.assign(existing, page)
+    } else {
+        PAGES.push(page)
+    }
+
+    return new Promise(res => setTimeout(res, 1000))
+}
+
+const PAGES: Page[] = [
+    {
+        page_id: "<index>",
+        title: "vibecamp",
+        content: '## WHY VIBECAMP?\nSuccessful beyond our wildest dreams, vibecamp is the yearly mini festival we memed into existence.\n\n2020’s lockdowns affected everyone, challenging our standing routines of being social, thoughtful, and active in the world. Many of us directed our unused energy online, forging new connections and friendships, and finding communities to be part of across the internet. Our corner of Twitter has somehow become the intersection of hundreds or thousands of these people and communities, sharing our ideas, humor, and goodwill with one another no matter where we are in the world. \n\nWhile interacting on Twitter or Discord is delightful, all along we’ve looked forward to the chance to get to know each other in person. As lockdowns end and travel resumes, many of us have been able to do just that, cementing what were just internet friendships in the real world. We’ve realized that the energy and excitement of this community isn’t just a product of pandemic loneliness, and we really do have the potential to do amazing things! We just need a reason to come together. \n\nvibecamp is that reason. We recognized that nothing was standing in the way of creating an event that would multiply the creative energy, excitement, and joy that our diverse and far-flung online community sparks in all of us. Of course, we also want to throw a big party. But this is a party with a purpose, for celebrating our community in its entirety, and there’s no better way than to highlight the diverse subgroups that make sharing Twitter with one another so weird and fun. \n\nThere are no definitions for who belongs at vibecamp. There are no clear boundaries for the membership of ingroup. There is only the constant, undeniable sense of a community disorganized around collective appreciation of our separate, special uniqueness. At vibecamp, we will explore what that means, and share what we all can bring to the table. We can’t wait to see you there.\n\nSubscribe to our mailing list and follow @vibecamp_ on Twitter to stay informed on ticket sales and other cool stuff.',
+        visibility_level: 'public'
+    },
+    {
+        page_id: 'communityvalues',
+        title: "Community Values",
+        content: '## COMMUNITY VALUES\nWe don’t generally like rules governing behavior, but we’re aware that it’s up to the organizing team to set the tone for vibecamp.\n\nBeyond ‘just vibe, bro’, here are a few things we wanted to tell y’all:\n\nLargely, identifying misconduct will be at the discretion of the org team. We will have people wearing t-shirts marked ‘fae’ onsite who will escalate issues to the org team if necessary. We, the vibecamp org team, reserve the right to ask anyone to leave vibecamp without a refund if we feel it is an appropriate step to take.\n\n### Things that we will have zero tolerance for include:\n\n- acts of physical or sexual assualt (enthusiastic consent and the safety of attendees is VERY important to us)\n- publicly doxxing the names of pseudonymous attendees (don’t be a dick)\n- taking and posting photographs/videos/speech that contain people who have not consented to such (again-don’t be a dick, people)\nBy default, respect attendees’ anonymity – don’t take or post pics/videos/transcripts and don’t name or imply names unless everyone involved is on board with you doing so. The Chatham House Rule is a great one for this community – You can talk about what was said or what happened, but don’t make it easy to tell who said/did what unless you have explicit consent. Please don\'t mention Camp Champions in your tweets – only tag @vibecamp_. Oh, and also NO DRUGS! \n\nvibecamp is our baby. We’ve collectively spent hundreds – probably thousands – of hours working to bring this vision to life. We want to be able to hang out with friends old and new, and have a great time together! If any attendees are acting in a way that makes you uncomfortable, please don’t hesitate to bring it to our attention directly, or to a fae volunteer who can contact us. We won’t be able to be everywhere at once and we will do what we can to make this a space where we can all be comfortable in our unique selves.\n\n### So what is it that we do want to see there?\n\nYOU, in all of your glorious weirdness. Wear costumes (or don’t)! Make art! Play, talk, dance, meet new people! Touch grass! Curiosity and kindness are values we stan. We will have a crazy range of viewpoints and political leanings represented among attendees. This is a perfect opportunity to let go of what artificially divides us and meet one another as humans.\n\n### It’s hard to put a finger on our exact values as a community, because we are so diverse and illegible, but here’s our short list:\n\n- participation rather than spectatorship\n- fulfilling conversations\n- illegibility and the ability to go meta\n- gentle, friendly pranksterishness\n- building an IRL home for ingroup\n- using social media to connect people who wouldn’t have met otherwise\n- personal and collective growth\n- deep, meaningful connection\n\nWhile we’re not totally sure what form(s) vibecamp will take over time, we’re sure of a few things. vibecamp is far more than just a bunch of internet strangers getting together for the first time at scale – it is the fulfillment of a dream, a crucial next step along the path towards a better future. We have such incredible people in this community, so much creativity, passion, and talent. Fostering connections between all of us means creating the conditions necessary for amazing people to get together to share thoughts and ideas and begin planning even greater endeavors together.\n\nIn the fullness of time we envision vibecamp moving around the world, spawning regional weekend get-togethers that happen more than once a year, and perhaps eventually culminating in purchasing land for a central event location year round. Stay tuned! Give us feedback! Offer your skills and passion! Create what you want to see! We can’t do it without you.',
+        visibility_level: 'public'
+    },
+    {
+        page_id: 'faq',
+        title: 'FAQ',
+        content: `
 ## FAQ
 
 ### DISCORD
@@ -233,31 +248,31 @@ deep, meaningful connection
 vibecamp is far more than just a bunch of internet strangers getting together at scale – it is the fulfillment of a dream, a crucial next step along the path towards a better future. We have such incredible people in this community, so much creativity, passion, and talent. Fostering connections between all of us means creating the conditions necessary for amazing people to get together to share thoughts and ideas and begin planning even greater endeavors together.
 
 In the fullness of time we envision vibecamp moving around the world, spawning regional weekend get-togethers that happen more than once a year, and perhaps eventually culminating in purchasing land for a central event location year round. Stay tuned! Give us feedback! Offer your skills and passion! Create what you want to see! We can’t do it without you.`,
-            visibility_level: 'public'
-        },
-        {
-            page_id: 'team',
-            title: "Team",
-            content: '',
-            visibility_level: 'public'
-        },
-        {
-            page_id: 'donate',
-            title: "Donate",
-            content: '',
-            visibility_level: 'public'
-        },
-        {
-            page_id: 'vibefund',
-            title: "Vibefund",
-            content: `
+        visibility_level: 'public'
+    },
+    {
+        page_id: 'team',
+        title: "Team",
+        content: '',
+        visibility_level: 'public'
+    },
+    {
+        page_id: 'donate',
+        title: "Donate",
+        content: '',
+        visibility_level: 'public'
+    },
+    {
+        page_id: 'vibefund',
+        title: "Vibefund",
+        content: `
 ## VIBEFUND
 
 ### What is it?
 
 vibefund offers financial support, networking, and counseling for members of the vibecamp community to help them make progress on creative, technical, and professional projects.
 
- 
+
 
 ### Who’s eligible?
 
@@ -271,19 +286,19 @@ You’re eligible as long as you’re a member of the extended vibecamp communit
 
 The only other requirement is that you’re working on (or want to work on) a specific project that can somehow be viewed/accessed/purchased by the public when it’s done (whether you want to charge people for it or not).
 
- 
+
 
 ### What’s available?
 
 Depending on the type of obstacles you’re facing, the nature of the project, and the project’s roadmap, individual applicants may qualify for an initial grant of up to $500. Once you’re accepted, you’ll also be automatically considered for future funding opportunities as they arise.
 
- 
+
 
 ### What can I use the money for?
 
 That’s up to you! vibefunding is meant to help with whatever’s holding back a project, whether that’s the need for expensive equipment, sourcing art, traveling for research, or just paying for food and rent.
 
- 
+
 
 ### What’s in it for vibecamp?
 
@@ -291,19 +306,19 @@ Community support has always been a core part of vibecamp’s mission. We see vi
 
 We only ask you to keep us updated on your project’s status over time, and mention vibecamp/vibefund (if possible) in your project’s acknowledgements/credits (or equivalent) when you finish.
 
- 
+
 
 ### How can I apply?
 
 Fill out the form at the bottom of the page!
 
- 
+
 
 ### What if I don’t have a project?
 
 vibefund isn’t just about financial support. We’re also establishing a broad network of talented individuals to help you focus your skills on the coolest projects. Fill out this form to be added to our talent & support network, and we’ll let you know when we hear about projects with needs that match your interests & abilities!
 
- 
+
 
 ### What were those other services?
 
@@ -313,22 +328,21 @@ We’re also putting together a counseling team that offers regular check-ups on
 
 We’ll discuss all these services, and more, during the initial application conversation.
 
- 
+
 
 ### This is amazing! How else can I help?
 
 Reach out if you’d like to discuss how you can support vibefund. If you’re completely blown away and just want to donate so we can offer more funding, click here. 100% of vibefund donations go directly to funding the community.
 
- 
+
 ### I have more questions!
 
 Check out the [vibefund FAQ](https://vibe.camp/vibefund-faq/).
 
 <iframe class="airtable-embed" src="https://airtable.com/embed/shryBStot8Oi6SwoY?backgroundColor=purple" frameborder="0" onmousewheel="" width="100%" height="533" style="background: transparent; border: 1px solid #ccc;"></iframe>`,
-            visibility_level: 'public'
-        },
-    ]
-}
+        visibility_level: 'public'
+    },
+]
 
 export type LinkInfo = {
     label: string,
