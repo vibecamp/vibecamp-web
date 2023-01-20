@@ -97,6 +97,17 @@
     }
 }
 
+.footerNotes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+
+    a {
+        text-decoration: underline;
+    }
+}
+
 @keyframes shift-sky {
     0% {
         background-position: 0px 0px;
