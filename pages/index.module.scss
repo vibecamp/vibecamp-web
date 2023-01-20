@@ -1,0 +1,12 @@
+.point {
+    display: flex;
+    align-items: flex-start;
+
+    >* {
+        line-height: 1.2em;
+
+        &:not(:first-child) {
+            margin-left: 1em;
+        }
+    }
+}

@@ -40,7 +40,15 @@ article {
   margin: 0 auto;
   font-weight: 300;
 
-  h1, h2, h3, h4, h5, h6 {}
+  $block-spacing: 30px;
+
+  >*+:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6) {
+    margin-top: $block-spacing;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    padding-top: $block-spacing; // padding instead of margin so anchor links look nice
+  }
 
   h2 {
     font-family: SunshineKiddy;
@@ -53,7 +61,7 @@ article {
   }
 
   h3 {
-    font-size: 22px;
+    font-size: 20px;
   }
 
   p {
@@ -65,12 +73,18 @@ article {
     padding-inline-start: 20px;
   }
 
-  >*+* {
-    padding-top: 20px; // padding instead of margin so anchor links look nice
+  li {
+    margin-top: 0.5em;
   }
 
   a {
     text-decoration: underline;
+  }
+
+  blockquote {
+    background: rgba(124, 139, 154, 0.13);
+    padding: 1.2em 1.6em;
+    border-radius: 3px;
   }
 }
 
