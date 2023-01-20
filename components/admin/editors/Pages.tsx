@@ -19,6 +19,16 @@ const Pages: FC = React.memo(() => {
     const [selectedPageId, setSelectedPageId] = useState<string | null>(null)
     const [editingPage, setEditingPage] = useState<Page | null>(null)
 
+    const selectedPageContent = editingPage?.content ?? ''
+    const [previewHtml, setPreviewHtml] = useState('')
+    const renderPreviewHtml = useCallback((selectedPageContent: string) => {
+        setPreviewHtml(renderMarkdown(selectedPageContent))
+    }, [])
+    const renderPreviewHtmlDebounced = useMemo(() => debounce(renderPreviewHtml, 200), [renderPreviewHtml])
+    useEffect(() =>
+        renderPreviewHtmlDebounced(selectedPageContent)
+        , [renderPreviewHtmlDebounced, selectedPageContent])
+
     const existingPages = existingPagesResult.kind === 'value' ? existingPagesResult.value : null
 
     const [modifiedCurrent, setModifiedCurrent] = useState(false)
@@ -33,7 +43,7 @@ const Pages: FC = React.memo(() => {
             setEditingPage(JSON.parse(JSON.stringify(existing)))
             renderPreviewHtml(existing.content)
         }
-    }, [existingPages, selectedPageId])
+    }, [existingPages, renderPreviewHtml, selectedPageId])
 
     const addPage = useCallback(() => {
         setEditingPage(JSON.parse(JSON.stringify(NEW_PAGE)))
@@ -106,16 +116,6 @@ const Pages: FC = React.memo(() => {
     //         }
     //     }))
     // }, [])
-
-    const selectedPageContent = editingPage?.content ?? ''
-    const [previewHtml, setPreviewHtml] = useState('')
-    const renderPreviewHtml = useCallback((selectedPageContent: string) => {
-        setPreviewHtml(renderMarkdown(selectedPageContent))
-    }, [])
-    const renderPreviewHtmlDebounced = useMemo(() => debounce(renderPreviewHtml, 200), [renderPreviewHtml])
-    useEffect(() =>
-        renderPreviewHtmlDebounced(selectedPageContent)
-        , [renderPreviewHtmlDebounced, selectedPageContent])
 
     return (
         <>
