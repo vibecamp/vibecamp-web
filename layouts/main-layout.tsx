@@ -1,11 +1,14 @@
 import Link from "../components/common/Link";
 import Spacer from "../components/common/Spacer";
+import useIsOnMobile from "../hooks/useIsOnMobile";
 import { GetLayoutFn } from "../pages/_app";
 import { STARS_DATA } from "../utils/stars";
 
 import styles from './main-layout.module.scss'
 
 const getMainLayout = ({ largeBanner }: { largeBanner: boolean }): GetLayoutFn => (content) => {
+    const isOnMobile = useIsOnMobile()
+    const twitterLogoSize = isOnMobile ? 60 : 80
 
     return (
         <div>
@@ -23,7 +26,7 @@ const getMainLayout = ({ largeBanner }: { largeBanner: boolean }): GetLayoutFn =
                     VIBECAMP
                 </Link>
 
-                <img src="/twitter.png" />
+                <img src="/twitter.png" width={twitterLogoSize} height={twitterLogoSize} />
             </header>
 
             {content}
