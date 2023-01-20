@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build && next-sitemap",
     "start": "next start",
+    "build-and-export": "next build && next-sitemap && next export",
     "lint": "next lint"
   },
   "dependencies": {
