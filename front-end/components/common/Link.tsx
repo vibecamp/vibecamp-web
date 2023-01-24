@@ -19,7 +19,7 @@ const Link: FC<Props> = React.memo(({ className, style, href, children, openInNe
         rel: openInNewTab ? 'noreferrer' : undefined,
         children,
         onClick
-    } as const), [children, className, href, openInNewTab, style])
+    } as const), [children, className, href, onClick, openInNewTab, style])
 
     if (href.startsWith('/') && !openInNewTab) {
         return (
