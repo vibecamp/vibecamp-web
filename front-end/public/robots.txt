@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://next.vibe.camp
+
+# Sitemaps
+Sitemap: https://next.vibe.camp/sitemap.xml
