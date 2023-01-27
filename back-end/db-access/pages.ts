@@ -1,4 +1,4 @@
-import { Page } from '../../common/data/pages.ts'
+import { Page } from 'https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data/pages.ts'
 import { borrowConnection } from "./connection-pool.ts"
 
 export async function getAllPages(): Promise<readonly Page[]> {
