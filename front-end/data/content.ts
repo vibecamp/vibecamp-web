@@ -6,15 +6,10 @@ export async function getPublicPages(): Promise<readonly Page[]> {
 }
 
 export async function savePage(page: Page): Promise<void> {
-    // const existing = PAGES.find(p => p.page_id === page.page_id)
-
-    // if (existing) {
-    //     Object.assign(existing, page)
-    // } else {
-    //     PAGES.push(page)
-    // }
-
-    return new Promise(res => setTimeout(res, 1000))
+    await fetch(BACK_END_ORIGIN + '/api/v1/page', {
+        method: 'POST',
+        body: JSON.stringify(page)
+    })
 }
 
 export type LinkInfo = {

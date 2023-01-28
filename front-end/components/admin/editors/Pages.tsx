@@ -1,11 +1,12 @@
-import debounce from "debounce"
-import produce from "immer"
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react"
-import { Page, VisibilityLevel, VISIBILITY_LEVELS } from "../../../../common/data/pages"
+import { autorun, makeAutoObservable, reaction } from "mobx"
+import { observer } from "mobx-react-lite"
+import React, { FC } from "react"
+import { Page, VISIBILITY_LEVELS } from "../../../../common/data/pages"
 import { getPublicPages, savePage } from "../../../data/content"
-import { usePromise } from "../../../hooks/usePromise"
 import { renderMarkdown } from "../../../utils/markdown"
 import { stringToOption } from "../../../utils/misc"
+import { debouncedGet } from "../../../utils/mobx/debounced-get"
+import { remote } from "../../../utils/mobx/remote"
 import Button from "../../common/Button"
 import Dropdown from "../../common/Dropdown"
 import Input from "../../common/Input"
@@ -15,141 +16,95 @@ import TextArea from "../../common/TextArea"
 
 import styles from './Pages.module.scss'
 
-const Pages: FC = React.memo(() => {
-    const [loadPages, existingPagesResult] = usePromise(getPublicPages)
-    const [selectedPageId, setSelectedPageId] = useState<string | null>(null)
-    const [editingPage, setEditingPage] = useState<Page | null>(null)
+class _PagesStore {
+    constructor() {
+        makeAutoObservable(this)
 
-    const selectedPageContent = editingPage?.content ?? ''
-    const [previewHtml, setPreviewHtml] = useState('')
-    const renderPreviewHtml = useCallback((selectedPageContent: string) => {
-        setPreviewHtml(renderMarkdown(selectedPageContent))
-    }, [])
-    const renderPreviewHtmlDebounced = useMemo(() => debounce(renderPreviewHtml, 200), [renderPreviewHtml])
-    useEffect(() =>
-        renderPreviewHtmlDebounced(selectedPageContent)
-        , [renderPreviewHtmlDebounced, selectedPageContent])
+        autorun(() => {
+            if (this.selectedPage != null) {
+                this.pageBeingEdited = JSON.parse(JSON.stringify(this.selectedPage))
+            }
+        })
 
-    const existingPages = existingPagesResult.kind === 'value' ? existingPagesResult.value : null
+        reaction(
+            () => this.selectedPageId,
+            () => this.previewHtml.updateImmediately()
+        )
 
-    const [modifiedCurrent, setModifiedCurrent] = useState(false)
+        // TODO: auto-set page ID based on title changes
+    }
 
-    const navOptions = useMemo(() =>
-        existingPages?.map(page => ({ label: page.title, value: page.page_id })) ?? []
-        , [existingPages])
+    readonly loadedPages = remote(getPublicPages)
 
-    useEffect(() => {
-        const existing = existingPages?.find(page => page.page_id === selectedPageId)
-        if (existing) {
-            setEditingPage(JSON.parse(JSON.stringify(existing)))
-            renderPreviewHtml(existing.content)
+    initializeSelectedPageForEditing = () => {
+        if (this.selectedPage != null) {
+            this.pageBeingEdited = JSON.parse(JSON.stringify(this.selectedPage))
+            this.previewHtml.updateImmediately()
         }
-    }, [existingPages, renderPreviewHtml, selectedPageId])
+    }
 
-    const addPage = useCallback(() => {
-        setEditingPage(JSON.parse(JSON.stringify(NEW_PAGE)))
-        setModifiedCurrent(true)
-    }, [])
-
-    const saveChanges = useCallback(async () => {
-        if (editingPage) {
-            await savePage(editingPage)
-            setSelectedPageId(editingPage?.page_id)
-            await loadPages()
-            setModifiedCurrent(false)
+    saveChanges = async () => {
+        if (this.pageBeingEdited != null) {
+            await savePage(this.pageBeingEdited)
+            this.selectedPageId = this.pageBeingEdited?.page_id
+            await this.loadedPages.load()
+            this.currentPageModified = false
         }
-    }, [editingPage, loadPages])
+    }
 
-    const discardChanges = useCallback(() => {
-        if (selectedPageId) {
-            const existing = existingPages?.find(page => page.page_id === selectedPageId)
-            setEditingPage(JSON.parse(JSON.stringify(existing)))
-        } else {
-            setEditingPage(null)
-        }
-        setModifiedCurrent(false)
-    }, [existingPages, selectedPageId])
+    get navOptions() {
+        return this.loadedPages.value?.map(page => ({ label: page.title, value: page.page_id })) ?? []
+    }
 
-    const handleIDChange = useCallback((value: string) => {
-        setEditingPage(selectedPage => produce(selectedPage, selectedPage => {
-            if (selectedPage) {
-                selectedPage.page_id = value
-                setModifiedCurrent(true)
-            }
-        }))
-    }, [])
+    get selectedPage() {
+        return this.loadedPages.value?.find(page => page.page_id === this.selectedPageId)
+    }
 
-    const handleTitleChange = useCallback((value: string) => {
-        setEditingPage(selectedPage => produce(selectedPage, selectedPage => {
-            if (selectedPage) {
-                if (selectedPage.page_id === '' || selectedPage.page_id === titleToId(selectedPage.title)) {
-                    selectedPage.page_id = titleToId(value)
-                }
+    selectedPageId: string | undefined = undefined
+    pageBeingEdited: Page | undefined = undefined
+    currentPageModified = false
 
-                selectedPage.title = value
-                setModifiedCurrent(true)
-            }
-        }))
-    }, [])
+    readonly previewHtml = debouncedGet(() => renderMarkdown(this.pageBeingEdited?.content ?? ''), 200)
+}
+const PagesStore = new _PagesStore()
 
-    const handleContentChange = useCallback((value: string) => {
-        setEditingPage(selectedPage => produce(selectedPage, selectedPage => {
-            if (selectedPage) {
-                selectedPage.content = value
-                setModifiedCurrent(true)
-            }
-        }))
-    }, [])
-
-    const handleVisibilityChange = useCallback((value: VisibilityLevel) => {
-        setEditingPage(selectedPage => produce(selectedPage, selectedPage => {
-            if (selectedPage) {
-                selectedPage.visibility_level = value
-                setModifiedCurrent(true)
-            }
-        }))
-    }, [])
-
-    // const handleNavOrderChange = useCallback((value: string) => {
-    //     setSelectedPage(selectedPage => produce(selectedPage, selectedPage => {
-    //         if (selectedPage) {
-    //             selectedPage.nav_order = Number(value)
-    //         }
-    //     }))
-    // }, [])
+const Pages: FC = observer(() => {
+    const pageBeingEdited = PagesStore.pageBeingEdited
 
     return (
         <>
             <NavList
-                options={navOptions}
-                value={selectedPageId}
-                onChange={setSelectedPageId}
-                onAddButtonClick={addPage}
+                options={PagesStore.navOptions}
+                value={PagesStore.selectedPageId}
+                onChange={id => PagesStore.selectedPageId = id}
+            // onAddButtonClick={addPage} TODO
             />
 
             <div className={styles.editSection}>
-                {editingPage && <>
+                {pageBeingEdited && <>
                     <div>
-                        <Button appearance="primary" onClick={saveChanges} disabled={!modifiedCurrent}>
+                        <Button appearance="primary" onClick={PagesStore.saveChanges}>
+                            {/* disabled={!PagesStore.currentPageModified} */}
                             Save Changes
                         </Button>
                         <Spacer size={1} />
-                        <Button appearance="secondary" onClick={discardChanges} disabled={!modifiedCurrent}>
+                        <Button appearance="secondary" onClick={PagesStore.initializeSelectedPageForEditing}>
+                            {/* disabled={!PagesStore.currentPageModified} */}
                             Discard Changes
                         </Button>
                     </div>
 
-                    <Input label='Title' value={editingPage.title} onChange={handleTitleChange} />
-                    <Input label='ID (Page URL)' value={editingPage.page_id} onChange={handleIDChange} />
-                    <TextArea label='Content' value={editingPage.content} onChange={handleContentChange} />
-                    <Dropdown label='Visibility' value={editingPage.visibility_level} onChange={handleVisibilityChange} options={VISIBILITY_OPTIONS} />
+                    <Input label='Title' value={pageBeingEdited.title} onChange={val => pageBeingEdited.title = val} />
+                    <Input label='ID (Page URL)' value={pageBeingEdited.page_id} onChange={val => pageBeingEdited.page_id = val} />
+                    <TextArea label='Content' value={pageBeingEdited.content} onChange={val => pageBeingEdited.content = val} />
+                    <Dropdown label='Visibility' value={pageBeingEdited.visibility_level} onChange={val => pageBeingEdited.visibility_level = val} options={VISIBILITY_OPTIONS} />
                     {/* <Input label='Nav order' value={selectedPage.nav_order + ''} onChange={handleNavOrderChange} /> */}
                 </>}
             </div>
 
             <article
                 className={styles.previewSection}
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
+                dangerouslySetInnerHTML={{ __html: PagesStore.previewHtml.get() }}
             />
         </>
     )
