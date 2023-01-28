@@ -1,4 +1,4 @@
-import { Application, ServerSentEvent } from './deps/oak.ts'
+import { Application } from './deps/oak.ts'
 import { router } from "./routes/index.ts"
 
 const app = new Application()
