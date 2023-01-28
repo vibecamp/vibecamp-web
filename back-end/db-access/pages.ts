@@ -1,7 +1,7 @@
-// import { Page } from 'https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data/pages.ts'
-// import { borrowConnection } from "./connection-pool.ts"
+import { Page } from 'https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data/pages.ts'
+import { borrowConnection } from "./connection-pool.ts"
 
-export async function getAllPages(): Promise<readonly any[]> {
+export async function getAllPages(): Promise<readonly Page[]> {
     // return await borrowConnection(async conn => {
     //     const res = await conn.queryObject("SELECT * FROM PAGE")
     //     return res.rows as Page[]
@@ -11,7 +11,7 @@ export async function getAllPages(): Promise<readonly any[]> {
 }
 
 // temporary data
-const PAGES: any[] = [
+const PAGES: Page[] = [
     {
         page_id: 'communityvalues',
         title: "Community Values",
