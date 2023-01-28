@@ -9,7 +9,6 @@ app.use(async (ctx, next) => {
 
     // https://stackoverflow.com/a/1850482
     const requesterOrigin = ctx.request.headers.get('origin')
-    console.log({ requesterOrigin })
     if (requesterOrigin != null && ALLOWED_ORIGINS.has(requesterOrigin)) {
         ctx.response.headers.append('Access-Control-Allow-Origin', requesterOrigin)
     }
