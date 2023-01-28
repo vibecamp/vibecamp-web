@@ -1,4 +1,4 @@
-import { Application } from './deps/oak.ts'
+import { Application, ServerSentEvent } from './deps/oak.ts'
 import { router } from "./routes/index.ts"
 
 const app = new Application()
@@ -6,11 +6,22 @@ const app = new Application()
 // middleware
 app.use(async (ctx, next) => {
     ctx.response.headers.set('Content-Type', 'application/json')
-    ctx.response.headers.append('Access-Control-Allow-Origin', 'https://vibe.camp/')
-    ctx.response.headers.append('Access-Control-Allow-Origin', 'http://localhost/')
+
+    // https://stackoverflow.com/a/1850482
+    const requesterOrigin = ctx.request.headers.get('origin')
+    console.log({ requesterOrigin })
+    if (ALLOWED_ORIGINS.has(requesterOrigin)) {
+        ctx.response.headers.append('Access-Control-Allow-Origin', requesterOrigin)
+    }
 
     await next()
 })
+
+const ALLOWED_ORIGINS = new Set([
+    'https://vibe.camp',
+    'https://next.vibe.camp',
+    'http://localhost:3000'
+])
 
 // routes
 app.use(router.routes())
