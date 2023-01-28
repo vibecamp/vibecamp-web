@@ -1,6 +1,6 @@
-import { getAllPages } from "../db-access/pages.ts";
-import { Router } from "../deps/oak.ts";
-import { API_BASE } from "./constants";
+import { getAllPages } from "../../db-access/pages.ts";
+import { Router } from "../../deps/oak.ts";
+import { API_BASE } from "./constants.ts";
 
 export default function register(router: Router) {
 
