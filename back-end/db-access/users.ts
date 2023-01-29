@@ -5,9 +5,17 @@ import { compare, hash } from '../deps/bcrypt.ts'
 export async function authenticateByEmail({ email, password }: { email: string, password: string }): Promise<User | undefined> {
     const user = await borrowConnection(async conn => {
         const res = await conn.queryObject<User>(`
-                SELECT *
-                FROM users
-                WHERE email = $1
+                SELECT 
+                    user_id,
+                    user_name,
+                    permission_level_name AS permission_level,
+                    email,
+                    password_hash,
+                    password_salt
+                FROM users, permission_levels
+                WHERE 
+                    email = $1 AND
+                    users.permission_level_id = permission_levels.permission_level_id
             `,
             [email]
         )

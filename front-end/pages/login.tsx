@@ -3,7 +3,6 @@ import { FormEvent, useCallback, useState } from "react"
 import Button from "../components/common/Button"
 import Input from "../components/common/Input"
 import { login } from "../data/auth"
-import { usePromise } from "../hooks/usePromise"
 import { NextPageWithLayout } from "./_app"
 
 const Login: NextPageWithLayout = () => {
@@ -19,9 +18,6 @@ const Login: NextPageWithLayout = () => {
         setOutcome(res)
     }, [email, password])
 
-
-    const current = usePromise(getCurrent)
-
     return (
         <>
             <form onSubmit={handleSubmit}>
@@ -36,17 +32,9 @@ const Login: NextPageWithLayout = () => {
                     : outcome === false ?
                         'Failed'
                         : null}
-
-                <div>
-                    Current: {JSON.stringify(current)}
-                </div>
             </form>
         </>
     )
 }
-
-const getCurrent = () => fetch('http://localhost:10000/api/v1/current_permission_level', {
-    credentials: 'include',
-}).then(res => res.text())
 
 export default Login

@@ -29,30 +29,30 @@ export default function register(router: Router) {
             if (user != null) {
                 const payload = {
                     iss: "vibecamp",
-                    exp: getNumericDate(new Date()),
+                    exp: getNumericDate(Date.now() + 30 * 60 * 60 * 1_000),
                     permission_level: user.permission_level
                 }
                 const jwt = await create(header, payload, JWT_SECRET_KEY)
-                ctx.cookies.set("token", jwt)
-                ctx.response.body = JSON.stringify({ success: true })
+                ctx.response.body = JSON.stringify({ success: true, jwt })
             }
         }
     })
 }
 
 export async function getPermissionLevel(ctx: AnyRouterContext): Promise<PermissionLevel | undefined> {
-    const token = await ctx.cookies.get("token");
+    const header = ctx.request.headers.get('Authorization');
+    const bearerPrefix = 'Bearer '
+    if (header != null && header.startsWith(bearerPrefix)) {
+        const token = header.substring(bearerPrefix.length)
 
-    if (token != null) {
         try {
             const result = await verify(token, JWT_SECRET_KEY);
-
-            // TODO: check exp (expiration)
             return result?.permission_level as PermissionLevel | undefined
         } catch {
-            return undefined
         }
     }
+
+    return undefined
 }
 
 export async function requirePermissionLevel(ctx: AnyRouterContext, required: PermissionLevel): Promise<PermissionLevel> {

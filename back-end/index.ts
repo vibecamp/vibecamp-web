@@ -7,6 +7,7 @@ const app = new Application()
 app.use(async (ctx, next) => {
     ctx.response.headers.set('Content-Type', 'application/json')
     ctx.response.headers.set('Access-Control-Allow-Credentials', 'true')
+    ctx.response.headers.set('Access-Control-Allow-Headers', 'Authorization')
 
     // https://stackoverflow.com/a/1850482
     const requesterOrigin = ctx.request.headers.get('origin')
