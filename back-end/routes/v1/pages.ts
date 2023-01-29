@@ -16,4 +16,9 @@ export default function register(router: Router) {
         await updatePage(newPage)
         ctx.response.body = JSON.stringify({ success: true })
     })
+
+    router.post(API_BASE + '/deploy-static-site', requirePermissionLevel('admin'), async (ctx) => {
+        await fetch(FRONT_END_DEPLOY_HOOK)
+        ctx.response.body = JSON.stringify({ success: true })
+    })
 }
