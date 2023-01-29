@@ -1,4 +1,5 @@
 import { BACK_END_ORIGIN } from "../public-runtime-config"
+import { isClientSide } from "../utils/misc"
 import { vibeFetch } from "./_common"
 
 export async function login({ email, password }: { email: string, password: string }): Promise<boolean> {
