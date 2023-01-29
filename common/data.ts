@@ -16,3 +16,9 @@ export type User = {
     password_hash: string | null,
     password_salt: string
 }
+
+export type NavLink = {
+    href: string,
+    label: string,
+    nav_order: number
+}
