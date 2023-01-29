@@ -45,12 +45,18 @@ class _PagesStore {
 
     saveChanges = async () => {
         if (this.pageBeingEdited != null) {
-            await savePage(this.pageBeingEdited)
-            this.selectedPageId = this.pageBeingEdited?.page_id
-            await this.loadedPages.load()
-            this.currentPageModified = false
+            this.savingChanges = true
+            try {
+                await savePage(this.pageBeingEdited)
+                this.currentPageModified = false
+                this.selectedPageId = this.pageBeingEdited?.page_id
+                await this.loadedPages.load()
+            } finally {
+                this.savingChanges = false
+            }
         }
     }
+    savingChanges = false
 
     get navOptions() {
         return this.loadedPages.value?.map(page => ({ label: page.title, value: page.page_id })) ?? []
@@ -83,12 +89,12 @@ const Pages: FC = observer(() => {
             <div className={styles.editSection}>
                 {pageBeingEdited && <>
                     <div>
-                        <Button appearance="primary" onClick={PagesStore.saveChanges}>
+                        <Button appearance="primary" onClick={PagesStore.saveChanges} loading={PagesStore.savingChanges}>
                             {/* disabled={!PagesStore.currentPageModified} */}
                             Save Changes
                         </Button>
                         <Spacer size={1} />
-                        <Button appearance="secondary" onClick={PagesStore.initializeSelectedPageForEditing}>
+                        <Button appearance="secondary" onClick={PagesStore.initializeSelectedPageForEditing} disabled={PagesStore.savingChanges}>
                             {/* disabled={!PagesStore.currentPageModified} */}
                             Discard Changes
                         </Button>
