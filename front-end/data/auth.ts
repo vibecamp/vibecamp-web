@@ -21,9 +21,13 @@ export async function login({ email, password }: { email: string, password: stri
 }
 
 export function setJwtCookie(jwt: string) {
-    document.cookie = 'jwt=' + jwt
+    if (isClientSide()) {
+        document.cookie = 'jwt=' + jwt
+    }
 }
 
 export function getJwtCookie() {
-    return document.cookie.split(';').find(piece => piece.startsWith('jwt='))?.substring(4)
+    return isClientSide()
+        ? document.cookie.split(';').find(piece => piece.startsWith('jwt='))?.substring(4)
+        : undefined
 }
