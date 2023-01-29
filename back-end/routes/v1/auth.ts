@@ -1,6 +1,6 @@
 import { PermissionLevel } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data/pages.ts";
 import { RouteParams, Router, RouterContext, Status } from "../../deps/oak.ts";
-import { API_BASE } from "./constants.ts";
+import { API_BASE } from "./_constants.ts";
 import { create, getNumericDate, verify } from '../../deps/djwt.ts'
 import { authenticateByEmail } from "../../db-access/users.ts";
 

@@ -2,7 +2,7 @@ import { Page } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/ma
 import { getAllPages, updatePage } from "../../db-access/pages.ts";
 import { Router } from "../../deps/oak.ts";
 import { requirePermissionLevel } from "./auth.ts";
-import { API_BASE } from "./constants.ts";
+import { API_BASE } from "./_constants.ts";
 
 export default function register(router: Router) {
 
