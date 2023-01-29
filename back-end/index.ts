@@ -26,5 +26,6 @@ const ALLOWED_ORIGINS = new Set([
 app.use(router.routes())
 app.use(router.allowedMethods())
 
-console.log('Starting server on port 10000')
-await app.listen({ port: 10000 })
+const port = 10_000
+console.log(`Starting server on port ${port}`)
+await app.listen({ port })

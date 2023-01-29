@@ -1,7 +1,7 @@
 import { autorun, makeAutoObservable, reaction } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { FC } from "react"
-import { Page, VISIBILITY_LEVELS } from "../../../../common/data/pages"
+import { Page, PERMISSION_LEVELS } from "../../../../common/data/pages"
 import { getPublicPages, savePage } from "../../../data/content"
 import { renderMarkdown } from "../../../utils/markdown"
 import { stringToOption } from "../../../utils/misc"
@@ -97,7 +97,7 @@ const Pages: FC = observer(() => {
                     <Input label='Title' value={pageBeingEdited.title} onChange={val => pageBeingEdited.title = val} />
                     <Input label='ID (Page URL)' value={pageBeingEdited.page_id} onChange={val => pageBeingEdited.page_id = val} />
                     <TextArea label='Content' value={pageBeingEdited.content} onChange={val => pageBeingEdited.content = val} />
-                    <Dropdown label='Visibility' value={pageBeingEdited.visibility_level} onChange={val => pageBeingEdited.visibility_level = val} options={VISIBILITY_OPTIONS} />
+                    <Dropdown label='Visibility' value={pageBeingEdited.permission_level} onChange={val => pageBeingEdited.permission_level = val} options={PERMISSION_OPTIONS} />
                     {/* <Input label='Nav order' value={selectedPage.nav_order + ''} onChange={handleNavOrderChange} /> */}
                 </>}
             </div>
@@ -118,9 +118,9 @@ const NEW_PAGE: Page = {
     page_id: '',
     title: '',
     content: '',
-    visibility_level: 'admins'
+    permission_level: 'admins'
 }
 
-const VISIBILITY_OPTIONS = VISIBILITY_LEVELS.map(stringToOption)
+const PERMISSION_OPTIONS = PERMISSION_LEVELS.map(stringToOption)
 
 export default Pages
