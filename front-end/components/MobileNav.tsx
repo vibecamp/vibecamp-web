@@ -1,6 +1,6 @@
 
 import { FC, useCallback, useContext } from 'react'
-import { LinkInfo } from '../data/content'
+import { LinkInfo } from '../api/content'
 import { MobileNavOpenContext } from '../pages/_app'
 import Link from './common/Link'
 

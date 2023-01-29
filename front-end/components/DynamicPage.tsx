@@ -1,6 +1,6 @@
 import Head from "next/head"
 import { FC } from "react"
-import { LinkInfo } from "../data/content"
+import { LinkInfo } from "../api/content"
 import useIsOnMobile from "../hooks/useIsOnMobile"
 
 import styles from './DynamicPage.module.scss'

@@ -1,5 +1,5 @@
 import { GetStaticProps } from "next";
-import { getPublicLinks, LinkInfo } from "../data/content";
+import { getPublicLinks, LinkInfo } from "../api/content";
 import getMainLayout from "../layouts/main-layout";
 import { NextPageWithLayout } from "./_app";
 

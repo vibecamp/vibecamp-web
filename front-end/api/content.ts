@@ -13,6 +13,12 @@ export async function savePage(page: Page): Promise<void> {
     })
 }
 
+export async function publishChanges(): Promise<void> {
+    await vibeFetch(BACK_END_ORIGIN + '/api/v1/deploy-static-site', {
+        method: 'POST'
+    })
+}
+
 export type LinkInfo = {
     label: string,
     href: string,

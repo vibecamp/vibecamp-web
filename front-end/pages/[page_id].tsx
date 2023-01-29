@@ -1,7 +1,7 @@
 import { GetStaticPaths, GetStaticProps } from "next";
 import { Page } from "../../common/data/pages";
 import DynamicPage, { Props as DynamicPageProps } from "../components/DynamicPage";
-import { getPublicLinks, getPublicPages } from "../data/content";
+import { getPublicLinks, getPublicPages } from "../api/content";
 import getMainLayout from "../layouts/main-layout";
 import { renderMarkdown } from "../utils/markdown";
 import { NextPageWithLayout } from "./_app";

@@ -2,7 +2,7 @@
 import { FormEvent, useCallback, useState } from "react"
 import Button from "../components/common/Button"
 import Input from "../components/common/Input"
-import { login } from "../data/auth"
+import { login } from "../api/auth"
 import { NextPageWithLayout } from "./_app"
 
 const Login: NextPageWithLayout = () => {
