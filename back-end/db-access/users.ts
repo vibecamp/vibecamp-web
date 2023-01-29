@@ -1,5 +1,5 @@
 import { borrowConnection } from "./connection-pool.ts"
-import { User } from 'https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data/pages.ts'
+import { User } from 'https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts'
 import { compare, hash } from '../deps/bcrypt.ts'
 
 export async function authenticateByEmail({ email, password }: { email: string, password: string }): Promise<User | undefined> {

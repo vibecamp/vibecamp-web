@@ -1,4 +1,4 @@
-import { PermissionLevel } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data/pages.ts";
+import { PermissionLevel } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
 import { Router, Status } from "../../deps/oak.ts";
 import { AnyRouterContext, AnyRouterMiddleware, defineRoute } from "./_common.ts";
 import { create, getNumericDate, verify } from '../../deps/djwt.ts'

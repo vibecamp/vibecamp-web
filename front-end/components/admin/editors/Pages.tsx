@@ -2,7 +2,7 @@ import { autorun, makeAutoObservable, reaction } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { FC } from "react"
 import { Page, PERMISSION_LEVELS } from "../../../../common/data/pages"
-import { getPublicPages, savePage } from "../../../api/content"
+import { getPages, updatePage } from "../../../api/content"
 import { renderMarkdown } from "../../../utils/markdown"
 import { stringToOption } from "../../../utils/misc"
 import { debouncedGet } from "../../../utils/mobx/debounced-get"
@@ -34,7 +34,7 @@ class _PagesStore {
         // TODO: auto-set page ID based on title changes
     }
 
-    readonly loadedPages = remote(getPublicPages)
+    readonly loadedPages = remote(getPages)
 
     initializeSelectedPageForEditing = () => {
         if (this.selectedPage != null) {
@@ -47,7 +47,7 @@ class _PagesStore {
         if (this.pageBeingEdited != null) {
             this.savingChanges = true
             try {
-                await savePage(this.pageBeingEdited)
+                await updatePage(this.pageBeingEdited)
                 this.currentPageModified = false
                 this.selectedPageId = this.pageBeingEdited?.page_id
                 await this.loadedPages.load()

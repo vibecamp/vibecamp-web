@@ -1,7 +1,7 @@
 import { GetStaticPaths, GetStaticProps } from "next";
 import { Page } from "../../common/data/pages";
 import DynamicPage, { Props as DynamicPageProps } from "../components/DynamicPage";
-import { getPublicLinks, getPublicPages } from "../api/content";
+import { getPublicLinks, getPages } from "../api/content";
 import getMainLayout from "../layouts/main-layout";
 import { renderMarkdown } from "../utils/markdown";
 import { NextPageWithLayout } from "./_app";
@@ -18,13 +18,13 @@ DynamicPageWithLayout.getLayout = getMainLayout({ largeBanner: false })
 
 export const getStaticPaths: GetStaticPaths<Params> = async () => {
     return {
-        paths: (await getPublicPages()).map(page => ({ params: { page_id: page.page_id } })),
+        paths: (await getPages()).map(page => ({ params: { page_id: page.page_id } })),
         fallback: false, // can also be true or 'blocking'
     }
 }
 
 export const getStaticProps: GetStaticProps<DynamicPageProps, Params> = async ({ params }) => {
-    const pages = await getPublicPages()
+    const pages = await getPages()
     const page = pages.find(page => page.page_id === params?.page_id) as Page
     const navLinks = await getPublicLinks()
     const html = renderMarkdown(page.content)
