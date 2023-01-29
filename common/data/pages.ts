@@ -14,5 +14,5 @@ export type User = {
     permission_level: PermissionLevel,
     email: string | null,
     password_hash: string | null,
-    password_salt: string | null
+    password_salt: string
 }
