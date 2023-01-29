@@ -17,10 +17,10 @@ export async function getNavLinks(): Promise<readonly NavLink[]> {
     return vibeFetch<readonly NavLink[]>(BACK_END_ORIGIN + '/api/v1/nav-links')
 }
 
-export async function updateNavLink(navLink: NavLink): Promise<void> {
-    await vibeFetch(BACK_END_ORIGIN + '/api/v1/nav-link', {
+export async function updateNavLinks(navLinks: readonly NavLink[]): Promise<void> {
+    await vibeFetch(BACK_END_ORIGIN + '/api/v1/nav-links', {
         method: 'POST',
-        body: JSON.stringify(navLink)
+        body: JSON.stringify(navLinks)
     })
 }
 

@@ -38,11 +38,11 @@ export default function register(router: Router) {
     })
 
     defineRoute<{ success: boolean }>(router, {
-        endpoint: '/nav-link',
+        endpoint: '/nav-links',
         method: 'post',
         permissionLevel: 'admin',
         handler: async (ctx) => {
-            const newNavLink = await ctx.request.body({ type: 'json' }).value as NavLink
+            const newNavLink = await ctx.request.body({ type: 'json' }).value as NavLink[]
             await updateNavLink(newNavLink)
             return [{ success: true }, Status.OK]
         }
