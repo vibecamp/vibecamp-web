@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { isClientSide } from "../utils/misc";
+import { useCallback, useEffect, useState } from "react";
 
 export default function useViewportSize() {
     const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 })
@@ -12,7 +11,7 @@ export default function useViewportSize() {
         updateViewportSize()
         window.addEventListener('resize', updateViewportSize)
         return () => window.removeEventListener('resize', updateViewportSize)
-    }, [])
+    }, [updateViewportSize])
 
     return viewportSize
 }

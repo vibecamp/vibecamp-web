@@ -55,5 +55,9 @@ export async function getPublicLinks(): Promise<readonly LinkInfo[]> {
             label: 'Vibefund',
             href: '/vibefund'
         },
+        {
+            label: 'Login',
+            href: '/login'
+        }
     ]
 }
