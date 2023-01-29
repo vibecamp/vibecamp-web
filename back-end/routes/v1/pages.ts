@@ -1,24 +1,45 @@
 import { Page } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data/pages.ts";
 import { getAllPages, updatePage } from "../../db-access/pages.ts";
-import { Router } from "../../deps/oak.ts";
-import { requirePermissionLevel } from "./auth.ts";
-import { API_BASE } from "./_constants.ts";
+import { Router, Status } from "../../deps/oak.ts";
+import { getPermissionLevel } from "./auth.ts";
+import { defineRoute } from "./_common.ts";
 
 export default function register(router: Router) {
 
-    router.get(API_BASE + '/pages', async (ctx) => {
-        const pages = await getAllPages('public')
-        ctx.response.body = JSON.stringify(pages)
+    defineRoute<readonly Page[]>(router, {
+        endpoint: '/pages',
+        method: 'get',
+        handler: async (ctx) => {
+            const permissionLevel = await getPermissionLevel(ctx)
+            const pages = await getAllPages(permissionLevel)
+            return [pages, Status.OK]
+        }
     })
 
-    router.post(API_BASE + '/page', requirePermissionLevel('admin'), async (ctx) => {
-        const newPage = await ctx.request.body({ type: 'json' }).value as Page
-        await updatePage(newPage)
-        ctx.response.body = JSON.stringify({ success: true })
+    defineRoute<{ success: boolean }>(router, {
+        endpoint: '/page',
+        method: 'post',
+        permissionLevel: 'admin',
+        handler: async (ctx) => {
+            const newPage = await ctx.request.body({ type: 'json' }).value as Page
+            await updatePage(newPage)
+            return [{ success: true }, Status.OK]
+        }
     })
 
-    router.post(API_BASE + '/deploy-static-site', requirePermissionLevel('admin'), async (ctx) => {
-        await fetch(Deno.env.get('FRONT_END_DEPLOY_HOOK'))
-        ctx.response.body = JSON.stringify({ success: true })
+    defineRoute<{ success: boolean }>(router, {
+        endpoint: '/deploy-static-site',
+        method: 'post',
+        permissionLevel: 'admin',
+        handler: async () => {
+            if (FRONT_END_DEPLOY_HOOK == null) {
+                throw Error('FRONT_END_DEPLOY_HOOK not defined')
+            } else {
+                await fetch(FRONT_END_DEPLOY_HOOK)
+                return [{ success: true }, Status.OK]
+            }
+        }
     })
 }
+
+const FRONT_END_DEPLOY_HOOK = Deno.env.get('FRONT_END_DEPLOY_HOOK')

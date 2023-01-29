@@ -20,7 +20,6 @@ app.use(async (ctx, next) => {
 })
 
 app.use(async (ctx, next) => {
-    ctx.response.type = "json"
     ctx.response.headers.set('Access-Control-Allow-Credentials', 'true')
     ctx.response.headers.set('Access-Control-Allow-Headers', 'Authorization')
 
