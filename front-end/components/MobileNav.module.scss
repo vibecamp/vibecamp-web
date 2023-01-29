@@ -29,6 +29,7 @@
     background: var(--color-primary);
     width: 100vw;
     height: 100vh;
+    left: 100vw;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -47,8 +48,7 @@
         }
     }
 
-    &:not(.isOpen) {
-        transform: translateX(100vw);
+    &.isOpen {
+        transform: translateX(-100vw);
     }
-
 }
