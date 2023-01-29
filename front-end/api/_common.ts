@@ -1,9 +1,9 @@
 import { getJwtCookie } from "./auth"
 
-export function vibeFetch(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<Response> {
+export async function vibeFetch<T = unknown>(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<T> {
     const jwt = getJwtCookie()
 
-    return fetch(input, {
+    const res = await fetch(input, {
         ...init,
         headers: {
             ...(jwt
@@ -12,4 +12,12 @@ export function vibeFetch(input: RequestInfo | URL, init?: RequestInit | undefin
             ...init?.headers,
         }
     })
+
+    const json = await res.json()
+
+    if (json.error) {
+        throw Error(json.error)
+    } else {
+        return json as T
+    }
 }

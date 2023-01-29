@@ -3,7 +3,7 @@ import { BACK_END_ORIGIN } from '../public-runtime-config'
 import { vibeFetch } from './_common'
 
 export async function getPublicPages(): Promise<readonly Page[]> {
-    return vibeFetch(BACK_END_ORIGIN + '/api/v1/pages').then(res => res.json()) as any as readonly Page[]
+    return vibeFetch<readonly Page[]>(BACK_END_ORIGIN + '/api/v1/pages')
 }
 
 export async function savePage(page: Page): Promise<void> {
