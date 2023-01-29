@@ -5,7 +5,7 @@ export type Page = {
     permission_level: PermissionLevel,
 }
 
-export const PERMISSION_LEVELS = ['public', 'applicants', 'ticket_holders', 'admins'] as const
+export const PERMISSION_LEVELS = ['public', 'applicant', 'ticket_holder', 'admin'] as const
 export type PermissionLevel = typeof PERMISSION_LEVELS[number]
 
 export type User = {

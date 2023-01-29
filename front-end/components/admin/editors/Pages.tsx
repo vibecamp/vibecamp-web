@@ -118,7 +118,7 @@ const NEW_PAGE: Page = {
     page_id: '',
     title: '',
     content: '',
-    permission_level: 'admins'
+    permission_level: 'admin'
 }
 
 const PERMISSION_OPTIONS = PERMISSION_LEVELS.map(stringToOption)
