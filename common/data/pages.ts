@@ -2,8 +2,17 @@ export type Page = {
     page_id: string,
     title: string,
     content: string,
-    permission_level: VisibilityLevel,
+    permission_level: PermissionLevel,
 }
 
 export const PERMISSION_LEVELS = ['public', 'applicants', 'ticket_holders', 'admins'] as const
-export type VisibilityLevel = typeof PERMISSION_LEVELS[number]
+export type PermissionLevel = typeof PERMISSION_LEVELS[number]
+
+export type User = {
+    user_id: number,
+    user_name: string,
+    permission_level: PermissionLevel,
+    email: string | null,
+    password_hash: string | null,
+    password_salt: string | null
+}
