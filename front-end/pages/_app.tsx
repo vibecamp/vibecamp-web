@@ -50,16 +50,10 @@ const MobileNavOpenContextProvider: FC<{ children: React.ReactNode }> = ({ child
 
 function useBodyClass(className: string, condition: boolean) {
   useEffect(() => {
-    if (isClientSide()) {
-      try {
-        if (condition) {
-          document.body.classList.add(className)
-        } else {
-          document.body.classList.remove(className)
-        }
-      } catch (e) {
-        console.log(e)
-      }
+    if (condition) {
+      document.body.classList.add(className)
+    } else {
+      document.body.classList.remove(className)
     }
   }, [className, condition])
 }
