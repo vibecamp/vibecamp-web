@@ -11,9 +11,7 @@ export default function register(router: Router) {
         ctx.response.body = JSON.stringify(pages)
     })
 
-    router.post(API_BASE + '/page', async (ctx) => {
-        requirePermissionLevel(ctx, 'admin')
-
+    router.post(API_BASE + '/page', requirePermissionLevel('admin'), async (ctx) => {
         const newPage = await ctx.request.body({ type: 'json' }).value as Page
         await updatePage(newPage)
         ctx.response.body = JSON.stringify({ success: true })

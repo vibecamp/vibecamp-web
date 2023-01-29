@@ -1,5 +1,5 @@
 import { PermissionLevel } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data/pages.ts";
-import { RouteParams, Router, RouterContext, Status } from "../../deps/oak.ts";
+import { RouteParams, Router, RouterContext, RouterMiddleware, Status } from "../../deps/oak.ts";
 import { API_BASE } from "./_constants.ts";
 import { create, getNumericDate, verify } from '../../deps/djwt.ts'
 import { authenticateByEmail } from "../../db-access/users.ts";
@@ -55,15 +55,17 @@ export async function getPermissionLevel(ctx: AnyRouterContext): Promise<Permiss
     return undefined
 }
 
-export async function requirePermissionLevel(ctx: AnyRouterContext, required: PermissionLevel): Promise<PermissionLevel> {
+export const requirePermissionLevel = (required: PermissionLevel): AnyRouterMiddleware => async (ctx: AnyRouterContext, next) => {
     const permissionLevel = await getPermissionLevel(ctx)
 
     // TODO: allow even higher permissions
     ctx.assert(permissionLevel === required, Status.Unauthorized)
-    return permissionLevel
+
+    await next()
 }
 
 export type AnyRouterContext = RouterContext<string, RouteParams<string>, Record<string, unknown>>
+export type AnyRouterMiddleware = RouterMiddleware<string>
 
 // export const validate = async ({request, cookies}, next) => {
 //     const token = await cookies.get("token");

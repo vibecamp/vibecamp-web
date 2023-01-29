@@ -1,11 +1,26 @@
-import { Application } from './deps/oak.ts'
+import { Application, isHttpError } from './deps/oak.ts'
 import { router } from "./routes/index.ts"
 
 const app = new Application()
 
 // middleware
 app.use(async (ctx, next) => {
-    ctx.response.headers.set('Content-Type', 'application/json')
+    try {
+        await next()
+    } catch (err) {
+        console.log({ err })
+        if (isHttpError(err)) {
+            ctx.response.status = err.status
+        } else {
+            ctx.response.status = 500
+        }
+        ctx.response.body = { success: false, error: err.message }
+        ctx.response.type = "json"
+    }
+})
+
+app.use(async (ctx, next) => {
+    ctx.response.type = "json"
     ctx.response.headers.set('Access-Control-Allow-Credentials', 'true')
     ctx.response.headers.set('Access-Control-Allow-Headers', 'Authorization')
 
