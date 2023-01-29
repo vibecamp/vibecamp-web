@@ -13,6 +13,7 @@ import Input from "../../common/Input"
 import NavList from "../../common/NavList"
 import Spacer from "../../common/Spacer"
 import TextArea from "../../common/TextArea"
+import SaveOrDiscard from "../SaveOrDiscard"
 
 import styles from './Pages.module.scss'
 
@@ -45,18 +46,16 @@ class _PagesStore {
 
     saveChanges = async () => {
         if (this.pageBeingEdited != null) {
-            this.savingChanges = true
-            try {
-                await updatePage(this.pageBeingEdited)
-                this.currentPageModified = false
-                this.selectedPageId = this.pageBeingEdited?.page_id
-                await this.loadedPages.load()
-            } finally {
-                this.savingChanges = false
-            }
+            await updatePage(this.pageBeingEdited)
+            this.currentPageModified = false
+            this.selectedPageId = this.pageBeingEdited?.page_id
+            await this.loadedPages.load()
         }
     }
-    savingChanges = false
+
+    addPage = () => {
+        this.pageBeingEdited = JSON.parse(JSON.stringify(NEW_PAGE))
+    }
 
     get navOptions() {
         return this.loadedPages.value?.map(page => ({ label: page.title, value: page.page_id })) ?? []
@@ -83,22 +82,15 @@ const Pages: FC = observer(() => {
                 options={PagesStore.navOptions}
                 value={PagesStore.selectedPageId}
                 onChange={id => PagesStore.selectedPageId = id}
-            // onAddButtonClick={addPage} TODO
+                onAddButtonClick={PagesStore.addPage}
             />
 
             <div className={styles.editSection}>
                 {pageBeingEdited && <>
-                    <div>
-                        <Button appearance="primary" onClick={PagesStore.saveChanges} loading={PagesStore.savingChanges}>
-                            {/* disabled={!PagesStore.currentPageModified} */}
-                            Save Changes
-                        </Button>
-                        <Spacer size={1} />
-                        <Button appearance="secondary" onClick={PagesStore.initializeSelectedPageForEditing} disabled={PagesStore.savingChanges}>
-                            {/* disabled={!PagesStore.currentPageModified} */}
-                            Discard Changes
-                        </Button>
-                    </div>
+                    <SaveOrDiscard
+                        onSave={PagesStore.saveChanges}
+                        onCancel={PagesStore.initializeSelectedPageForEditing}
+                    />
 
                     <Input label='Title' value={pageBeingEdited.title} onChange={val => pageBeingEdited.title = val} />
                     <Input label='ID (Page URL)' value={pageBeingEdited.page_id} onChange={val => pageBeingEdited.page_id = val} />
