@@ -1,4 +1,4 @@
-import { PermissionLevel } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data/pages.ts";
+import { PermissionLevel } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
 import { RouteParams, Router, RouterContext, RouterMiddleware, Status } from "../../deps/oak.ts";
 import { requirePermissionLevel } from "./auth.ts";
 
