@@ -18,7 +18,7 @@ export default function register(router: Router) {
     })
 
     router.post(API_BASE + '/deploy-static-site', requirePermissionLevel('admin'), async (ctx) => {
-        await fetch(FRONT_END_DEPLOY_HOOK)
+        await fetch(Deno.env.get('FRONT_END_DEPLOY_HOOK'))
         ctx.response.body = JSON.stringify({ success: true })
     })
 }
