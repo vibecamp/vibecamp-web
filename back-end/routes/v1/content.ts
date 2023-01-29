@@ -28,12 +28,12 @@ export default function register(router: Router) {
         }
     })
 
-    defineRoute<readonly Page[]>(router, {
+    defineRoute<readonly NavLink[]>(router, {
         endpoint: '/nav-links',
         method: 'get',
         handler: async () => {
-            const pages = await getNavLinks()
-            return [pages, Status.OK]
+            const navLinks = await getNavLinks()
+            return [navLinks, Status.OK]
         }
     })
 

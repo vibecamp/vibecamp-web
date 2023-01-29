@@ -1,11 +1,11 @@
 
 import { FC } from 'react'
-import { LinkInfo } from '../api/content'
+import { NavLink } from '../../common/data'
 import Link from './common/Link'
 import styles from './NavLinks.module.scss'
 
 export type Props = {
-    links: readonly LinkInfo[]
+    links: readonly NavLink[]
 }
 
 const NavLinks: FC<Props> = ({ links }) => {

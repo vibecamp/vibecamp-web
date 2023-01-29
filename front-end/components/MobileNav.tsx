@@ -1,13 +1,13 @@
 
 import { FC, useCallback, useContext } from 'react'
-import { LinkInfo } from '../api/content'
+import { NavLink } from '../../common/data'
 import { MobileNavOpenContext } from '../pages/_app'
 import Link from './common/Link'
 
 import styles from './MobileNav.module.scss'
 
 export type Props = {
-    links: readonly LinkInfo[]
+    links: readonly NavLink[]
 }
 
 const MobileNav: FC<Props> = ({ links }) => {

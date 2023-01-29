@@ -1,7 +1,7 @@
 import { autorun, makeAutoObservable, reaction } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { FC } from "react"
-import { Page, PERMISSION_LEVELS } from "../../../../common/data/pages"
+import { Page, PERMISSION_LEVELS } from "../../../../common/data"
 import { getPages, updatePage } from "../../../api/content"
 import { renderMarkdown } from "../../../utils/markdown"
 import { stringToOption } from "../../../utils/misc"

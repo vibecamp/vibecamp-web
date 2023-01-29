@@ -1,5 +1,5 @@
 import { GetStaticProps } from "next";
-import { getPublicLinks, LinkInfo } from "../api/content";
+import { getNavLinks } from "../api/content";
 import getMainLayout from "../layouts/main-layout";
 import { NextPageWithLayout } from "./_app";
 
@@ -12,9 +12,10 @@ import styles from './index.module.scss'
 import Head from "next/head";
 import { DISCORD_HREF, PROJECTS_SHEET, TWITTER_HREF } from "../utils/urls";
 import Link from "../components/common/Link";
+import { NavLink } from "../../common/data";
 
 type Props = {
-    navLinks: readonly LinkInfo[]
+    navLinks: readonly NavLink[]
 }
 
 const HomePage: NextPageWithLayout<Props> = ({ navLinks }) => {
@@ -107,7 +108,7 @@ const HomePage: NextPageWithLayout<Props> = ({ navLinks }) => {
 HomePage.getLayout = getMainLayout({ largeBanner: true })
 
 export const getStaticProps: GetStaticProps<Props, Params> = async () => {
-    const navLinks = await getPublicLinks()
+    const navLinks = await getNavLinks()
 
     return {
         props: {

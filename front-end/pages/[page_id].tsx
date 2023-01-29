@@ -1,7 +1,7 @@
 import { GetStaticPaths, GetStaticProps } from "next";
-import { Page } from "../../common/data/pages";
+import { Page } from "../../common/data";
 import DynamicPage, { Props as DynamicPageProps } from "../components/DynamicPage";
-import { getPublicLinks, getPages } from "../api/content";
+import { getPages, getNavLinks } from "../api/content";
 import getMainLayout from "../layouts/main-layout";
 import { renderMarkdown } from "../utils/markdown";
 import { NextPageWithLayout } from "./_app";
@@ -24,9 +24,8 @@ export const getStaticPaths: GetStaticPaths<Params> = async () => {
 }
 
 export const getStaticProps: GetStaticProps<DynamicPageProps, Params> = async ({ params }) => {
-    const pages = await getPages()
+    const [pages, navLinks] = await Promise.all([getPages(), getNavLinks()])
     const page = pages.find(page => page.page_id === params?.page_id) as Page
-    const navLinks = await getPublicLinks()
     const html = renderMarkdown(page.content)
     const title = page.title
 

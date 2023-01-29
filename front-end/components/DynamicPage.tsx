@@ -1,6 +1,6 @@
 import Head from "next/head"
 import { FC } from "react"
-import { LinkInfo } from "../api/content"
+import { NavLink } from "../../common/data"
 import useIsOnMobile from "../hooks/useIsOnMobile"
 
 import styles from './DynamicPage.module.scss'
@@ -8,7 +8,7 @@ import MobileNav from "./MobileNav"
 import NavLinks from "./NavLinks"
 
 export type Props = {
-    navLinks: readonly LinkInfo[],
+    navLinks: readonly NavLink[],
     title: string,
     html: string,
 }

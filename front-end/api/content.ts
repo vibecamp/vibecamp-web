@@ -1,4 +1,4 @@
-import { NavLink, Page } from '../../common/data/pages'
+import { NavLink, Page } from '../../common/data'
 import { BACK_END_ORIGIN } from '../public-runtime-config'
 import { vibeFetch } from './_common'
 
@@ -28,47 +28,4 @@ export async function deployStaticSite(): Promise<void> {
     await vibeFetch(BACK_END_ORIGIN + '/api/v1/deploy-static-site', {
         method: 'POST'
     })
-}
-
-export type LinkInfo = {
-    label: string,
-    href: string,
-    // nav_order: number | null
-}
-
-export async function getPublicLinks(): Promise<readonly LinkInfo[]> {
-    return [
-        {
-            label: 'Home',
-            href: '/'
-        },
-        {
-            label: 'Community Values',
-            href: '/communityvalues'
-        },
-        {
-            label: 'FAQ',
-            href: '/faq'
-        },
-        {
-            label: 'Team',
-            href: '/team'
-        },
-        {
-            label: 'Shop',
-            href: 'https://shop.vibecamp.xyz/collections/all'
-        },
-        {
-            label: 'Donate',
-            href: '/donate'
-        },
-        {
-            label: 'Vibefund',
-            href: '/vibefund'
-        },
-        {
-            label: 'Login',
-            href: '/login'
-        }
-    ]
 }
