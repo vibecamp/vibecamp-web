@@ -1,23 +1,25 @@
+import { type } from "os"
 import React, { FC } from "react"
 import styles from './Button.module.scss'
 import Spacer from "./Spacer"
 
 type Props = {
-    onClick: () => void,
+    type?: 'button' | 'submit',
+    onClick?: () => void,
     children: React.ReactNode,
     appearance?: 'primary' | 'secondary' | 'danger',
     loading?: boolean,
     disabled?: boolean
 }
 
-const Button: FC<Props> = React.memo(({ onClick, children, appearance = 'secondary', loading, disabled }) => {
+const Button: FC<Props> = React.memo(({ type = 'button', onClick, children, appearance = 'secondary', loading, disabled }) => {
     const className = (
         styles.component +
         (' ' + styles[appearance])
     )
 
     return (
-        <button className={className} type="button" onClick={onClick} disabled={loading || disabled}>
+        <button className={className} type={type} onClick={onClick} disabled={loading || disabled}>
             {children}
 
             {loading &&
