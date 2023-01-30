@@ -14,7 +14,9 @@ export async function updatePage(page: Page): Promise<void> {
 }
 
 export async function getNavLinks(): Promise<readonly NavLink[]> {
-    return vibeFetch<readonly NavLink[]>(BACK_END_ORIGIN + '/api/v1/nav-links')
+    const links = [...await vibeFetch<readonly NavLink[]>(BACK_END_ORIGIN + '/api/v1/nav-links')]
+    links.sort((a, b) => a.nav_order - b.nav_order)
+    return links
 }
 
 export async function updateNavLinks(navLinks: readonly NavLink[]): Promise<void> {
