@@ -19,7 +19,7 @@ The front-end is a static site generated using Next.js. It does not have a runni
 
 ## Running locally
 
-To run a local back-end, you'll first need Deno installed. It can be found on the web, or in some package managers.
+To run a local back-end, you'll first need Deno installed. It can be found [on the web, or in some package managers](https://deno.land/manual/getting_started/installation).
 
 Next you'll need to grab all the back-end environment secrets from render.com and set them in your local environment, and then run:
 ```
@@ -27,7 +27,7 @@ deno run --allow-all --check index.ts
 ```
 (from `back-end/`; you could also run `back-end/index.ts` from the root directory)
 
-> Note: The `DB_CONNECTION_STRING` set in production is local to render.com's internal servers. For local development, you'll need to get the "External Database URL" from the db on render.com and use that instead
+> Note: The `DB_CONNECTION_STRING` set in production is internal to render.com's servers. For local development, you'll need to get the "External Database URL" from the db on render.com and use that instead
 
 To run the front-end locally you'll need Node installed, and you'll need to do an `npm install` from within the `front-end/` directory.
 
@@ -41,4 +41,4 @@ npm run build && npm run start
 ```
 Dev mode will be a little slower as you navigate the site, but it will be quicker to start up and it will give you hot-reloading if you're editing front-end code (saved files will immediately take effect without a page refresh).
 
-By default the back-end starts on port 10000 and the front-end will make API requests to `http://127.0.0.1:10000`, so if you're running the back-end locally you're good. However you can also point your local front-end at the production back-end, by setting the `BACK_END_ORIGIN` that it's configured to point at on render.com in your local environment.
+By default the back-end starts on port 10000 and the front-end will make API requests to `http://127.0.0.1:10000`, so if you're running the back-end locally you're good. However you can also point your local front-end at the production back-end, by getting the `BACK_END_ORIGIN` from the production front-end on render.com and setting it locally.
