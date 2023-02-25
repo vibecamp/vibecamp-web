@@ -10,6 +10,7 @@ export default function register(router: Router) {
     defineRoute<readonly Page[]>(router, {
         endpoint: '/pages',
         method: 'get',
+        permissionLevel: 'public',
         handler: async (ctx) => {
             const permissionLevel = await getPermissionLevel(ctx)
             const pages = await getPages(permissionLevel)
@@ -31,6 +32,7 @@ export default function register(router: Router) {
     defineRoute<readonly NavLink[]>(router, {
         endpoint: '/nav-links',
         method: 'get',
+        permissionLevel: 'public',
         handler: async () => {
             const navLinks = await getNavLinks()
             return [navLinks, Status.OK]

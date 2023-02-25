@@ -14,7 +14,15 @@ export const API_BASE = '/api/v1'
  *   to make sure there's a firm API contract
  * - Gives a clear way of invoking permissions-checking
  */
-export function defineRoute<TResult>(router: Router, config: { method: 'get' | 'post' | 'put' | 'delete', endpoint: `/${string}`, permissionLevel?: PermissionLevel, handler: (ctx: AnyRouterContext) => Promise<[TResult, Status]> }) {
+export function defineRoute<TResult>(
+    router: Router,
+    config: {
+        method: 'get' | 'post' | 'put' | 'delete',
+        endpoint: `/${string}`,
+        permissionLevel: PermissionLevel,
+        handler: (ctx: AnyRouterContext) => Promise<[TResult, Status]>
+    }
+) {
     const routerMethod = (...args: any[]) => {
         switch (config.method) {
             // @ts-ignore
@@ -38,7 +46,7 @@ export function defineRoute<TResult>(router: Router, config: { method: 'get' | '
         return next()
     }
 
-    if (config.permissionLevel) {
+    if (config.permissionLevel !== 'public') {
         routerMethod(endpoint, requirePermissionLevel(config.permissionLevel), handler)
     } else {
         routerMethod(endpoint, handler)

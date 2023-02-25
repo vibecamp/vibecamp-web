@@ -23,6 +23,7 @@ export default function register(router: Router) {
     defineRoute<{ success: boolean, jwt: string | null }>(router, {
         endpoint: '/login',
         method: 'post',
+        permissionLevel: 'public',
         handler: async ctx => {
             const { email, password } = await ctx.request.body({ type: 'json' }).value as { email?: unknown, password?: unknown }
 
