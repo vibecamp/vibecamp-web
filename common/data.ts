@@ -1,24 +1,23 @@
-export type Page = {
-    page_id: string,
-    title: string,
-    content: string,
-    permission_level: PermissionLevel,
-}
-
-export const PERMISSION_LEVELS = ['public', 'applicant', 'ticket_holder', 'admin'] as const
-export type PermissionLevel = typeof PERMISSION_LEVELS[number]
-
-export type User = {
-    user_id: number,
-    user_name: string,
-    permission_level: PermissionLevel,
-    email: string | null,
-    password_hash: string | null,
-    password_salt: string
-}
 
 export type NavLink = {
     href: string,
     label: string,
     nav_order: number
+}
+
+export type Page = {
+    page_id: string,
+    title: string,
+    content: string,
+}
+
+export type User = {
+    user_id: number,
+    email: string,
+    password_hash: string,
+    password_salt: string,
+    twitter_name: string | null,
+    name: string | null,
+    is_content_admin: boolean,
+    is_account_admin: boolean,
 }

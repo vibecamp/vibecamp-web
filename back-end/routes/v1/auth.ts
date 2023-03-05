@@ -1,4 +1,4 @@
-import { PermissionLevel } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
+import { User } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
 import { Router, Status } from "../../deps/oak.ts";
 import { AnyRouterContext, AnyRouterMiddleware, defineRoute } from "./_common.ts";
 import { create, getNumericDate, verify } from '../../deps/djwt.ts'
@@ -23,7 +23,7 @@ export default function register(router: Router) {
     defineRoute<{ success: boolean, jwt: string | null }>(router, {
         endpoint: '/login',
         method: 'post',
-        permissionLevel: 'public',
+        requiredPermissions: PUBLIC_PERMISSIONS,
         handler: async ctx => {
             const { email, password } = await ctx.request.body({ type: 'json' }).value as { email?: unknown, password?: unknown }
 
@@ -31,10 +31,12 @@ export default function register(router: Router) {
                 const user = await authenticateByEmail({ email, password })
 
                 if (user != null) {
+                    const { is_content_admin, is_account_admin } = user
                     const payload = {
                         iss: "vibecamp",
                         exp: getNumericDate(Date.now() + 30 * 60 * 60 * 1_000),
-                        permission_level: user.permission_level
+                        is_content_admin,
+                        is_account_admin
                     }
                     const jwt = await create(header, payload, JWT_SECRET_KEY)
                     return [{ success: true, jwt }, Status.OK]
@@ -46,7 +48,7 @@ export default function register(router: Router) {
     })
 }
 
-export async function getPermissionLevel(ctx: AnyRouterContext): Promise<PermissionLevel> {
+export async function getPermissions(ctx: AnyRouterContext): Promise<Permissions> {
     const header = ctx.request.headers.get('Authorization');
     const bearerPrefix = 'Bearer '
     if (header != null && header.startsWith(bearerPrefix)) {
@@ -54,20 +56,24 @@ export async function getPermissionLevel(ctx: AnyRouterContext): Promise<Permiss
 
         try {
             const result = await verify(token, JWT_SECRET_KEY);
-            const foundPermissionLevel = result?.permission_level as PermissionLevel | undefined
-            return foundPermissionLevel ?? 'public'
+            const { is_content_admin, is_account_admin } = result
+            return { is_content_admin, is_account_admin }
         } catch {
         }
     }
 
-    return 'public'
+    return PUBLIC_PERMISSIONS
 }
 
-export const requirePermissionLevel = (required: PermissionLevel): AnyRouterMiddleware => async (ctx: AnyRouterContext, next) => {
-    const permissionLevel = await getPermissionLevel(ctx)
+export const requirePermissions = (required: Permissions): AnyRouterMiddleware => async (ctx: AnyRouterContext, next) => {
+    const { is_content_admin, is_account_admin } = await getPermissions(ctx)
 
-    // TODO: allow even higher permissions
-    ctx.assert(permissionLevel === required, Status.Unauthorized)
+    ctx.assert(!required.is_content_admin || is_content_admin, Status.Unauthorized)
+    ctx.assert(!required.is_account_admin || is_account_admin, Status.Unauthorized)
 
     await next()
 }
+
+export type Permissions = Pick<User, 'is_content_admin' | 'is_account_admin'>
+
+export const PUBLIC_PERMISSIONS: Permissions = { is_content_admin: false, is_account_admin: false }

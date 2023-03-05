@@ -1,6 +1,5 @@
-import { PermissionLevel } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
 import { RouteParams, Router, RouterContext, RouterMiddleware, Status } from "../../deps/oak.ts";
-import { requirePermissionLevel } from "./auth.ts";
+import { Permissions, requirePermissions } from "./auth.ts";
 
 export type AnyRouterContext = RouterContext<string, RouteParams<string>, Record<string, unknown>>
 
@@ -19,7 +18,7 @@ export function defineRoute<TResult>(
     config: {
         method: 'get' | 'post' | 'put' | 'delete',
         endpoint: `/${string}`,
-        permissionLevel: PermissionLevel,
+        requiredPermissions: Permissions,
         handler: (ctx: AnyRouterContext) => Promise<[TResult, Status]>
     }
 ) {
@@ -46,9 +45,5 @@ export function defineRoute<TResult>(
         return next()
     }
 
-    if (config.permissionLevel !== 'public') {
-        routerMethod(endpoint, requirePermissionLevel(config.permissionLevel), handler)
-    } else {
-        routerMethod(endpoint, handler)
-    }
+    routerMethod(endpoint, requirePermissions(config.requiredPermissions), handler)
 }

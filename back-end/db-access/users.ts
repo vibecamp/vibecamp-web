@@ -7,15 +7,15 @@ export async function authenticateByEmail({ email, password }: { email: string, 
         const res = await conn.queryObject<User>(`
                 SELECT 
                     user_id,
-                    user_name,
-                    permission_level_name AS permission_level,
                     email,
                     password_hash,
-                    password_salt
-                FROM users, permission_levels
-                WHERE 
-                    email = $1 AND
-                    users.permission_level_id = permission_levels.permission_level_id
+                    password_salt,
+                    twitter_name,
+                    name,
+                    is_content_admin,
+                    is_account_admin
+                FROM users
+                WHERE email = $1;
             `,
             [email]
         )
@@ -43,8 +43,8 @@ export async function createUserByEmail({ email, password }: { email: string, pa
 
     await borrowConnection(conn => {
         return conn.queryObject(`
-                INSERT INTO users (user_name, email, password_hash, password_salt, permission_level_id)
-                VALUES ($1, $1, $2, $3, 1)
+                INSERT INTO users (email, password_hash, password_salt)
+                VALUES ($1, $2, $3)
             `,
             [email, email, passwordHash, salt]
         )
