@@ -1,5 +1,5 @@
 import { borrowConnection } from "./connection-pool.ts"
-import { Page, PermissionLevel } from 'https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts'
+import { Page } from 'https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts'
 
 export async function getPages(): Promise<readonly Page[]> {
     return await borrowConnection(async conn => {

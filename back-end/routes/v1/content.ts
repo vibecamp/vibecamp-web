@@ -11,7 +11,7 @@ export default function register(router: Router) {
         endpoint: '/pages',
         method: 'get',
         requiredPermissions: PUBLIC_PERMISSIONS,
-        handler: async (ctx) => {
+        handler: async () => {
             const pages = await getPages()
             return [pages, Status.OK]
         }

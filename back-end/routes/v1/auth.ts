@@ -56,7 +56,7 @@ export async function getPermissions(ctx: AnyRouterContext): Promise<Permissions
 
         try {
             const result = await verify(token, JWT_SECRET_KEY);
-            const { is_content_admin, is_account_admin } = result
+            const { is_content_admin, is_account_admin } = result as Permissions
             return { is_content_admin, is_account_admin }
         } catch {
         }
