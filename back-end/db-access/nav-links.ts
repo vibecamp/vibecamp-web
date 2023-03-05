@@ -4,7 +4,10 @@ import { borrowConnection } from "./connection-pool.ts";
 export async function getNavLinks(): Promise<readonly NavLink[]> {
     return await borrowConnection(async conn => {
         const res = await conn.queryObject<NavLink>(`
-                SELECT (href, label, nav_order)
+                SELECT
+                    href,
+                    label,
+                    nav_order,
                 FROM nav_links;
             `
         )
