@@ -6,7 +6,11 @@ import styles from './Admin.module.scss'
 import { stringToOption } from "../../utils/misc"
 import Users from "./editors/Users"
 import Posts from "./editors/Posts"
+import Button from "../common/Button"
+import { deployStaticSite } from "../../api/content"
 import NavLinks from "./editors/NavLinks"
+import Link from "../common/Link"
+import Spacer from "../common/Spacer"
 
 const Admin: FC = () => {
     const [openSection, setOpenSection] = useState<AdminSection | undefined>(undefined)
@@ -14,15 +18,30 @@ const Admin: FC = () => {
     const EditorComponent = openSection ? ADMIN_SECTIONS[openSection] : None
 
     return (
-        <div className={styles.admin}>
-            <NavList
-                options={NAV_OPTIONS}
-                value={openSection}
-                onChange={setOpenSection}
-            />
+        <>
 
-            <EditorComponent />
-        </div>
+            <div className={styles.navBar}>
+                <Button appearance='primary' onClick={deployStaticSite}>
+                    Publish changes to live site
+                </Button>
+                <Spacer size={2} />
+                <Link href='/' openInNewTab>
+                    Open main site ↗
+                </Link>
+
+                {/* TODO: Show current username, logout button */}
+            </div>
+
+            <div className={styles.admin}>
+                <NavList
+                    options={NAV_OPTIONS}
+                    value={openSection}
+                    onChange={setOpenSection}
+                />
+
+                <EditorComponent />
+            </div>
+        </>
     )
 }
 

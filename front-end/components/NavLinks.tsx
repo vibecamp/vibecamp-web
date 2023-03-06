@@ -16,6 +16,8 @@ const NavLinks: FC<Props> = ({ links }) => {
                 <Link href={link.href} key={link.href}>
                     {link.label}
                 </Link>)}
+
+            {/* TODO: If user is admin, show Admin link */}
         </nav>
     )
 }
