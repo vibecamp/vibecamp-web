@@ -7,7 +7,7 @@ export async function getNavLinks(): Promise<readonly NavLink[]> {
                 SELECT
                     href,
                     label,
-                    nav_order,
+                    nav_order
                 FROM nav_links;
             `
         )

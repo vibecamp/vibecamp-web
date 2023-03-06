@@ -7,7 +7,7 @@ export async function getPages(): Promise<readonly Page[]> {
                 SELECT 
                     page_id, 
                     title, 
-                    content, 
+                    content
                 FROM pages;
             `
         )
