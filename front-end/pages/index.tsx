@@ -54,9 +54,8 @@ const HomePage: NextPageWithLayout<Props> = ({ navLinks }) => {
                         <b>When do ticket sales close?</b>
                         <br />
                         Applications close on 2/15 and ticket sales will close
-                        on 3/1. If you want to come to vibecamp just fill out
-                        <Link href='https://forms.gle/6eTcwTrGgTeBTzdi9'>this form</Link>
-                        and keep an eye on your email.
+                        on 3/1. If you want to come to vibecamp just fill out <Link href='https://forms.gle/6eTcwTrGgTeBTzdi9'>
+                            this form</Link> and keep an eye on your email.
                     </div>
                 </blockquote>
 
@@ -66,8 +65,8 @@ const HomePage: NextPageWithLayout<Props> = ({ navLinks }) => {
                         <b>I filled out my application but haven’t heard back yet!</b>
                         <br />
                         If you haven’t heard back within a week of filling out
-                        your application please contact Colby#6799 on our
-                        <Link href={DISCORD_HREF}>discord server</Link>.
+                        your application please contact Colby#6799 on
+                        our <Link href={DISCORD_HREF}>discord server</Link>.
                     </div>
                 </blockquote>
 
@@ -76,8 +75,8 @@ const HomePage: NextPageWithLayout<Props> = ({ navLinks }) => {
                     <div>
                         <b>How do I contribute to vibecamp?</b>
                         <br />
-                        Create a project and put it in this
-                        <Link href={PROJECTS_SHEET}>
+                        Create a project and put it in
+                        this <Link href={PROJECTS_SHEET}>
                             collaborative sheet
                         </Link>.
                         <br />
