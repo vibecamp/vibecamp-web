@@ -21,3 +21,8 @@ export type User = {
     is_content_admin: boolean,
     is_account_admin: boolean,
 }
+
+export type VibeJWTPayload = {
+    is_content_admin: boolean,
+    is_account_admin: boolean,
+}
