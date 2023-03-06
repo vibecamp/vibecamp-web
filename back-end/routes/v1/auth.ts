@@ -1,4 +1,4 @@
-import { User, VibeJWTPayload } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
+import { User, JWTUserInfo } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
 import { Router, Status } from "../../deps/oak.ts";
 import { AnyRouterContext, AnyRouterMiddleware, defineRoute } from "./_common.ts";
 import { create, getNumericDate, Payload, verify } from '../../deps/djwt.ts'
@@ -32,7 +32,7 @@ export default function register(router: Router) {
 
                 if (user != null) {
                     const { is_content_admin, is_account_admin } = user
-                    const payload: Payload & VibeJWTPayload = {
+                    const payload: Payload & JWTUserInfo = {
                         iss: "vibecamp",
                         exp: getNumericDate(Date.now() + 30 * 60 * 60 * 1_000),
                         is_content_admin,
@@ -56,7 +56,7 @@ export async function getPermissions(ctx: AnyRouterContext): Promise<Permissions
 
         try {
             const result = await verify(token, JWT_SECRET_KEY);
-            const { is_content_admin, is_account_admin } = result as Payload & VibeJWTPayload
+            const { is_content_admin, is_account_admin } = result as Payload & JWTUserInfo
             return { is_content_admin, is_account_admin }
         } catch {
         }
