@@ -6,7 +6,13 @@ const CACHE_NAME = `my_vibecamp_${VERSION}`
 const APP_STATIC_RESOURCES = [
     '/',
     '/index.html',
-    '/'
+    '/favicon.ico',
+    '/app.css',
+    '/app.js',
+    '/leaflet.css',
+    '/loading-spinner.gif',
+    '/twitter.png',
+    '/vibecamp.png'
 ]
 
 self.addEventListener('install', e => {
