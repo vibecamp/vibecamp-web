@@ -12,7 +12,7 @@ import Spacer from './core/Spacer'
 export default observer(() => {
     switch (Store.allEvents.state.kind) {
     case 'idle': return null
-    case 'loading': return 'Loading...'
+    case 'loading': return <>Loading...</>
     case 'result': return (
         <>
             <h1 style={{ justifyContent: 'space-between' }}>
@@ -91,7 +91,7 @@ export default observer(() => {
             </Modal>
         </>
     )
-    case 'error': return 'error'
+    case 'error': return <>Error</>
     }
 })
 

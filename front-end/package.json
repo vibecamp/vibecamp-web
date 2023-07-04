@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "sass src/index.scss out/app.css --watch & esbuild src/index.tsx --outfile=out/app.js --bundle --watch & tsc --watch & eslint . --watch & http-server out",
     "check": "eslint . && tsc",
-    "build": "npm run tsc && npm run eslint && ./build.sh",
-    "build-and-export": "npm run build"
+    "build": "npm run check && ./build.sh"
   },
   "dependencies": {
     "@types/node": "18.11.18",

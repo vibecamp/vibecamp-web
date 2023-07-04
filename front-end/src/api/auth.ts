@@ -1,7 +1,7 @@
-import { BACK_END_ORIGIN } from '../../public-runtime-config'
-import { isClientSide } from '../utils/misc'
 import jwtDecode from 'jwt-decode'
 import { JWTUserInfo } from '../../../common/data'
+
+const BACK_END_ORIGIN = 'https://backend-ssp4.onrender.com'
 
 export async function login({ email, password }: { email: string, password: string }): Promise<boolean> {
     try {
@@ -23,15 +23,11 @@ export async function login({ email, password }: { email: string, password: stri
 }
 
 export function setJwtCookie(jwt: string) {
-    if (isClientSide()) {
-        document.cookie = 'jwt=' + jwt
-    }
+    document.cookie = 'jwt=' + jwt
 }
 
 export function getJwtCookie() {
-    return isClientSide()
-        ? document.cookie.split(';').find(piece => piece.startsWith('jwt='))?.substring(4)
-        : undefined
+    return document.cookie.split(';').find(piece => piece.startsWith('jwt='))?.substring(4)
 }
 
 export function getJwtPayload(): JWTUserInfo | undefined {

@@ -1,6 +1,7 @@
 import { NavLink, Page } from '../../../common/data'
-import { BACK_END_ORIGIN } from '../../public-runtime-config'
 import { vibeFetch } from './_common'
+
+const BACK_END_ORIGIN = 'https://backend-ssp4.onrender.com'
 
 export async function getPages(): Promise<readonly Page[]> {
     return vibeFetch<readonly Page[]>(BACK_END_ORIGIN + '/api/v1/pages')
