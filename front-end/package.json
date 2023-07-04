@@ -3,36 +3,38 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build && next-sitemap",
-    "start": "next start",
-    "build-and-export": "next build && next-sitemap && next export",
-    "lint": "next lint"
+    "dev": "sass src/index.scss out/app.css --watch & esbuild src/index.tsx --outfile=out/app.js --bundle --watch & tsc --watch & eslint . --watch & http-server out",
+    "check": "eslint . && tsc",
+    "build": "npm run tsc && npm run eslint && ./build.sh",
+    "build-and-export": "npm run build"
   },
   "dependencies": {
-    "@next/font": "13.1.1",
     "@types/node": "18.11.18",
     "@types/react": "18.0.26",
     "@types/react-dom": "18.0.10",
     "@types/uuid": "^9.0.0",
     "debounce": "^1.2.1",
-    "eslint": "8.31.0",
-    "eslint-config-next": "13.1.1",
+    "esbuild": "^0.18.11",
     "jwt-decode": "^3.1.2",
     "markdown-it": "^13.0.1",
     "markdown-it-named-headings": "^1.1.0",
     "mobx": "^6.7.0",
     "mobx-react-lite": "^3.4.0",
-    "next": "13.1.1",
-    "next-sitemap": "^3.1.45",
+    "mobx-utils": "^6.0.6",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "4.9.4",
+    "react-leaflet": "^4.2.1",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/debounce": "^1.2.1",
     "@types/markdown-it": "^12.2.3",
-    "sass": "^1.57.1"
+    "@typescript-eslint/eslint-plugin": "^5.61.0",
+    "@typescript-eslint/parser": "^5.61.0",
+    "eslint": "8.31.0",
+    "eslint-plugin-react": "^7.32.2",
+    "http-server": "^14.1.1",
+    "sass": "^1.63.6",
+    "typescript": "4.9.4"
   }
 }

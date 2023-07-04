@@ -1,0 +1,15 @@
+{
+    "name": "My Vibecamp",
+    "short_name": "My Vibecamp",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "rgb(255, 250, 229)",
+    "description": "Let's vibe, y'all",
+    "icons": [
+        {
+            "src": "/vibecamp.png",
+            "sizes": "48x48 72x72 96x96 144x144 168x168 192x192",
+            "type": "image/png"
+        }
+    ]
+}

@@ -1,8 +1,44 @@
 {
-  "extends": "next/core-web-vitals",
-  "rules": {
-    "react/display-name": "off",
-    "react-hooks/exhaustive-deps": "error",
-    "@next/next/no-img-element": "off"
-  }
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "ignorePatterns": [
+        "out/*"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "overrides": [],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "plugins": [
+        "react",
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "indent": [
+            "error",
+            4
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": [
+            "error",
+            "single"
+        ],
+        "semi": [
+            "error",
+            "never"
+        ],
+        "no-empty": "off",
+        "react/display-name": "off"
+    }
 }
