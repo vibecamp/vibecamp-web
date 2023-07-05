@@ -12,9 +12,13 @@ import Spacer from './core/Spacer'
 
 const LOGGED_IN = true
 
+
 export default observer(() => {
     useAutorun(() => {
-        document.body.style.height = windowSize.get().height + 'px'
+        const root = document.getElementById('root')
+        if (root != null) {
+            root.style.height = windowSize.get().height + 'px'
+        }
     })
 
 
