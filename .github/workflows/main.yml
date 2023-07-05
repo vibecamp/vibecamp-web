@@ -4,22 +4,22 @@ jobs:
   Lint:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Lint
-        uses: actions/checkout@v2
         working-directory: front-end
         run: npm install && npx eslint .
   Typecheck:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Typecheck
-        uses: actions/checkout@v2
         working-directory: front-end
         run: npm install && npx tsc --noEmit
   Build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Build
-        uses: actions/checkout@v2
         working-directory: front-end
         run: npm install && ./build.sh
 
