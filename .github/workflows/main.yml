@@ -5,19 +5,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Lint
-        working-directory: ./front-end
+        working-directory: front-end
         run: npm install && npx eslint .
   Typecheck:
     runs-on: ubuntu-latest
     steps:
       - name: Typecheck
-        working-directory: ./front-end
+        working-directory: front-end
         run: npm install && npx tsc --noEmit
   Build:
     runs-on: ubuntu-latest
     steps:
       - name: Build
-        working-directory: ./front-end
+        working-directory: front-end
         run: npm install && ./build.sh
 
 
