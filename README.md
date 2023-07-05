@@ -1,13 +1,7 @@
 
-# Vibecamp web systems, 2.0
+# Vibecamp web app
 
-This repository contains both the front-end and the back-end for Vibecamp's new web stack.
-
-We are moving to a unified stack for:
-- The public-facing site
-- Administration
-- User self-service/account management (not built yet at time of writing)
-- A vibecamp API that others can use to build their own apps! (TBD)
+This repository contains both the front-end and the back-end for Vibecamp's new web app. The hope is that this app will encompass everything a ticketholder needs for registration, communication, planning, and navigation of the event itself.
 
 ## Architecture
 
@@ -15,7 +9,7 @@ The front- and back-end here both run on render.com, alongside our Postgres DB. 
 
 The back-end is built on [Deno](https://deno.land), a modern TypeScript-native JavaScript runtime (analogous to Node). It uses the Oak web framework (analogous to Express). It exposes a fairly standard HTTP API, used by the front-end here (and hopefully one day by other front-ends!). The API is organized into a `v1` subset, to future-proof for a scenario where we need to make breaking changes but maintain compatibility.
 
-The front-end is a static site generated using Next.js. It does not have a running server in production; at build time, HTML + CSS + client-side JS files are built and then pushed to render.com's CDN. Public-facing static pages have their HTML generated at build time for quick loading, while anything dynamic in the UI will take the form of client-side React (making calls to the back-end).
+The front-end is a single-page app. It does not have a running server in production; at build time, HTML + CSS + client-side JS files are built and then pushed to render.com's CDN.
 
 ## Running locally
 
