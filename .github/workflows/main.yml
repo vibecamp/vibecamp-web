@@ -5,22 +5,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: npm install
+        working-directory: front-end
+        run: npm install
       - name: Lint
         working-directory: front-end
-        run: npm install && npx eslint .
+        run: npx eslint .
   Typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: npm install
+        working-directory: front-end
+        run: npm install
       - name: Typecheck
         working-directory: front-end
-        run: npm install && npx tsc --noEmit
+        run: npx tsc --noEmit
   Build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: npm install
+        working-directory: front-end
+        run: npm install
       - name: Build
         working-directory: front-end
-        run: npm install && ./build.sh
+        run: ./build.sh
 
 
