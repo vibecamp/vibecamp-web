@@ -273,3 +273,53 @@ h1, h2, h3, h4, h5, h6 {
         display: block;
     }
 }
+
+.loading-dots {
+    position: relative;
+    width: 100px;
+    height: 100px;
+
+    >div {
+        width: 100px;
+        height: 100px;
+        opacity: 0;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        border-radius: 50%;
+
+        animation-name: burst;
+        animation-duration: 2s;
+        animation-iteration-count: infinite;
+        animation-timing-function: ease-in-out;
+
+        &:nth-child(1) {
+            background: rgb(236, 175, 141);
+        }
+        &:nth-child(2) {
+            background: rgb(223, 200, 208);
+            animation-delay: 0.5s;
+        }
+        &:nth-child(3) {
+            background: rgb(197, 229, 246);
+            animation-delay: 1.0s;
+        }
+    }
+}
+
+@keyframes burst {
+    0% {
+        opacity: 1;
+        transform: scale(0.5);
+    }
+    50% {
+        opacity: 0;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1);
+    }
+}
