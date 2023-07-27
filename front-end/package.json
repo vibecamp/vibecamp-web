@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "sass src/index.scss out/app.css --watch & esbuild src/index.tsx --outfile=out/app.js --bundle --watch & tsc --watch & eslint . --watch & http-server out",
+    "statics": "mkdir -p out/ && cp public/* out/",
+    "dev": "npm run statics && sass src/index.scss out/app.css --watch & esbuild src/index.tsx --outfile=out/app.js --bundle --watch & tsc --watch & http-server out",
     "check": "eslint . && tsc",
-    "build": "npm run check && ./build.sh"
+    "build": "npm run check && npm run statics && npx sass src/index.scss out/app.css && npx esbuild src/index.tsx --outfile=out/app.js --bundle --minify"
   },
   "dependencies": {
     "@types/node": "18.11.18",
