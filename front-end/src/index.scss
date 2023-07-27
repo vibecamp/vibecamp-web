@@ -120,7 +120,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
     display: flex;
     align-items: stretch;
-    justify-content: stretch;
+    justify-content: center;
     z-index: 10;
     flex-grow: 0;
     flex-shrink: 0;
@@ -141,6 +141,7 @@ h1, h2, h3, h4, h5, h6 {
         color: rgba(0, 0, 0, 0.4);
         cursor: pointer;
         font-weight: 500;
+        max-width: 120px;
 
         &.active {
             color: var(--color-primary);
