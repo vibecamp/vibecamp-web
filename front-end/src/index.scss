@@ -152,6 +152,9 @@ h1, h2, h3, h4, h5, h6 {
     @media (display-mode: fullscreen) {
         padding-bottom: 20px;
     }
+    @media (display-mode: standalone) {
+        padding-bottom: 20px;
+    }
 }
 
 .logo {
