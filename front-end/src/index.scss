@@ -116,7 +116,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .nav {
     min-height: 60px;
-    background: white;
+    background: #fffae5;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
     display: flex;
     align-items: stretch;
@@ -124,7 +124,6 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 10;
     flex-grow: 0;
     flex-shrink: 0;
-    background: rgb(255, 250, 229);
 
     button {
         appearance: none;
