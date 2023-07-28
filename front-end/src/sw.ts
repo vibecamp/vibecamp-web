@@ -20,7 +20,12 @@ const APP_STATIC_RESOURCES = [
     '/leaflet.css',
     '/loading-spinner.gif',
     '/twitter.png',
-    '/vibecamp.png'
+    '/vibecamp.png',
+    '/vibecamp-squircle.png',
+    '/icons.woff2',
+    '/roboto-300.woff2',
+    '/roboto-500.woff2',
+    '/roboto-700.woff2'
 ]
 
 self.addEventListener('install', e => {
