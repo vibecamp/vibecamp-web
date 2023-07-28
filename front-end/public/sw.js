@@ -19,7 +19,7 @@ self.addEventListener('install', e => {
     e.waitUntil(
         (async () => {
             const cache = await caches.open(CACHE_NAME)
-            cache.addAll(APP_STATIC_RESOURCES)
+            await cache.addAll(APP_STATIC_RESOURCES)
         })()
     )
 })
