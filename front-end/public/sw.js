@@ -24,7 +24,17 @@ self.addEventListener('install', e => {
     )
 })
 
-self.addEventListener('fetch', e => {})
+self.addEventListener('fetch', async e => {
+    if (
+        e.request.destination === 'script' ||
+        e.request.destination === 'style' ||
+        e.request.destination === 'document' ||
+        e.request.destination === 'font' ||
+        e.request.destination === 'image'
+    ) {
+        e.respondWith(await caches.match(e.request) ?? await fetch(e.request))
+    }
+})
 
 // self.addEventListener('activate', e => {
 //     e.waitUntil(
