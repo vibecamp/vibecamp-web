@@ -33,7 +33,7 @@ self.addEventListener('install', e => {
 })
 
 self.addEventListener('fetch', async e => {
-    e.waitUntil((async () => {
+    e.respondWith((async () => {
         if (
             e.request.destination === 'script' ||
             e.request.destination === 'style' ||
@@ -41,8 +41,9 @@ self.addEventListener('fetch', async e => {
             e.request.destination === 'font' ||
             e.request.destination === 'image'
         ) {
-            const response = await caches.match(e.request) ?? await fetch(e.request)
-            e.respondWith(response)
+            return await caches.match(e.request) ?? await fetch(e.request)
+        } else {
+            return await fetch(e.request)
         }
     })())
 })
