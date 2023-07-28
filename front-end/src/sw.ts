@@ -1,5 +1,13 @@
 /* eslint-env serviceworker */
 
+// @ts-check
+/// <reference no-default-lib="true"/>
+/// <reference lib="webworker" />
+
+// Default type of `self` is `WorkerGlobalScope & typeof globalThis`
+// https://github.com/microsoft/TypeScript/issues/14877
+declare let self: ServiceWorkerGlobalScope
+
 const VERSION = 1
 const CACHE_NAME = `my_vibecamp_${VERSION}`
 
@@ -40,7 +48,7 @@ self.addEventListener('fetch', async e => {
 //     e.waitUntil(
 //         (async () => {
 //             const keys = await caches.keys()
-            
+
 //             await Promise.all(
 //                 keys.map(name => {
 //                     if (name !== CACHE_NAME) {
@@ -53,3 +61,5 @@ self.addEventListener('fetch', async e => {
 //         })()
 //     )
 // })
+
+export { }
