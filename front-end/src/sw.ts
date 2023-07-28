@@ -33,15 +33,18 @@ self.addEventListener('install', e => {
 })
 
 self.addEventListener('fetch', async e => {
-    if (
-        e.request.destination === 'script' ||
-        e.request.destination === 'style' ||
-        e.request.destination === 'document' ||
-        e.request.destination === 'font' ||
-        e.request.destination === 'image'
-    ) {
-        e.respondWith(await caches.match(e.request) ?? await fetch(e.request))
-    }
+    e.waitUntil((async () => {
+        if (
+            e.request.destination === 'script' ||
+            e.request.destination === 'style' ||
+            e.request.destination === 'document' ||
+            e.request.destination === 'font' ||
+            e.request.destination === 'image'
+        ) {
+            const response = await caches.match(e.request) ?? await fetch(e.request)
+            e.respondWith(response)
+        }
+    })())
 })
 
 // self.addEventListener('activate', e => {
