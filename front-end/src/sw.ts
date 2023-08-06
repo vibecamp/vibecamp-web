@@ -22,6 +22,8 @@ const APP_STATIC_RESOURCES = [
     '/twitter.png',
     '/vibecamp.png',
     '/vibecamp-squircle.png',
+    '/swirl1.png',
+    '/swirl2.png',
     '/icons.woff2',
     '/roboto-300.woff2',
     '/roboto-500.woff2',
