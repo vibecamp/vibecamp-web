@@ -1,8 +1,10 @@
-import { User, JWTUserInfo } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
-import { Router, Status } from "../../deps/oak.ts";
-import { AnyRouterContext, AnyRouterMiddleware, defineRoute } from "./_common.ts";
-import { create, getNumericDate, Payload, verify } from '../../deps/djwt.ts'
-import { authenticateByEmail } from "../../db-access/users.ts";
+import { VibeJWTPayload } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
+import { Router, Status } from "oak";
+import { AnyRouterContext, defineRoute } from "./_common.ts";
+import { create, getNumericDate, verify } from 'djwts'
+import { compare, hash } from 'bcrypt'
+import { Account } from "../../db.d.ts";
+import { db } from "../../db.ts";
 
 const encoder = new TextEncoder()
 const JWT_SECRET_KEY = await crypto.subtle.importKey(
@@ -20,35 +22,74 @@ const header = {
 
 export default function register(router: Router) {
 
-    defineRoute<{ success: boolean, jwt: string | null }>(router, {
+    defineRoute<{ jwt: string | null }>(router, {
         endpoint: '/login',
         method: 'post',
-        requiredPermissions: PUBLIC_PERMISSIONS,
         handler: async ctx => {
-            const { email, password } = await ctx.request.body({ type: 'json' }).value as { email?: unknown, password?: unknown }
 
-            if (typeof email === 'string' && typeof password === 'string') {
-                const user = await authenticateByEmail({ email, password })
-
-                if (user != null) {
-                    const { is_content_admin, is_account_admin } = user
-                    const payload: Payload & JWTUserInfo = {
-                        iss: "vibecamp",
-                        exp: getNumericDate(Date.now() + 30 * 60 * 60 * 1_000),
-                        is_content_admin,
-                        is_account_admin
-                    }
-                    const jwt = await create(header, payload, JWT_SECRET_KEY)
-                    return [{ success: true, jwt }, Status.OK]
-                }
+            // extract email/password from request
+            const { email_address, password } = await ctx.request.body({ type: 'json' }).value as { email_address?: unknown, password?: unknown }
+            if (typeof email_address !== 'string' || typeof password !== 'string') {
+                return [{ jwt: null }, Status.Unauthorized]
             }
 
-            return [{ success: false, jwt: null }, Status.Unauthorized]
+            // get account from DB
+            const account = await db.selectFrom('account').where('email_address', '=', email_address).selectAll().executeTakeFirst()
+            if (account == null) {
+                return [{ jwt: null }, Status.Unauthorized]
+            }
+
+            // verify password
+            if (!authenticatePassword(account, password)) {
+                return [{ jwt: null }, Status.Unauthorized]
+            }
+
+            // construct the JWT token and respond with it
+            return [{ jwt: await createAccountJwt(account) }, Status.OK]
+        }
+    })
+
+    defineRoute<{ jwt: string | null }>(router, {
+        endpoint: '/signup',
+        method: 'post',
+        handler: async ctx => {
+
+            // extract email/password from request
+            const { email_address, password } = await ctx.request.body({ type: 'json' }).value as { email_address?: unknown, password?: unknown }
+            if (typeof email_address !== 'string' || typeof password !== 'string') {
+                return [{ jwt: null }, Status.Unauthorized]
+            }
+
+            // create account in DB
+            const { password_hash, password_salt } = await hashAndSaltPassword(password)
+
+            const account = await db
+                .insertInto('account')
+                .values({
+                    email_address,
+                    password_hash,
+                    password_salt,
+                })
+                .returningAll()
+                .executeTakeFirstOrThrow()
+
+            // construct the JWT token and respond with it
+            return [{ jwt: await createAccountJwt(account) }, Status.OK]
         }
     })
 }
 
-export async function getPermissions(ctx: AnyRouterContext): Promise<Permissions> {
+async function createAccountJwt(account: Account): Promise<string> {
+    const payload: VibeJWTPayload = {
+        iss: "vibecamp",
+        exp: getNumericDate(Date.now() + 30 * 60 * 60 * 1_000),
+        account_id: account.account_id
+    }
+
+    return await create(header, payload, JWT_SECRET_KEY)
+}
+
+export async function getJwtPayload(ctx: AnyRouterContext): Promise<VibeJWTPayload | undefined> {
     const header = ctx.request.headers.get('Authorization');
     const bearerPrefix = 'Bearer '
     if (header != null && header.startsWith(bearerPrefix)) {
@@ -56,24 +97,22 @@ export async function getPermissions(ctx: AnyRouterContext): Promise<Permissions
 
         try {
             const result = await verify(token, JWT_SECRET_KEY);
-            const { is_content_admin, is_account_admin } = result as Payload & JWTUserInfo
-            return { is_content_admin, is_account_admin }
+            return result as VibeJWTPayload
+            // deno-lint-ignore no-empty
         } catch {
         }
     }
-
-    return PUBLIC_PERMISSIONS
 }
 
-export const requirePermissions = (required: Permissions): AnyRouterMiddleware => async (ctx: AnyRouterContext, next) => {
-    const { is_content_admin, is_account_admin } = await getPermissions(ctx)
-
-    ctx.assert(!required.is_content_admin || is_content_admin, Status.Unauthorized)
-    ctx.assert(!required.is_account_admin || is_account_admin, Status.Unauthorized)
-
-    await next()
+async function authenticatePassword(account: Account, password: string): Promise<boolean> {
+    const saltedPassword = password + account.password_salt
+    const passwordMatches = await compare(saltedPassword, account.password_hash)
+    return passwordMatches
 }
 
-export type Permissions = Pick<User, 'is_content_admin' | 'is_account_admin'>
-
-export const PUBLIC_PERMISSIONS: Permissions = { is_content_admin: false, is_account_admin: false }
+async function hashAndSaltPassword(password: string): Promise<{ password_hash: string, password_salt: string }> {
+    const password_salt = crypto.randomUUID()
+    const saltedPassword = password + password_salt
+    const password_hash = await hash(saltedPassword)
+    return { password_hash, password_salt }
+}

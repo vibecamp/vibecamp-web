@@ -38,3 +38,5 @@ next-env.d.ts
 public/robots.txt
 sitemap-0.xml
 sitemap.xml
+
+back-end/.env

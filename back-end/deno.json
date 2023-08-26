@@ -1,0 +1,11 @@
+{
+    "imports": {
+        "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts",
+        "djwts": "https://deno.land/x/djwt@v2.8/mod.ts",
+        "kysely": "npm:kysely@^0.25.0",
+        "oak": "https://deno.land/x/oak@v11.1.0/mod.ts",
+        "pg-pool": "npm:pg-pool@^3.6.1",
+        "std/": "https://deno.land/std@0.200.0/"
+    },
+    "tasks": {}
+}

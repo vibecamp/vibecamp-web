@@ -1,5 +1,6 @@
-import { RouteParams, Router, RouterContext, RouterMiddleware, Status } from "../../deps/oak.ts";
-import { Permissions, requirePermissions } from "./auth.ts";
+import { VibeJWTPayload } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
+import { RouteParams, Router, RouterContext, RouterMiddleware, Status } from "oak";
+import { getJwtPayload } from "./auth.ts";
 
 export type AnyRouterContext = RouterContext<string, RouteParams<string>, Record<string, unknown>>
 
@@ -15,28 +16,35 @@ export const API_BASE = '/api/v1'
  */
 export function defineRoute<TResult>(
     router: Router,
-    config: {
-        method: 'get' | 'post' | 'put' | 'delete',
-        endpoint: `/${string}`,
-        requiredPermissions: Permissions,
-        handler: (ctx: AnyRouterContext) => Promise<[TResult, Status]>
-    }
-) {
-    const routerMethod = (...args: any[]) => {
-        switch (config.method) {
-            // @ts-ignore
-            case 'get': router.get(...args); break;
-            // @ts-ignore
-            case 'post': router.post(...args); break;
-            // @ts-ignore
-            case 'put': router.put(...args); break;
-            // @ts-ignore
-            case 'delete': router.delete(...args); break;
+    config:
+        | {
+            method: 'get' | 'post' | 'put' | 'delete',
+            endpoint: string,
+            requireAuth?: false,
+            handler: (ctx: AnyRouterContext) => Promise<[TResult | null, Status]>
         }
-    }
+        | {
+            method: 'get' | 'post' | 'put' | 'delete',
+            endpoint: string,
+            requireAuth: true,
+            handler: (ctx: AnyRouterContext, jwt: VibeJWTPayload) => Promise<[TResult | null, Status]>
+        }
+) {
     const endpoint = API_BASE + config.endpoint
     const handler: AnyRouterMiddleware = async (ctx, next) => {
-        const [res, status] = await config.handler(ctx)
+        let jwt: VibeJWTPayload | undefined
+
+        // if this route requires auth, decode the JWT payload and assert that
+        // it exists
+        if (config.requireAuth) {
+            jwt = await getJwtPayload(ctx)
+
+            if (jwt == null) {
+                return [null, Status.Unauthorized]
+            }
+        }
+
+        const [res, status] = await config.handler(ctx, jwt)
 
         ctx.response.type = "json"
         ctx.response.body = JSON.stringify(res)
@@ -44,6 +52,12 @@ export function defineRoute<TResult>(
 
         return next()
     }
+    const args = [endpoint, handler] as const
 
-    routerMethod(endpoint, requirePermissions(config.requiredPermissions), handler)
+    switch (config.method) {
+        case 'get': router.get(...args); break;
+        case 'post': router.post(...args); break;
+        case 'put': router.put(...args); break;
+        case 'delete': router.delete(...args); break;
+    }
 }

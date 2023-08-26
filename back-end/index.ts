@@ -1,4 +1,4 @@
-import { Application, isHttpError } from './deps/oak.ts'
+import { Application, isHttpError } from 'oak'
 import { router } from "./routes/index.ts"
 
 const app = new Application()
