@@ -1,5 +1,4 @@
-import jwtDecode from 'jwt-decode'
-import { JWTUserInfo } from '../../../common/data'
+import Store from '../Store'
 
 const BACK_END_ORIGIN = 'https://backend-ssp4.onrender.com'
 
@@ -12,30 +11,19 @@ export async function login({ email, password }: { email: string, password: stri
         })
 
         if (res.status == 200) {
-            const { jwt } = await res.json()
-            setJwtCookie(jwt)
+            const { jwt } = await res.json() as { jwt: string | null }
+
+            if (jwt == null) {
+                return false
+            }
+
+            localStorage.setItem('jwt', jwt)
+            Store.jwt = jwt
+
             return true
         }
     } catch {
     }
 
     return false
-}
-
-export function setJwtCookie(jwt: string) {
-    document.cookie = 'jwt=' + jwt
-}
-
-export function getJwtCookie() {
-    return document.cookie.split(';').find(piece => piece.startsWith('jwt='))?.substring(4)
-}
-
-export function getJwtPayload(): JWTUserInfo | undefined {
-    const jwtRaw = getJwtCookie()
-    if (jwtRaw) {
-        try {
-            return jwtDecode(jwtRaw)
-        } catch {
-        }
-    }
 }

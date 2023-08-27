@@ -16,7 +16,7 @@ html, body {
 
 html {
     --color-primary: rgba(0, 0, 0, 0.8);
-    --color-secondary: rgba(0, 0, 0, 0.6);
+    --color-secondary: rgba(0, 0, 0, 0.2);
     --color-accent-1: rgb(79, 176, 229);
 }
 
@@ -35,6 +35,8 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
+    position:relative;
+    overflow: hidden;
 }
 
 pre {
@@ -53,6 +55,27 @@ h1, h2, h3, h4, h5, h6 {
     padding: 20px;
     background: white;
     box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+}
+
+.login {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    height: 100%;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    z-index:1;
+
+    .logo {
+        display: block;
+        width: min(50vw, 200px, 20vh);
+        height: min(50vw, 200px, 20vh);
+        opacity: 0.9;
+        align-self: center;
+    }
 }
 
 .eventCard {
@@ -100,6 +123,7 @@ h1, h2, h3, h4, h5, h6 {
         position: absolute;
         top: 0;
         left: calc(100vw * -1 * var(--current-view));
+        transition: left 0.1s ease-out;
         width: calc(100vw * var(--view-count));
         height: 100%;
         display: flex;
@@ -157,20 +181,12 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
-.logo {
-    display: block;
-    width: 50vw;
-    height: 50vw;
-    margin-top: calc(50vh - 20px - 25vw);
-    opacity: 0.9;
-}
-
 .stripes {
     display: flex;
     flex-direction: column;
     width: 200vw;
     height: 100px;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: -100vw;
     transform-origin: center;
@@ -211,26 +227,73 @@ h1, h2, h3, h4, h5, h6 {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-
-    >div {
-        position: fixed;
-        left: 10px;
-        top: 20px;
-        width: calc(100vw - 20px);
-        height: calc(100vh - 200px);
-        padding: 3dvb;
-        background: white;
-        border-radius: 20px;
-        overflow-y: auto;
-        box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
-    }
+    transition: opacity 0.2s ease-out;
 
     &:not(.open) {
         pointer-events: none;
         opacity: 0;
 
-        >div {
-            transform: translateY(100px);
+        &.left {
+            >.dialog {
+                transform: translateX(-100vw);
+            }
+        }
+
+        &.right {
+            >.dialog {
+                transform: translateX(100vw);
+            }
+        }
+    }
+
+    >.dialog {
+        background: white;
+        box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+        transition: transform 0.2s ease-out;
+        width: 100%;
+        height: 100%;
+
+        >.header {
+            display: flex;
+            align-items: center;
+            justify-content: stretch;
+            box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+
+
+            >button {
+                appearance: none;
+                border: none;
+                background: transparent;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--color-accent-1);
+                font-size: 16px;
+            }
+
+            >button,
+            >.balancer {
+                width: 80px;
+                height: 60px;
+                flex-grow: 0;
+                flex-shrink: 0;
+            }
+
+            >.title {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-grow: 1;
+                flex-shrink: 1;
+                overflow: hidden;
+                font-weight: bold;
+            }
+        }
+
+        >.content {
+            padding: 3dvb;
+            overflow-y: auto;
         }
     }
 }
@@ -243,9 +306,10 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid rgba(0, 0, 0, 0.2);
     background: white;
     border-radius: 8px;
-    padding: 5px 10px;
+    padding: 10px 20px;
     font-size: 16px;
     display: inline-flex;
+    justify-content: center;
     align-items: center;
     cursor: pointer;
     color: inherit;
@@ -255,24 +319,101 @@ h1, h2, h3, h4, h5, h6 {
         background: var(--color-accent-1);
         border: 1px solid rgba(255, 255, 255, 0.9)
     }
+
+    .loading-container {
+        display: flex;
+        // opacity: 0;
+        // transform: scaleX(0);
+
+        // animation-name: loading-appear;
+        // animation-duration: 0.4s;
+        // animation-timing-function: linear;
+        // animation-fill-mode: both;
+        // animation-direction: backwards;
+
+        // &.isLoading {
+        //     animation-direction: forwards;
+        // }
+
+        &:not(.isLoading) {
+            display: none;
+        }
+    }
 }
+
+// @keyframes loading-appear {
+//     0% {
+//         opacity: 0;
+//         transform: scaleX(0);
+//     }
+//     50% {
+//         opacity: 0;
+//         transform: scaleX(1);
+//     }
+//     100% {
+//         opacity: 1;
+//         transform: scaleX(1);
+//     }
+// }
 
 .input {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    font-family: arial;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.7);
+
+    transition: color 0.1s ease-out;
+
+    &:nth-of-type(3n + 1) {
+        --focus-color: rgb(255, 89, 0);
+    }
+    &:nth-of-type(3n + 2) {
+        --focus-color: rgb(255, 0, 174);
+    }
+    &:nth-of-type(3n + 3) {
+        --focus-color: rgb(0, 166, 255);
+    }
+
+    &:focus-within {
+        color: var(--focus-color);
+    }
 
     >input {
         appearance: none;
         border: none;
         background: none;
 
-        border: 1px solid var(--color-secondary);
+        color: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(0, 0, 0, 0.3);
         background: white;
-        border-radius: 5px;
-        padding: 5px 10px;
         font-size: 16px;
-        display: block;
+        font-weight: 300;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 5px;
+
+        transition: border-color 0.1s ease-out;
+
+        &:focus {
+            outline: none;
+            border-color: var(--focus-color);
+            box-shadow: 0px 0px 3px var(--focus-color);
+        }
+    }
+
+    > .error {
+        color: red;
+        overflow: hidden;
+        height: 1em;
+
+        transition: all 0.1s ease-out;
+
+        &:not(.visible) {
+            pointer-events: none;
+            opacity: 0;
+            height: 0;
+        }
     }
 }
 

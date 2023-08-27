@@ -1,7 +1,7 @@
-import { getJwtCookie } from './auth'
+import Store from '../Store'
 
 export async function vibeFetch<T = unknown>(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<T> {
-    const jwt = getJwtCookie()
+    const jwt = Store.jwt
 
     const res = await fetch(input, {
         ...init,

@@ -27,67 +27,69 @@ export default observer(() => {
             {Store.allEvents.state.result.map(e =>
                 <Event event={e} key={e.id} />)}
 
-            <Modal isOpen={Store.eventBeingEdited != null} onBackdropClick={Store.stopEditingEvent}>
-                {given(Store.eventBeingEdited, eventBeingEdited => <>
+            <Modal isOpen={Store.eventBeingEdited != null} onClose={Store.stopEditingEvent}>
+                {given(Store.eventBeingEdited, eventBeingEdited => (
+                    <>
 
-                    <Input
-                        label='Event name'
-                        value={eventBeingEdited.name}
-                        onChange={val => eventBeingEdited.name = val}
-                    />
+                        <Input
+                            label='Event name'
+                            value={eventBeingEdited.name}
+                            onChange={val => eventBeingEdited.name = val}
+                        />
 
-                    <Spacer size={16} />
+                        <Spacer size={16} />
 
-                    <Input
-                        label='Event description'
-                        value={eventBeingEdited.description}
-                        onChange={val => eventBeingEdited.description = val}
-                    />
+                        <Input
+                            label='Event description'
+                            value={eventBeingEdited.description}
+                            onChange={val => eventBeingEdited.description = val}
+                        />
 
-                    <Spacer size={16} />
+                        <Spacer size={16} />
 
-                    <Input
-                        label='Start'
-                        value={eventBeingEdited.start}
-                        onChange={val => eventBeingEdited.start = val}
-                    />
+                        <Input
+                            label='Start'
+                            value={eventBeingEdited.start}
+                            onChange={val => eventBeingEdited.start = val}
+                        />
 
-                    <Spacer size={16} />
+                        <Spacer size={16} />
 
-                    <Input
-                        label='End'
-                        value={eventBeingEdited.end}
-                        onChange={val => eventBeingEdited.end = val}
-                    />
+                        <Input
+                            label='End'
+                            value={eventBeingEdited.end}
+                            onChange={val => eventBeingEdited.end = val}
+                        />
 
-                    <Spacer size={16} />
+                        <Spacer size={16} />
 
-                    <Input
-                        label='Location name'
-                        value={eventBeingEdited.locationName}
-                        onChange={val => eventBeingEdited.locationName = val}
-                    />
+                        <Input
+                            label='Location name'
+                            value={eventBeingEdited.locationName}
+                            onChange={val => eventBeingEdited.locationName = val}
+                        />
 
-                    <Spacer size={16} />
+                        <Spacer size={16} />
 
-                    <Input
-                        label='Location address'
-                        value={eventBeingEdited.locationAddress}
-                        onChange={val => eventBeingEdited.locationAddress = val}
-                    />
+                        <Input
+                            label='Location address'
+                            value={eventBeingEdited.locationAddress}
+                            onChange={val => eventBeingEdited.locationAddress = val}
+                        />
 
-                    <Spacer size={16} />
+                        <Spacer size={16} />
 
-                    <Button isSubmit isPrimary>
-                            Create event
-                    </Button>
+                        <Button isSubmit isPrimary>
+                                Create event
+                        </Button>
 
-                    <Spacer size={8} />
+                        <Spacer size={8} />
 
-                    <Button onClick={Store.stopEditingEvent}>
-                            Cancel
-                    </Button>
-                </>)}
+                        <Button onClick={Store.stopEditingEvent}>
+                                Cancel
+                        </Button>
+                    </>
+                ))}
             </Modal>
         </>
     )

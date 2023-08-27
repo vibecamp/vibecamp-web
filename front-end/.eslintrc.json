@@ -39,6 +39,7 @@
             "never"
         ],
         "no-empty": "off",
-        "react/display-name": "off"
+        "react/display-name": "off",
+        "@typescript-eslint/no-empty-function": "off"
     }
 }

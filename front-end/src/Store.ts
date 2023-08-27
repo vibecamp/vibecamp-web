@@ -1,8 +1,12 @@
 import { makeAutoObservable } from 'mobx'
 import { createTransformer } from 'mobx-utils'
-import { UserData, EventData } from './model'
+import jwtDecode from 'jwt-decode'
+
+import {  EventData } from './model'
 import { request } from './mobx-utils'
 import { ViewName } from './components/App'
+import { VibeJWTPayload } from '../../common/data'
+import { getAccountInfo } from './api/account'
 
 class Store {
     constructor() {
@@ -11,19 +15,28 @@ class Store {
 
     /// Navigation
 
-    currentView: ViewName = 'Announcements'
+    currentView: ViewName = 'Tickets'
     readonly setCurrentView = createTransformer((view: ViewName) => () => this.currentView = view)
 
     /// User
+    jwt: string | null = localStorage.getItem('jwt')
 
-    currentUser: UserData = {
-        username: '@brundolfsmith',
-        calendarEvents: [],
-        purchasedBedding: 0,
-        purchasedSleepingBags: 0,
-        purchasedBusTickets: 0,
-        dietaryRestrictions: ''
+    get loggedIn() {
+        return this.jwt != null
     }
+
+    get jwtPayload() {
+        if (this.jwt != null) {
+            try {
+                return jwtDecode<VibeJWTPayload>(this.jwt)
+            } catch {
+            }
+        }
+    }
+
+    readonly accountInfo = request(getAccountInfo)
+
+    buyTicketsModalOpen = false
 
     /// Events
 
@@ -41,7 +54,7 @@ class Store {
             locationAddress: '',
             visibility: 'public',
             visibilityWhitelist: [],
-            creator: this.currentUser.username
+            creator: this.jwtPayload?.account_id
         }
     }
 

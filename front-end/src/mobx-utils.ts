@@ -1,42 +1,120 @@
-import { autorun, observable } from 'mobx'
-import { useEffect } from 'react'
+import { autorun, makeAutoObservable, observable } from 'mobx'
+import { FormEvent, useEffect } from 'react'
 
-// type FormOptions<T extends Record<string, unknown>> = {
-//     initialValues: T,
-//     validators: { [key in keyof T]: (val: T[key]) => string | undefined },
-//     submit: (data: T) => Promise<string | undefined>,
-// }
+type FormOptions<T extends Record<string, unknown>> = {
+    initialValues: T,
+    validators: { [key in keyof T]: (val: T[key]) => string | undefined },
+    submit: (data: T) => Promise<string | undefined | void>,
+}
 
-// type FormStore<T extends Record<string, unknown>> = {
-//     fields: {
-//         [key in keyof T]: {
-//             value: T[key],
-//             set: (val: T[key]) => void,
-//             error: string | undefined,
-//             activateValidation: () => void,
-//         }
-//     },
-//     submitting: boolean,
-//     error: string | undefined,
-//     handleSubmit: (e: FormEvent) => Promise<void>,
-// }
+export function form<TValues extends Record<string, unknown>>(opts: FormOptions<TValues>): {
+    readonly fields: {
+        readonly [key in keyof TValues]: {
+            readonly value: TValues[key],
+            readonly set: (val: TValues[key]) => void,
+            readonly error: string | undefined,
+            readonly activateValidation: () => void
+        }
+    },
+    readonly submitting: boolean,
+    readonly error: string | undefined,
+    readonly handleSubmit: (e: FormEvent) => Promise<void>
+} {
+    return new Form(opts)
+}
 
-// export function form<T extends Record<string, unknown>>(options: FormOptions<T>): FormStore<T> {
-//     function handleSubmit(e: FormEvent) {
-//         e.preventDefault()
+class Form<TValues extends Record<string, unknown>> {
+    constructor(
+        opts: FormOptions<TValues>
+    ) {
+        {
+            const fields = {} as {
+                [key in keyof TValues]: Field<TValues[key]>
+            }
+            for (const key in opts.initialValues) {
+                fields[key] = new Field(opts.initialValues[key], opts.validators[key])
+            }
+            this.fields = fields
+        }
 
+        this.handleSubmit = async (e: FormEvent) => {
+            e.preventDefault()
 
-//     }
+            this.error = undefined
 
-//     const formStore: FormStore<T> = {
-//         fields: Object.fromEntries(Object.keys(options.initialValues).map(key => ({
-//             value: options.initialValues[key]
-//         })))
-//         handleSubmit
-//     }
+            let fieldError = false
+            for (const key in this.fields) {
+                this.fields[key].activateValidation()
+                if (this.fields[key].rawError != null) {
+                    fieldError = true
+                }
+            }
 
-//     return formStore
-// }
+            if (fieldError) {
+                return
+            }
+
+            try {
+                this.submitting = true
+                this.error = (await opts.submit(this.fieldValues)) ?? undefined
+                this.submitting = false
+            } catch {
+                this.error = 'Something went wrong, please try again'
+            }
+        }
+
+        makeAutoObservable(this)
+    }
+
+    fields: {
+        readonly [key in keyof TValues]: Field<TValues[key]>
+    }
+    submitting = false
+    error: string | undefined = undefined
+    readonly handleSubmit: (e: FormEvent) => Promise<void>
+
+    private get fieldValues(): {
+        readonly [key in keyof TValues]: TValues[key]
+        } {
+        const vals = {} as {
+            [key in keyof TValues]: TValues[key]
+        }
+
+        for (const key in this.fields) {
+            vals[key] = this.fields[key].value
+        }
+        return vals
+    }
+}
+
+class Field<T> {
+    constructor(
+        public value: T,
+        private readonly validator: undefined | ((val: T) => string | undefined)
+    ) {
+        makeAutoObservable(this)
+    }
+
+    readonly set = (val: T): void => {
+        this.value = val
+        this.validationActive = false
+    }
+    get rawError(): string | undefined {
+        return this.validator?.(this.value)
+    }
+    get error(): string | undefined {
+        if (this.validationActive) {
+            return this.rawError
+        }
+    }
+    private validationActive = false
+    readonly activateValidation = (): void  => {
+        this.validationActive = true
+    }
+    readonly clearValidation = (): void => {
+        this.validationActive = false
+    }
+}
 
 export function request<T>(fn: () => Promise<T>) {
 
