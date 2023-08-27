@@ -30,6 +30,9 @@ const LoginForm = form({
     submit: async ({ email, password }) => {
         await wait(1000)
         Store.jwt = 'foo'
+
+        LoginForm.fields.email.set('')
+        LoginForm.fields.password.set('')
     }
 })
 
