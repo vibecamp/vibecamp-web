@@ -21,18 +21,20 @@ export function defineRoute<TResult>(
             method: 'get' | 'post' | 'put' | 'delete',
             endpoint: string,
             requireAuth?: false,
-            handler: (ctx: AnyRouterContext) => Promise<[TResult | null, Status]>
+            handler: (context: { ctx: AnyRouterContext, body: Record<string, unknown> }) => Promise<[TResult | null, Status]>
         }
         | {
             method: 'get' | 'post' | 'put' | 'delete',
             endpoint: string,
             requireAuth: true,
-            handler: (ctx: AnyRouterContext, jwt: VibeJWTPayload) => Promise<[TResult | null, Status]>
+            handler: (context: { ctx: AnyRouterContext, body: Record<string, unknown>, jwt: VibeJWTPayload }) => Promise<[TResult | null, Status]>
         }
 ) {
     const endpoint = API_BASE + config.endpoint
     const handler: AnyRouterMiddleware = async (ctx, next) => {
         let jwt: VibeJWTPayload | undefined
+
+        const parsedBody = await ctx.request.body({ type: 'json' }).value as Record<string, unknown>
 
         // if this route requires auth, decode the JWT payload and assert that
         // it exists
@@ -42,13 +44,19 @@ export function defineRoute<TResult>(
             if (jwt == null) {
                 return [null, Status.Unauthorized]
             }
+
+            const [res, status] = await config.handler({ ctx, body: parsedBody, jwt })
+
+            ctx.response.body = JSON.stringify(res)
+            ctx.response.status = status
+        } else {
+            const [res, status] = await config.handler({ ctx, body: parsedBody })
+
+            ctx.response.body = JSON.stringify(res)
+            ctx.response.status = status
         }
 
-        const [res, status] = await config.handler(ctx, jwt)
-
         ctx.response.type = "json"
-        ctx.response.body = JSON.stringify(res)
-        ctx.response.status = status
 
         return next()
     }
