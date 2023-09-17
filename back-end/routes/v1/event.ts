@@ -10,7 +10,7 @@ export default function register(router: Router) {
         endpoint: baseRoute + '/create',
         method: 'post',
         requireAuth: true,
-        handler: async (ctx, jwt) => {
+        handler: async ({ ctx, jwt }) => {
 
             // extract event data from request
             const event = await ctx.request.body({ type: 'json' }).value as Omit<Event, 'event_id' | 'creator_id'>
@@ -27,7 +27,7 @@ export default function register(router: Router) {
         endpoint: baseRoute + '/edit',
         method: 'post',
         requireAuth: true,
-        handler: async (ctx, jwt) => {
+        handler: async ({ ctx, jwt }) => {
 
             // extract event data from request
             const event = await ctx.request.body({ type: 'json' }).value as Event
@@ -44,7 +44,7 @@ export default function register(router: Router) {
         endpoint: baseRoute + '/delete',
         method: 'post',
         requireAuth: true,
-        handler: async (ctx, jwt) => {
+        handler: async ({ ctx, jwt }) => {
 
             // extract event ID from request
             const { event_id } = await ctx.request.body({ type: 'json' }).value as { event_id?: number }
@@ -61,7 +61,7 @@ export default function register(router: Router) {
         endpoint: baseRoute,
         method: 'get',
         requireAuth: true,
-        handler: async (ctx, jwt) => {
+        handler: async ({ ctx, jwt }) => {
             const events = await getAllEvents()
 
             return [{ events }, Status.OK]

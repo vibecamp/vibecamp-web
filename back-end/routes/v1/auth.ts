@@ -4,7 +4,7 @@ import { AnyRouterContext, defineRoute } from "./_common.ts";
 import { create, getNumericDate, verify } from 'djwts'
 import { compare, hash } from 'bcrypt'
 import { Account } from "../../db.d.ts";
-import { db } from "../../db.ts";
+import { withDBConnection } from "../../db.ts";
 
 const encoder = new TextEncoder()
 const JWT_SECRET_KEY = await crypto.subtle.importKey(
@@ -25,16 +25,18 @@ export default function register(router: Router) {
     defineRoute<{ jwt: string | null }>(router, {
         endpoint: '/login',
         method: 'post',
-        handler: async ctx => {
+        handler: async ({ body: { email_address, password } }) => {
 
             // extract email/password from request
-            const { email_address, password } = await ctx.request.body({ type: 'json' }).value as { email_address?: unknown, password?: unknown }
             if (typeof email_address !== 'string' || typeof password !== 'string') {
                 return [{ jwt: null }, Status.Unauthorized]
             }
 
             // get account from DB
-            const account = await db.selectFrom('account').where('email_address', '=', email_address).selectAll().executeTakeFirst()
+            const accounts = await withDBConnection(async db => {
+                return await db.queryObject<Account>`select * from account where email_address = ${email_address}`
+            })
+            const account = accounts.rows[0]
             if (account == null) {
                 return [{ jwt: null }, Status.Unauthorized]
             }
@@ -52,10 +54,9 @@ export default function register(router: Router) {
     defineRoute<{ jwt: string | null }>(router, {
         endpoint: '/signup',
         method: 'post',
-        handler: async ctx => {
+        handler: async ({ body: { email_address, password } }) => {
 
             // extract email/password from request
-            const { email_address, password } = await ctx.request.body({ type: 'json' }).value as { email_address?: unknown, password?: unknown }
             if (typeof email_address !== 'string' || typeof password !== 'string') {
                 return [{ jwt: null }, Status.Unauthorized]
             }
@@ -63,15 +64,16 @@ export default function register(router: Router) {
             // create account in DB
             const { password_hash, password_salt } = await hashAndSaltPassword(password)
 
-            const account = await db
-                .insertInto('account')
-                .values({
-                    email_address,
-                    password_hash,
-                    password_salt,
-                })
-                .returningAll()
-                .executeTakeFirstOrThrow()
+            const accounts = await withDBConnection(async db => {
+                return await db.queryObject<Account>`
+                    insert into account
+                        (email_address, password_hash, password_salt)
+                        values (${email_address}, ${password_hash}, ${password_salt})`
+            })
+            const account = accounts.rows[0]
+            if (account == null) {
+                return [{ jwt: null }, Status.InternalServerError]
+            }
 
             // construct the JWT token and respond with it
             return [{ jwt: await createAccountJwt(account) }, Status.OK]

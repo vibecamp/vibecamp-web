@@ -1,7 +1,8 @@
 import { Router, Status } from "oak";
 import { defineRoute } from "./_common.ts";
-import { db } from "../../db.ts";
+import { withDBConnection } from "../../db.ts";
 import { FullAccountInfo } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
+import { Account, AccountAttendee, Attendee, Ticket } from "../../db.d.ts";
 
 export default function register(router: Router) {
     const baseRoute = '/account'
@@ -11,17 +12,18 @@ export default function register(router: Router) {
         endpoint: baseRoute,
         method: 'get',
         requireAuth: true,
-        handler: async (_ctx, jwt) => {
+        handler: async ({ jwt }) => {
             const { account_id } = jwt
 
-            const rows = await db
-                .selectFrom('account')
-                .leftJoin('account_attendee', 'account.account_id', 'account_attendee.account_id')
-                .leftJoin('attendee', 'account_attendee.attendee_id', 'attendee.attendee_id')
-                .leftJoin('ticket', 'attendee.ticket_id', 'ticket.ticket_id')
-                .where('account.account_id', '=', account_id)
-                .selectAll()
-                .execute()
+            const { rows } = await withDBConnection(async db => {
+                return await db.queryObject<Account & Partial<AccountAttendee> & Partial<Attendee> & Partial<Ticket>>`
+                    select * from account, account_attendee, attendee, ticket
+                        where account.account_id = ${account_id}
+                        and account.account_id = account_attendee.account_id
+                        and account_attendee.attendee_id = attendee.attendee_id
+                        and attendee.ticket_id = ticket.ticket_id
+                `
+            })
 
             const firstRow = rows[0]
             if (firstRow != null) {

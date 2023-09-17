@@ -9,7 +9,7 @@ export default function register(router: Router) {
         endpoint: baseRoute + '/purchase',
         method: 'post',
         requireAuth: true,
-        handler: async (_ctx, jwt) => {
+        handler: async ({ jwt }) => {
             if (!jwt.user.allowed_to_buy_tickets) {
                 return [null, Status.Unauthorized]
             }
