@@ -1,7 +1,7 @@
-import { Event } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
+// import { Event } from "common/data.ts";
 import { Router, Status } from "oak";
 import { defineRoute } from "./_common.ts";
-import { getAllEvents } from "../../fake-db.ts";
+type Event = any
 
 export default function register(router: Router) {
     const baseRoute: `/${string}` = '/event'
@@ -62,9 +62,9 @@ export default function register(router: Router) {
         method: 'get',
         requireAuth: true,
         handler: async ({ ctx, jwt }) => {
-            const events = await getAllEvents()
+            // const events = await getAllEvents()
 
-            return [{ events }, Status.OK]
+            return [{ events: null }, Status.OK]
         }
     })
 }

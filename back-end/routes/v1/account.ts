@@ -1,7 +1,7 @@
 import { Router, Status } from "oak";
 import { defineRoute } from "./_common.ts";
 import { withDBConnection } from "../../db.ts";
-import { FullAccountInfo } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
+import { FullAccountInfo } from "common/data.ts";
 import { Account, AccountAttendee, Attendee, Ticket } from "../../db.d.ts";
 
 export default function register(router: Router) {

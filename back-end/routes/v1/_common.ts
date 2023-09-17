@@ -1,4 +1,4 @@
-import { VibeJWTPayload } from "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/data.ts";
+import { VibeJWTPayload } from "common/data.ts";
 import { RouteParams, Router, RouterContext, RouterMiddleware, Status } from "oak";
 import { getJwtPayload } from "./auth.ts";
 
