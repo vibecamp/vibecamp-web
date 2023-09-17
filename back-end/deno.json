@@ -6,5 +6,6 @@
         "oak": "https://deno.land/x/oak@v11.1.0/mod.ts",
         "std/": "https://deno.land/std@0.200.0/"
     },
-    "tasks": {}
+    "tasks": {},
+    "lock": false
 }
