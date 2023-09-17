@@ -1,5 +1,5 @@
 
-export const MAX_TICKETS_PER_ACCOUNT = 5
+export const MAX_ADULT_TICKETS_PER_ACCOUNT = 5
 
 export const REFERRAL_MAXES = [
     5, // seed people
