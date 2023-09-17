@@ -16,15 +16,17 @@ export type FullAccountInfo = {
     email_address: string,
     attendees: Array<{
         attendee_id: number,
-        name: string | null,
-        is_child: boolean | null,
-        dietary_restrictions: string | null,
-        has_purchased_bedding: boolean | null,
-        has_purchased_bus_ticket: string | null,
-        is_default_for_account: boolean | null,
+        name: Maybe<string>,
+        is_child: Maybe<boolean>,
+        dietary_restrictions: Maybe<string>,
+        has_purchased_bedding: Maybe<boolean>,
+        has_purchased_bus_ticket: Maybe<string>,
+        is_default_for_account: Maybe<boolean>,
         ticket: {
-            ticket_id: number | null,
-            event_id: number | null,
+            ticket_id: Maybe<number>,
+            event_id: Maybe<number>,
         }
     }>
 }
+
+export type Maybe<T> = T | null | undefined
