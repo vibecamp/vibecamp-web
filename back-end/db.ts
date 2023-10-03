@@ -16,7 +16,7 @@ const db = new Pool({
   password: url.password,
   port: url.port || 5432,
   user: url.username,
-}, 97)
+}, 20)
 
 export async function withDBConnection<TResult>(
   cb: (db: Pick<PoolClient, 'queryObject'>) => Promise<TResult>,
