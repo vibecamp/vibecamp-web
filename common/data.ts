@@ -14,7 +14,7 @@ export type VibeJWTPayload = {
 export type FullAccountInfo = {
     account_id: number,
     email_address: string,
-    allowed_to_purchase_tickets: boolean,
+    allowed_to_purchase_tickets: number,
     attendees: Array<{
         attendee_id: number;
         name: string;
