@@ -10,6 +10,14 @@ import { allPromises } from './utils.ts'
 
 const url = new URL(env.DB_URL)
 
+console.log({
+  database: url.pathname.split('/')[1],
+  hostname: url.hostname,
+  password: url.password,
+  port: url.port,
+  user: url.username,
+})
+
 const db = new Pool({
   database: url.pathname.split('/')[1],
   hostname: url.hostname,
