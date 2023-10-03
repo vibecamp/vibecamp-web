@@ -48,16 +48,16 @@ export default observer(() => {
 
             {Store.accountInfo.state.kind === 'loading' ? 
                 'Loading...'
-            : Store.accountInfo.state.kind === 'error' ?
+            : Store.accountInfo.state.kind === 'error' || Store.accountInfo.state.result == null ?
                 'Failed to load'
             : Store.accountInfo.state.kind === 'result' ?
                 <>
-                    {true //Store.accountInfo.state.result?.allowed_to_purchase_tickets
+                    {Store.accountInfo.state.result.allowed_to_purchase_tickets > 0
                         ? <>
                             {Store.accountInfo.state.result?.tickets.map(ticket =>
                                 <Ticket name='Unknown attendee' ticketType='adult' key={ticket.ticket_id} />)}
         
-                            <Button isPrimary onClick={() => Store.buyTicketsModalOpen = true}>
+                            <Button isPrimary isDisabled={Store.accountInfo.state.result.tickets.length >= Store.accountInfo.state.result.allowed_to_purchase_tickets} onClick={() => Store.buyTicketsModalOpen = true}>
                                 Buy tickets
                             </Button>
 
@@ -149,8 +149,9 @@ export default observer(() => {
 
                         <Input 
                             label='Adult tickets to purchase' 
-                            value={state.purchaseForm.fields.adultTickets.value}
-                            onChange={state.purchaseForm.fields.adultTickets.set}
+                            type='number'
+                            value={String(state.purchaseForm.fields.adultTickets.value)}
+                            onChange={val => state.purchaseForm.fields.adultTickets.set(Number(val))}
                             error={state.purchaseForm.fields.adultTickets.error}
                             onBlur={state.purchaseForm.fields.adultTickets.activateValidation} 
                         />
@@ -159,8 +160,9 @@ export default observer(() => {
 
                         <Input
                             label='Child tickets to purchase'
-                            value={state.purchaseForm.fields.childTickets.value}
-                            onChange={state.purchaseForm.fields.childTickets.set}
+                            type='number'
+                            value={String(state.purchaseForm.fields.childTickets.value)}
+                            onChange={val => state.purchaseForm.fields.childTickets.set(Number(val))}
                             error={state.purchaseForm.fields.childTickets.error}
                             onBlur={state.purchaseForm.fields.childTickets.activateValidation} 
                         />
