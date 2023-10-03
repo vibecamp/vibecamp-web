@@ -12,6 +12,9 @@
     "semiColons": false,
     "singleQuote": true
   },
-  "tasks": {},
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts",
+    "dev": "deno run --allow-net --allow-env --allow-read index.ts"
+  },
   "lock": false
 }

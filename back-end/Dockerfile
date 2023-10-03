@@ -16,4 +16,4 @@ ADD . .
 # Compile the main app so that it doesn't need to be compiled each startup/entry.
 # RUN deno cache --reload index.ts
 
-CMD ["run", "--allow-net", "--allow-env", "index.ts"]
+CMD ["task", "start"]
