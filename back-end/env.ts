@@ -14,5 +14,6 @@ function assertEnv(key: string): string {
 }
 
 export default {
-    DB_URL: assertEnv('DB_URL')
+    DB_URL: assertEnv('DB_URL'),
+    STRIPE_API_KEY: assertEnv('STRIPE_API_KEY'),
 }

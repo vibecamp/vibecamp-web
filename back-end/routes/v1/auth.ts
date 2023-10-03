@@ -29,7 +29,7 @@ export default function register(router: Router) {
 
             // extract email/password from request
             if (typeof email_address !== 'string' || typeof password !== 'string') {
-                return [{ jwt: null }, Status.Unauthorized]
+                return [{ jwt: null }, Status.BadRequest]
             }
 
             // get account from DB
@@ -42,7 +42,7 @@ export default function register(router: Router) {
             }
 
             // verify password
-            if (!authenticatePassword(account, password)) {
+            if (!await authenticatePassword(account, password)) {
                 return [{ jwt: null }, Status.Unauthorized]
             }
 
@@ -58,7 +58,7 @@ export default function register(router: Router) {
 
             // extract email/password from request
             if (typeof email_address !== 'string' || typeof password !== 'string') {
-                return [{ jwt: null }, Status.Unauthorized]
+                return [{ jwt: null }, Status.BadRequest]
             }
 
             // create account in DB
@@ -66,10 +66,12 @@ export default function register(router: Router) {
 
             const accounts = await withDBConnection(async db => {
                 return await db.queryObject<Account>`
-                    insert into account
+                    INSERT INTO account
                         (email_address, password_hash, password_salt)
-                        values (${email_address}, ${password_hash}, ${password_salt})`
+                        VALUES (${email_address}, ${password_hash}, ${password_salt})
+                    RETURNING *`
             })
+
             const account = accounts.rows[0]
             if (account == null) {
                 return [{ jwt: null }, Status.InternalServerError]

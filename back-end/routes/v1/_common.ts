@@ -1,6 +1,7 @@
 import { VibeJWTPayload } from "common/data.ts";
 import { RouteParams, Router, RouterContext, RouterMiddleware, Status } from "oak";
 import { getJwtPayload } from "./auth.ts";
+import { wait } from "../../utils.ts";
 
 export type AnyRouterContext = RouterContext<string, RouteParams<string>, Record<string, unknown>>
 
@@ -32,33 +33,46 @@ export function defineRoute<TResult>(
 ) {
     const endpoint = API_BASE + config.endpoint
     const handler: AnyRouterMiddleware = async (ctx, next) => {
-        let jwt: VibeJWTPayload | undefined
 
-        const parsedBody = await ctx.request.body({ type: 'json' }).value as Record<string, unknown>
+        let parsedBody: Record<string, unknown> = {}
+
+        try {
+            if (config.method !== 'get') {
+                parsedBody = await ctx.request.body({ type: 'json' }).value
+            }
+        } catch {
+        }
 
         // if this route requires auth, decode the JWT payload and assert that
         // it exists
         if (config.requireAuth) {
-            jwt = await getJwtPayload(ctx)
+            const jwt: VibeJWTPayload | null | undefined = await getJwtPayload(ctx)
 
             if (jwt == null) {
                 return [null, Status.Unauthorized]
             }
 
-            const [res, status] = await config.handler({ ctx, body: parsedBody, jwt })
+
+            const [res, status] = await Promise.race([
+                config.handler({ ctx, body: parsedBody, jwt }),
+                wait(HANDLER_TIMEOUT_MS).then(() => [null, Status.RequestTimeout] as const)
+            ])
 
             ctx.response.body = JSON.stringify(res)
             ctx.response.status = status
+            ctx.response.type = "json"
+            return next()
         } else {
-            const [res, status] = await config.handler({ ctx, body: parsedBody })
+            const [res, status] = await Promise.race([
+                config.handler({ ctx, body: parsedBody }),
+                wait(HANDLER_TIMEOUT_MS).then(() => [null, Status.RequestTimeout] as const)
+            ])
 
             ctx.response.body = JSON.stringify(res)
             ctx.response.status = status
+            ctx.response.type = "json"
+            return next()
         }
-
-        ctx.response.type = "json"
-
-        return next()
     }
     const args = [endpoint, handler] as const
 
@@ -69,3 +83,5 @@ export function defineRoute<TResult>(
         case 'delete': router.delete(...args); break;
     }
 }
+
+const HANDLER_TIMEOUT_MS = 10_000

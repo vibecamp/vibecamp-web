@@ -14,7 +14,7 @@ app.use(async (ctx, next) => {
         } else {
             ctx.response.status = 500
         }
-        ctx.response.body = { success: false, error: err.message }
+        ctx.response.body = { error: err.message }
         ctx.response.type = "json"
     }
 })
@@ -25,6 +25,7 @@ app.use(async (ctx, next) => {
 
     // https://stackoverflow.com/a/1850482
     const requesterOrigin = ctx.request.headers.get('origin')
+
     if (requesterOrigin != null && ALLOWED_ORIGINS.has(requesterOrigin)) {
         ctx.response.headers.append('Access-Control-Allow-Origin', requesterOrigin)
     }
@@ -35,7 +36,7 @@ app.use(async (ctx, next) => {
 const ALLOWED_ORIGINS = new Set([
     'https://vibe.camp',
     'https://next.vibe.camp',
-    'http://localhost:3000'
+    'http://localhost:8080'
 ])
 
 // routes

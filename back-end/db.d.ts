@@ -3,14 +3,9 @@ export interface Account {
   email_address: string;
   password_hash: string;
   password_salt: string;
-  general_notes: string;
-}
-
-export interface AccountAttendee {
-  account_attendee_id: number;
-  account_id: number;
-  attendee_id: number;
-  is_default_for_account: boolean;
+  account_notes: string;
+  is_seed_account: boolean;
+  invite_code_id: number;
 }
 
 export interface Attendee {
@@ -20,8 +15,9 @@ export interface Attendee {
   dietary_restrictions: string;
   has_purchased_bedding: boolean;
   has_purchased_bus_ticket: string;
-  general_notes: string;
-  ticket_id: number;
+  attendee_notes: string;
+  associated_account_id: number;
+  is_default_for_account: boolean;
 }
 
 export interface Cabin {
@@ -43,17 +39,15 @@ export interface EventSite {
   event_site_name: string;
 }
 
+export interface InviteCode {
+  invite_code_id: number;
+  code: string;
+  created_by_account_id: number;
+}
+
 export interface Ticket {
   ticket_id: number;
   event_id: number;
-}
-
-export interface DB {
-  account: Account;
-  account_attendee: AccountAttendee;
-  attendee: Attendee;
-  cabin: Cabin;
-  event: Event;
-  event_site: EventSite;
-  ticket: Ticket;
+  owned_by_account_id: number;
+  assigned_to_attendee_id: number;
 }
