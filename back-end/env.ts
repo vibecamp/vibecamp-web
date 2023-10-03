@@ -1,9 +1,14 @@
 import { load as loadDotenv } from 'std/dotenv/mod.ts'
 
-const env = await loadDotenv()
+const readPermission = await Deno.permissions.query({ name: 'read' })
+const env = (
+  readPermission.state === 'granted'
+    ? await loadDotenv()
+    : {}
+)
 
 function assertEnv(key: string): string {
-  const val = env[key]
+  const val = env[key] ?? Deno.env.get(key)
 
   if (val == null || val === '') {
     throw Error(`Expected env variable ${key} wasn't found`)
