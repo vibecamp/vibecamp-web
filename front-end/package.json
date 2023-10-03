@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "statics": "mkdir -p out/ && cp public/* out/",
-    "dev": "npm run statics && sass src/index.scss out/app.css --watch & esbuild src/index.tsx --outfile=out/app.js --bundle --watch & esbuild src/sw.ts --outfile=out/sw.js --bundle --watch & tsc --watch & http-server out",
+    "dev": "npm run statics && sass src/index.scss out/app.css --watch & node build.js --watch & tsc --watch & http-server out",
     "check": "eslint . && tsc",
-    "build": "npm run check && npm run statics && npx sass src/index.scss out/app.css && npx esbuild src/index.tsx --outfile=out/app.js --bundle --minify && npx esbuild src/sw.ts --outfile=out/sw.js --bundle --minify"
+    "build": "npm run check && npm run statics && npx sass src/index.scss out/app.css && node build.js --minify"
   },
   "dependencies": {
     "@types/node": "18.11.18",

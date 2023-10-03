@@ -1,8 +1,9 @@
-import { API_PREFIX, BACK_END_ORIGIN } from './_common'
+import env from '../env'
+import { API_PREFIX } from './_common'
 
 export async function login({ email_address, password }: { email_address: string, password: string }): Promise<{ status: number, jwt: string | null }> {
     try {
-        const res = await fetch(BACK_END_ORIGIN + API_PREFIX + '/login', {
+        const res = await fetch(env.BACK_END_ORIGIN + API_PREFIX + '/login', {
             method: 'POST',
             body: JSON.stringify({ email_address, password }),
             credentials: 'include'
@@ -22,7 +23,7 @@ export async function login({ email_address, password }: { email_address: string
 
 export async function signup({ email_address, password }: { email_address: string, password: string }): Promise<{ status: number, jwt: string | null }> {
     try {
-        const res = await fetch(BACK_END_ORIGIN + API_PREFIX + '/signup', {
+        const res = await fetch(env.BACK_END_ORIGIN + API_PREFIX + '/signup', {
             method: 'POST',
             body: JSON.stringify({ email_address, password }),
             credentials: 'include'

@@ -40,4 +40,5 @@ sitemap-0.xml
 sitemap.xml
 
 front-end/.vscode
+front-end/.env
 back-end/.env

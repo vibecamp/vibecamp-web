@@ -1,9 +1,8 @@
-// export const BACK_END_ORIGIN = 'https://backend-ssp4.onrender.com'
-export const BACK_END_ORIGIN = 'http://localhost:10000'
+import env from '../env'
 export const API_PREFIX = '/api/v1'
 
 export async function vibeFetch<T = unknown>(input: RequestInfo | URL, jwt: string | null, init?: RequestInit | undefined): Promise<T> {
-    const res = await fetch(BACK_END_ORIGIN + API_PREFIX + input, {
+    const res = await fetch(env.BACK_END_ORIGIN + API_PREFIX + input, {
         ...init,
         headers: {
             ...(jwt
