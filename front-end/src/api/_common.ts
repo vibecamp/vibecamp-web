@@ -1,9 +1,9 @@
-import Store from '../Store'
+// export const BACK_END_ORIGIN = 'https://backend-ssp4.onrender.com'
+export const BACK_END_ORIGIN = 'http://localhost:10000'
+export const API_PREFIX = '/api/v1'
 
-export async function vibeFetch<T = unknown>(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<T> {
-    const jwt = Store.jwt
-
-    const res = await fetch(input, {
+export async function vibeFetch<T = unknown>(input: RequestInfo | URL, jwt: string | null, init?: RequestInit | undefined): Promise<T> {
+    const res = await fetch(BACK_END_ORIGIN + API_PREFIX + input, {
         ...init,
         headers: {
             ...(jwt

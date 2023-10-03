@@ -102,18 +102,19 @@ const Event: FC<{ event: EventData }> = observer(({ event }) => {
     const end = new Date(event.end)
 
     return (
-        <div className={'card' + ' ' + 'eventCard' + ' ' + (event.creator === 'Official' ? 'official' : '')}>
+        <div className={'card' + ' ' + 'eventCard' + ' ' + (event.creator === -1 ? 'official' : '')}>
             <div className='eventName'>
                 {event.name}
 
-                {event.creator === Store.currentUser.username &&
+                {event.creator === Store.accountInfo.state.result?.account_id &&
                     <Button onClick={() => Store.editEvent(event.id)}>
                         Edit
                         <Spacer size={8} />
                         <span className="material-symbols-outlined">edit_calendar</span>
                     </Button>}
 
-                <Button onClick={() => Store.currentUser.calendarEvents.push(event.id)}>
+                {/* onClick={() => Store.currentUser.calendarEvents.push(event.id)} */}
+                <Button>
                     <span className="material-symbols-outlined">rsvp</span>
                 </Button>
             </div>

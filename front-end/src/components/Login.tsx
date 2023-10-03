@@ -3,44 +3,54 @@ import { observer } from 'mobx-react-lite'
 import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
-import { wait } from '../utils'
 import Store from '../Store'
-import { form } from '../mobx-utils'
-
-const LoginForm = form({
-    initialValues: {
-        email: '',
-        password: ''
-    },
-    validators: {
-        email: val => {
-            if (val.length === 0) {
-                return 'Please enter your email'
-            }
-            if (!val.includes('@')) {
-                return 'Please enter a valid email address'
-            }
-        },
-        password: val => {
-            if (val.length === 0) {
-                return 'Please enter a password'
-            }
-        }
-    },
-    submit: async ({ email, password }) => {
-        await wait(1000)
-        Store.jwt = 'foo'
-
-        LoginForm.fields.email.set('')
-        LoginForm.fields.password.set('')
-    }
-})
+import { DEFAULT_FORM_ERROR, form, useObservableState } from '../mobx-utils'
+import { login, signup } from '../api/auth'
 
 export default observer(() => {
+    const state = useObservableState(() => ({
+        mode: 'login' as 'login' | 'signup',
+        loginForm: form({
+            initialValues: {
+                email_address: '',
+                password: ''
+            },
+            validators: {
+                email_address: val => {
+                    if (val.length === 0) {
+                        return 'Please enter your email'
+                    }
+                    if (!val.includes('@')) {
+                        return 'Please enter a valid email address'
+                    }
+                },
+                password: val => {
+                    if (val.length === 0) {
+                        return 'Please enter a password'
+                    }
+                }
+            },
+            submit: async ({ email_address, password }) => {
+                const requestFn = state.mode === 'login' ? login : signup
+                const { status, jwt } = await requestFn({ email_address, password})
 
+                if (jwt == null) {
+                    switch (status) {
+                    case 401: return 'Invalid credentials'
+                    default: return DEFAULT_FORM_ERROR
+                    }
+                } else {
+                    Store.jwt = jwt
+    
+                    state.loginForm.fields.email_address.set('')
+                    state.loginForm.fields.password.set('')
+                }
+            }
+        })
+    }))
 
     return (
-        <form className='login' onSubmit={LoginForm.handleSubmit}>
+        <form className='login' onSubmit={state.loginForm.handleSubmit}>
             <div className='stripes'>
                 <div></div>
                 <div></div>
@@ -53,34 +63,50 @@ export default observer(() => {
 
             <Input
                 label='Email address'
-                value={LoginForm.fields.email.value}
-                onChange={LoginForm.fields.email.set}
-                error={LoginForm.fields.email.error}
-                onBlur={LoginForm.fields.email.activateValidation}
                 type='email'
+                disabled={state.loginForm.submitting}
+                value={state.loginForm.fields.email_address.value}
+                onChange={state.loginForm.fields.email_address.set}
+                error={state.loginForm.fields.email_address.error}
+                onBlur={state.loginForm.fields.email_address.activateValidation}
             />
 
             <Spacer size={16} />
 
             <Input
                 label='Password'
-                value={LoginForm.fields.password.value}
-                onChange={LoginForm.fields.password.set}
-                error={LoginForm.fields.password.error}
-                onBlur={LoginForm.fields.password.activateValidation}
                 type='password'
+                disabled={state.loginForm.submitting}
+                value={state.loginForm.fields.password.value}
+                onChange={state.loginForm.fields.password.set}
+                error={state.loginForm.fields.password.error}
+                onBlur={state.loginForm.fields.password.activateValidation}
             />
 
+            {state.loginForm.error &&
+                <>
+                    <Spacer size={8} />
+                
+                    <div style={{ color: 'red' }}>
+                        {state.loginForm.error}
+                    </div>
+                </>}
+                
             <Spacer size={24} />
 
-            <Button isSubmit isPrimary isLoading={LoginForm.submitting}>
-                Log in
+
+            <Button isSubmit isPrimary isLoading={state.loginForm.submitting}>
+                {state.mode === 'login' 
+                    ? 'Log in'
+                    : 'Sign up'}
             </Button>
 
             <Spacer size={8} />
 
-            <Button>
-                Sign up
+            <Button isDisabled={state.loginForm.submitting} onClick={() => state.mode = (state.mode === 'login' ? 'signup' : 'login')}>
+                {state.mode === 'login'
+                    ? 'Create an account'
+                    : 'I already have an account'}
             </Button>
 
             {/* <a className='loginWithTwitter' href='/home/announcements'>

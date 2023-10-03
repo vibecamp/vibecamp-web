@@ -5,12 +5,14 @@ import Login from './Login'
 import Events from './Events'
 import Map from './Map'
 import Info from './Info'
-import Profile from './Profile'
+import Account from './Account'
 import { useAutorun, windowSize } from '../mobx-utils'
 import Store from '../Store'
 import Spacer from './core/Spacer'
 import Tickets from './Tickets'
 import Modal from './core/Modal'
+
+console.log(Store)
 
 configureMobx({
     enforceActions: 'never',
@@ -75,9 +77,9 @@ const VIEWS = {
     //     icon: 'info',
     //     component: Info
     // },
-    Profile: {
+    Account: {
         icon: 'person',
-        component: Profile
+        component: Account
     }
 } as const
 

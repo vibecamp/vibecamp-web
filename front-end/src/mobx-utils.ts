@@ -1,11 +1,13 @@
-import { autorun, makeAutoObservable, observable } from 'mobx'
-import { FormEvent, useEffect } from 'react'
+import { action, autorun, makeAutoObservable, observable } from 'mobx'
+import { FormEvent, useEffect, useState } from 'react'
 
 type FormOptions<T extends Record<string, unknown>> = {
     initialValues: T,
-    validators: { [key in keyof T]: (val: T[key]) => string | undefined },
+    validators: Partial<{ [key in keyof T]: (val: T[key]) => string | undefined }>,
     submit: (data: T) => Promise<string | undefined | void>,
 }
+
+export const DEFAULT_FORM_ERROR = 'Something went wrong, please try again'
 
 export function form<TValues extends Record<string, unknown>>(opts: FormOptions<TValues>): {
     readonly fields: {
@@ -37,6 +39,8 @@ class Form<TValues extends Record<string, unknown>> {
             this.fields = fields
         }
 
+        const submit = action(opts.submit)
+
         this.handleSubmit = async (e: FormEvent) => {
             e.preventDefault()
 
@@ -56,10 +60,10 @@ class Form<TValues extends Record<string, unknown>> {
 
             try {
                 this.submitting = true
-                this.error = (await opts.submit(this.fieldValues)) ?? undefined
+                this.error = (await submit(this.fieldValues)) ?? undefined
                 this.submitting = false
             } catch {
-                this.error = 'Something went wrong, please try again'
+                this.error = DEFAULT_FORM_ERROR
             }
         }
 
@@ -108,7 +112,7 @@ class Field<T> {
         }
     }
     private validationActive = false
-    readonly activateValidation = (): void  => {
+    readonly activateValidation = (): void => {
         this.validationActive = true
     }
     readonly clearValidation = (): void => {
@@ -116,13 +120,16 @@ class Field<T> {
     }
 }
 
-export function request<T>(fn: () => Promise<T>) {
+export function request<T>(fn: () => Promise<T>): {
+    state: RequestState<T>;
+    load: () => Promise<void>;
+} {
 
     let latestRequestId: string | undefined
     async function load() {
         const thisRequestId = latestRequestId = String(Math.random())
 
-        res.state = { kind: 'loading' }
+        res.state = { kind: 'loading', result: undefined }
 
         try {
             const result = await fn()
@@ -132,7 +139,7 @@ export function request<T>(fn: () => Promise<T>) {
             }
         } catch (error: unknown) {
             if (thisRequestId === latestRequestId) {
-                res.state = { kind: 'error', error }
+                res.state = { kind: 'error', error, result: undefined }
             }
         }
     }
@@ -141,7 +148,7 @@ export function request<T>(fn: () => Promise<T>) {
         state: RequestState<T>,
         load: () => Promise<void>,
     } = observable({
-        state: { kind: 'idle' },
+        state: { kind: 'idle', result: undefined },
         load
     })
 
@@ -151,10 +158,10 @@ export function request<T>(fn: () => Promise<T>) {
 }
 
 export type RequestState<T> =
-    | { readonly kind: 'idle' }
-    | { readonly kind: 'loading' }
+    | { readonly kind: 'idle', readonly result: undefined }
+    | { readonly kind: 'loading', readonly result: undefined }
     | { readonly kind: 'result', readonly result: T }
-    | { readonly kind: 'error', readonly error: unknown }
+    | { readonly kind: 'error', readonly result: undefined, readonly error: unknown }
 
 export const windowSize = (() => {
     const size = observable.box({ width: window.innerWidth, height: window.innerHeight })
@@ -170,4 +177,14 @@ export function useAutorun(fn: () => void) {
     useEffect(() => {
         return autorun(fn)
     })
+}
+
+export function useObservableState<T extends Record<string, unknown>>(init: T | (() => T)): T {
+    const [obs] = useState(() => observable(
+        typeof init === 'function'
+            ? init()
+            : init
+    ))
+
+    return obs
 }

@@ -1,29 +1,41 @@
-import Store from '../Store'
+import { API_PREFIX, BACK_END_ORIGIN } from './_common'
 
-const BACK_END_ORIGIN = 'https://backend-ssp4.onrender.com'
-
-export async function login({ email, password }: { email: string, password: string }): Promise<boolean> {
+export async function login({ email_address, password }: { email_address: string, password: string }): Promise<{ status: number, jwt: string | null }> {
     try {
-        const res = await fetch(BACK_END_ORIGIN + '/api/v1/login', {
+        const res = await fetch(BACK_END_ORIGIN + API_PREFIX + '/login', {
             method: 'POST',
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email_address, password }),
             credentials: 'include'
         })
 
         if (res.status == 200) {
             const { jwt } = await res.json() as { jwt: string | null }
-
-            if (jwt == null) {
-                return false
-            }
-
-            localStorage.setItem('jwt', jwt)
-            Store.jwt = jwt
-
-            return true
+            return { status: res.status, jwt }
+        } else {
+            return { status: res.status, jwt: null }
         }
     } catch {
     }
 
-    return false
+    return { status: 500, jwt: null }
+}
+
+export async function signup({ email_address, password }: { email_address: string, password: string }): Promise<{ status: number, jwt: string | null }> {
+    try {
+        const res = await fetch(BACK_END_ORIGIN + API_PREFIX + '/signup', {
+            method: 'POST',
+            body: JSON.stringify({ email_address, password }),
+            credentials: 'include'
+        })
+
+        if (res.status == 200) {
+            const { jwt } = await res.json() as { jwt: string | null }
+            return { status: res.status, jwt }
+        } else {
+            return { status: res.status, jwt: null }
+        }
+    } catch {
+    }
+
+    return { status: 500, jwt: null }
 }

@@ -48,6 +48,11 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     font-weight: 500;
+    font-size: 16px;
+}
+
+hr {
+    margin: 0;
 }
 
 .card {
@@ -219,6 +224,16 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0 auto;
 }
 
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
+}
+
 .modal {
     position: fixed;
     z-index: 100;
@@ -320,6 +335,16 @@ h1, h2, h3, h4, h5, h6 {
         border: 1px solid rgba(255, 255, 255, 0.9)
     }
 
+    &.danger {
+        border: 1px solid red;
+        color: red;
+        
+        &.primary {
+            color: rgba(255, 255, 255, 0.9);
+            background: red;
+        }
+    }
+
     .loading-container {
         display: flex;
         // opacity: 0;
@@ -363,10 +388,14 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 14px;
     color: rgba(0, 0, 0, 0.7);
 
-    transition: color 0.1s ease-out;
+    transition: color 0.1s ease-out, opacity 0.1s ease-out;
+
+    &:disabled {
+        opacity: 0.6;
+    }
 
     &:nth-of-type(3n + 1) {
-        --focus-color: rgb(255, 89, 0);
+        --focus-color: rgb(255, 158, 0);
     }
     &:nth-of-type(3n + 2) {
         --focus-color: rgb(255, 0, 174);
@@ -406,6 +435,7 @@ h1, h2, h3, h4, h5, h6 {
         color: red;
         overflow: hidden;
         height: 1em;
+        margin-top: 4px;
 
         transition: all 0.1s ease-out;
 
@@ -414,6 +444,59 @@ h1, h2, h3, h4, h5, h6 {
             opacity: 0;
             height: 0;
         }
+    }
+}
+
+.invite-code {
+    color: rgba(0, 0, 0, 0.9);
+
+    > .code-widget {
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        background: white;
+        font-weight: 300;
+        border-radius: 8px;
+        overflow: hidden;
+
+        display: flex;
+        justify-content: stretch;
+        align-items: stretch;
+
+        > .code {
+            padding: 10px;
+            flex-grow: 1;
+            flex-shrink: 1;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow-x: hidden;
+            text-overflow: ellipsis;
+        }
+
+        > button {
+            appearance: none;
+            width: 48px;
+            flex-grow: 0;
+            flex-shrink: 0;
+            font-size: 24px;
+
+            color: rgba(255, 255, 255, 0.9);
+            background: var(--color-accent-1);
+            border: none;
+        }
+    }
+
+    &.used {
+
+        > .code-widget {
+            opacity: 0.6;
+            user-select: none;
+            pointer-events: none;
+        }
+    }
+
+    > .used-by {
+        margin-top: 2px;
+        height: 1em;
+        font-size: 12px;
     }
 }
 

@@ -1,12 +1,22 @@
 import { FullAccountInfo } from '../../../common/data'
 import { vibeFetch } from './_common'
 
-const BACK_END_ORIGIN = 'https://backend-ssp4.onrender.com'
-
-export async function getAccountInfo(): Promise<FullAccountInfo | null> {
+export async function getAccountInfo(jwt: string | null): Promise<FullAccountInfo | null> {
     try {
-        return await vibeFetch<FullAccountInfo | null>(BACK_END_ORIGIN + '/api/v1/account')
-    } catch {
+        return await vibeFetch<FullAccountInfo | null>('/account', jwt)
+    } catch (e) {
+        console.log({e})
         return null
     }
+}
+
+export async function submitInviteCode(jwt: string | null, invite_code: string): Promise<boolean> {
+    try {
+        await vibeFetch<null>('/account/submit-invite-code', jwt, { body: JSON.stringify({ invite_code }) })
+        return true
+    } catch (e) {
+        console.log({e})
+    }
+
+    return false
 }

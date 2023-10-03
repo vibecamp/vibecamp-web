@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx'
+import { autorun, makeAutoObservable } from 'mobx'
 import { createTransformer } from 'mobx-utils'
 import jwtDecode from 'jwt-decode'
 
@@ -7,19 +7,35 @@ import { request } from './mobx-utils'
 import { ViewName } from './components/App'
 import { VibeJWTPayload } from '../../common/data'
 import { getAccountInfo } from './api/account'
+import { given, jsonParse } from './utils'
+
+const JWT_KEY = 'jwt'
 
 class Store {
     constructor() {
         makeAutoObservable(this)
+
+        autorun(() => {
+            localStorage.setItem(JWT_KEY, JSON.stringify(this.jwt))
+        })
+
+        autorun(() => console.log(JSON.parse(JSON.stringify(this.accountInfo.state))))
     }
 
     /// Navigation
-
     currentView: ViewName = 'Tickets'
     readonly setCurrentView = createTransformer((view: ViewName) => () => this.currentView = view)
 
     /// User
-    jwt: string | null = localStorage.getItem('jwt')
+    jwt: string | null = given(localStorage.getItem(JWT_KEY), jwt => {
+        const parsed = jsonParse(jwt)
+
+        if (typeof parsed === 'string') {
+            return parsed
+        } else {
+            return null
+        }
+    }) ?? null
 
     get loggedIn() {
         return this.jwt != null
@@ -34,7 +50,7 @@ class Store {
         }
     }
 
-    readonly accountInfo = request(getAccountInfo)
+    readonly accountInfo = request(() => getAccountInfo(this.jwt))
 
     buyTicketsModalOpen = false
 
@@ -44,17 +60,19 @@ class Store {
     eventBeingEdited: EventData | null = null
 
     readonly newEvent = () => {
-        this.eventBeingEdited = {
-            id: String(Math.random()),
-            name: '',
-            description: '',
-            start: '',
-            end: '',
-            locationName: '',
-            locationAddress: '',
-            visibility: 'public',
-            visibilityWhitelist: [],
-            creator: this.jwtPayload?.account_id
+        if (this.jwtPayload?.account_id != null) {
+            this.eventBeingEdited = {
+                id: String(Math.random()),
+                name: '',
+                description: '',
+                start: '',
+                end: '',
+                locationName: '',
+                locationAddress: '',
+                visibility: 'public',
+                visibilityWhitelist: [],
+                creator: this.jwtPayload?.account_id
+            }
         }
     }
 
@@ -106,7 +124,7 @@ async function loadAllEvents(): Promise<EventData[]> {
             locationAddress: '',
             visibility: 'public' as const,
             visibilityWhitelist: [],
-            creator: 'Ramuel'
+            creator: 0
         },
         {
             id: '2',
@@ -118,7 +136,7 @@ async function loadAllEvents(): Promise<EventData[]> {
             locationAddress: '',
             visibility: 'public' as const,
             visibilityWhitelist: [],
-            creator: '@brundolfsmith'
+            creator: 1
         },
         {
             id: '3',
@@ -130,7 +148,7 @@ async function loadAllEvents(): Promise<EventData[]> {
             locationAddress: '',
             visibility: 'public' as const,
             visibilityWhitelist: [],
-            creator: 'Official'
+            creator: -1
         },
         {
             id: '4',
@@ -142,7 +160,7 @@ async function loadAllEvents(): Promise<EventData[]> {
             locationAddress: '',
             visibility: 'public' as const,
             visibilityWhitelist: [],
-            creator: 'Aella & Robin Hanson'
+            creator: 2
         }
     ].sort((a, b) => new Date(a.start).valueOf() - new Date(b.start).valueOf())
 }
