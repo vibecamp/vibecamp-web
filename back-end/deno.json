@@ -13,7 +13,7 @@
     "singleQuote": true
   },
   "tasks": {
-    "start": "deno run --allow-net --allow-env index.ts",
+    "start": "deno run --allow-net --allow-env --check index.ts",
     "dev": "deno run --allow-net --allow-env --allow-read index.ts"
   },
   "lock": false
