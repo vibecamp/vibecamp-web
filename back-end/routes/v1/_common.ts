@@ -8,6 +8,7 @@ import {
 } from 'oak'
 import { getJwtPayload } from './auth.ts'
 import { wait } from '../../utils.ts'
+import { getNumericDate } from "djwts"
 
 export type AnyRouterContext = RouterContext<
   string,
@@ -65,7 +66,7 @@ export function defineRoute<TResult>(
     if (config.requireAuth) {
       const jwt: VibeJWTPayload | null | undefined = await getJwtPayload(ctx)
 
-      if (jwt == null) {
+      if (jwt == null || jwt.exp == null || getNumericDate(new Date()) > jwt.exp) {
         return [null, Status.Unauthorized]
       }
 

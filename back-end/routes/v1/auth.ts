@@ -84,10 +84,14 @@ export default function register(router: Router) {
   })
 }
 
+const ONE_MINUTE_S = 60
+const ONE_HOUR_S = 60 * ONE_MINUTE_S
+const ONE_DAY_S = 24 * ONE_HOUR_S
+
 async function createAccountJwt(account: Account): Promise<string> {
   const payload: VibeJWTPayload = {
     iss: 'vibecamp',
-    exp: getNumericDate(Date.now() + 30 * 60 * 60 * 1_000),
+    exp: getNumericDate(new Date()) + 30 * ONE_DAY_S,
     account_id: account.account_id,
   }
 
