@@ -20,6 +20,17 @@ export type AnyRouterMiddleware = RouterMiddleware<string>
 
 export const API_BASE = '/api/v1'
 
+type RouteResponse<TResult> = Promise<[TResult | null, Status]>
+
+type UnauthenticatedRouteContext = {
+  ctx: AnyRouterContext
+  body: Record<string, unknown>
+}
+
+type AuthenticatedRouteContext = UnauthenticatedRouteContext & {
+  jwt: VibeJWTPayload
+}
+
 /**
  * Formalized way to define a route on a router:
  * - Requires the caller to specify a JSON return-type for the endpoint,
@@ -33,21 +44,13 @@ export function defineRoute<TResult>(
       method: 'get' | 'post' | 'put' | 'delete'
       endpoint: string
       requireAuth?: false
-      handler: (
-        context: { ctx: AnyRouterContext; body: Record<string, unknown> },
-      ) => Promise<[TResult | null, Status]>
+      handler: (context: UnauthenticatedRouteContext) => RouteResponse<TResult>
     }
     | {
       method: 'get' | 'post' | 'put' | 'delete'
       endpoint: string
       requireAuth: true
-      handler: (
-        context: {
-          ctx: AnyRouterContext
-          body: Record<string, unknown>
-          jwt: VibeJWTPayload
-        },
-      ) => Promise<[TResult | null, Status]>
+      handler: (context: AuthenticatedRouteContext) => RouteResponse<TResult>
     },
 ) {
   const endpoint = API_BASE + config.endpoint

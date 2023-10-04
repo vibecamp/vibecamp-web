@@ -6,3 +6,6 @@ export const REFERRAL_MAXES = [
     3, // 1 degree of separation
     1  // 2 degrees of separation
 ] as const
+
+export const ADULT_TICKET_PRICE = 550.00
+export const CHILD_TICKET_PRICE = 320.00
