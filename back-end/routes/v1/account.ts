@@ -1,7 +1,7 @@
 import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
 import { fullAccountInfo, useInviteCode } from '../../db.ts'
-import { FullAccountInfo } from 'common/data.ts'
+import { FullAccountInfo } from '../../common/data.ts'
 
 export default function register(router: Router) {
   const baseRoute = '/account'

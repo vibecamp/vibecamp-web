@@ -5,7 +5,7 @@ import jwtDecode from 'jwt-decode'
 import {  EventData } from './model'
 import { request } from './mobx-utils'
 import { ViewName } from './components/App'
-import { VibeJWTPayload } from '../../common/data'
+import { VibeJWTPayload } from '../../back-end/common/data'
 import { getAccountInfo } from './api/account'
 import { given, jsonParse } from './utils'
 

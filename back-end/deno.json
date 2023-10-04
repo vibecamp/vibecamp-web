@@ -6,7 +6,6 @@
     "oak": "https://deno.land/x/oak@v11.1.0/mod.ts",
     "std/": "https://deno.land/std@0.200.0/",
     "stripe": "npm:stripe@^13.5.0",
-    "common/": "https://raw.githubusercontent.com/vibecamp/vibecamp-web/main/common/"
   },
   "fmt": {
     "semiColons": false,

@@ -1,4 +1,4 @@
-import { VibeJWTPayload } from 'common/data.ts'
+import { VibeJWTPayload } from '../../common/data.ts'
 import {
   RouteParams,
   Router,

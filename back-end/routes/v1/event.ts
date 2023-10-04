@@ -1,4 +1,4 @@
-// import { Event } from "common/data.ts";
+// import { Event } from "../../common/data.ts";
 import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
 type Event = any

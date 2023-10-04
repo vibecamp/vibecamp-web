@@ -10,7 +10,7 @@ import Button from './core/Button'
 import { DEFAULT_FORM_ERROR, form, useObservableState } from '../mobx-utils'
 import Col from './core/Col'
 import { submitInviteCode } from '../api/account'
-import { Maybe } from '../../../common/data'
+import { Maybe } from '../../../back-end/common/data'
 
 export default observer(() => {
     const state = useObservableState(() => ({

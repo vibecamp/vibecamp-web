@@ -1,4 +1,4 @@
-import { FullAccountInfo } from '../../../common/data'
+import { FullAccountInfo } from '../../../back-end/common/data'
 import { vibeFetch } from './_common'
 
 export async function getAccountInfo(jwt: string | null): Promise<FullAccountInfo | null> {

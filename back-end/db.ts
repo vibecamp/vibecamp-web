@@ -1,10 +1,10 @@
 import { Pool, PoolClient, Transaction } from 'postgres'
 import env from './env.ts'
-import { FullAccountInfo, Maybe } from 'common/data.ts'
+import { FullAccountInfo, Maybe } from './common/data.ts'
 import {
   MAX_ADULT_TICKETS_PER_ACCOUNT,
   REFERRAL_MAXES,
-} from 'common/constants.ts'
+} from './common/constants.ts'
 import { Account, Attendee, InviteCode, Ticket } from './db.d.ts'
 import { allPromises } from './utils.ts'
 
