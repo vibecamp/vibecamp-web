@@ -17,7 +17,7 @@ export default function register(router: Router) {
     endpoint: baseRoute + '/create-purchase-intent',
     method: 'post',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { adult_tickets_to_purchase, child_tickets_to_purchase } }) => {
+    handler: async ({ jwt: { account_id }, body: { adultTickets, childTickets } }) => {
       const {
         referralStatus: { allowedToPurchaseTickets },
         accountInfo,
@@ -37,17 +37,17 @@ export default function register(router: Router) {
         return [null, Status.Unauthorized]
       }
 
-      if (typeof adult_tickets_to_purchase !== 'number' || typeof child_tickets_to_purchase !== 'number') {
+      if (typeof adultTickets !== 'number' || typeof childTickets !== 'number') {
         return [null, Status.BadRequest]
       }
 
-      if (allowedToPurchaseTickets - adultTicketsAlreadyPurchased < adult_tickets_to_purchase) {
+      if (allowedToPurchaseTickets - adultTicketsAlreadyPurchased < adultTickets) {
         return [null, Status.Unauthorized]
       }
 
       const amount = (
-        adult_tickets_to_purchase * ADULT_TICKET_PRICE +
-        child_tickets_to_purchase * CHILD_TICKET_PRICE
+        adultTickets * ADULT_TICKET_PRICE +
+        childTickets * CHILD_TICKET_PRICE
       )
 
       // Create a PaymentIntent with the order amount and currency
