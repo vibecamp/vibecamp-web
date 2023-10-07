@@ -384,7 +384,6 @@ hr {
 .input {
     display: flex;
     flex-direction: column;
-    font-family: arial;
     font-size: 14px;
     color: rgba(0, 0, 0, 0.7);
 
@@ -443,6 +442,65 @@ hr {
             pointer-events: none;
             opacity: 0;
             height: 0;
+        }
+    }
+}
+
+.row-select {
+
+    > .label {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.7);
+        margin-bottom: 2px;
+    }
+
+    > .options {
+        appearance: none;
+        padding: 0;
+        margin: 0;
+        border: none;
+        
+        position: relative;
+        border-radius: 5px;
+        display: flex;
+        justify-content: stretch;
+        align-items: stretch;
+        background: rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    
+        > label {
+            flex-basis: 0;
+            flex-grow: 1;
+            flex-shrink: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 12px 6px;
+            z-index: 1;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            input[type="radio"] {
+                appearance: none;
+                margin: 0;
+            }
+
+            &.selected {
+                color: rgba(255, 255, 255, 0.9);
+            }
+        }
+
+        &::before {
+            content: '';
+            height: 100%;
+            width: calc(100% / var(--selection-options));
+            position: absolute;
+            top: 0;
+            left: calc(100% / var(--selection-options) * var(--selection-index));
+            background: var(--color-accent-1);
+            transition: all 0.1s ease-out;
         }
     }
 }
