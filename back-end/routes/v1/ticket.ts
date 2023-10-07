@@ -53,11 +53,7 @@ export default function register(router: Router) {
       // Create a PaymentIntent with the order amount and currency
       const { client_secret } = await stripe.paymentIntents.create({
         amount,
-        currency: 'usd',
-        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        currency: 'usd'
       })
 
       if (client_secret == null) {
@@ -66,5 +62,18 @@ export default function register(router: Router) {
 
       return [{ stripeClientSecret: client_secret }, Status.OK]
     },
+  })
+
+  router.post(baseRoute + '/record-purchase', ctx => {
+    const event = stripe.webhooks.constructEvent(ctx.request.body({ type: 'bytes' }), sig, endpointSecret)
+
+    switch (event.type) {
+      case 'checkout.session.completed':
+        console.log('checkout.session.completed', event.data.object)
+        // Then define and call a function to handle the event checkout.session.completed
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
   })
 }
