@@ -12,7 +12,9 @@ const minify = process.argv.includes('--minify');
     let dotEnvEntries
     try {
         const contents = (await fs.readFile('.env')).toString('utf-8')
-        dotEnvEntries = contents.split('\n').map(line => line.split('='))
+        dotEnvEntries = contents.split('\n')
+            .filter(line => !line.trim().startsWith('#'))
+            .map(line => line.split('='))
     } catch {
         dotEnvEntries = []
     }
