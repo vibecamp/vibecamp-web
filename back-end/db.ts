@@ -16,17 +16,26 @@ const db = new Pool({
   password: url.password,
   port: url.port || 5432,
   user: url.username,
+  connection: {
+    attempts: 5,
+    interval: (prevInterval) => {
+      // Initial interval is always gonna be zero
+      if (prevInterval === 0) return 1
+      return prevInterval * 2
+    }
+  }
 }, 20)
 
 export async function withDBConnection<TResult>(
-  cb: (db: Pick<PoolClient, 'queryObject'>) => Promise<TResult>,
+  cb: (db: Pick<PoolClient, 'queryObject' | 'createTransaction'>) => Promise<TResult>,
 ): Promise<TResult> {
   const client = await db.connect()
-
-  const result = await cb(client)
-
-  client.release()
-  return result
+  try {
+    const result = await cb(client)
+    return result
+  } finally {
+    client.release()
+  }
 }
 
 export async function withDBTransaction<TResult>(
@@ -34,7 +43,7 @@ export async function withDBTransaction<TResult>(
 ): Promise<TResult> {
   return await withDBConnection(async (db) => {
     const transactionName = generateTransactionName()
-    const transaction = (db as PoolClient).createTransaction(transactionName, {
+    const transaction = db.createTransaction(transactionName, {
       isolation_level: 'serializable',
       read_only: true,
     })
