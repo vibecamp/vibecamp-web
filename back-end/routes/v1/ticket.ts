@@ -53,7 +53,10 @@ export default function register(router: Router) {
       // Create a PaymentIntent with the order amount and currency
       const { client_secret } = await stripe.paymentIntents.create({
         amount,
-        currency: 'usd'
+        currency: 'usd',
+        automatic_payment_methods: {
+          enabled: true,
+        },
       })
 
       if (client_secret == null) {
