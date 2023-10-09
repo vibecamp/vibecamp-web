@@ -11,8 +11,8 @@ import { DEFAULT_FORM_ERROR, form, request, useObservableState } from '../mobx-u
 import Col from './core/Col'
 import { submitInviteCode } from '../api/account'
 import { Maybe } from '../../../back-end/common/data'
-import { Stripe, loadStripe } from '@stripe/stripe-js'
-import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
+import { Stripe, StripePaymentElementChangeEvent, loadStripe } from '@stripe/stripe-js'
+import { Elements, LinkAuthenticationElement, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import env from '../env'
 import { createTicketPurchaseIntent } from '../api/ticket'
 import RowSelect from './core/RowSelect'
@@ -221,20 +221,30 @@ const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) 
     const state = useObservableState({
         paymentForm: form({
             initialValues: {
-                stripe: null as Stripe | null
+                stripe: null as Stripe | null,
+                paymentMethodData: null as StripePaymentElementChangeEvent['value'] | null
             },
             validators: {},
-            submit: async ({ stripe }) => {
+            submit: async ({ stripe, paymentMethodData }) => {
                 if (!stripe) {
                     console.error('Stripe not initialized yet')
                     return
                 }
+
+                if (!paymentMethodData) {
+                    return
+                }
+
+                // @ts-expect-error foo
+                const { paymentMethod } = await stripe.createPaymentMethod(paymentMethodData)
 
                 const { error } = await stripe.confirmPayment({
                     clientSecret,
                     elements,
                     confirmParams: {
                         return_url: location.href + '#Tickets',
+                        // @ts-expect-error foo
+                        payment_method_data: paymentMethod
                     },
                 })
 
@@ -261,7 +271,12 @@ const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) 
             ? <LoadingDots />
             : <form id="payment-form" onSubmit={state.paymentForm.handleSubmit}>
                 <Col>
-                    <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
+                    <PaymentElement id="payment-element" options={{ layout: 'tabs' }} onChange={e => {
+                        console.log(e)
+                        if (e.complete) {
+                            state.paymentForm.fields.paymentMethodData.set(e.value)
+                        }
+                    }} />
 
                     <Spacer size={16} />
 
