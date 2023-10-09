@@ -65,8 +65,9 @@ export default function register(router: Router) {
   })
 
   router.post(baseRoute + '/record-purchase', ctx => {
-    const event = stripe.webhooks.constructEvent(ctx.request.body({ type: 'bytes' }), sig, endpointSecret)
-
+    console.log('/record-purchase')
+    const event = stripe.webhooks.constructEvent(ctx.request.body({ type: 'bytes' }), ctx.request.headers.get('stripe-signature'), '')
+    console.log(event)
     switch (event.type) {
       case 'checkout.session.completed':
         console.log('checkout.session.completed', event.data.object)
