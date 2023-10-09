@@ -2,14 +2,16 @@ import { autorun, makeAutoObservable } from 'mobx'
 import { createTransformer } from 'mobx-utils'
 import jwtDecode from 'jwt-decode'
 
-import {  EventData } from './model'
+import { EventData } from './model'
 import { request } from './mobx-utils'
-import { ViewName } from './components/App'
 import { VibeJWTPayload } from '../../back-end/common/data'
 import { getAccountInfo } from './api/account'
 import { given, jsonParse } from './utils'
+import { ViewName, isViewName } from './views'
 
 const JWT_KEY = 'jwt'
+
+const viewFromUrl = window.location.hash.substring(1)
 
 class Store {
     constructor() {
@@ -23,7 +25,7 @@ class Store {
     }
 
     /// Navigation
-    currentView: ViewName = 'Tickets'
+    currentView: ViewName = isViewName(viewFromUrl) ? viewFromUrl : 'Tickets'
     readonly setCurrentView = createTransformer((view: ViewName) => () => this.currentView = view)
 
     /// User
@@ -51,8 +53,6 @@ class Store {
     }
 
     readonly accountInfo = request(() => getAccountInfo(this.jwt))
-
-    buyTicketsModalOpen = false
 
     /// Events
 

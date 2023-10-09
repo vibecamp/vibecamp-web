@@ -14,7 +14,7 @@ export async function vibeFetch<T = unknown>(input: RequestInfo | URL, jwt: stri
 
     const json = await res.json()
 
-    if (json.error) {
+    if (json?.error) {
         throw Error(json.error)
     } else {
         return json as T

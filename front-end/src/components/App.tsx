@@ -5,12 +5,11 @@ import Login from './Login'
 import Events from './Events'
 import Map from './Map'
 import Info from './Info'
-import Account from './Account'
 import { useAutorun, windowSize } from '../mobx-utils'
 import Store from '../Store'
 import Spacer from './core/Spacer'
-import Tickets from './Tickets'
 import Modal from './core/Modal'
+import { VIEWS_ENTRIES } from '../views'
 
 console.log(Store)
 
@@ -36,7 +35,7 @@ export default observer(() => {
 
             <div className='viewsWrapper' style={{ '--view-count': VIEWS_ENTRIES.length, '--current-view': VIEWS_ENTRIES.findIndex(e => e[0] === Store.currentView) } as CSSProperties}>
                 <div>
-                    {VIEWS_ENTRIES.map(([name, { component: Component }], index) =>
+                    {VIEWS_ENTRIES.map(([name, { component: Component }]) =>
                         <div key={name}>
                             <Component />
                         </div>)}
@@ -59,30 +58,3 @@ export default observer(() => {
         </>
     )
 })
-
-const VIEWS = {
-    Tickets: {
-        icon: 'confirmation_number',
-        component: Tickets
-    },
-    // Events: {
-    //     icon: 'calendar_today',
-    //     component: Events
-    // },
-    // Map: {
-    //     icon: 'map',
-    //     component: Map
-    // },
-    // Info: {
-    //     icon: 'info',
-    //     component: Info
-    // },
-    Account: {
-        icon: 'person',
-        component: Account
-    }
-} as const
-
-const VIEWS_ENTRIES = Object.entries(VIEWS) as [ViewName, typeof VIEWS[ViewName]][]
-
-export type ViewName = keyof typeof VIEWS

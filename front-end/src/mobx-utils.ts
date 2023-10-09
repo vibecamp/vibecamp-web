@@ -140,6 +140,7 @@ export function request<T>(fn: () => Promise<T>): {
         } catch (error: unknown) {
             if (thisRequestId === latestRequestId) {
                 res.state = { kind: 'error', error, result: undefined }
+                console.error(error)
             }
         }
     }
