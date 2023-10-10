@@ -84,17 +84,17 @@ export default function register(router: Router) {
     // TODO: check that there are still tickets available for this festival
 
     switch (event.type) {
-      case 'checkout.session.completed': {
+      case 'charge.succeeded': {
         // @ts-expect-error Missing types on event.data.object
         const { account_id: account_id_str, adultTickets: adultTicketsStr, childTickets: childTicketsStr } = event.data.object.metadata
         const account_id = Number(account_id_str)
         const adultTickets = Number(adultTicketsStr)
         const childTickets = Number(childTicketsStr)
 
-        purchaseTickets({ account_id, adultTickets, childTickets })
+        await purchaseTickets({ account_id, adultTickets, childTickets })
       } break;
       default:
-        console.log(`Unhandled event type ${event.type}`);
+        console.warn(`Unhandled event type ${event.type}`);
     }
   })
 }

@@ -45,7 +45,6 @@ export async function withDBTransaction<TResult>(
     const transactionName = generateTransactionName()
     const transaction = db.createTransaction(transactionName, {
       isolation_level: 'serializable',
-      read_only: true,
     })
     await transaction.begin()
 
@@ -59,7 +58,7 @@ export async function withDBTransaction<TResult>(
 }
 
 function generateTransactionName(): string {
-  let name = String(Math.random())
+  let name = 'Transaction_' + String(Math.random()).substring(2)
   while (ACTIVE_TRANSACTION_NAMES.has(name)) {
     // in the unlikely case we've generated a string that's already being
     // used, generate a new one
@@ -210,7 +209,7 @@ export async function useInviteCode(
 }
 
 export async function purchaseTickets({ account_id, adultTickets, childTickets }: { account_id: number, adultTickets: number, childTickets: number }) {
-  return await withDBConnection(async (db) => {
+  return await withDBTransaction(async (db) => {
     const { festival_id } = (await db.queryObject<{ festival_id: number }>`select * from next_festival`).rows[0]
 
     for (let i = 0; i < adultTickets; i++) {
@@ -218,7 +217,7 @@ export async function purchaseTickets({ account_id, adultTickets, childTickets }
         INSERT INTO attendee (is_child, associated_account_id) VALUES (${false}, ${account_id}) RETURNING attendee_id
       `).rows[0]
       await db.queryObject`
-        INSERT INTO tickets (festival_id, owned_by_account_id, assigned_to_attendee_id) VALUES (${festival_id}, ${account_id}, ${attendee_id})
+        INSERT INTO ticket (festival_id, owned_by_account_id, assigned_to_attendee_id) VALUES (${festival_id}, ${account_id}, ${attendee_id})
       `
     }
 
@@ -227,7 +226,7 @@ export async function purchaseTickets({ account_id, adultTickets, childTickets }
         INSERT INTO attendee (is_child, associated_account_id) VALUES (${true}, ${account_id}) RETURNING attendee_id
       `).rows[0]
       await db.queryObject`
-        INSERT INTO tickets (festival_id, owned_by_account_id, assigned_to_attendee_id) VALUES (${festival_id}, ${account_id}, ${attendee_id})
+        INSERT INTO ticket (festival_id, owned_by_account_id, assigned_to_attendee_id) VALUES (${festival_id}, ${account_id}, ${attendee_id})
       `
     }
   })
