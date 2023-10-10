@@ -236,14 +236,10 @@ const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) 
                 }
 
                 // @ts-expect-error foo
-                const { paymentMethod } = await stripe.createPaymentMethod(paymentMethodData)
-
                 const { error } = await stripe.confirmPayment({
                     elements,
                     confirmParams: {
                         return_url: location.href + '#Tickets',
-                        // @ts-expect-error foo
-                        payment_method_data: paymentMethod
                     },
                 })
 
