@@ -28,6 +28,9 @@ export default observer(() => {
                     if (val.length === 0) {
                         return 'Please enter a password'
                     }
+                    if (val.length < 6) {
+                        return 'Password must be at least six characters'
+                    }
                 }
             },
             submit: async ({ email_address, password }) => {
