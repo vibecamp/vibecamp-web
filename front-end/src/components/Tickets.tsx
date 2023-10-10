@@ -233,7 +233,7 @@ const PaymentForm: FC = React.memo(() => {
                 const { error } = await stripe.confirmPayment({
                     elements,
                     confirmParams: {
-                        return_url: location.href + '#Tickets',
+                        return_url: location.origin + '#Tickets',
                     },
                 })
 
