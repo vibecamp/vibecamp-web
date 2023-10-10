@@ -225,11 +225,19 @@ const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) 
             },
             validators: {},
             submit: async ({ stripe }) => {
+                console.log('submit')
                 if (!stripe) {
                     console.error('Stripe not initialized yet')
                     return
                 }
+                console.log({ stripe })
 
+                console.log('stripe.confirmPayment', {
+                    elements,
+                    confirmParams: {
+                        return_url: location.href + '#Tickets',
+                    },
+                })
                 // @ts-expect-error foo
                 const { error } = await stripe.confirmPayment({
                     elements,
