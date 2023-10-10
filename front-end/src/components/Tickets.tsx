@@ -222,16 +222,11 @@ const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) 
         paymentForm: form({
             initialValues: {
                 stripe: null as Stripe | null,
-                paymentMethodData: null as StripePaymentElementChangeEvent['value'] | null
             },
             validators: {},
-            submit: async ({ stripe, paymentMethodData }) => {
+            submit: async ({ stripe }) => {
                 if (!stripe) {
                     console.error('Stripe not initialized yet')
-                    return
-                }
-
-                if (!paymentMethodData) {
                     return
                 }
 
@@ -266,12 +261,7 @@ const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) 
             ? <LoadingDots />
             : <form id="payment-form" onSubmit={state.paymentForm.handleSubmit}>
                 <Col>
-                    <PaymentElement id="payment-element" options={{ layout: 'tabs' }} onChange={e => {
-                        console.log(e)
-                        if (e.complete) {
-                            state.paymentForm.fields.paymentMethodData.set(e.value)
-                        }
-                    }} />
+                    <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
 
                     <Spacer size={16} />
 
