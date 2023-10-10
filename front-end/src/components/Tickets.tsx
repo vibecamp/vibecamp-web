@@ -11,7 +11,7 @@ import { DEFAULT_FORM_ERROR, form, request, useObservableState } from '../mobx-u
 import Col from './core/Col'
 import { submitInviteCode } from '../api/account'
 import { Maybe } from '../../../back-end/common/data'
-import { Stripe, StripePaymentElementChangeEvent, loadStripe } from '@stripe/stripe-js'
+import { Stripe, StripeElements, StripePaymentElementChangeEvent, loadStripe } from '@stripe/stripe-js'
 import { Elements, LinkAuthenticationElement, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import env from '../env'
 import { createTicketPurchaseIntent } from '../api/ticket'
@@ -222,6 +222,7 @@ const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) 
         paymentForm: form({
             initialValues: {
                 stripe: null as Stripe | null,
+                elements: undefined as StripeElements | undefined,
             },
             validators: {},
             submit: async ({ stripe }) => {
@@ -263,6 +264,9 @@ const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) 
     useEffect(() => {
         state.paymentForm.fields.stripe.set(stripe)
     }, [stripe])
+    useEffect(() => {
+        state.paymentForm.fields.elements.set(elements)
+    }, [elements])
 
     return (
         !stripe || !elements
