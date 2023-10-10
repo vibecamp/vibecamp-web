@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import React, { FC, FormEvent, useCallback, useEffect, useState } from 'react'
+import React, { FC, useCallback, useEffect, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import Store from '../Store'
 import Modal from './core/Modal'
@@ -11,8 +11,8 @@ import { DEFAULT_FORM_ERROR, form, request, useObservableState } from '../mobx-u
 import Col from './core/Col'
 import { submitInviteCode } from '../api/account'
 import { Maybe } from '../../../back-end/common/data'
-import { Stripe, StripeElements, StripePaymentElementChangeEvent, loadStripe } from '@stripe/stripe-js'
-import { Elements, LinkAuthenticationElement, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
+import { Stripe, StripeElements, loadStripe } from '@stripe/stripe-js'
+import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import env from '../env'
 import { createTicketPurchaseIntent } from '../api/ticket'
 import RowSelect from './core/RowSelect'
@@ -67,8 +67,6 @@ export default observer(() => {
         }),
         purchaseState: 'none' as 'none' | 'selection' | 'payment'
     }))
-
-    console.log({ stripeOptionsState: state.stripeOptions.state })
 
     const ticketNumOptions = new Array(Store.accountInfo.state.result?.allowed_to_purchase_tickets).fill(null).map((_, index) => index)
 
@@ -206,7 +204,7 @@ export default observer(() => {
                     : state.purchaseState === 'payment' ?
                         state.stripeOptions.state.result != null &&
                         <Elements options={state.stripeOptions.state.result} stripe={stripePromise}>
-                            <PaymentForm clientSecret={state.stripeOptions.state.result.clientSecret} />
+                            <PaymentForm />
                         </Elements>
                         : null}
             </Modal>
@@ -214,7 +212,7 @@ export default observer(() => {
     )
 })
 
-const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) => {
+const PaymentForm: FC = React.memo(() => {
     const stripe = useStripe()
     const elements = useElements() ?? undefined
 
@@ -226,19 +224,11 @@ const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) 
             },
             validators: {},
             submit: async ({ stripe, elements }) => {
-                console.log('submit')
                 if (!stripe) {
                     console.error('Stripe not initialized yet')
                     return
                 }
-                console.log({ stripe })
-
-                console.log('stripe.confirmPayment', {
-                    elements,
-                    confirmParams: {
-                        return_url: location.href + '#Tickets',
-                    },
-                })
+                
                 // @ts-expect-error foo
                 const { error } = await stripe.confirmPayment({
                     elements,
