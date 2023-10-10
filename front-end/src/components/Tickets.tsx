@@ -85,7 +85,10 @@ export default observer(() => {
                             {Store.accountInfo.state.result.allowed_to_purchase_tickets > 0
                                 ? <>
                                     {Store.accountInfo.state.result?.tickets.map(ticket =>
-                                        <Ticket name='Unknown attendee' ticketType='adult' key={ticket.ticket_id} />)}
+                                        <React.Fragment key={ticket.ticket_id}>
+                                            <Ticket name='Unknown attendee' ticketType='adult' />
+                                            <Spacer size={16} />
+                                        </React.Fragment>)}
 
                                     <Button isPrimary isDisabled={Store.accountInfo.state.result.tickets.length >= Store.accountInfo.state.result.allowed_to_purchase_tickets} onClick={() => state.purchaseState = 'selection'}>
                                         Buy {Store.accountInfo.state.result.tickets.length > 0 && 'more'} tickets
