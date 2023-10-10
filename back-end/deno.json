@@ -5,7 +5,7 @@
     "postgres": "https://deno.land/x/postgres@v0.17.0/mod.ts",
     "oak": "https://deno.land/x/oak@v11.1.0/mod.ts",
     "std/": "https://deno.land/std@0.200.0/",
-    "stripe": "npm:stripe@^13.5.0",
+    "stripe": "npm:stripe@^13.5.0"
   },
   "fmt": {
     "semiColons": false,

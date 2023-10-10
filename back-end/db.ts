@@ -208,3 +208,27 @@ export async function useInviteCode(
     return false
   }
 }
+
+export async function purchaseTickets({ account_id, adultTickets, childTickets }: { account_id: number, adultTickets: number, childTickets: number }) {
+  return await withDBConnection(async (db) => {
+    const { festival_id } = (await db.queryObject<{ festival_id: number }>`select * from next_festival`).rows[0]
+
+    for (let i = 0; i < adultTickets; i++) {
+      const { attendee_id } = (await db.queryObject<{ attendee_id: number }>`
+        INSERT INTO attendee (is_child, associated_account_id) VALUES (${false}, ${account_id}) RETURNING attendee_id
+      `).rows[0]
+      await db.queryObject`
+        INSERT INTO tickets (festival_id, owned_by_account_id, assigned_to_attendee_id) VALUES (${festival_id}, ${account_id}, ${attendee_id})
+      `
+    }
+
+    for (let i = 0; i < childTickets; i++) {
+      const { attendee_id } = (await db.queryObject<{ attendee_id: number }>`
+        INSERT INTO attendee (is_child, associated_account_id) VALUES (${true}, ${account_id}) RETURNING attendee_id
+      `).rows[0]
+      await db.queryObject`
+        INSERT INTO tickets (festival_id, owned_by_account_id, assigned_to_attendee_id) VALUES (${festival_id}, ${account_id}, ${attendee_id})
+      `
+    }
+  })
+}
