@@ -57,6 +57,10 @@ export default function register(router: Router) {
         automatic_payment_methods: {
           enabled: true,
         },
+        metadata: {
+          adultTickets,
+          childTickets
+        }
       })
 
       if (client_secret == null) {
@@ -67,9 +71,10 @@ export default function register(router: Router) {
     },
   })
 
-  router.post(baseRoute + '/record-purchase', ctx => {
+  router.post(baseRoute + '/record-purchase', async ctx => {
     console.log('/record-purchase')
-    const event = stripe.webhooks.constructEvent(ctx.request.body({ type: 'bytes' }), ctx.request.headers.get('stripe-signature'), '')
+    const rawBody = await ctx.request.body().value
+    const event = await stripe.webhooks.constructEventAsync(rawBody, ctx.request.headers.get('stripe-signature'), 'whsec_accf21614aa842e5fc86edbcb06352e28cdd2c9d04c429a100f4ac52dee77e19')
     console.log(event)
     switch (event.type) {
       case 'checkout.session.completed':
