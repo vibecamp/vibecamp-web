@@ -94,35 +94,33 @@ export default observer(() => {
                                         Buy {Store.accountInfo.state.result.tickets.length > 0 && 'more'} tickets
                                     </Button>
 
-                                    <Spacer size={32} />
+                                    {Store.accountInfo.state.result.inviteCodes.length > 0 &&
+                                        <>
+                                            <Spacer size={32} />
 
-                                    <hr />
+                                            <hr />
 
-                                    <Spacer size={32} />
+                                            <Spacer size={32} />
 
-                                    <h2>
-                                        Your invite codes
-                                    </h2>
+                                            <h2>
+                                                Your invite codes
+                                            </h2>
 
-                                    <Spacer size={8} />
+                                            <Spacer size={8} />
 
-                                    <div>
-                                        You can give these to other people you know and
-                                        trust, to allow them to buy tickets
-                                    </div>
+                                            <div>
+                                                You can give these to other people you know and
+                                                trust, to allow them to buy tickets
+                                            </div>
 
-                                    <Spacer size={16} />
+                                            <Spacer size={16} />
 
-                                    {[
-                                        { code: '11111111-1111-1111-1111-111111111111', usedBy: 'My friend' },
-                                        { code: '22222222-2222-2222-2222-222222222222', usedBy: null },
-                                        { code: '33333333-3333-3333-3333-333333333333', usedBy: null },
-                                        { code: '44444444-4444-4444-4444-444444444444', usedBy: null }
-                                    ].map(({ code, usedBy }, index) => <React.Fragment key={index}>
-                                        {index > 0 && <Spacer size={16} />}
+                                            {Store.accountInfo.state.result.inviteCodes.map(({ code, used_by }, index) => <React.Fragment key={index}>
+                                                {index > 0 && <Spacer size={16} />}
 
-                                        <InviteCode code={code} usedBy={usedBy} />
-                                    </React.Fragment>)}
+                                                <InviteCode code={code} usedBy={used_by} />
+                                            </React.Fragment>)}
+                                        </>}
                                 </>
                                 : <form onSubmit={state.inviteCodeForm.handleSubmit}>
                                     <Col>

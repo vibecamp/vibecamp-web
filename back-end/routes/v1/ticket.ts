@@ -94,7 +94,7 @@ export default function register(router: Router) {
         await purchaseTickets({ account_id, adultTickets, childTickets })
       } break;
       default:
-        console.warn(`Unhandled event type ${event.type}`);
+        console.warn(`Unhandled Stripe event type ${event.type}`);
     }
   })
 }

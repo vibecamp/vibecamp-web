@@ -3,8 +3,8 @@ import { Router, Status } from 'oak'
 import { AnyRouterContext, defineRoute } from './_common.ts'
 import { create, getNumericDate, verify } from 'djwts'
 import { compare, hash } from 'bcrypt'
-import { Account } from '../../db.d.ts'
-import { withDBConnection } from '../../db.ts'
+import { Account, InviteCode } from '../../db-types.ts'
+import { accountReferralStatus, withDBConnection, withDBTransaction } from '../../db.ts'
 import { getEmailValidationError, getPasswordValidationError } from '../../common/validation.ts'
 
 const encoder = new TextEncoder()
@@ -32,12 +32,9 @@ export default function register(router: Router) {
       }
 
       // get account from DB
-      const accounts = await withDBConnection(async (db) => {
-        return await db.queryObject<
-          Account
-        >`select * from account where email_address = ${email_address}`
-      })
-      const account = accounts.rows[0]
+      const account = (await withDBConnection(async (db) => {
+        return await db.queryObject<Account>`SELECT * FROM account WHERE email_address = ${email_address}`
+      })).rows[0]
       if (account == null) {
         return [{ jwt: null }, Status.Unauthorized]
       }
@@ -45,6 +42,29 @@ export default function register(router: Router) {
       // verify password
       if (!await authenticatePassword(account, password)) {
         return [{ jwt: null }, Status.Unauthorized]
+      }
+
+      const { referralStatus, inviteCodes } = await withDBConnection(async (db) => {
+        return {
+          referralStatus: await accountReferralStatus(db, account.account_id),
+          inviteCodes: await db.queryObject<InviteCode>`
+            SELECT * FROM invite_code WHERE created_by_account_id = ${account.account_id}
+          `
+        }
+      })
+      const uncreatedInviteCodes = referralStatus.allowedToRefer - inviteCodes.rows.length
+      if (uncreatedInviteCodes > 0) {
+        await withDBTransaction(async (db) => {
+          const nextFestival = (await db.queryObject<{ festival_id: number }>`SELECT * FROM next_festival`).rows[0]
+
+          for (let i = 0; i < uncreatedInviteCodes; i++) {
+            await db.queryObject<InviteCode>`
+              INSERT INTO invite_code
+                (created_by_account_id, festival_id)
+                VALUES (${account.account_id}, ${nextFestival.festival_id})
+            `
+          }
+        })
       }
 
       // construct the JWT token and respond with it
@@ -69,10 +89,10 @@ export default function register(router: Router) {
 
       const accounts = await withDBConnection(async (db) => {
         return await db.queryObject<Account>`
-                    INSERT INTO account
-                        (email_address, password_hash, password_salt)
-                        VALUES (${email_address}, ${password_hash}, ${password_salt})
-                    RETURNING *`
+          INSERT INTO account
+              (email_address, password_hash, password_salt)
+              VALUES (${email_address}, ${password_hash}, ${password_salt})
+          RETURNING *`
       })
 
       const account = accounts.rows[0]

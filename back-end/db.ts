@@ -5,7 +5,7 @@ import {
   MAX_ADULT_TICKETS_PER_ACCOUNT,
   REFERRAL_MAXES,
 } from './common/constants.ts'
-import { Account, Attendee, InviteCode, Ticket } from './db.d.ts'
+import { Account, Attendee, InviteCode, Ticket } from './db-types.ts'
 import { allPromises } from './utils.ts'
 
 const url = new URL(env.DB_URL)
@@ -130,6 +130,7 @@ export async function fullAccountInfo(
     accounts,
     attendees,
     tickets,
+    inviteCodes,
   } = await withDBTransaction(async (db) => {
     return await allPromises({
       referralStatus: accountReferralStatus(db, account_id),
@@ -142,6 +143,11 @@ export async function fullAccountInfo(
       tickets: db.queryObject<Ticket>`
                 SELECT * FROM ticket WHERE owned_by_account_id = ${account_id}
             `,
+      inviteCodes: db.queryObject<InviteCode & { used_by: string | null }>`
+                SELECT invite_code_id, code, email_address as used_by FROM invite_code
+                LEFT JOIN account ON account_id = used_by_account_id
+                WHERE created_by_account_id = ${account_id}
+            `,
     })
   })
 
@@ -153,6 +159,7 @@ export async function fullAccountInfo(
       allowed_to_purchase_tickets: allowedToPurchaseTickets,
       attendees: attendees.rows,
       tickets: tickets.rows,
+      inviteCodes: inviteCodes.rows
     }
   }
 }
