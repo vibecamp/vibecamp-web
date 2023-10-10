@@ -225,7 +225,7 @@ const PaymentForm: FC<{ clientSecret: string }> = React.memo(({ clientSecret }) 
                 elements: undefined as StripeElements | undefined,
             },
             validators: {},
-            submit: async ({ stripe }) => {
+            submit: async ({ stripe, elements }) => {
                 console.log('submit')
                 if (!stripe) {
                     console.error('Stripe not initialized yet')
