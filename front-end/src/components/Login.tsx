@@ -6,6 +6,7 @@ import Button from './core/Button'
 import Store from '../Store'
 import { DEFAULT_FORM_ERROR, form, useObservableState } from '../mobx-utils'
 import { login, signup } from '../api/auth'
+import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/common/validation'
 
 export default observer(() => {
     const state = useObservableState(() => ({
@@ -16,22 +17,8 @@ export default observer(() => {
                 password: ''
             },
             validators: {
-                email_address: val => {
-                    if (val.length === 0) {
-                        return 'Please enter your email'
-                    }
-                    if (!val.includes('@')) {
-                        return 'Please enter a valid email address'
-                    }
-                },
-                password: val => {
-                    if (val.length === 0) {
-                        return 'Please enter a password'
-                    }
-                    if (val.length < 6) {
-                        return 'Password must be at least six characters'
-                    }
-                }
+                email_address: getEmailValidationError,
+                password: getPasswordValidationError
             },
             submit: async ({ email_address, password }) => {
                 const requestFn = state.mode === 'login' ? login : signup

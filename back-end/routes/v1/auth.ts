@@ -5,6 +5,7 @@ import { create, getNumericDate, verify } from 'djwts'
 import { compare, hash } from 'bcrypt'
 import { Account } from '../../db.d.ts'
 import { withDBConnection } from '../../db.ts'
+import { getEmailValidationError, getPasswordValidationError } from '../../common/validation.ts'
 
 const encoder = new TextEncoder()
 const JWT_SECRET_KEY = await crypto.subtle.importKey(
@@ -56,7 +57,8 @@ export default function register(router: Router) {
     method: 'post',
     handler: async ({ body: { email_address, password } }) => {
       // extract email/password from request
-      if (typeof email_address !== 'string' || typeof password !== 'string') {
+      if (typeof email_address !== 'string' || typeof password !== 'string'
+        || getEmailValidationError(email_address) || getPasswordValidationError(password)) {
         return [{ jwt: null }, Status.BadRequest]
       }
 
