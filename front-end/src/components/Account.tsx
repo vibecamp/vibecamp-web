@@ -1,13 +1,14 @@
-import React, { FC } from 'react'
+import React from 'react'
 import { observer } from 'mobx-react-lite'
 import Spacer from './core/Spacer'
 import Button from './core/Button'
 import Store from '../Store'
+import Col from './core/Col'
 
 export default observer(() => {
 
     return (
-        <>
+        <Col padding={20}>
             <h1>My account</h1>
 
             <Spacer size={16} />
@@ -23,6 +24,6 @@ export default observer(() => {
             </Button>
 
             <Spacer size={16} />
-        </>
+        </Col>
     )
 })

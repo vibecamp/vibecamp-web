@@ -1,4 +1,4 @@
-import React, { CSSProperties } from 'react'
+import React, { FC } from 'react'
 import { configure as configureMobx } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import Login from './Login'
@@ -9,7 +9,8 @@ import { useAutorun, windowSize } from '../mobx-utils'
 import Store from '../Store'
 import Spacer from './core/Spacer'
 import Modal from './core/Modal'
-import { VIEWS_ENTRIES } from '../views'
+import { VIEWS_ARRAY } from '../views'
+import MultiView from './core/MultiView'
 
 console.log(Store)
 
@@ -33,28 +34,31 @@ export default observer(() => {
                 <div></div>
             </div>
 
-            <div className='viewsWrapper' style={{ '--view-count': VIEWS_ENTRIES.length, '--current-view': VIEWS_ENTRIES.findIndex(e => e[0] === Store.currentView) } as CSSProperties}>
-                <div>
-                    {VIEWS_ENTRIES.map(([name, { component: Component }]) =>
-                        <div key={name}>
-                            <Component />
-                        </div>)}
-                </div>
-            </div>
+            <MultiView
+                views={VIEWS_ARRAY.map(({ name, component: Component }) =>
+                    ({ name, content: <Component /> }))}
+                currentView={Store.currentView}
+            />
 
-            <div className='nav'>
-                {VIEWS_ENTRIES.map(([name, { icon }], index) => (
-                    <button className={name === Store.currentView ? 'active' : undefined} onClick={Store.setCurrentView(name)} title={name} key={index}>
-                        <span className="material-symbols-outlined">{icon}</span>
-                        <Spacer size={4} />
-                        <span style={{ fontSize: 8 }}>{name}</span>
-                    </button>
-                ))}
-            </div>
+            <Nav />
 
             <Modal isOpen={!Store.loggedIn} side='left'>
                 <Login />
             </Modal>
         </>
+    )
+})
+
+const Nav: FC = observer(() => {
+    return (
+        <div className='nav'>
+            {VIEWS_ARRAY.map(({ name, icon }, index) => (
+                <button className={name === Store.currentView ? 'active' : undefined} onClick={Store.setCurrentView(name)} title={name} key={index}>
+                    <span className="material-symbols-outlined">{icon}</span>
+                    <Spacer size={4} />
+                    <span style={{ fontSize: 8 }}>{name}</span>
+                </button>
+            ))}
+        </div>
     )
 })

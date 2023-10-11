@@ -24,7 +24,8 @@ export const VIEWS = {
     }
 } as const
 
-export const VIEWS_ENTRIES = Object.entries(VIEWS) as [ViewName, typeof VIEWS[ViewName]][]
+export const VIEWS_ARRAY = (Object.entries(VIEWS) as [ViewName, typeof VIEWS[ViewName]][])
+    .map(([name, {icon, component}]) => ({ name, icon, component } as const))
 
 export function isViewName(str: string): str is ViewName {
     return Object.keys(VIEWS).includes(str)

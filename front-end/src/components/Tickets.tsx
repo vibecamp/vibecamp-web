@@ -7,16 +7,17 @@ import Ticket from './Ticket'
 import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
-import { DEFAULT_FORM_ERROR, form, request, useObservableState } from '../mobx-utils'
+import { DEFAULT_FORM_ERROR,  ObservableForm, form, request, useObservableState } from '../mobx-utils'
 import Col from './core/Col'
 import { submitInviteCode } from '../api/account'
 import { Maybe } from '../../../back-end/common/data'
-import { Stripe, StripeElements, loadStripe } from '@stripe/stripe-js'
+import { Stripe, StripeElements, StripeElementsOptions, loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import env from '../env'
 import { createTicketPurchaseIntent } from '../api/ticket'
 import RowSelect from './core/RowSelect'
 import LoadingDots from './core/LoadingDots'
+import MultiView from './core/MultiView'
 
 const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 
@@ -68,10 +69,8 @@ export default observer(() => {
         purchaseState: 'none' as 'none' | 'selection' | 'payment'
     }))
 
-    const ticketNumOptions = new Array(Store.accountInfo.state.result?.allowed_to_purchase_tickets).fill(null).map((_, index) => index)
-
     return (
-        <Col>
+        <Col padding={20}>
             <h1>My tickets</h1>
 
             <Spacer size={16} />
@@ -166,54 +165,74 @@ export default observer(() => {
                         : null}
 
             <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => state.purchaseState = 'none'}>
-                {state.purchaseState === 'selection' ?
-                    <form onSubmit={state.purchaseForm.handleSubmit}>
-                        <Col>
-                            You currently have:
-                            <div>
-                                {Store.accountInfo.state.result?.tickets.length} adult tickets, and
-                            </div>
-                            <div>
-                                {0} child tickets
-                            </div>
-
-                            <Spacer size={16} />
-
-                            <RowSelect
-                                label='Adult tickets to purchase'
-                                value={state.purchaseForm.fields.adultTickets.value}
-                                onChange={state.purchaseForm.fields.adultTickets.set}
-                                options={ticketNumOptions}
-                            />
-
-                            <Spacer size={16} />
-
-                            <RowSelect
-                                label='Child tickets to purchase'
-                                value={state.purchaseForm.fields.childTickets.value}
-                                onChange={state.purchaseForm.fields.childTickets.set}
-                                options={ticketNumOptions}
-                            />
-
-                            <Spacer size={24} />
-
-                            <Button isSubmit isPrimary isDisabled={state.purchaseForm.fields.adultTickets.value <= 0 && state.purchaseForm.fields.childTickets.value <= 0}>
-                                Purchase
-                            </Button>
-                        </Col>
-                    </form>
-                    : state.purchaseState === 'payment' ?
-                        state.stripeOptions.state.result != null &&
-                        <Elements options={state.stripeOptions.state.result} stripe={stripePromise}>
-                            <PaymentForm />
-                        </Elements>
-                        : null}
+                <MultiView
+                    views={[
+                        { name: 'selection', content: <SelectionView purchaseForm={state.purchaseForm} /> },
+                        { name: 'payment', content: <PaymentView stripeOptions={state.stripeOptions.state.result} /> }
+                    ]}
+                    currentView={state.purchaseState}
+                />
             </Modal>
         </Col>
     )
 })
 
-const PaymentForm: FC = React.memo(() => {
+const SelectionView: FC<{ purchaseForm: ObservableForm<{ adultTickets: number, childTickets: number }> }> = observer(({ purchaseForm }) => {
+
+    const ticketNumOptions = new Array(Store.accountInfo.state.result?.allowed_to_purchase_tickets).fill(null).map((_, index) => index)
+
+    return (
+        <form onSubmit={purchaseForm.handleSubmit}>
+            <Col>
+                You currently have:
+                <div>
+                    {Store.accountInfo.state.result?.tickets.length} adult tickets, and
+                </div>
+                <div>
+                    {0} child tickets
+                </div>
+
+                <Spacer size={16} />
+
+                <RowSelect
+                    label='Adult tickets to purchase'
+                    value={purchaseForm.fields.adultTickets.value}
+                    onChange={purchaseForm.fields.adultTickets.set}
+                    options={ticketNumOptions}
+                />
+
+                <Spacer size={16} />
+
+                <RowSelect
+                    label='Child tickets to purchase'
+                    value={purchaseForm.fields.childTickets.value}
+                    onChange={purchaseForm.fields.childTickets.set}
+                    options={ticketNumOptions}
+                />
+
+                <Spacer size={24} />
+
+                <Button isSubmit isPrimary isDisabled={purchaseForm.fields.adultTickets.value <= 0 && purchaseForm.fields.childTickets.value <= 0}>
+                    Purchase
+                </Button>
+            </Col>
+        </form>
+    )
+})
+
+const PaymentView: FC<{ stripeOptions: StripeElementsOptions | undefined }> = observer(({ stripeOptions }) => {
+    if (stripeOptions == null) {
+        return null
+    }
+
+    return (
+        <Elements options={stripeOptions} stripe={stripePromise}>
+            <PaymentForm />
+        </Elements>
+    )
+})
+
+const PaymentForm: FC = observer(() => {
     const stripe = useStripe()
     const elements = useElements() ?? undefined
 
@@ -281,7 +300,7 @@ const PaymentForm: FC = React.memo(() => {
     )
 })
 
-const InviteCode: FC<{ code: string, usedBy: Maybe<string> }> = React.memo(({ code, usedBy }) => {
+const InviteCode: FC<{ code: string, usedBy: Maybe<string> }> = observer(({ code, usedBy }) => {
     const [copied, setCopied] = useState(false)
 
     const copy = useCallback(async () => {

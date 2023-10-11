@@ -9,7 +9,11 @@ type FormOptions<T extends Record<string, unknown>> = {
 
 export const DEFAULT_FORM_ERROR = 'Something went wrong, please try again'
 
-export function form<TValues extends Record<string, unknown>>(opts: FormOptions<TValues>): {
+export function form<TValues extends Record<string, unknown>>(opts: FormOptions<TValues>): ObservableForm<TValues> {
+    return new Form(opts)
+}
+
+export type ObservableForm<TValues extends Record<string, unknown>> = {
     readonly fields: {
         readonly [key in keyof TValues]: {
             readonly value: TValues[key],
@@ -21,8 +25,6 @@ export function form<TValues extends Record<string, unknown>>(opts: FormOptions<
     readonly submitting: boolean,
     readonly error: string | undefined,
     readonly handleSubmit: (e: FormEvent) => Promise<void>
-} {
-    return new Form(opts)
 }
 
 class Form<TValues extends Record<string, unknown>> {
