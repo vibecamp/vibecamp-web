@@ -191,10 +191,7 @@ hr {
     width: 200vw;
     height: 100px;
     position: absolute;
-    top: 0;
-    left: -100vw;
     transform-origin: center;
-    transform: rotate(-20deg);
     z-index: -1;
 
     >div {
@@ -209,6 +206,17 @@ hr {
         &:nth-child(3) {
             background: rgb(197, 229, 246);
         }
+    }
+
+    &.bottom-right {
+        bottom: 50;
+        right: -100vw;
+        transform: scale(-1) rotate(-20deg);
+    }
+    &.top-left {
+        top: 0;
+        left: -100vw;
+        transform: rotate(-20deg);
     }
 }
 

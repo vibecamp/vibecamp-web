@@ -7,6 +7,7 @@ import Store from '../Store'
 import { DEFAULT_FORM_ERROR, form, useObservableState } from '../mobx-utils'
 import { login, signup } from '../api/auth'
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/common/validation'
+import Stripes from './core/Stripes'
 
 export default observer(() => {
     const state = useObservableState(() => ({
@@ -41,11 +42,7 @@ export default observer(() => {
 
     return (
         <form className='login' onSubmit={state.loginForm.handleSubmit}>
-            <div className='stripes'>
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
+            <Stripes position='top-left' />
 
             <img src="vibecamp.png" className='logo' />
 

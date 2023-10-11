@@ -11,6 +11,7 @@ import Spacer from './core/Spacer'
 import Modal from './core/Modal'
 import { VIEWS_ARRAY } from '../views'
 import MultiView from './core/MultiView'
+import Stripes from './core/Stripes'
 
 console.log(Store)
 
@@ -28,11 +29,7 @@ export default observer(() => {
 
     return (
         <>
-            <div className='stripes' style={{ transform: 'scale(-1) rotate(-20deg)', top: 'auto', left: 'auto', bottom: 50, right: '-100vw' }}>
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
+            <Stripes position='bottom-right' />
 
             <MultiView
                 views={VIEWS_ARRAY.map(({ name, component: Component }) =>
