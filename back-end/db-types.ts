@@ -1,65 +1,79 @@
 export type Tables = {
   account: {
-    account_id: number
-    email_address: string
-    password_hash: string
-    password_salt: string
-    account_notes: string
-    is_seed_account: boolean
-    is_application_accepted: boolean
+    is_seed_account: boolean,
+    email_address: string,
+    account_id: number,
+    account_notes: string,
+    is_application_accepted: boolean,
+    password_salt: string,
+    password_hash: string,
   },
   age_group: {
-    age_group: string
-    is_child: boolean
+    is_child: boolean,
+    age_group: string,
   },
   attendee: {
-    attendee_id: number
-    name: string | null
-    dietary_restrictions: string
-    attendee_notes: string
-    associated_account_id: number
-    age_group: string | null
-    discord_handle: string | null
-    interested_in_volunteering: boolean
-    interested_in_pre_call: boolean
-    planning_to_camp: boolean
+    dietary_restrictions: string,
+    name: string | null,
+    notes: string,
+    discord_handle: string | null,
+    interested_in_volunteering: boolean,
+    interested_in_pre_call: boolean,
+    planning_to_camp: boolean,
+    attendee_id: number,
+    associated_account_id: number,
+    age_group: string | null,
   },
   event: {
-    // TODO
+    description: string,
+    event_id: number,
+    location: string | null,
+    name: string,
+    end: unknown | null,
+    start: unknown,
+    created_by_account_id: number,
   },
   festival: {
-    festival_id: number
-    festival_name: string
-    festival_site_id: number
-    start_date: unknown
-    end_date: unknown
-    available_tickets: number
+    end_date: unknown,
+    festival_site_id: number,
+    start_date: unknown,
+    festival_id: number,
+    available_tickets: number,
+    festival_name: string,
   },
   festival_site: {
-    festival_site_id: number
-    festival_site_name: string
-    location: unknown
+    festival_site_name: string,
+    festival_site_id: number,
+    location: unknown,
   },
   invite_code: {
-    invite_code_id: number
-    code: string
-    created_by_account_id: number
-    used_by_account_id: number | null
-    festival_id: number
+    used_by_account_id: number | null,
+    festival_id: number,
+    created_by_account_id: number,
+    code: string,
+    invite_code_id: number,
+  },
+  next_festival: {
+    festival_name: string | null,
+    available_tickets: number | null,
+    festival_id: number | null,
+    end_date: unknown | null,
+    festival_site_id: number | null,
+    start_date: unknown | null,
   },
   ticket: {
-    ticket_id: number
-    owned_by_account_id: number | null
-    assigned_to_attendee_id: number | null
-    purchased_on: unknown
-    ticket_type_id: number
+    owned_by_account_id: number | null,
+    purchased_on: unknown,
+    ticket_type_id: number,
+    ticket_id: number,
+    assigned_to_attendee_id: number | null,
   },
   ticket_type: {
-    ticket_type: string
-    price_in_cents: number
-    festival_id: number
-    ticket_type_id: number
-  }
+    ticket_type: string,
+    price_in_cents: number,
+    festival_id: number,
+    ticket_type_id: number,
+  },
 }
 
 export type TableName = keyof Tables

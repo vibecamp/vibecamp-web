@@ -13,7 +13,8 @@
   },
   "tasks": {
     "start": "deno run --allow-net --allow-env --check index.ts",
-    "dev": "deno run --allow-net --allow-env --allow-read index.ts"
+    "dev": "deno run --allow-net --allow-env --allow-read index.ts",
+    "db-generate-types": "deno run --allow-all ./db-generate-types.ts"
   },
   "lock": false,
   "compilerOptions": {
