@@ -1,4 +1,4 @@
-import { action, autorun, makeAutoObservable, observable } from 'mobx'
+import { IReactionDisposer, action, autorun, makeAutoObservable, observable } from 'mobx'
 import { FormEvent, useEffect, useState } from 'react'
 
 type FormOptions<T extends Record<string, unknown>> = {
@@ -26,6 +26,8 @@ export type ObservableForm<TValues extends Record<string, unknown>> = {
     readonly error: string | undefined,
     readonly handleSubmit: (e: FormEvent) => Promise<void>
 }
+
+// TODO: Handle updating submit() closure after initialization
 
 class Form<TValues extends Record<string, unknown>> {
     constructor(
@@ -122,11 +124,13 @@ class Field<T> {
     }
 }
 
-export function request<T>(fn: () => Promise<T>): {
-    state: RequestState<T>;
-    load: () => Promise<void>;
-} {
+type RequestObservable<T> = {
+    state: RequestState<T>
+    load: () => void
+    dispose: () => void
+}
 
+export function request<T>(fn: () => Promise<T>, { lazy }: { lazy?: boolean } = {}): RequestObservable<T> {
     let latestRequestId: string | undefined
     async function load() {
         const thisRequestId = latestRequestId = String(Math.random())
@@ -145,17 +149,32 @@ export function request<T>(fn: () => Promise<T>): {
                 console.error(error)
             }
         }
+
+        return res.state
     }
 
-    const res: {
-        state: RequestState<T>,
-        load: () => Promise<void>,
-    } = observable({
+    let autorunDisposer: IReactionDisposer | undefined
+    const res: RequestObservable<T> = observable({
         state: { kind: 'idle', result: undefined },
-        load
+        load: (
+            lazy
+                ? () => {
+                    if (autorunDisposer == null) {
+                        autorunDisposer = autorun(load)
+                    } else {
+                        return load()
+                    }
+                }
+                : load
+        ),
+        dispose: () => {
+            autorunDisposer?.()
+        }
     })
 
-    autorun(load)
+    if (!lazy) {
+        autorunDisposer = autorun(load)
+    }
 
     return res
 }
