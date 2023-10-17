@@ -1,13 +1,11 @@
 // import { Event } from "../../common/data.ts";
 import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
-type Event = any
 
 export default function register(router: Router) {
-  const baseRoute: `/${string}` = '/event'
 
-  defineRoute<{ event: Event | null }>(router, {
-    endpoint: baseRoute + '/create',
+  defineRoute(router, {
+    endpoint: '/event/create',
     method: 'post',
     requireAuth: true,
     handler: async ({ ctx, jwt }) => {
@@ -25,8 +23,8 @@ export default function register(router: Router) {
     },
   })
 
-  defineRoute<{}>(router, {
-    endpoint: baseRoute + '/edit',
+  defineRoute(router, {
+    endpoint: '/event/edit',
     method: 'post',
     requireAuth: true,
     handler: async ({ ctx, jwt }) => {
@@ -41,8 +39,8 @@ export default function register(router: Router) {
     },
   })
 
-  defineRoute<{}>(router, {
-    endpoint: baseRoute + '/delete',
+  defineRoute(router, {
+    endpoint: '/event/delete',
     method: 'post',
     requireAuth: true,
     handler: async ({ ctx, jwt }) => {
@@ -59,8 +57,8 @@ export default function register(router: Router) {
     },
   })
 
-  defineRoute<{ events: Event[] | null }>(router, {
-    endpoint: baseRoute,
+  defineRoute(router, {
+    endpoint: '/events',
     method: 'get',
     requireAuth: true,
     handler: async ({ ctx, jwt }) => {

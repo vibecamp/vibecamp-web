@@ -9,15 +9,16 @@ import Input from './core/Input'
 import Button from './core/Button'
 import { DEFAULT_FORM_ERROR,  ObservableForm, form, request, useObservableState } from '../mobx-utils'
 import Col from './core/Col'
-import { submitInviteCode } from '../api/account'
 import { Maybe } from '../../../back-end/common/data'
 import { Stripe, StripeElements, StripeElementsOptions, loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import env from '../env'
-import { createTicketPurchaseIntent } from '../api/ticket'
 import RowSelect from './core/RowSelect'
 import LoadingDots from './core/LoadingDots'
 import MultiView from './core/MultiView'
+import { vibefetch } from '../vibefetch'
+
+import { MAX_TICKETS_PER_ACCOUNT } from '../../../back-end/common/constants'
 
 const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 
@@ -29,7 +30,7 @@ export default observer(() => {
             },
             validators: {},
             submit: async ({ code }) => {
-                const success = await submitInviteCode(Store.jwt, code)
+                const success = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: code })
 
                 if (!success) {
                     return DEFAULT_FORM_ERROR
@@ -46,18 +47,27 @@ export default observer(() => {
                 state.purchaseState = 'payment'
             }
         }),
+        purchaseState: 'none' as 'none' | 'selection' | 'payment'
+    }))
+
+    const requestState = useObservableState(() => ({
         stripeOptions: request(async () => {
             const adultTickets = state.purchaseForm.fields.adultTickets.value
             const childTickets = state.purchaseForm.fields.childTickets.value
 
             if (adultTickets > 0 || childTickets > 0) {
-                const clientSecret = await createTicketPurchaseIntent(Store.jwt, {
-                    adultTickets: state.purchaseForm.fields.adultTickets.value,
-                    childTickets: state.purchaseForm.fields.childTickets.value
-                })
+                const stripe_client_secret = (await vibefetch(
+                    Store.jwt, 
+                    '/ticket/create-purchase-intent', 
+                    'post',
+                    {
+                        adult_tickets: state.purchaseForm.fields.adultTickets.value,
+                        child_tickets: state.purchaseForm.fields.childTickets.value
+                    }
+                ))?.stripe_client_secret
 
                 return {
-                    clientSecret,
+                    clientSecret: stripe_client_secret,
                     appearance: {
                         theme: 'stripe' as const
                     }
@@ -66,7 +76,6 @@ export default observer(() => {
                 return undefined
             }
         }),
-        purchaseState: 'none' as 'none' | 'selection' | 'payment'
     }))
 
     return (
@@ -81,7 +90,7 @@ export default observer(() => {
                     'Failed to load'
                     : Store.accountInfo.state.kind === 'result' ?
                         <>
-                            {Store.accountInfo.state.result.allowed_to_purchase_tickets > 0
+                            {Store.accountInfo.state.result.allowed_to_purchase_tickets
                                 ? <>
                                     {Store.accountInfo.state.result?.tickets.map(ticket =>
                                         <React.Fragment key={ticket.ticket_id}>
@@ -89,7 +98,7 @@ export default observer(() => {
                                             <Spacer size={16} />
                                         </React.Fragment>)}
 
-                                    <Button isPrimary isDisabled={Store.accountInfo.state.result.tickets.length >= Store.accountInfo.state.result.allowed_to_purchase_tickets} onClick={() => state.purchaseState = 'selection'}>
+                                    <Button isPrimary isDisabled={Store.accountInfo.state.result.tickets.length >= MAX_TICKETS_PER_ACCOUNT.adult} onClick={() => state.purchaseState = 'selection'}>
                                         Buy {Store.accountInfo.state.result.tickets.length > 0 && 'more'} tickets
                                     </Button>
 
@@ -168,7 +177,7 @@ export default observer(() => {
                 <MultiView
                     views={[
                         { name: 'selection', content: <SelectionView purchaseForm={state.purchaseForm} /> },
-                        { name: 'payment', content: <PaymentView stripeOptions={state.stripeOptions.state.result} /> }
+                        { name: 'payment', content: <PaymentView stripeOptions={requestState.stripeOptions.state.result} /> }
                     ]}
                     currentView={state.purchaseState}
                 />
@@ -178,8 +187,6 @@ export default observer(() => {
 })
 
 const SelectionView: FC<{ purchaseForm: ObservableForm<{ adultTickets: number, childTickets: number }> }> = observer(({ purchaseForm }) => {
-
-    const ticketNumOptions = new Array(Store.accountInfo.state.result?.allowed_to_purchase_tickets).fill(null).map((_, index) => index)
 
     return (
         <form onSubmit={purchaseForm.handleSubmit}>
@@ -198,7 +205,7 @@ const SelectionView: FC<{ purchaseForm: ObservableForm<{ adultTickets: number, c
                     label='Adult tickets to purchase'
                     value={purchaseForm.fields.adultTickets.value}
                     onChange={purchaseForm.fields.adultTickets.set}
-                    options={ticketNumOptions}
+                    options={new Array(MAX_TICKETS_PER_ACCOUNT.adult + 1).fill(null).map((_, index) => index)}
                 />
 
                 <Spacer size={16} />
@@ -207,7 +214,7 @@ const SelectionView: FC<{ purchaseForm: ObservableForm<{ adultTickets: number, c
                     label='Child tickets to purchase'
                     value={purchaseForm.fields.childTickets.value}
                     onChange={purchaseForm.fields.childTickets.set}
-                    options={ticketNumOptions}
+                    options={new Array(MAX_TICKETS_PER_ACCOUNT.child + 1).fill(null).map((_, index) => index)}
                 />
 
                 <Spacer size={24} />

@@ -3,7 +3,7 @@ import { Router, Status } from 'oak'
 import { AnyRouterContext, defineRoute } from './_common.ts'
 import { create, getNumericDate, verify } from 'djwts'
 import { compare, hash } from 'bcrypt'
-import { Account, InviteCode } from '../../db-types.ts'
+import { Tables } from '../../db-types.ts'
 import { accountReferralStatus, withDBConnection, withDBTransaction } from '../../db.ts'
 import { getEmailValidationError, getPasswordValidationError } from '../../common/validation.ts'
 
@@ -22,18 +22,14 @@ const header = {
 } as const
 
 export default function register(router: Router) {
-  defineRoute<{ jwt: string | null }>(router, {
+  defineRoute(router, {
     endpoint: '/login',
     method: 'post',
     handler: async ({ body: { email_address, password } }) => {
-      // extract email/password from request
-      if (typeof email_address !== 'string' || typeof password !== 'string') {
-        return [{ jwt: null }, Status.BadRequest]
-      }
 
       // get account from DB
       const account = (await withDBConnection(async (db) => {
-        return await db.queryObject<Account>`SELECT * FROM account WHERE email_address = ${email_address}`
+        return await db.queryObject<Tables['account']>`SELECT * FROM account WHERE email_address = ${email_address}`
       })).rows[0]
       if (account == null) {
         return [{ jwt: null }, Status.Unauthorized]
@@ -44,10 +40,13 @@ export default function register(router: Router) {
         return [{ jwt: null }, Status.Unauthorized]
       }
 
+      const nextFestival = await withDBConnection(async (db) =>
+        (await db.queryObject<{ festival_id: number }>`SELECT * FROM next_festival`).rows[0])
+
       const { referralStatus, inviteCodes } = await withDBConnection(async (db) => {
         return {
-          referralStatus: await accountReferralStatus(db, account.account_id),
-          inviteCodes: await db.queryObject<InviteCode>`
+          referralStatus: await accountReferralStatus(db, account.account_id, nextFestival?.festival_id),
+          inviteCodes: await db.queryObject<Tables['invite_code']>`
             SELECT * FROM invite_code WHERE created_by_account_id = ${account.account_id}
           `
         }
@@ -55,14 +54,14 @@ export default function register(router: Router) {
       const uncreatedInviteCodes = referralStatus.allowedToRefer - inviteCodes.rows.length
       if (uncreatedInviteCodes > 0) {
         await withDBTransaction(async (db) => {
-          const nextFestival = (await db.queryObject<{ festival_id: number }>`SELECT * FROM next_festival`).rows[0]
-
-          for (let i = 0; i < uncreatedInviteCodes; i++) {
-            await db.queryObject<InviteCode>`
-              INSERT INTO invite_code
-                (created_by_account_id, festival_id)
-                VALUES (${account.account_id}, ${nextFestival.festival_id})
-            `
+          if (nextFestival != null) {
+            for (let i = 0; i < uncreatedInviteCodes; i++) {
+              await db.queryObject<Tables['invite_code']>`
+                INSERT INTO invite_code
+                  (created_by_account_id, festival_id)
+                  VALUES (${account.account_id}, ${nextFestival.festival_id})
+              `
+            }
           }
         })
       }
@@ -72,13 +71,12 @@ export default function register(router: Router) {
     },
   })
 
-  defineRoute<{ jwt: string | null }>(router, {
+  defineRoute(router, {
     endpoint: '/signup',
     method: 'post',
     handler: async ({ body: { email_address, password } }) => {
       // extract email/password from request
-      if (typeof email_address !== 'string' || typeof password !== 'string'
-        || getEmailValidationError(email_address) || getPasswordValidationError(password)) {
+      if (getEmailValidationError(email_address) || getPasswordValidationError(password)) {
         return [{ jwt: null }, Status.BadRequest]
       }
 
@@ -88,7 +86,7 @@ export default function register(router: Router) {
       )
 
       const accounts = await withDBConnection(async (db) => {
-        return await db.queryObject<Account>`
+        return await db.queryObject<Tables['account']>`
           INSERT INTO account
               (email_address, password_hash, password_salt)
               VALUES (${email_address}, ${password_hash}, ${password_salt})
@@ -110,7 +108,7 @@ const ONE_MINUTE_S = 60
 const ONE_HOUR_S = 60 * ONE_MINUTE_S
 const ONE_DAY_S = 24 * ONE_HOUR_S
 
-async function createAccountJwt(account: Account): Promise<string> {
+async function createAccountJwt(account: Tables['account']): Promise<string> {
   const payload: VibeJWTPayload = {
     iss: 'vibecamp',
     exp: getNumericDate(new Date()) + 30 * ONE_DAY_S,
@@ -138,7 +136,7 @@ export async function getJwtPayload(
 }
 
 async function authenticatePassword(
-  account: Account,
+  account: Tables['account'],
   password: string,
 ): Promise<boolean> {
   const saltedPassword = password + account.password_salt

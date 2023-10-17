@@ -5,9 +5,9 @@ import Input from './core/Input'
 import Button from './core/Button'
 import Store from '../Store'
 import { DEFAULT_FORM_ERROR, form, useObservableState } from '../mobx-utils'
-import { login, signup } from '../api/auth'
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/common/validation'
 import Stripes from './core/Stripes'
+import { vibefetch } from '../vibefetch'
 
 export default observer(() => {
     const state = useObservableState(() => ({
@@ -22,14 +22,10 @@ export default observer(() => {
                 password: getPasswordValidationError
             },
             submit: async ({ email_address, password }) => {
-                const requestFn = state.mode === 'login' ? login : signup
-                const { status, jwt } = await requestFn({ email_address, password})
+                const { jwt } = await vibefetch(Store.jwt, `/${state.mode}`, 'post', { email_address, password})
 
                 if (jwt == null) {
-                    switch (status) {
-                    case 401: return 'Invalid credentials'
-                    default: return DEFAULT_FORM_ERROR
-                    }
+                    return DEFAULT_FORM_ERROR
                 } else {
                     Store.jwt = jwt
     

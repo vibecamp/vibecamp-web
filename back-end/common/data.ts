@@ -1,4 +1,4 @@
-import { Attendee, InviteCode, Ticket } from "../db-types.ts"
+import { Tables } from "../db-types.ts"
 
 export type VibeJWTPayload = {
     iss?: string,
@@ -15,10 +15,10 @@ export type VibeJWTPayload = {
 export type FullAccountInfo = {
     account_id: number,
     email_address: string,
-    allowed_to_purchase_tickets: number,
-    attendees: Array<Attendee>,
-    tickets: Array<Ticket>,
-    inviteCodes: Array<InviteCode & {
+    allowed_to_purchase_tickets: boolean,
+    attendees: Array<Tables['attendee']>,
+    tickets: Array<Tables['ticket']>,
+    inviteCodes: Array<Tables['invite_code'] & {
         used_by: string | null
     }>
 }

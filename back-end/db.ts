@@ -1,12 +1,9 @@
 import { Pool, PoolClient, Transaction } from 'postgres'
 import env from './env.ts'
-import { FullAccountInfo, Maybe } from './common/data.ts'
 import {
-  MAX_ADULT_TICKETS_PER_ACCOUNT,
   REFERRAL_MAXES,
 } from './common/constants.ts'
-import { Account, Attendee, InviteCode, Ticket } from './db-types.ts'
-import { allPromises } from './utils.ts'
+import { Tables } from './db-types.ts'
 
 const url = new URL(env.DB_URL)
 
@@ -26,6 +23,13 @@ const db = new Pool({
   }
 }, 20)
 
+/**
+ * Acquire a DB connection from the pool, perform queries with it, and then
+ * release the connection and return any result
+ * 
+ * Using this wrapper function ensures pool connections are always released
+ * back into the pool
+ */
 export async function withDBConnection<TResult>(
   cb: (db: Pick<PoolClient, 'queryObject' | 'createTransaction'>) => Promise<TResult>,
 ): Promise<TResult> {
@@ -38,31 +42,45 @@ export async function withDBConnection<TResult>(
   }
 }
 
+/**
+ * Create a DB transaction, perform queries within it, and then
+ * commit the transaction and release the connection, returning any result
+ * 
+ * Using this wrapper function ensures transactions are always committed when
+ * finished
+ */
 export async function withDBTransaction<TResult>(
   cb: (transaction: Pick<Transaction, 'queryObject'>) => Promise<TResult>,
 ): Promise<TResult> {
   return await withDBConnection(async (db) => {
     const transactionName = generateTransactionName()
-    const transaction = db.createTransaction(transactionName, {
-      isolation_level: 'serializable',
-    })
-    await transaction.begin()
+    try {
+      const transaction = db.createTransaction(transactionName, {
+        isolation_level: 'serializable',
+      })
+      await transaction.begin()
 
-    const result = await cb(transaction)
+      const result = await cb(transaction)
 
-    await transaction.commit()
-    releaseTransactionName(transactionName)
+      await transaction.commit()
+      releaseTransactionName(transactionName)
 
-    return result
+      return result
+    } finally {
+      releaseTransactionName(transactionName)
+    }
   })
 }
 
+/**
+ * Get a unique and unused name for a transaction
+ */
 function generateTransactionName(): string {
   let name = 'Transaction_' + String(Math.random()).substring(2)
   while (ACTIVE_TRANSACTION_NAMES.has(name)) {
     // in the unlikely case we've generated a string that's already being
     // used, generate a new one
-    name = String(Math.random())
+    name = 'Transaction_' + String(Math.random())
   }
 
   ACTIVE_TRANSACTION_NAMES.add(name)
@@ -73,37 +91,33 @@ function releaseTransactionName(name: string) {
   ACTIVE_TRANSACTION_NAMES.delete(name)
 }
 
+/**
+ * Keep track of transaction names currently in use, to ensure against
+ * collisions
+ */
 const ACTIVE_TRANSACTION_NAMES = new Set<string>()
 
-// domain-specific
-
+/**
+ * Determine whether or not the account can purchase tickets, and how many
+ * invite codes they should be given to pass out
+ */
 export async function accountReferralStatus(
   db: Pick<Transaction, 'queryObject'>,
   account_id: number,
-): Promise<{ allowedToRefer: number; allowedToPurchaseTickets: number }> {
-  const res = await db.queryObject<
-    {
-      account_id: number
-      is_seed_account: boolean
-      created_by_account_id: Maybe<number>
-    }
-  >`
-        WITH RECURSIVE referrals AS (
-            SELECT account_id, is_seed_account, created_by_account_id as referred_by FROM account LEFT JOIN invite_code ON account.account_id = invite_code.used_by_account_id
-        ), referral_chain AS (
-            SELECT *
-            FROM referrals
-            WHERE referrals.account_id = ${account_id}
-        UNION
-            SELECT referrals.account_id, referrals.is_seed_account, referrals.referred_by
-            FROM referrals, referral_chain
-            WHERE referrals.account_id = referral_chain.referred_by
-        )
-        SELECT * FROM referral_chain
-    `
-  const chain = res.rows
+  festival_id: number | undefined
+): Promise<{ allowedToRefer: number, allowedToPurchaseTickets: boolean }> {
+  const none = { allowedToRefer: 0, allowedToPurchaseTickets: false }
 
-  const none = { allowedToRefer: 0, allowedToPurchaseTickets: 0 }
+  if (festival_id == null) {
+    return none
+  }
+
+  const chain = (await db.queryObject<
+    & Pick<Tables['account'], 'account_id' | 'is_seed_account'>
+    & Pick<Tables['invite_code'], 'created_by_account_id'>
+  >`
+    select * from account_referral_chain(${account_id}, ${festival_id})
+  `).rows
 
   // account doesn't exist
   if (chain.length === 0) {
@@ -118,123 +132,6 @@ export async function accountReferralStatus(
   const referralDistance = chain.length - 1
   return {
     allowedToRefer: REFERRAL_MAXES[referralDistance] ?? 0,
-    allowedToPurchaseTickets: MAX_ADULT_TICKETS_PER_ACCOUNT,
+    allowedToPurchaseTickets: true,
   }
-}
-
-export async function fullAccountInfo(
-  account_id: number,
-): Promise<Maybe<FullAccountInfo>> {
-  const {
-    referralStatus: { allowedToPurchaseTickets },
-    accounts,
-    attendees,
-    tickets,
-    inviteCodes,
-  } = await withDBTransaction(async (db) => {
-    return await allPromises({
-      referralStatus: accountReferralStatus(db, account_id),
-      accounts: db.queryObject<Account>`
-                SELECT * FROM account WHERE account_id = ${account_id}
-            `,
-      attendees: db.queryObject<Attendee>`
-                SELECT * FROM attendee WHERE associated_account_id = ${account_id}
-            `,
-      tickets: db.queryObject<Ticket>`
-                SELECT * FROM ticket WHERE owned_by_account_id = ${account_id}
-            `,
-      inviteCodes: db.queryObject<InviteCode & { used_by: string | null }>`
-                SELECT invite_code_id, code, email_address as used_by FROM invite_code
-                LEFT JOIN account ON account_id = used_by_account_id
-                WHERE created_by_account_id = ${account_id}
-            `,
-    })
-  })
-
-  const account = accounts.rows[0]
-  if (account != null) {
-    return {
-      account_id: account.account_id,
-      email_address: account.email_address,
-      allowed_to_purchase_tickets: allowedToPurchaseTickets,
-      attendees: attendees.rows,
-      tickets: tickets.rows,
-      inviteCodes: inviteCodes.rows
-    }
-  }
-}
-
-export async function useInviteCode(
-  account_id: number,
-  invite_code: string,
-): Promise<boolean> {
-  try {
-    return await withDBTransaction(async (db) => {
-      const inviteCodeResult = await db.queryObject<InviteCode>`
-                SELECT * FROM invite_code WHERE code = ${invite_code}
-            `
-      const invite_code_id = inviteCodeResult.rows[0]?.invite_code_id
-
-      if (invite_code_id == null) {
-        // invite code doesn't exist
-        return false
-      }
-
-      const accountsWithInviteCode = await db.queryObject<Account>`
-                SELECT * FROM account WHERE account.invite_code_id = ${invite_code_id}
-            `
-
-      if (accountsWithInviteCode.rows.length > 0) {
-        // invite code already used
-        return false
-      }
-
-      const accountResult = await db.queryObject<Account>`
-                SELECT * FROM account WHERE account.account_id = ${account_id}
-            `
-      const currentAccount = accountResult.rows[0]
-      if (currentAccount == null) {
-        // account doesn't exist
-        return false
-      }
-
-      if (currentAccount.invite_code_id != null) {
-        // account already used an invite code
-        return false
-      }
-
-      await db.queryObject`
-                UPDATE account SET invite_code_id = ${invite_code_id}
-                WHERE account_id = ${account_id}
-            `
-
-      return true
-    })
-  } catch {
-    return false
-  }
-}
-
-export async function purchaseTickets({ account_id, adultTickets, childTickets }: { account_id: number, adultTickets: number, childTickets: number }) {
-  return await withDBTransaction(async (db) => {
-    const { festival_id } = (await db.queryObject<{ festival_id: number }>`select * from next_festival`).rows[0]
-
-    for (let i = 0; i < adultTickets; i++) {
-      const { attendee_id } = (await db.queryObject<{ attendee_id: number }>`
-        INSERT INTO attendee (is_child, associated_account_id) VALUES (${false}, ${account_id}) RETURNING attendee_id
-      `).rows[0]
-      await db.queryObject`
-        INSERT INTO ticket (festival_id, owned_by_account_id, assigned_to_attendee_id) VALUES (${festival_id}, ${account_id}, ${attendee_id})
-      `
-    }
-
-    for (let i = 0; i < childTickets; i++) {
-      const { attendee_id } = (await db.queryObject<{ attendee_id: number }>`
-        INSERT INTO attendee (is_child, associated_account_id) VALUES (${true}, ${account_id}) RETURNING attendee_id
-      `).rows[0]
-      await db.queryObject`
-        INSERT INTO ticket (festival_id, owned_by_account_id, assigned_to_attendee_id) VALUES (${festival_id}, ${account_id}, ${attendee_id})
-      `
-    }
-  })
 }

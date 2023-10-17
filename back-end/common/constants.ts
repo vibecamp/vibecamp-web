@@ -1,11 +1,10 @@
 
-export const MAX_ADULT_TICKETS_PER_ACCOUNT = 5
+export const MAX_TICKETS_PER_ACCOUNT = {
+    adult: 2,
+    child: 5
+} as const
 
 export const REFERRAL_MAXES = [
     5, // seed people
-    3, // 1 degree of separation
-    1  // 2 degrees of separation
+    3  // 1 degrees of separation
 ] as const
-
-export const ADULT_TICKET_PRICE = 550_00
-export const CHILD_TICKET_PRICE = 320_00

@@ -5,9 +5,9 @@ import jwtDecode from 'jwt-decode'
 import { EventData } from './model'
 import { request } from './mobx-utils'
 import { VibeJWTPayload } from '../../back-end/common/data'
-import { getAccountInfo } from './api/account'
 import { given, jsonParse } from './utils'
 import { ViewName, isViewName } from './views'
+import { vibefetch } from './vibefetch'
 
 const JWT_KEY = 'jwt'
 
@@ -52,7 +52,7 @@ class Store {
         }
     }
 
-    readonly accountInfo = request(() => getAccountInfo(this.jwt))
+    readonly accountInfo = request(() => vibefetch(this.jwt, '/account', 'get', undefined))
 
     /// Events
 

@@ -9,6 +9,7 @@ import {
 import { getJwtPayload } from './auth.ts'
 import { wait } from '../../utils.ts'
 import { getNumericDate } from "djwts"
+import { Routes } from "../../common/route-types.ts"
 
 export type AnyRouterContext = RouterContext<
   string,
@@ -20,14 +21,14 @@ export type AnyRouterMiddleware = RouterMiddleware<string>
 
 export const API_BASE = '/api/v1'
 
-type RouteResponse<TResult> = Promise<[TResult | null, Status]>
+type RouteResponse<TResult> = Promise<[TResult, Status]>
 
-type UnauthenticatedRouteContext = {
+type UnauthenticatedRouteContext<TEndpoint extends keyof Routes> = {
   ctx: AnyRouterContext
-  body: Record<string, unknown>
+  body: Routes[TEndpoint]['body']
 }
 
-type AuthenticatedRouteContext = UnauthenticatedRouteContext & {
+type AuthenticatedRouteContext<TEndpoint extends keyof Routes> = UnauthenticatedRouteContext<TEndpoint> & {
   jwt: VibeJWTPayload
 }
 
@@ -37,20 +38,20 @@ type AuthenticatedRouteContext = UnauthenticatedRouteContext & {
  *   to make sure there's a firm API contract
  * - Gives a clear way of invoking permissions-checking
  */
-export function defineRoute<TResult>(
+export function defineRoute<TEndpoint extends keyof Routes>(
   router: Router,
   config:
     | {
-      method: 'get' | 'post' | 'put' | 'delete'
-      endpoint: string
+      method: Routes[TEndpoint]['method'],
+      endpoint: TEndpoint
       requireAuth?: false
-      handler: (context: UnauthenticatedRouteContext) => RouteResponse<TResult>
+      handler: (context: UnauthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response']>
     }
     | {
-      method: 'get' | 'post' | 'put' | 'delete'
-      endpoint: string
+      method: Routes[TEndpoint]['method'],
+      endpoint: TEndpoint
       requireAuth: true
-      handler: (context: AuthenticatedRouteContext) => RouteResponse<TResult>
+      handler: (context: AuthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response']>
     },
 ) {
   const endpoint = API_BASE + config.endpoint
@@ -61,6 +62,7 @@ export function defineRoute<TResult>(
       if (config.method !== 'get') {
         parsedBody = await ctx.request.body({ type: 'json' }).value
       }
+      // deno-lint-ignore no-empty
     } catch {
     }
 
@@ -107,12 +109,12 @@ export function defineRoute<TResult>(
     case 'post':
       router.post(...args)
       break
-    case 'put':
-      router.put(...args)
-      break
-    case 'delete':
-      router.delete(...args)
-      break
+    // case 'put':
+    //   router.put(...args)
+    //   break
+    // case 'delete':
+    //   router.delete(...args)
+    //   break
   }
 }
 
