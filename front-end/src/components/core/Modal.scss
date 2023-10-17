@@ -1,0 +1,86 @@
+
+.modal {
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    transition: opacity 0.2s ease-out;
+
+    &:not(.open) {
+        pointer-events: none;
+        opacity: 0;
+
+        &.left {
+            >.dialog {
+                transform: translateX(-100vw);
+            }
+        }
+
+        &.right {
+            >.dialog {
+                transform: translateX(100vw);
+            }
+        }
+    }
+
+    >.dialog {
+        background: white;
+        box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+        transition: transform 0.2s ease-out;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+
+        >.header {
+            display: flex;
+            align-items: center;
+            justify-content: stretch;
+            box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+            flex-grow: 0;
+            flex-shrink: 0;
+
+            >button {
+                appearance: none;
+                border: none;
+                background: transparent;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--color-accent-1);
+                font-size: 16px;
+            }
+
+            >button,
+            >.balancer {
+                width: 80px;
+                height: 60px;
+                flex-grow: 0;
+                flex-shrink: 0;
+            }
+
+            >.title {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-grow: 1;
+                flex-shrink: 1;
+                overflow: hidden;
+                font-weight: bold;
+            }
+        }
+
+        >.content {
+            padding: 3dvb;
+            overflow-y: auto;
+            flex-grow: 1;
+            flex-shrink: 1;
+            display:flex;
+            flex-direction: column;
+        }
+    }
+}

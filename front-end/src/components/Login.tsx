@@ -91,12 +91,6 @@ export default observer(() => {
                     ? 'Create an account'
                     : 'I already have an account'}
             </Button>
-
-            {/* <a className='loginWithTwitter' href='/home/announcements'>
-                <img src="twitter.png" width={20} height={20} />
-                <Spacer size={16} />
-                Log in with Twitter
-            </a> */}
         </form>
     )
 })

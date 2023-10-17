@@ -1,0 +1,68 @@
+
+.button {
+    appearance: none;
+    border: none;
+    background: none;
+
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background: white;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 16px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: inherit;
+
+    &.primary {
+        color: rgba(255, 255, 255, 0.9);
+        background: var(--color-accent-1);
+        border: 1px solid rgba(255, 255, 255, 0.9)
+    }
+
+    &.danger {
+        border: 1px solid red;
+        color: red;
+        
+        &.primary {
+            color: rgba(255, 255, 255, 0.9);
+            background: red;
+        }
+    }
+
+    .loading-container {
+        display: flex;
+        // opacity: 0;
+        // transform: scaleX(0);
+
+        // animation-name: loading-appear;
+        // animation-duration: 0.4s;
+        // animation-timing-function: linear;
+        // animation-fill-mode: both;
+        // animation-direction: backwards;
+
+        // &.isLoading {
+        //     animation-direction: forwards;
+        // }
+
+        &:not(.isLoading) {
+            display: none;
+        }
+    }
+}
+
+// @keyframes loading-appear {
+//     0% {
+//         opacity: 0;
+//         transform: scaleX(0);
+//     }
+//     50% {
+//         opacity: 0;
+//         transform: scaleX(1);
+//     }
+//     100% {
+//         opacity: 1;
+//         transform: scaleX(1);
+//     }
+// }
