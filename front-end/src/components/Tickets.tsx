@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import React, { FC, useCallback, useEffect, useState } from 'react'
+import React, { FC, useCallback, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import Store from '../Store'
 import Modal from './core/Modal'
@@ -10,17 +10,12 @@ import Button from './core/Button'
 import { DEFAULT_FORM_ERROR,  ObservableForm, form, request, useObservableState } from '../mobx-utils'
 import Col from './core/Col'
 import { Maybe } from '../../../back-end/common/data'
-import { Stripe, StripeElements, StripeElementsOptions, loadStripe } from '@stripe/stripe-js'
-import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
-import env from '../env'
 import RowSelect from './core/RowSelect'
-import LoadingDots from './core/LoadingDots'
 import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
 import { MAX_TICKETS_PER_ACCOUNT } from '../../../back-end/common/constants'
-
-const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
+import PaymentForm from './core/StripePaymentForm'
 
 export default observer(() => {
     const state = useObservableState(() => ({
@@ -80,7 +75,7 @@ export default observer(() => {
 
     return (
         <Col padding={20}>
-            <h1>My tickets</h1>
+            <h1 style={{ fontSize: 24 }}>My tickets</h1>
 
             <Spacer size={16} />
 
@@ -177,7 +172,7 @@ export default observer(() => {
                 <MultiView
                     views={[
                         { name: 'selection', content: <SelectionView purchaseForm={state.purchaseForm} /> },
-                        { name: 'payment', content: <PaymentView stripeOptions={requestState.stripeOptions.state.result} /> }
+                        { name: 'payment', content: <PaymentForm stripeOptions={requestState.stripeOptions.state.result} /> }
                     ]}
                     currentView={state.purchaseState}
                 />
@@ -224,86 +219,6 @@ const SelectionView: FC<{ purchaseForm: ObservableForm<{ adultTickets: number, c
                 </Button>
             </Col>
         </form>
-    )
-})
-
-const PaymentView: FC<{ stripeOptions: StripeElementsOptions | undefined }> = observer(({ stripeOptions }) => {
-    if (stripeOptions == null) {
-        return null
-    }
-
-    return (
-        <Elements options={stripeOptions} stripe={stripePromise}>
-            <PaymentForm />
-        </Elements>
-    )
-})
-
-const PaymentForm: FC = observer(() => {
-    const stripe = useStripe()
-    const elements = useElements() ?? undefined
-
-    const state = useObservableState({
-        paymentForm: form({
-            initialValues: {
-                stripe: null as Stripe | null,
-                elements: undefined as StripeElements | undefined,
-            },
-            validators: {},
-            submit: async ({ stripe, elements }) => {
-                if (!stripe) {
-                    console.error('Stripe not initialized yet')
-                    return
-                }
-
-                // @ts-expect-error foo
-                const { error } = await stripe.confirmPayment({
-                    elements,
-                    confirmParams: {
-                        return_url: location.origin + '#Tickets',
-                    },
-                })
-
-                // This point will only be reached if there is an immediate error when
-                // confirming the payment. Otherwise, your customer will be redirected to
-                // your `return_url`. For some payment methods like iDEAL, your customer will
-                // be redirected to an intermediate site first to authorize the payment, then
-                // redirected to the `return_url`.
-                if (error.type === 'card_error' || error.type === 'validation_error') {
-                    return error.message
-                } else {
-                    return 'An unexpected error occurred.'
-                }
-            }
-        })
-    })
-
-    useEffect(() => {
-        state.paymentForm.fields.stripe.set(stripe)
-    }, [stripe])
-    useEffect(() => {
-        state.paymentForm.fields.elements.set(elements)
-    }, [elements])
-
-    return (
-        !stripe || !elements
-            ? <LoadingDots />
-            : <form id="payment-form" onSubmit={state.paymentForm.handleSubmit}>
-                <Col>
-                    <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
-
-                    <Spacer size={16} />
-
-                    {state.paymentForm.error &&
-                        state.paymentForm.error}
-
-                    <Spacer size={8} />
-
-                    <Button isSubmit isPrimary isLoading={state.paymentForm.submitting}>
-                        Pay now
-                    </Button>
-                </Col>
-            </form>
     )
 })
 

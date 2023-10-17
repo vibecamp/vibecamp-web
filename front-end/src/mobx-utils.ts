@@ -130,6 +130,12 @@ type RequestObservable<T> = {
     dispose: () => void
 }
 
+export type RequestState<T> =
+    | { readonly kind: 'idle', readonly result: undefined }
+    | { readonly kind: 'loading', readonly result: undefined }
+    | { readonly kind: 'result', readonly result: T }
+    | { readonly kind: 'error', readonly result: undefined, readonly error: unknown }
+
 export function request<T>(fn: () => Promise<T>, { lazy }: { lazy?: boolean } = {}): RequestObservable<T> {
     let latestRequestId: string | undefined
     async function load() {
@@ -179,12 +185,6 @@ export function request<T>(fn: () => Promise<T>, { lazy }: { lazy?: boolean } = 
     return res
 }
 
-export type RequestState<T> =
-    | { readonly kind: 'idle', readonly result: undefined }
-    | { readonly kind: 'loading', readonly result: undefined }
-    | { readonly kind: 'result', readonly result: T }
-    | { readonly kind: 'error', readonly result: undefined, readonly error: unknown }
-
 export const windowSize = (() => {
     const size = observable.box({ width: window.innerWidth, height: window.innerHeight })
 
@@ -201,12 +201,13 @@ export function useAutorun(fn: () => void) {
     })
 }
 
-export function useObservableState<T extends Record<string, unknown>>(init: T | (() => T)): T {
-    const [obs] = useState(() => observable(
-        typeof init === 'function'
-            ? init()
-            : init
-    ))
+export function useObservableState<T extends Record<string, unknown>>(init: () => T, deps?: unknown[]): T {
+    const [obs, setObs] = useState(() => observable(init()))
+
+    useEffect(() => {
+        setObs(init())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, deps)
 
     return obs
 }
