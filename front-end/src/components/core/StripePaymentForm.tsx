@@ -12,24 +12,25 @@ import env from '../../env'
 const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 
 type Props = {
-    stripeOptions: StripeElementsOptions | undefined
+    stripeOptions: StripeElementsOptions | undefined,
+    redirectUrl: string
 }
 
-export default observer(({ stripeOptions }: Props) => {
+export default observer(({ stripeOptions, redirectUrl }: Props) => {
     if (stripeOptions == null) {
         return null
     }
 
     return (
         <Elements options={stripeOptions} stripe={stripePromise}>
-            <PaymentFormInner />
+            <PaymentFormInner redirectUrl={redirectUrl} />
         </Elements>
     )
 })
 
-const PaymentFormInner: FC = observer(() => {
+const PaymentFormInner: FC<{ redirectUrl: string }> = observer(({ redirectUrl }) => {
     const stripe = useStripe()
-    const elements = useElements() ?? undefined
+    const elements = useElements()
 
     const state = useObservableState(() => ({
         confirmPayment: request(async () => {
@@ -41,7 +42,7 @@ const PaymentFormInner: FC = observer(() => {
             const { error } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
-                    return_url: location.origin + '#Tickets',
+                    return_url: redirectUrl,
                 },
             })
 

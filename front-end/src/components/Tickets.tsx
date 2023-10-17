@@ -15,7 +15,7 @@ import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
 import { MAX_TICKETS_PER_ACCOUNT } from '../../../back-end/common/constants'
-import PaymentForm from './core/StripePaymentForm'
+import StripePaymentForm from './core/StripePaymentForm'
 
 export default observer(() => {
     const state = useObservableState(() => ({
@@ -172,7 +172,7 @@ export default observer(() => {
                 <MultiView
                     views={[
                         { name: 'selection', content: <SelectionView purchaseForm={state.purchaseForm} /> },
-                        { name: 'payment', content: <PaymentForm stripeOptions={requestState.stripeOptions.state.result} /> }
+                        { name: 'payment', content: <StripePaymentForm stripeOptions={requestState.stripeOptions.state.result} redirectUrl={location.origin + '#Tickets'} /> }
                     ]}
                     currentView={state.purchaseState}
                 />
