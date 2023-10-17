@@ -421,7 +421,8 @@ hr {
         color: var(--focus-color);
     }
 
-    >input {
+    > input,
+    > textarea {
         appearance: none;
         border: none;
         background: none;
@@ -444,6 +445,11 @@ hr {
         }
     }
 
+    > textarea {
+        resize: none;
+        font-family: inherit;
+    }
+
     > .error {
         color: red;
         overflow: hidden;
@@ -457,6 +463,47 @@ hr {
             opacity: 0;
             height: 0;
         }
+    }
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    padding: 4px 0;
+
+    > input[type="checkbox"] {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        appearance: none;
+        width: 1.5em;
+        height: 1.5em;
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+        margin-right: 0.5em;
+
+        transition: all 0.1s ease-out;
+
+        flex-grow: 0;
+        flex-shrink: 0;
+
+        &::before {
+            content: '✓';
+            color: rgba(255, 255, 255, 0.9);
+            opacity: 0;
+            transition: all 0.1s ease-out;
+        }
+        
+        &:checked {
+            background: var(--color-accent-1);
+            border-color: var(--color-accent-1);
+
+            &::before {
+                opacity: 1;
+            }
+        }
+
     }
 }
 
