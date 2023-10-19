@@ -7,7 +7,7 @@ import Ticket from './Ticket'
 import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
-import { DEFAULT_FORM_ERROR,  ObservableForm, form, request, useObservableState } from '../mobx-utils'
+import { DEFAULT_FORM_ERROR, ObservableForm, useForm, useObservableState, useRequest } from '../mobx-utils'
 import Col from './core/Col'
 import { Maybe } from '../../../back-end/common/data'
 import RowSelect from './core/RowSelect'
@@ -18,60 +18,60 @@ import { MAX_TICKETS_PER_ACCOUNT } from '../../../back-end/common/constants'
 import StripePaymentForm from './core/StripePaymentForm'
 
 export default observer(() => {
-    const state = useObservableState(() => ({
-        inviteCodeForm: form({
-            initialValues: {
-                code: ''
-            },
-            validators: {},
-            submit: async ({ code }) => {
-                const success = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: code })
+    const inviteCodeForm = useForm({
+        initialValues: {
+            code: ''
+        },
+        validators: {},
+        submit: async ({ code }) => {
+            const success = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: code })
 
-                if (!success) {
-                    return DEFAULT_FORM_ERROR
-                }
+            if (!success) {
+                return DEFAULT_FORM_ERROR
             }
-        }),
-        purchaseForm: form({
-            initialValues: {
-                adultTickets: 0,
-                childTickets: 0
-            },
-            validators: {},
-            submit: async () => {
-                state.purchaseState = 'payment'
-            }
-        }),
+        }
+    })
+
+    const purchaseForm = useForm({
+        initialValues: {
+            adultTickets: 0,
+            childTickets: 0
+        },
+        validators: {},
+        submit: async () => {
+            state.purchaseState = 'payment'
+        }
+    })
+
+    const state = useObservableState({
         purchaseState: 'none' as 'none' | 'selection' | 'payment'
-    }))
+    })
 
-    const requestState = useObservableState(() => ({
-        stripeOptions: request(async () => {
-            const adultTickets = state.purchaseForm.fields.adultTickets.value
-            const childTickets = state.purchaseForm.fields.childTickets.value
+    const stripeOptions = useRequest(async () => {
+        const adultTickets = purchaseForm.fields.adultTickets.value
+        const childTickets = purchaseForm.fields.childTickets.value
 
-            if (adultTickets > 0 || childTickets > 0) {
-                const stripe_client_secret = (await vibefetch(
-                    Store.jwt, 
-                    '/ticket/create-purchase-intent', 
-                    'post',
-                    {
-                        adult_tickets: state.purchaseForm.fields.adultTickets.value,
-                        child_tickets: state.purchaseForm.fields.childTickets.value
-                    }
-                ))?.stripe_client_secret
-
-                return {
-                    clientSecret: stripe_client_secret,
-                    appearance: {
-                        theme: 'stripe' as const
-                    }
+        if (adultTickets > 0 || childTickets > 0) {
+            const stripe_client_secret = (await vibefetch(
+                Store.jwt, 
+                '/ticket/create-purchase-intent', 
+                'post',
+                {
+                    adult_tickets: purchaseForm.fields.adultTickets.value,
+                    child_tickets: purchaseForm.fields.childTickets.value
                 }
-            } else {
-                return undefined
+            ))?.stripe_client_secret
+
+            return {
+                clientSecret: stripe_client_secret,
+                appearance: {
+                    theme: 'stripe' as const
+                }
             }
-        }),
-    }))
+        } else {
+            return undefined
+        }
+    })
 
     return (
         <Col padding={20}>
@@ -125,7 +125,7 @@ export default observer(() => {
                                             </React.Fragment>)}
                                         </>}
                                 </>
-                                : <form onSubmit={state.inviteCodeForm.handleSubmit}>
+                                : <form onSubmit={inviteCodeForm.handleSubmit}>
                                     <Col>
                                         <h2>
                                             Welcome!
@@ -143,24 +143,24 @@ export default observer(() => {
 
                                         <Input
                                             label='Invite code'
-                                            value={state.inviteCodeForm.fields.code.value}
-                                            onChange={state.inviteCodeForm.fields.code.set}
-                                            error={state.inviteCodeForm.fields.code.error}
-                                            onBlur={state.inviteCodeForm.fields.code.activateValidation}
+                                            value={inviteCodeForm.fields.code.value}
+                                            onChange={inviteCodeForm.fields.code.set}
+                                            error={inviteCodeForm.fields.code.error}
+                                            onBlur={inviteCodeForm.fields.code.activateValidation}
                                         />
 
-                                        {state.inviteCodeForm.error &&
+                                        {inviteCodeForm.error &&
                                             <>
                                                 <Spacer size={8} />
 
                                                 <div style={{ color: 'red' }}>
-                                                    {state.inviteCodeForm.error}
+                                                    {inviteCodeForm.error}
                                                 </div>
                                             </>}
 
                                         <Spacer size={8} />
 
-                                        <Button isSubmit isPrimary isLoading={state.inviteCodeForm.submitting}>
+                                        <Button isSubmit isPrimary isLoading={inviteCodeForm.submitting}>
                                             Enter invite code
                                         </Button>
                                     </Col>
@@ -171,8 +171,8 @@ export default observer(() => {
             <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => state.purchaseState = 'none'}>
                 <MultiView
                     views={[
-                        { name: 'selection', content: <SelectionView purchaseForm={state.purchaseForm} /> },
-                        { name: 'payment', content: <StripePaymentForm stripeOptions={requestState.stripeOptions.state.result} redirectUrl={location.origin + '#Tickets'} /> }
+                        { name: 'selection', content: <SelectionView purchaseForm={purchaseForm} /> },
+                        { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} redirectUrl={location.origin + '#Tickets'} /> }
                     ]}
                     currentView={state.purchaseState}
                 />

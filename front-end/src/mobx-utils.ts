@@ -1,4 +1,4 @@
-import { IReactionDisposer, action, autorun, makeAutoObservable, observable } from 'mobx'
+import { IReactionDisposer, action, autorun, computed, makeAutoObservable, observable } from 'mobx'
 import { FormEvent, useEffect, useState } from 'react'
 
 type FormOptions<T extends Record<string, unknown>> = {
@@ -26,8 +26,6 @@ export type ObservableForm<TValues extends Record<string, unknown>> = {
     readonly error: string | undefined,
     readonly handleSubmit: (e: FormEvent) => Promise<void>
 }
-
-// TODO: Handle updating submit() closure after initialization
 
 class Form<TValues extends Record<string, unknown>> {
     constructor(
@@ -201,13 +199,28 @@ export function useAutorun(fn: () => void) {
     })
 }
 
-export function useObservableState<T extends Record<string, unknown>>(init: () => T, deps?: unknown[]): T {
-    const [obs, setObs] = useState(() => observable(init()))
+export function useComputed<T>(fn: () => T): T {
+    const [comp] = useState(() => computed(fn))
+    return comp.get()
+}
+
+export function useForm<TValues extends Record<string, unknown>>(opts: FormOptions<TValues>): ObservableForm<TValues> {
+    const [f] = useState(() => form(opts))
+    return f
+}
+
+export function useRequest<T>(fn: () => Promise<T>, deps?: unknown[], options: { lazy?: boolean } = {}): RequestObservable<T> {
+    const [req] = useState(() => request(fn, options))
 
     useEffect(() => {
-        setObs(init())
+        return req.dispose
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, deps)
 
+    return req
+}
+
+export function useObservableState<T extends Record<string, unknown>>(init: T): T {
+    const [obs] = useState(() => observable(init))
     return obs
 }

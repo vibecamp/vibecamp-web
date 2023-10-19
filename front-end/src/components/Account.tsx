@@ -9,7 +9,7 @@ export default observer(() => {
 
     return (
         <Col padding={20}>
-            <h1>My account</h1>
+            <h1 style={{ fontSize: 24 }}>My account</h1>
 
             <Spacer size={16} />
 
