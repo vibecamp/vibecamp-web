@@ -55,22 +55,20 @@ self.addEventListener('fetch', async e => {
     })())
 })
 
-// self.addEventListener('activate', e => {
-//     e.waitUntil(
-//         (async () => {
-//             const keys = await caches.keys()
+self.addEventListener('activate', e => {
+    e.waitUntil(
+        (async () => {
+            const keys = await caches.keys()
 
-//             await Promise.all(
-//                 keys.map(name => {
-//                     if (name !== CACHE_NAME) {
-//                         return caches.delete(name)
-//                     }
-//                 })
-//             )
-
-//             await clients.claim()
-//         })()
-//     )
-// })
+            await Promise.all(
+                keys.map(name => {
+                    if (name !== CACHE_NAME) {
+                        return caches.delete(name)
+                    }
+                })
+            )
+        })()
+    )
+})
 
 export { }
