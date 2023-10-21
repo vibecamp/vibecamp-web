@@ -4,8 +4,8 @@ import {
   REFERRAL_MAXES,
 } from './common/constants.ts'
 import { TableName, Tables } from './db-types.ts'
-import { Maybe } from "./common/data.ts"
-import { objectEntries } from './utils.ts'
+import { Maybe } from "./common/types.ts"
+import { objectEntries } from './common/utils.ts'
 import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
 
 const url = new URL(env.DB_URL)

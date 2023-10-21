@@ -2,7 +2,7 @@ import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
 import { accountReferralStatus, withDBConnection, withDBTransaction } from '../../db.ts'
 import { Tables } from "../../db-types.ts"
-import { allPromises } from "../../utils.ts"
+import { allPromises } from "../../common/utils.ts"
 
 export default function register(router: Router) {
 

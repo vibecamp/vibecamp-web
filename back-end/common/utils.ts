@@ -27,3 +27,7 @@ export function objectFromEntries<TKey extends string | number | symbol, TValue>
 export function wait(ms: number): Promise<void> {
   return new Promise((res) => setTimeout(res, ms))
 }
+
+export function exists<T>(val: T | null | undefined): val is T {
+  return val != null
+}

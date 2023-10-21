@@ -1,4 +1,4 @@
-import { Maybe, VibeJWTPayload } from '../../common/data.ts'
+import { Maybe, VibeJWTPayload } from '../../common/types.ts'
 import {
   RouteParams,
   Router,
@@ -7,7 +7,7 @@ import {
   Status,
 } from 'oak'
 import { getJwtPayload } from './auth.ts'
-import { wait } from '../../utils.ts'
+import { wait } from '../../common/utils.ts'
 import { getNumericDate } from "djwts"
 import { Routes } from "../../common/route-types.ts"
 

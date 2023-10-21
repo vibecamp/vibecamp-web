@@ -1,5 +1,5 @@
 import { TABLE_ROWS, Tables } from "../db-types.ts"
-import { FullAccountInfo } from "./data.ts"
+import { FullAccountInfo } from "./types.ts"
 
 export type Routes = {
     '/account': {

@@ -1,4 +1,4 @@
-import { VibeJWTPayload } from '../../common/data.ts'
+import { VibeJWTPayload } from '../../common/types.ts'
 import { Router, Status } from 'oak'
 import { AnyRouterContext, defineRoute } from './_common.ts'
 import { create, getNumericDate, verify } from 'djwts'
