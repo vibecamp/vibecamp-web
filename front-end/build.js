@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-env node */
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs = require('fs').promises
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+const crypto = require('crypto')
 const esbuild = require('esbuild')
 
 const watch = process.argv.includes('--watch')
@@ -18,25 +18,26 @@ const minify = process.argv.includes('--minify');
     } catch {
         dotEnvEntries = []
     }
-    const define = Object.fromEntries(
+    const env = Object.fromEntries(
         dotEnvEntries.concat(Object.entries(process.env))
             .map(([key, value]) => [key, JSON.stringify(value)])
     )
+
+    const appBundleOutput = 'out/app.js'
     
     const appOptions = {
         entryPoints: ['src/index.tsx'],
-        outfile: 'out/app.js',
+        outfile: appBundleOutput,
         bundle: true,
         minify,
-        define
+        define: env
     }
 
     const serviceWorkerOptions = {
         entryPoints: ['src/sw.ts'],
         outfile: 'out/sw.js',
         bundle: true,
-        minify,
-        define
+        minify
     }
 
     if (watch) {
@@ -45,9 +46,16 @@ const minify = process.argv.includes('--minify');
             esbuild.context(serviceWorkerOptions).then(ctx => ctx.watch())
         ])
     } else {
-        Promise.all([
-            esbuild.build(appOptions),
-            esbuild.build(serviceWorkerOptions)
-        ])
+        await esbuild.build(appOptions)
+
+        const bundleContents = await fs.readFile(appBundleOutput)
+        const bundleHash = crypto.createHash('md5').update(bundleContents).digest('hex')
+
+        await esbuild.build({
+            ...serviceWorkerOptions,
+            define: {
+                BUNDLE_HASH: JSON.stringify(bundleHash)
+            }
+        })
     }
 })()

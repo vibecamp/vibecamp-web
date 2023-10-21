@@ -8,7 +8,7 @@
 // https://github.com/microsoft/TypeScript/issues/14877
 declare let self: ServiceWorkerGlobalScope
 
-const VERSION = 1
+const VERSION = BUNDLE_HASH // ensures that if anything in app.js changes, we get a new sw.js
 const CACHE_NAME = `my_vibecamp_${VERSION}`
 
 const APP_STATIC_RESOURCES = [
