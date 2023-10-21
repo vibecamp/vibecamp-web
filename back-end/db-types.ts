@@ -76,3 +76,11 @@ export type Tables = {
 }
 
 export type TableName = keyof Tables
+
+export const TABLE_ROWS = {
+  purchase_type: [
+    {"purchase_type":"SLEEPING_BAG","price_in_cents":1200,"festival_id":1,"purchase_type_id":2,"max_available":null},
+    {"purchase_type":"BUS","price_in_cents":1200,"festival_id":1,"purchase_type_id":3,"max_available":null},
+    {"purchase_type":"ATTENDANCE","price_in_cents":12300,"festival_id":1,"purchase_type_id":1,"max_available":600},
+  ],
+}
