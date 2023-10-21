@@ -54,14 +54,14 @@ export default function register(router: Router) {
 
         const alreadyPurchasedCount = alreadyPurchased.find(p => p.purchase_type_id === purchaseType)?.count ?? 0
 
-        if (max_per_account != null && alreadyPurchasedCount + toPurchaseCount > max_per_account) {
+        if (max_per_account != null && alreadyPurchasedCount + toPurchaseCount! > max_per_account) {
           return [null, Status.Unauthorized]
         }
       }
 
       const amount = objectEntries(purchases)
         .map(([purchaseType, count]) =>
-          PURCHASE_TYPES_BY_TYPE[purchaseType].price_in_cents * count)
+          PURCHASE_TYPES_BY_TYPE[purchaseType].price_in_cents * count!)
         .reduce((sum, amount) => sum + amount, 0)
 
       const metadata: PurchaseMetadata = {
@@ -113,7 +113,7 @@ export default function register(router: Router) {
           const festival_id = (await db.queryTable('next_festival'))[0]?.festival_id
 
           for (const [purchaseType, count] of objectEntries(purchases)) {
-            for (let i = 0; i < count; i++) {
+            for (let i = 0; i < count!; i++) {
               await db.insertTable('purchase', {
                 festival_id,
                 owned_by_account_id: accountId,

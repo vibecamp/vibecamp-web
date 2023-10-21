@@ -4,7 +4,7 @@ import jwtDecode from 'jwt-decode'
 
 import { EventData } from './model'
 import { request } from './mobx-utils'
-import { VibeJWTPayload } from '../../back-end/common/data'
+import { VibeJWTPayload } from '../../back-end/common/types'
 import { given, jsonParse } from './utils'
 import { ViewName, isViewName } from './views'
 import { vibefetch } from './vibefetch'
@@ -53,6 +53,11 @@ class Store {
     }
 
     readonly accountInfo = request(() => vibefetch(this.jwt, '/account', 'get', undefined))
+
+    get purchasedTickets() {
+        return this.accountInfo.state.result?.purchases
+            .filter(p => p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024') ?? [] // TODO
+    }
 
     /// Events
 

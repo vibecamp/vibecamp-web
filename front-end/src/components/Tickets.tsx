@@ -9,13 +9,14 @@ import Input from './core/Input'
 import Button from './core/Button'
 import { DEFAULT_FORM_ERROR, ObservableForm, useForm, useObservableState, useRequest } from '../mobx-utils'
 import Col from './core/Col'
-import { Maybe } from '../../../back-end/common/data'
+import { Maybe } from '../../../back-end/common/types'
 import RowSelect from './core/RowSelect'
 import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
-import { MAX_TICKETS_PER_ACCOUNT } from '../../../back-end/common/constants'
 import StripePaymentForm from './core/StripePaymentForm'
+import { TABLE_ROWS } from '../../../back-end/db-types'
+import { objectEntries, objectFromEntries } from '../../../back-end/common/utils'
 
 export default observer(() => {
     const inviteCodeForm = useForm({
@@ -32,10 +33,10 @@ export default observer(() => {
         }
     })
 
-    const purchaseForm = useForm({
+    const ticketPurchaseForm = useForm({
         initialValues: {
-            adultTickets: 0,
-            childTickets: 0
+            ATTENDANCE_VIBECLIPSE_2024: 0,
+            ATTENDANCE_CHILD_VIBECLIPSE_2024: 0
         },
         validators: {},
         submit: async () => {
@@ -48,18 +49,14 @@ export default observer(() => {
     })
 
     const stripeOptions = useRequest(async () => {
-        const adultTickets = purchaseForm.fields.adultTickets.value
-        const childTickets = purchaseForm.fields.childTickets.value
+        const purchases = objectFromEntries(objectEntries(ticketPurchaseForm.fields).map(([purchaseType, field]) => [purchaseType, field.value]))
 
-        if (adultTickets > 0 || childTickets > 0) {
+        if (Object.values(purchases).some(count => count > 0)) {
             const stripe_client_secret = (await vibefetch(
                 Store.jwt, 
-                '/ticket/create-purchase-intent', 
+                '/purchase/create-intent',
                 'post',
-                {
-                    adult_tickets: purchaseForm.fields.adultTickets.value,
-                    child_tickets: purchaseForm.fields.childTickets.value
-                }
+                purchases
             ))?.stripe_client_secret
 
             return {
@@ -85,16 +82,17 @@ export default observer(() => {
                     'Failed to load'
                     : Store.accountInfo.state.kind === 'result' ?
                         <>
-                            {Store.accountInfo.state.result.allowed_to_purchase_tickets
+                            {Store.accountInfo.state.result.allowed_to_purchase
                                 ? <>
-                                    {Store.accountInfo.state.result?.tickets.map(ticket =>
-                                        <React.Fragment key={ticket.ticket_id}>
+                                    {Store.purchasedTickets.map(p =>
+                                        <React.Fragment key={p.purchase_id}>
                                             <Ticket name='Unknown attendee' ticketType='adult' />
                                             <Spacer size={16} />
                                         </React.Fragment>)}
 
-                                    <Button isPrimary isDisabled={Store.accountInfo.state.result.tickets.length >= MAX_TICKETS_PER_ACCOUNT.adult} onClick={() => state.purchaseState = 'selection'}>
-                                        Buy {Store.accountInfo.state.result.tickets.length > 0 && 'more'} tickets
+                                    {/* isDisabled={Store.purchasedTickets.length >= MAX_TICKETS_PER_ACCOUNT.adult} */}
+                                    <Button isPrimary onClick={() => state.purchaseState = 'selection'}>
+                                        Buy {Store.purchasedTickets.length > 0 && 'more'} tickets
                                     </Button>
 
                                     {Store.accountInfo.state.result.inviteCodes.length > 0 &&
@@ -171,7 +169,7 @@ export default observer(() => {
             <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => state.purchaseState = 'none'}>
                 <MultiView
                     views={[
-                        { name: 'selection', content: <SelectionView purchaseForm={purchaseForm} /> },
+                        { name: 'selection', content: <SelectionView ticketPurchaseForm={ticketPurchaseForm} /> },
                         { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} redirectUrl={location.origin + '#Tickets'} /> }
                     ]}
                     currentView={state.purchaseState}
@@ -181,40 +179,43 @@ export default observer(() => {
     )
 })
 
-const SelectionView: FC<{ purchaseForm: ObservableForm<{ adultTickets: number, childTickets: number }> }> = observer(({ purchaseForm }) => {
+const PURCHASE_TYPES_BY_TYPE = objectFromEntries(
+    TABLE_ROWS.purchase_type.map(r => [r.purchase_type_id, r])
+  )
+  
+const SelectionView: FC<{ ticketPurchaseForm: ObservableForm<{ ATTENDANCE_VIBECLIPSE_2024: number, ATTENDANCE_CHILD_VIBECLIPSE_2024: number }> }> = observer(({ ticketPurchaseForm: purchaseForm }) => {
 
     return (
         <form onSubmit={purchaseForm.handleSubmit}>
             <Col>
                 You currently have:
                 <div>
-                    {Store.accountInfo.state.result?.tickets.length} adult tickets, and
+                    {Store.purchasedTickets.length} adult tickets, and
                 </div>
                 <div>
                     {0} child tickets
                 </div>
 
-                <Spacer size={16} />
+                {objectEntries(purchaseForm.fields).map(([purchaseType, field]) => {
+                    const purchaseTypeInfo =PURCHASE_TYPES_BY_TYPE[purchaseType]
+                    
+                    return (
+                        <React.Fragment key={purchaseType}>
+                            <Spacer size={16} />
 
-                <RowSelect
-                    label='Adult tickets to purchase'
-                    value={purchaseForm.fields.adultTickets.value}
-                    onChange={purchaseForm.fields.adultTickets.set}
-                    options={new Array(MAX_TICKETS_PER_ACCOUNT.adult + 1).fill(null).map((_, index) => index)}
-                />
-
-                <Spacer size={16} />
-
-                <RowSelect
-                    label='Child tickets to purchase'
-                    value={purchaseForm.fields.childTickets.value}
-                    onChange={purchaseForm.fields.childTickets.set}
-                    options={new Array(MAX_TICKETS_PER_ACCOUNT.child + 1).fill(null).map((_, index) => index)}
-                />
+                            <RowSelect
+                                label={`${purchaseTypeInfo.description} to purchase`}
+                                value={field.value}
+                                onChange={field.set}
+                                options={new Array((purchaseTypeInfo.max_per_account ?? 4) + 1).fill(null).map((_, index) => index)}
+                            />
+                        </React.Fragment>
+                    )
+                })}
 
                 <Spacer size={24} />
 
-                <Button isSubmit isPrimary isDisabled={purchaseForm.fields.adultTickets.value <= 0 && purchaseForm.fields.childTickets.value <= 0}>
+                <Button isSubmit isPrimary isDisabled={Object.values(purchaseForm.fields).every(f => f.value === 0)}>
                     Purchase
                 </Button>
             </Col>

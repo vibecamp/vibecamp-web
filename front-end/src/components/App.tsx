@@ -1,17 +1,20 @@
-import React, { FC } from 'react'
+import React, { FC, useState } from 'react'
 import { configure as configureMobx } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import Login from './Login'
 import Events from './Events'
 import Map from './Map'
 import Info from './Info'
-import { useAutorun, windowSize } from '../mobx-utils'
+import { useAutorun, useObservableState, windowSize } from '../mobx-utils'
 import Store from '../Store'
 import Spacer from './core/Spacer'
 import Modal from './core/Modal'
 import { VIEWS_ARRAY } from '../views'
 import MultiView from './core/MultiView'
 import Stripes from './core/Stripes'
+import Checkbox from './core/Checkbox'
+import Input from './core/Input'
+import AttendeeInfoForm from './AttendeeInfoForm'
 
 console.log(Store)
 
@@ -26,6 +29,25 @@ export default observer(() => {
             root.style.height = windowSize.get().height + 'px'
         }
     })
+
+    const attendeeInfo = useObservableState({
+        dietary_restrictions: '',
+        name: null,
+        notes: '',
+        discord_handle: '',
+        interested_in_volunteering: false,
+        interested_in_pre_call: false,
+        planning_to_camp: false,
+        attendee_id: 1,
+        associated_account_id: 1,
+        age_group: null,
+    })
+
+    return (
+        <div style={{ padding: 20 }}>
+            <AttendeeInfoForm attendeeInfo={attendeeInfo} />
+        </div>
+    )
 
     return (
         <>

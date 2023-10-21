@@ -10,7 +10,7 @@ import Stripes from './core/Stripes'
 import { vibefetch } from '../vibefetch'
 
 export default observer(() => {
-    const state = useObservableState(() => ({
+    const state = useObservableState({
         mode: 'login' as 'login' | 'signup',
         loginForm: form({
             initialValues: {
@@ -34,7 +34,7 @@ export default observer(() => {
                 }
             }
         })
-    }))
+    })
 
     return (
         <form className='login' onSubmit={state.loginForm.handleSubmit}>

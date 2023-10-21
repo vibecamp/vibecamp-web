@@ -71,5 +71,5 @@ export type Routes = {
     }
 }
 
-export type Purchases = Record<(typeof TABLE_ROWS)['purchase_type'][number]['purchase_type_id'], number>
+export type Purchases = Partial<Record<(typeof TABLE_ROWS)['purchase_type'][number]['purchase_type_id'], number>>
 
