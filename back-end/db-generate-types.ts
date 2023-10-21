@@ -74,6 +74,6 @@ ${Object.entries(tableRows).map(([tableName, rows]) =>
         `  ${tableName}: [
 ${rows.map(row => `    ${JSON.stringify(row)},`).join('\n')}
   ],`).join('\n')}
-}`
+} as const`
 
 await Deno.writeTextFile('./db-types.ts', dbTypesStr + '\n\n' + dbRowsStr)

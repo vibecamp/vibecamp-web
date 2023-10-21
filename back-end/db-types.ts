@@ -83,4 +83,4 @@ export const TABLE_ROWS = {
     {"purchase_type":"BUS","price_in_cents":1200,"festival_id":1,"purchase_type_id":3,"max_available":null},
     {"purchase_type":"ATTENDANCE","price_in_cents":12300,"festival_id":1,"purchase_type_id":1,"max_available":600},
   ],
-}
+} as const
