@@ -1,4 +1,5 @@
-import { Tables } from "../db-types.ts"
+import { TABLE_ROWS, Tables } from "../db-types.ts"
+import { objectFromEntries } from './utils.ts'
 
 export type VibeJWTPayload = {
     iss?: string,
@@ -26,3 +27,9 @@ export type FullAccountInfo = {
 export type UnknownObject = Record<string | number | symbol, unknown>
 
 export type Maybe<T> = T | null | undefined
+
+export const PURCHASE_TYPES_BY_TYPE = objectFromEntries(
+    TABLE_ROWS.purchase_type.map(r => [r.purchase_type_id, r])
+)
+
+export type PurchaseType = keyof typeof PURCHASE_TYPES_BY_TYPE

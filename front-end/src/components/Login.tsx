@@ -4,7 +4,7 @@ import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
 import Store from '../Store'
-import { DEFAULT_FORM_ERROR, form, useObservableState } from '../mobx-utils'
+import { DEFAULT_FORM_ERROR, useObservableState, useRequest } from '../mobx-utils'
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/common/validation'
 import Stripes from './core/Stripes'
 import { vibefetch } from '../vibefetch'
@@ -12,32 +12,40 @@ import { vibefetch } from '../vibefetch'
 export default observer(() => {
     const state = useObservableState({
         mode: 'login' as 'login' | 'signup',
-        loginForm: form({
-            initialValues: {
-                email_address: '',
-                password: ''
-            },
-            validators: {
-                email_address: getEmailValidationError,
-                password: getPasswordValidationError
-            },
-            submit: async ({ email_address, password }) => {
-                const { jwt } = await vibefetch(Store.jwt, `/${state.mode}`, 'post', { email_address, password})
-
-                if (jwt == null) {
-                    return DEFAULT_FORM_ERROR
-                } else {
-                    Store.jwt = jwt
-    
-                    state.loginForm.fields.email_address.set('')
-                    state.loginForm.fields.password.set('')
-                }
-            }
-        })
+        emailAddress: '',
+        password: '',
+        validatingEmailAddress: false,
+        validatingPassword: false
     })
 
+    const emailAddressError = getEmailValidationError(state.emailAddress)
+    const passwordError = getPasswordValidationError(state.password)
+
+    const loginOrSignup = useRequest(async () => {
+        state.validatingEmailAddress = true
+        state.validatingPassword = true
+
+        if (emailAddressError || passwordError) {
+            return
+        }
+
+        const { jwt } = await vibefetch(Store.jwt, `/${state.mode}`, 'post', {
+            email_address: state.emailAddress,
+            password: state.password
+        })
+
+        if (jwt == null) {
+            throw Error()
+        }
+
+        Store.jwt = jwt
+
+        state.emailAddress = ''
+        state.password = ''
+    }, { lazy: true })
+
     return (
-        <form className='login' onSubmit={state.loginForm.handleSubmit}>
+        <form className='login' onSubmit={loginOrSignup.load}>
             <Stripes position='top-left' />
 
             <img src="vibecamp.png" className='logo' />
@@ -47,11 +55,11 @@ export default observer(() => {
             <Input
                 label='Email address'
                 type='email'
-                disabled={state.loginForm.submitting}
-                value={state.loginForm.fields.email_address.value}
-                onChange={state.loginForm.fields.email_address.set}
-                error={state.loginForm.fields.email_address.error}
-                onBlur={state.loginForm.fields.email_address.activateValidation}
+                disabled={loginOrSignup.state.kind === 'loading'}
+                value={state.emailAddress}
+                onChange={val => { state.emailAddress = val; state.validatingEmailAddress = false }}
+                error={state.validatingEmailAddress ? emailAddressError : undefined}
+                onBlur={() => state.validatingEmailAddress = true}
             />
 
             <Spacer size={16} />
@@ -59,34 +67,34 @@ export default observer(() => {
             <Input
                 label='Password'
                 type='password'
-                disabled={state.loginForm.submitting}
-                value={state.loginForm.fields.password.value}
-                onChange={state.loginForm.fields.password.set}
-                error={state.loginForm.fields.password.error}
-                onBlur={state.loginForm.fields.password.activateValidation}
+                disabled={loginOrSignup.state.kind === 'loading'}
+                value={state.password}
+                onChange={val => { state.password = val; state.validatingPassword = false }}
+                error={state.validatingPassword ? passwordError : undefined}
+                onBlur={() => state.validatingPassword = true}
             />
 
-            {state.loginForm.error &&
+            {loginOrSignup.state.kind === 'error' &&
                 <>
                     <Spacer size={8} />
-                
+
                     <div style={{ color: 'red' }}>
-                        {state.loginForm.error}
+                        {DEFAULT_FORM_ERROR}
                     </div>
                 </>}
-                
+
             <Spacer size={24} />
 
 
-            <Button isSubmit isPrimary isLoading={state.loginForm.submitting}>
-                {state.mode === 'login' 
+            <Button isSubmit isPrimary isLoading={loginOrSignup.state.kind === 'loading'}>
+                {state.mode === 'login'
                     ? 'Log in'
                     : 'Sign up'}
             </Button>
 
             <Spacer size={8} />
 
-            <Button isDisabled={state.loginForm.submitting} onClick={() => state.mode = (state.mode === 'login' ? 'signup' : 'login')}>
+            <Button isDisabled={loginOrSignup.state.kind === 'error'} onClick={() => state.mode = (state.mode === 'login' ? 'signup' : 'login')}>
                 {state.mode === 'login'
                     ? 'Create an account'
                     : 'I already have an account'}

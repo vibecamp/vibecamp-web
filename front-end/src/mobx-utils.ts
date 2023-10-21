@@ -1,126 +1,7 @@
-import { IReactionDisposer, action, autorun, computed, makeAutoObservable, observable } from 'mobx'
-import { FormEvent, useEffect, useState } from 'react'
-
-type FormOptions<T extends Record<string, unknown>> = {
-    initialValues: T,
-    validators: Partial<{ [key in keyof T]: (val: T[key]) => string | undefined }>,
-    submit: (data: T) => Promise<string | undefined | void>,
-}
+import { IReactionDisposer, autorun, computed, observable } from 'mobx'
+import { useEffect, useState } from 'react'
 
 export const DEFAULT_FORM_ERROR = 'Something went wrong, please try again'
-
-export function form<TValues extends Record<string, unknown>>(opts: FormOptions<TValues>): ObservableForm<TValues> {
-    return new Form(opts)
-}
-
-export type ObservableForm<TValues extends Record<string, unknown>> = {
-    readonly fields: {
-        readonly [key in keyof TValues]: {
-            readonly value: TValues[key],
-            readonly set: (val: TValues[key]) => void,
-            readonly error: string | undefined,
-            readonly activateValidation: () => void
-        }
-    },
-    readonly submitting: boolean,
-    readonly error: string | undefined,
-    readonly handleSubmit: (e: FormEvent) => Promise<void>
-}
-
-class Form<TValues extends Record<string, unknown>> {
-    constructor(
-        opts: FormOptions<TValues>
-    ) {
-        {
-            const fields = {} as {
-                [key in keyof TValues]: Field<TValues[key]>
-            }
-            for (const key in opts.initialValues) {
-                fields[key] = new Field(opts.initialValues[key], opts.validators[key])
-            }
-            this.fields = fields
-        }
-
-        const submit = action(opts.submit)
-
-        this.handleSubmit = async (e: FormEvent) => {
-            e.preventDefault()
-
-            this.error = undefined
-
-            let fieldError = false
-            for (const key in this.fields) {
-                this.fields[key].activateValidation()
-                if (this.fields[key].rawError != null) {
-                    fieldError = true
-                }
-            }
-
-            if (fieldError) {
-                return
-            }
-
-            try {
-                this.submitting = true
-                this.error = (await submit(this.fieldValues)) ?? undefined
-                this.submitting = false
-            } catch {
-                this.error = DEFAULT_FORM_ERROR
-            }
-        }
-
-        makeAutoObservable(this)
-    }
-
-    fields: {
-        readonly [key in keyof TValues]: Field<TValues[key]>
-    }
-    submitting = false
-    error: string | undefined = undefined
-    readonly handleSubmit: (e: FormEvent) => Promise<void>
-
-    private get fieldValues(): {
-        readonly [key in keyof TValues]: TValues[key]
-        } {
-        const vals = {} as {
-            [key in keyof TValues]: TValues[key]
-        }
-
-        for (const key in this.fields) {
-            vals[key] = this.fields[key].value
-        }
-        return vals
-    }
-}
-
-class Field<T> {
-    constructor(
-        public value: T,
-        private readonly validator: undefined | ((val: T) => string | undefined)
-    ) {
-        makeAutoObservable(this)
-    }
-
-    readonly set = (val: T): void => {
-        this.value = val
-        this.validationActive = false
-    }
-    get rawError(): string | undefined {
-        return this.validator?.(this.value)
-    }
-    get error(): string | undefined {
-        if (this.validationActive) {
-            return this.rawError
-        }
-    }
-    private validationActive = false
-    readonly activateValidation = (): void => {
-        this.validationActive = true
-    }
-    readonly clearValidation = (): void => {
-        this.validationActive = false
-    }
-}
 
 type RequestObservable<T> = {
     state: RequestState<T>
@@ -204,17 +85,22 @@ export function useComputed<T>(fn: () => T): T {
     return comp.get()
 }
 
-export function useForm<TValues extends Record<string, unknown>>(opts: FormOptions<TValues>): ObservableForm<TValues> {
-    const [f] = useState(() => form(opts))
-    return f
-}
-
-export function useRequest<T>(fn: () => Promise<T>, deps?: unknown[], options: { lazy?: boolean } = {}): RequestObservable<T> {
+export function useRequest<T>(fn: () => Promise<T>, options: { lazy?: boolean } = {}): RequestObservable<T> {
     const [req] = useState(() => request(fn, options))
 
     useEffect(() => {
         return req.dispose
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    })
+
+    return req
+}
+
+export function useRequestWithDependencies<T>(fn: () => Promise<T>, deps?: unknown[], options: { lazy?: boolean } = {}): RequestObservable<T> {
+    const [req] = useState(() => request(fn, options))
+
+    useEffect(() => {
+        return req.dispose
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, deps)
 
     return req

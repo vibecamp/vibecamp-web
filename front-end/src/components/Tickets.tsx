@@ -7,53 +7,38 @@ import Ticket from './Ticket'
 import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
-import { DEFAULT_FORM_ERROR, ObservableForm, useForm, useObservableState, useRequest } from '../mobx-utils'
+import { DEFAULT_FORM_ERROR, useObservableState, useRequest } from '../mobx-utils'
 import Col from './core/Col'
-import { Maybe } from '../../../back-end/common/types'
+import { Maybe, PURCHASE_TYPES_BY_TYPE } from '../../../back-end/common/types'
 import RowSelect from './core/RowSelect'
 import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
 import StripePaymentForm from './core/StripePaymentForm'
-import { TABLE_ROWS } from '../../../back-end/db-types'
-import { objectEntries, objectFromEntries } from '../../../back-end/common/utils'
 
 export default observer(() => {
-    const inviteCodeForm = useForm({
-        initialValues: {
-            code: ''
-        },
-        validators: {},
-        submit: async ({ code }) => {
-            const success = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: code })
-
-            if (!success) {
-                return DEFAULT_FORM_ERROR
-            }
-        }
-    })
-
-    const ticketPurchaseForm = useForm({
-        initialValues: {
-            ATTENDANCE_VIBECLIPSE_2024: 0,
-            ATTENDANCE_CHILD_VIBECLIPSE_2024: 0
-        },
-        validators: {},
-        submit: async () => {
-            state.purchaseState = 'payment'
-        }
-    })
-
     const state = useObservableState({
-        purchaseState: 'none' as 'none' | 'selection' | 'payment'
+        code: '',
+        ATTENDANCE_VIBECLIPSE_2024: 0,
+        ATTENDANCE_CHILD_VIBECLIPSE_2024: 0,
+        purchaseState: 'none' as 'none' | 'selection' | 'attendee-info' | 'payment'
     })
+
+    const submitInviteCode = useRequest(async () => {
+        const success = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: state.code })
+
+        if (!success) {
+            throw Error()
+        }
+    }, { lazy: true })
 
     const stripeOptions = useRequest(async () => {
-        const purchases = objectFromEntries(objectEntries(ticketPurchaseForm.fields).map(([purchaseType, field]) => [purchaseType, field.value]))
+        const { ATTENDANCE_VIBECLIPSE_2024, ATTENDANCE_CHILD_VIBECLIPSE_2024 } = state
+        const purchases = { ATTENDANCE_VIBECLIPSE_2024, ATTENDANCE_CHILD_VIBECLIPSE_2024 }
 
         if (Object.values(purchases).some(count => count > 0)) {
             const stripe_client_secret = (await vibefetch(
-                Store.jwt, 
+                Store.jwt,
                 '/purchase/create-intent',
                 'post',
                 purchases
@@ -123,7 +108,7 @@ export default observer(() => {
                                             </React.Fragment>)}
                                         </>}
                                 </>
-                                : <form onSubmit={inviteCodeForm.handleSubmit}>
+                                : <form onSubmit={submitInviteCode.load}>
                                     <Col>
                                         <h2>
                                             Welcome!
@@ -141,24 +126,22 @@ export default observer(() => {
 
                                         <Input
                                             label='Invite code'
-                                            value={inviteCodeForm.fields.code.value}
-                                            onChange={inviteCodeForm.fields.code.set}
-                                            error={inviteCodeForm.fields.code.error}
-                                            onBlur={inviteCodeForm.fields.code.activateValidation}
+                                            value={state.code}
+                                            onChange={val => state.code = val}
                                         />
 
-                                        {inviteCodeForm.error &&
+                                        {submitInviteCode.state.kind === 'error' &&
                                             <>
                                                 <Spacer size={8} />
 
                                                 <div style={{ color: 'red' }}>
-                                                    {inviteCodeForm.error}
+                                                    {DEFAULT_FORM_ERROR}
                                                 </div>
                                             </>}
 
                                         <Spacer size={8} />
 
-                                        <Button isSubmit isPrimary isLoading={inviteCodeForm.submitting}>
+                                        <Button isSubmit isPrimary isLoading={submitInviteCode.state.kind === 'loading'}>
                                             Enter invite code
                                         </Button>
                                     </Col>
@@ -169,7 +152,7 @@ export default observer(() => {
             <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => state.purchaseState = 'none'}>
                 <MultiView
                     views={[
-                        { name: 'selection', content: <SelectionView ticketPurchaseForm={ticketPurchaseForm} /> },
+                        { name: 'selection', content: <SelectionView state={state} /> },
                         { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} redirectUrl={location.origin + '#Tickets'} /> }
                     ]}
                     currentView={state.purchaseState}
@@ -179,14 +162,10 @@ export default observer(() => {
     )
 })
 
-const PURCHASE_TYPES_BY_TYPE = objectFromEntries(
-    TABLE_ROWS.purchase_type.map(r => [r.purchase_type_id, r])
-  )
-  
-const SelectionView: FC<{ ticketPurchaseForm: ObservableForm<{ ATTENDANCE_VIBECLIPSE_2024: number, ATTENDANCE_CHILD_VIBECLIPSE_2024: number }> }> = observer(({ ticketPurchaseForm: purchaseForm }) => {
+const SelectionView: FC<{ state: { ATTENDANCE_VIBECLIPSE_2024: number, ATTENDANCE_CHILD_VIBECLIPSE_2024: number, purchaseState: 'none' | 'selection' | 'attendee-info' | 'payment' } }> = observer(({ state }) => {
 
     return (
-        <form onSubmit={purchaseForm.handleSubmit}>
+        <form onSubmit={() => state.purchaseState = 'attendee-info'}>
             <Col>
                 You currently have:
                 <div>
@@ -196,17 +175,17 @@ const SelectionView: FC<{ ticketPurchaseForm: ObservableForm<{ ATTENDANCE_VIBECL
                     {0} child tickets
                 </div>
 
-                {objectEntries(purchaseForm.fields).map(([purchaseType, field]) => {
-                    const purchaseTypeInfo =PURCHASE_TYPES_BY_TYPE[purchaseType]
-                    
+                {(['ATTENDANCE_VIBECLIPSE_2024', 'ATTENDANCE_CHILD_VIBECLIPSE_2024'] as const).map(purchaseType => {
+                    const purchaseTypeInfo = PURCHASE_TYPES_BY_TYPE[purchaseType]
+
                     return (
                         <React.Fragment key={purchaseType}>
                             <Spacer size={16} />
 
                             <RowSelect
                                 label={`${purchaseTypeInfo.description} to purchase`}
-                                value={field.value}
-                                onChange={field.set}
+                                value={state[purchaseType]}
+                                onChange={val => state[purchaseType] = val}
                                 options={new Array((purchaseTypeInfo.max_per_account ?? 4) + 1).fill(null).map((_, index) => index)}
                             />
                         </React.Fragment>
@@ -215,7 +194,7 @@ const SelectionView: FC<{ ticketPurchaseForm: ObservableForm<{ ATTENDANCE_VIBECL
 
                 <Spacer size={24} />
 
-                <Button isSubmit isPrimary isDisabled={Object.values(purchaseForm.fields).every(f => f.value === 0)}>
+                <Button isSubmit isPrimary isDisabled={(['ATTENDANCE_VIBECLIPSE_2024', 'ATTENDANCE_CHILD_VIBECLIPSE_2024'] as const).every(t => state[t] === 0)}>
                     Purchase
                 </Button>
             </Col>

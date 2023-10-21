@@ -1,7 +1,7 @@
 import { useStripe, useElements, PaymentElement, Elements } from '@stripe/react-stripe-js'
 import { observer } from 'mobx-react-lite'
 import React, { FC } from 'react'
-import { useRequest } from '../../mobx-utils'
+import { useRequest, useRequestWithDependencies } from '../../mobx-utils'
 import Button from './Button'
 import Col from './Col'
 import LoadingDots from './LoadingDots'
@@ -32,7 +32,7 @@ const PaymentFormInner: FC<{ redirectUrl: string }> = observer(({ redirectUrl })
     const stripe = useStripe()
     const elements = useElements()
 
-    const confirmPayment = useRequest(async () => {
+    const confirmPayment = useRequestWithDependencies(async () => {
         if (!stripe || !elements) {
             console.error('Stripe not initialized yet')
             return
