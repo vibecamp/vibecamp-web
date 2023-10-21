@@ -82,21 +82,18 @@ export default function register(router: Router) {
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: { age_group, attendee_id, dietary_restrictions, discord_handle, interested_in_pre_call, interested_in_volunteering, name, planning_to_camp } }) => {
       const attendee = await withDBConnection(async db =>
-        (await db.queryObject<Tables['attendee']>`
-          UPDATE attendee
-          SET
-            age_group = ${age_group}
-            dietary_restrictions = ${dietary_restrictions}
-            discord_handle = ${discord_handle}
-            interested_in_pre_call = ${interested_in_pre_call}
-            interested_in_volunteering = ${interested_in_volunteering}
-            name = ${name}
-            planning_to_camp = ${planning_to_camp}
-          WHERE
-            associated_account_id = ${account_id} AND
-            attendee_id = ${attendee_id}
-          RETURNING *
-        `).rows[0])
+        (await db.updateTable('attendee', {
+          age_group,
+          dietary_restrictions,
+          discord_handle,
+          interested_in_pre_call,
+          interested_in_volunteering,
+          name,
+          planning_to_camp
+        }, [
+          ['associated_account_id', '=', account_id],
+          ['attendee_id', '=', attendee_id],
+        ]))[0])
 
       if (attendee == null) {
         return [null, Status.InternalServerError]

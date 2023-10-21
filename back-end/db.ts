@@ -34,16 +34,13 @@ const db = new Pool({
  * back into the pool
  */
 export async function withDBConnection<TResult>(
-  cb: (db: Pick<PoolClient, 'queryObject' | 'createTransaction'> & { queryTable: ReturnType<typeof queryTable>, insertTable: ReturnType<typeof insertTable> }) => Promise<TResult>,
+  cb: (db: Pick<PoolClient, 'queryObject' | 'createTransaction'> & CustomClientMethods) => Promise<TResult>,
 ): Promise<TResult> {
-  const client = await db.connect()
+  const client = await db.connect() as unknown as Pick<PoolClient, 'queryObject' | 'createTransaction' | 'release'> & CustomClientMethods
   try {
-
-    // deno-lint-ignore no-explicit-any
-    (client as any).queryTable = queryTable(client);
-
-    // deno-lint-ignore no-explicit-any
-    (client as any).insertTable = insertTable(client)
+    client.queryTable = queryTable(client)
+    client.insertTable = insertTable(client)
+    client.updateTable = updateTable(client)
 
     // deno-lint-ignore no-explicit-any
     const result = await cb(client as any)
@@ -61,21 +58,19 @@ export async function withDBConnection<TResult>(
  * finished
  */
 export async function withDBTransaction<TResult>(
-  cb: (db: Pick<Transaction, 'queryObject'> & { queryTable: ReturnType<typeof queryTable>, insertTable: ReturnType<typeof insertTable> }) => Promise<TResult>,
+  cb: (db: Pick<Transaction, 'queryObject'> & CustomClientMethods) => Promise<TResult>,
 ): Promise<TResult> {
   return await withDBConnection(async (db) => {
     const transactionName = generateTransactionName()
     try {
       const transaction = db.createTransaction(transactionName, {
         isolation_level: 'serializable',
-      })
+      }) as unknown as Pick<Transaction, 'queryObject' | 'begin' | 'commit'> & CustomClientMethods
       await transaction.begin();
 
-      // deno-lint-ignore no-explicit-any
-      (transaction as any).queryTable = queryTable(transaction);
-
-      // deno-lint-ignore no-explicit-any
-      (transaction as any).insertTable = insertTable(transaction)
+      transaction.queryTable = queryTable(transaction)
+      transaction.insertTable = insertTable(transaction)
+      transaction.updateTable = updateTable(transaction)
 
       // deno-lint-ignore no-explicit-any
       const result = await cb(transaction as any)
@@ -90,18 +85,26 @@ export async function withDBTransaction<TResult>(
   })
 }
 
+type CustomClientMethods = {
+  queryTable: ReturnType<typeof queryTable>,
+  insertTable: ReturnType<typeof insertTable>,
+  updateTable: ReturnType<typeof updateTable>
+}
+
 const queryTable = (db: Pick<PoolClient, 'queryObject'>) =>
   async <
     TTableName extends TableName,
     TColumnName extends keyof Tables[TTableName],
   >(
     table: TTableName,
-    { where }: { where?: [TColumnName, '=' | '<' | '>', Tables[TTableName][TColumnName]] } = {}
+    { where }: { where?: WhereClause<TTableName, TColumnName> } = {}
   ): Promise<Tables[TTableName][]> => {
     if (where != null) {
+      const [column, op, value] = where
+
       return (await db.queryObject<Tables[TTableName]>(
-        `SELECT * FROM ${table} WHERE ${where[0] as string} ${where[1]} $1`,
-        [where[2]]
+        `SELECT * FROM ${table} WHERE ${column as string} ${op} $1`,
+        [value]
       )).rows
     } else {
       return (await db.queryObject<Tables[TTableName]>(
@@ -128,11 +131,46 @@ const insertTable = (db: Pick<PoolClient, 'queryObject'>) =>
         INSERT INTO ${table}
           (${columnNames})
           VALUES (${columnNumbers}})
-        RETURNING ${columnNames}
+        RETURNING *
       `,
       columnValues
     )).rows
   }
+
+const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
+  async <
+    TTableName extends TableName,
+    TColumnNames extends Array<keyof Tables[TTableName]>
+  >(
+    table: TTableName,
+    row: Partial<Tables[TableName]>,
+    where: WhereClause<TTableName, TColumnNames[number]>[]
+  ): Promise<Tables[TTableName][]> => {
+    const rowEntries = objectEntries(row)
+
+    const columnAssignments = rowEntries.map(([column], index) => `${column} = $${index + 1}`).join('\n')
+    const columnValues = rowEntries.map(([_, value]) => value)
+
+    const whereClauses = where.map(([column, op], index) => `${column as string} ${op} $${columnAssignments.length + index + 1}`).join(' AND ')
+    const whereValues = where.map(([_column, _op, value]) => value)
+
+    return (await db.queryObject<Tables[TTableName]>(
+      `
+        UPDATE ${table}
+          SET
+            ${columnAssignments}
+          WHERE
+            ${whereClauses}
+          RETURNING *
+      `,
+      [...columnValues, ...whereValues]
+    )).rows
+  }
+
+type WhereClause<
+  TTableName extends TableName,
+  TColumnName extends keyof Tables[TTableName],
+> = [TColumnName, '=' | '<' | '>', Tables[TTableName][TColumnName]]
 
 /**
  * Get a unique and unused name for a transaction
