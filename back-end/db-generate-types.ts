@@ -19,7 +19,7 @@ const columns = await withDBConnection(async db => (await db.queryObject<{
     SELECT information_schema.tables.table_name, column_name, data_type, is_nullable
     FROM information_schema.tables, information_schema.columns
     WHERE information_schema.tables.table_schema = 'public' AND information_schema.tables.table_name = information_schema.columns.table_name
-    ORDER BY information_schema.tables.table_name ASC
+    ORDER BY information_schema.tables.table_name, information_schema.columns.column_name ASC
 `).rows)
 
 const tables: Record<string, Array<{ column_name: string, type: string }>> = {}
