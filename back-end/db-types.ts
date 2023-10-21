@@ -34,7 +34,6 @@ export type Tables = {
     start: unknown,
   },
   festival: {
-    attendance_cap: number,
     end_date: unknown,
     festival_id: number,
     festival_name: string,
@@ -54,7 +53,6 @@ export type Tables = {
     used_by_account_id: number | null,
   },
   next_festival: {
-    attendance_cap: number | null,
     end_date: unknown | null,
     festival_id: number | null,
     festival_name: string | null,
@@ -70,6 +68,7 @@ export type Tables = {
   },
   purchase_type: {
     festival_id: number,
+    max_available: number | null,
     price_in_cents: number,
     purchase_type: string,
     purchase_type_id: number,
