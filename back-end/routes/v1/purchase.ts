@@ -100,10 +100,7 @@ export default function register(router: Router) {
 
     switch (event.type) {
       case 'charge.succeeded': {
-        // @ts-expect-error Missing types on event.data.object
-        const { metadata } = event.data.object
-
-        const { accountId: accountIdRaw, ...purchasesRaw }: PurchaseMetadata = metadata
+        const { accountId: accountIdRaw, ...purchasesRaw } = event.data.object.metadata as PurchaseMetadata
         const accountId = Number(accountIdRaw)
 
         const purchases: Purchases = objectFromEntries(objectEntries(purchasesRaw)
