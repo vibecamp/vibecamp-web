@@ -12,6 +12,18 @@ export async function allPromises<
   ) as { [key in keyof TPromises]: Awaited<TPromises[key]> }
 }
 
+export function objectKeys<TObject extends Record<string | number | symbol, unknown>>(obj: TObject): Array<keyof TObject> {
+  return Object.keys(obj)
+}
+
+export function objectEntries<TObject extends Record<string | number | symbol, unknown>>(obj: TObject): Array<[keyof TObject, TObject[keyof TObject]]> {
+  return Object.entries(obj) as Array<[keyof TObject, TObject[keyof TObject]]>
+}
+
+export function objectFromEntries<TKey extends string | number | symbol, TValue>(entries: Array<readonly [TKey, TValue]>): Record<TKey, TValue> {
+  return Object.fromEntries(entries) as Record<TKey, TValue>
+}
+
 export function wait(ms: number): Promise<void> {
   return new Promise((res) => setTimeout(res, ms))
 }

@@ -3,7 +3,10 @@ import env from './env.ts'
 import {
   REFERRAL_MAXES,
 } from './common/constants.ts'
-import { Tables } from './db-types.ts'
+import { TableName, Tables } from './db-types.ts'
+import { Maybe } from "./common/data.ts"
+import { objectEntries } from './utils.ts'
+import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
 
 const url = new URL(env.DB_URL)
 
@@ -31,11 +34,19 @@ const db = new Pool({
  * back into the pool
  */
 export async function withDBConnection<TResult>(
-  cb: (db: Pick<PoolClient, 'queryObject' | 'createTransaction'>) => Promise<TResult>,
+  cb: (db: Pick<PoolClient, 'queryObject' | 'createTransaction'> & { queryTable: ReturnType<typeof queryTable>, insertTable: ReturnType<typeof insertTable> }) => Promise<TResult>,
 ): Promise<TResult> {
   const client = await db.connect()
   try {
-    const result = await cb(client)
+
+    // deno-lint-ignore no-explicit-any
+    (client as any).queryTable = queryTable(client);
+
+    // deno-lint-ignore no-explicit-any
+    (client as any).insertTable = insertTable(client)
+
+    // deno-lint-ignore no-explicit-any
+    const result = await cb(client as any)
     return result
   } finally {
     client.release()
@@ -50,7 +61,7 @@ export async function withDBConnection<TResult>(
  * finished
  */
 export async function withDBTransaction<TResult>(
-  cb: (transaction: Pick<Transaction, 'queryObject'>) => Promise<TResult>,
+  cb: (db: Pick<Transaction, 'queryObject'> & { queryTable: ReturnType<typeof queryTable>, insertTable: ReturnType<typeof insertTable> }) => Promise<TResult>,
 ): Promise<TResult> {
   return await withDBConnection(async (db) => {
     const transactionName = generateTransactionName()
@@ -58,9 +69,16 @@ export async function withDBTransaction<TResult>(
       const transaction = db.createTransaction(transactionName, {
         isolation_level: 'serializable',
       })
-      await transaction.begin()
+      await transaction.begin();
 
-      const result = await cb(transaction)
+      // deno-lint-ignore no-explicit-any
+      (transaction as any).queryTable = queryTable(transaction);
+
+      // deno-lint-ignore no-explicit-any
+      (transaction as any).insertTable = insertTable(transaction)
+
+      // deno-lint-ignore no-explicit-any
+      const result = await cb(transaction as any)
 
       await transaction.commit()
       releaseTransactionName(transactionName)
@@ -71,6 +89,50 @@ export async function withDBTransaction<TResult>(
     }
   })
 }
+
+const queryTable = (db: Pick<PoolClient, 'queryObject'>) =>
+  async <
+    TTableName extends TableName,
+    TColumnName extends keyof Tables[TTableName],
+  >(
+    table: TTableName,
+    { where }: { where?: [TColumnName, '=' | '<' | '>', Tables[TTableName][TColumnName]] } = {}
+  ): Promise<Tables[TTableName][]> => {
+    if (where != null) {
+      return (await db.queryObject<Tables[TTableName]>(
+        `SELECT * FROM ${table} WHERE ${where[0] as string} ${where[1]} $1`,
+        [where[2]]
+      )).rows
+    } else {
+      return (await db.queryObject<Tables[TTableName]>(
+        `SELECT * FROM ${table}`
+      )).rows
+    }
+  }
+
+const insertTable = (db: Pick<PoolClient, 'queryObject'>) =>
+  async <
+    TTableName extends TableName
+  >(
+    table: TTableName,
+    row: Partial<Tables[TableName]>
+  ): Promise<Tables[TTableName][]> => {
+    const rowEntries = objectEntries(row)
+
+    const columnNames = rowEntries.map(([columnName]) => columnName).join(', ')
+    const columnValues = rowEntries.map(([_, value]) => value)
+    const columnNumbers = rowEntries.map((_, index) => `$${index + 1}`).join(', ')
+
+    return (await db.queryObject<Tables[TTableName]>(
+      `
+        INSERT INTO ${table}
+          (${columnNames})
+          VALUES (${columnNumbers}})
+        RETURNING ${columnNames}
+      `,
+      columnValues
+    )).rows
+  }
 
 /**
  * Get a unique and unused name for a transaction
@@ -104,9 +166,9 @@ const ACTIVE_TRANSACTION_NAMES = new Set<string>()
 export async function accountReferralStatus(
   db: Pick<Transaction, 'queryObject'>,
   account_id: number,
-  festival_id: number | undefined
-): Promise<{ allowedToRefer: number, allowedToPurchaseTickets: boolean }> {
-  const none = { allowedToRefer: 0, allowedToPurchaseTickets: false }
+  festival_id: Maybe<number>
+): Promise<{ allowedToRefer: number, allowedToPurchase: boolean }> {
+  const none = { allowedToRefer: 0, allowedToPurchase: false }
 
   if (festival_id == null) {
     return none
@@ -132,6 +194,6 @@ export async function accountReferralStatus(
   const referralDistance = chain.length - 1
   return {
     allowedToRefer: REFERRAL_MAXES[referralDistance] ?? 0,
-    allowedToPurchaseTickets: true,
+    allowedToPurchase: true,
   }
 }

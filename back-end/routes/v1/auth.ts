@@ -29,8 +29,8 @@ export default function register(router: Router) {
 
       // get account from DB
       const account = (await withDBConnection(async (db) => {
-        return await db.queryObject<Tables['account']>`SELECT * FROM account WHERE email_address = ${email_address}`
-      })).rows[0]
+        return await db.queryTable('account', { where: ['email_address', '=', email_address] })
+      }))[0]
       if (account == null) {
         return [{ jwt: null }, Status.Unauthorized]
       }
@@ -41,26 +41,23 @@ export default function register(router: Router) {
       }
 
       const nextFestival = await withDBConnection(async (db) =>
-        (await db.queryObject<{ festival_id: number }>`SELECT * FROM next_festival`).rows[0])
+        (await db.queryTable('next_festival'))[0])
 
       const { referralStatus, inviteCodes } = await withDBConnection(async (db) => {
         return {
           referralStatus: await accountReferralStatus(db, account.account_id, nextFestival?.festival_id),
-          inviteCodes: await db.queryObject<Tables['invite_code']>`
-            SELECT * FROM invite_code WHERE created_by_account_id = ${account.account_id}
-          `
+          inviteCodes: await db.queryTable('invite_code', { where: ['created_by_account_id', '=', account.account_id] })
         }
       })
-      const uncreatedInviteCodes = referralStatus.allowedToRefer - inviteCodes.rows.length
+      const uncreatedInviteCodes = referralStatus.allowedToRefer - inviteCodes.length
       if (uncreatedInviteCodes > 0) {
         await withDBTransaction(async (db) => {
           if (nextFestival != null) {
             for (let i = 0; i < uncreatedInviteCodes; i++) {
-              await db.queryObject<Tables['invite_code']>`
-                INSERT INTO invite_code
-                  (created_by_account_id, festival_id)
-                  VALUES (${account.account_id}, ${nextFestival.festival_id})
-              `
+              await db.insertTable('invite_code', {
+                created_by_account_id: account.account_id,
+                festival_id: nextFestival.festival_id
+              })
             }
           }
         })
@@ -86,14 +83,14 @@ export default function register(router: Router) {
       )
 
       const accounts = await withDBConnection(async (db) => {
-        return await db.queryObject<Tables['account']>`
-          INSERT INTO account
-              (email_address, password_hash, password_salt)
-              VALUES (${email_address}, ${password_hash}, ${password_salt})
-          RETURNING *`
+        return await db.insertTable('account', {
+          email_address,
+          password_hash,
+          password_salt
+        })
       })
 
-      const account = accounts.rows[0]
+      const account = accounts[0]
       if (account == null) {
         return [{ jwt: null }, Status.InternalServerError]
       }

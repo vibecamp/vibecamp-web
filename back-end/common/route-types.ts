@@ -1,3 +1,4 @@
+import { TABLE_ROWS, Tables } from "../db-types.ts"
 import { FullAccountInfo } from "./data.ts"
 
 export type Routes = {
@@ -5,6 +6,16 @@ export type Routes = {
         method: 'get',
         body: undefined,
         response: FullAccountInfo | null
+    },
+    '/account/create-attendee': {
+        method: 'post',
+        body: Omit<Tables['attendee'], 'attendee_id' | 'associated_account_id' | 'notes'>,
+        response: Tables['attendee'] | null
+    },
+    '/account/update-attendee': {
+        method: 'put',
+        body: Pick<Tables['attendee'], 'attendee_id'> & Partial<Tables['attendee']>,
+        response: Tables['attendee'] | null
     },
     '/account/submit-invite-code': {
         method: 'post',
@@ -53,14 +64,12 @@ export type Routes = {
         body: undefined,
         response: { events: null }
     },
-    '/ticket/create-purchase-intent': {
+    '/purchase/create-intent': {
         method: 'post',
-        body: {
-            adult_tickets: number,
-            child_tickets: number,
-            bus_tickets: number,
-            bedding_tickets: number
-        },
+        body: Purchases,
         response: { stripe_client_secret: string } | null
     }
 }
+
+export type Purchases = Record<(typeof TABLE_ROWS)['purchase_type'][number]['purchase_type_id'], number>
+

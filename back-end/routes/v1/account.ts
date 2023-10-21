@@ -1,6 +1,6 @@
 import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
-import { accountReferralStatus, withDBTransaction } from '../../db.ts'
+import { accountReferralStatus, withDBConnection, withDBTransaction } from '../../db.ts'
 import { Tables } from "../../db-types.ts"
 import { allPromises } from "../../utils.ts"
 
@@ -15,27 +15,20 @@ export default function register(router: Router) {
       const { account_id } = jwt
 
       const {
-        referralStatus: { allowedToPurchaseTickets },
+        referralStatus: { allowedToPurchase },
         accounts,
         attendees,
-        tickets,
+        purchases,
         inviteCodes,
       } = await withDBTransaction(async (db) => {
-
         return await allPromises({
           referralStatus: accountReferralStatus(db,
             account_id,
-            (await db.queryObject<Tables['festival']>`select * from next_festival`).rows[0]?.festival_id
+            (await db.queryTable('next_festival'))[0]?.festival_id
           ),
-          accounts: db.queryObject<Tables['account']>`
-            SELECT * FROM account WHERE account_id = ${account_id}
-          `,
-          attendees: db.queryObject<Tables['attendee']>`
-            SELECT * FROM attendee WHERE associated_account_id = ${account_id}
-          `,
-          tickets: db.queryObject<Tables['ticket']>`
-            SELECT * FROM ticket WHERE owned_by_account_id = ${account_id}
-          `,
+          accounts: db.queryTable('account', { where: ['account_id', '=', account_id] }),
+          attendees: db.queryTable('attendee', { where: ['associated_account_id', '=', account_id] }),
+          purchases: db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] }),
           inviteCodes: db.queryObject<Tables['invite_code'] & { used_by: string | null }>`
             SELECT invite_code_id, code, email_address as used_by FROM invite_code
             LEFT JOIN account ON account_id = used_by_account_id
@@ -44,15 +37,16 @@ export default function register(router: Router) {
         })
       })
 
-      const account = accounts.rows[0]
+      const account = accounts[0]
+
       if (account != null) {
         return [
           {
             account_id: account.account_id,
             email_address: account.email_address,
-            allowed_to_purchase_tickets: allowedToPurchaseTickets,
-            attendees: attendees.rows,
-            tickets: tickets.rows,
+            allowed_to_purchase: allowedToPurchase,
+            attendees,
+            purchases,
             inviteCodes: inviteCodes.rows
           },
           Status.OK
@@ -64,6 +58,55 @@ export default function register(router: Router) {
   })
 
   defineRoute(router, {
+    endpoint: '/account/create-attendee',
+    method: 'post',
+    requireAuth: true,
+    handler: async ({ jwt: { account_id }, body }) => {
+      const attendee = await withDBConnection(async db =>
+        (await db.insertTable('attendee', {
+          associated_account_id: account_id,
+          ...body
+        }))[0])
+
+      if (attendee == null) {
+        return [null, Status.InternalServerError]
+      }
+
+      return [attendee, Status.OK]
+    }
+  })
+
+  defineRoute(router, {
+    endpoint: '/account/update-attendee',
+    method: 'put',
+    requireAuth: true,
+    handler: async ({ jwt: { account_id }, body: { age_group, attendee_id, dietary_restrictions, discord_handle, interested_in_pre_call, interested_in_volunteering, name, planning_to_camp } }) => {
+      const attendee = await withDBConnection(async db =>
+        (await db.queryObject<Tables['attendee']>`
+          UPDATE attendee
+          SET
+            age_group = ${age_group}
+            dietary_restrictions = ${dietary_restrictions}
+            discord_handle = ${discord_handle}
+            interested_in_pre_call = ${interested_in_pre_call}
+            interested_in_volunteering = ${interested_in_volunteering}
+            name = ${name}
+            planning_to_camp = ${planning_to_camp}
+          WHERE
+            associated_account_id = ${account_id} AND
+            attendee_id = ${attendee_id}
+          RETURNING *
+        `).rows[0])
+
+      if (attendee == null) {
+        return [null, Status.InternalServerError]
+      }
+
+      return [attendee, Status.OK]
+    }
+  })
+
+  defineRoute(router, {
     endpoint: '/account/submit-invite-code',
     method: 'post',
     requireAuth: true,
@@ -72,9 +115,7 @@ export default function register(router: Router) {
 
       try {
         return await withDBTransaction(async (db) => {
-          const inviteCodeResult = (await db.queryObject<Tables['invite_code']>`
-            SELECT * FROM invite_code WHERE code = ${invite_code}
-          `).rows[0]
+          const inviteCodeResult = (await db.queryTable('invite_code', { where: ['code', '=', invite_code] }))[0]
 
           if (inviteCodeResult == null) {
             // invite code doesn't exist
@@ -88,18 +129,14 @@ export default function register(router: Router) {
             return [null, Status.InternalServerError]
           }
 
-          const accountResult = await db.queryObject<Tables['account']>`
-            SELECT * FROM account WHERE account_id = ${account_id}
-          `
-          const currentAccount = accountResult.rows[0]
+          const accountResult = await db.queryTable('account', { where: ['account_id', '=', account_id] })
+          const currentAccount = accountResult[0]
           if (currentAccount == null) {
             // account doesn't exist
             return [null, Status.InternalServerError]
           }
 
-          const codeUsedByCurrentAccount = (await db.queryObject<Tables['invite_code']>`
-            SELECT * FROM invite_code WHERE used_by_account_id = ${account_id}
-          `).rows[0]
+          const codeUsedByCurrentAccount = (await db.queryTable('invite_code', { where: ['used_by_account_id', '=', account_id] }))[0]
           if (codeUsedByCurrentAccount != null) {
             // this account already used an invite code
             return [null, Status.InternalServerError]

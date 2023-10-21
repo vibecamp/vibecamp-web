@@ -65,7 +65,7 @@ const tableRows: Record<string, Array<unknown>> = Object.fromEntries(await Promi
     tableRowsToDump
         .map(table_name =>
             withDBConnection(async db =>
-                [table_name, (await db.queryObject(`SELECT * FROM ${table_name}`)).rows] as const))
+                [table_name, await db.queryTable(table_name)] as const))
 ))
 
 const dbRowsStr =

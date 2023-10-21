@@ -1,4 +1,4 @@
-import { VibeJWTPayload } from '../../common/data.ts'
+import { Maybe, VibeJWTPayload } from '../../common/data.ts'
 import {
   RouteParams,
   Router,
@@ -69,7 +69,7 @@ export function defineRoute<TEndpoint extends keyof Routes>(
     // if this route requires auth, decode the JWT payload and assert that
     // it exists
     if (config.requireAuth) {
-      const jwt: VibeJWTPayload | null | undefined = await getJwtPayload(ctx)
+      const jwt: Maybe<VibeJWTPayload> = await getJwtPayload(ctx)
 
       if (jwt == null || jwt.exp == null || getNumericDate(new Date()) > jwt.exp) {
         return [null, Status.Unauthorized]

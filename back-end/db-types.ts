@@ -63,15 +63,16 @@ export type Tables = {
     assigned_to_attendee_id: number | null,
     owned_by_account_id: number | null,
     purchase_id: number,
-    purchase_type_id: number,
+    purchase_type_id: string,
     purchased_on: unknown,
   },
   purchase_type: {
+    description: string,
     festival_id: number,
     max_available: number | null,
+    max_per_account: number | null,
     price_in_cents: number,
-    purchase_type: string,
-    purchase_type_id: number,
+    purchase_type_id: string,
   },
 }
 
@@ -79,8 +80,9 @@ export type TableName = keyof Tables
 
 export const TABLE_ROWS = {
   purchase_type: [
-    {"purchase_type":"SLEEPING_BAG","price_in_cents":1200,"festival_id":1,"purchase_type_id":2,"max_available":null},
-    {"purchase_type":"BUS","price_in_cents":1200,"festival_id":1,"purchase_type_id":3,"max_available":null},
-    {"purchase_type":"ATTENDANCE","price_in_cents":12300,"festival_id":1,"purchase_type_id":1,"max_available":600},
+    {"purchase_type_id":"BUS_VIBECLIPSE_2024","price_in_cents":1200,"festival_id":1,"max_available":null,"description":"Bus ticket (two-way)","max_per_account":null},
+    {"purchase_type_id":"SLEEPING_BAG_VIBECLIPSE_2024","price_in_cents":1200,"festival_id":1,"max_available":null,"description":"Sleeping bag","max_per_account":null},
+    {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024","price_in_cents":12300,"festival_id":1,"max_available":600,"description":"Adult Ticket","max_per_account":2},
+    {"purchase_type_id":"ATTENDANCE_CHILD_VIBECLIPSE_2024","price_in_cents":12300,"festival_id":1,"max_available":null,"description":"Child Ticket","max_per_account":4},
   ],
 } as const
