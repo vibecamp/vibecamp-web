@@ -67,6 +67,8 @@ self.addEventListener('activate', e => {
                     }
                 })
             )
+            
+            // await clients.claim()
         })()
     )
 })
