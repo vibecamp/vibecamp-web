@@ -63,7 +63,7 @@ export default observer(() => {
             {Store.accountInfo.state.kind === 'result' &&
                 <h1 style={{ fontSize: 24 }}>My tickets</h1>}
 
-            <Spacer size={Store.accountInfo.state.kind !== 'result' ? 300 : undefined} />
+            <Spacer size={Store.accountInfo.state.kind !== 'result' ? 300 : 16} />
 
             {Store.accountInfo.state.kind === 'loading' ?
                 <LoadingDots size={100} color='var(--color-accent-1)' />
