@@ -1,50 +1,98 @@
 
 .loading-dots {
-    position: relative;
-    width: 100px;
-    height: 100px;
+    --dot-size: calc(var(--size) / 3);
+    --dot-distance: calc(var(--size) / 2 - var(--dot-size) / 2);
+    
+    width: var(--size);
+    height: var(--size);
 
-    >div {
-        width: 100px;
-        height: 100px;
-        opacity: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-        position: absolute;
-        top: 0;
-        left: 0;
+    .spinner, .spinner>* {
+        animation: 2s cubic-bezier(.7, 0.05, .3, 0.95) infinite running spin;
+    }
 
-        border-radius: 50%;
+    .spinner {
+        position: relative;
 
-        animation-name: burst;
-        animation-duration: 2s;
-        animation-iteration-count: infinite;
-        animation-timing-function: ease-in-out;
+        >* {
+            width: var(--dot-size);
+            height: var(--dot-size);
+            border-radius: 50%;
+            flex-shrink: 0;
+            position: absolute;
+            top: calc(var(--dot-size) / 2 * -1);
+            left: calc(var(--dot-size) / 2 * -1);
+            background: var(--dot-color);
 
-        &:nth-child(1) {
-            background: rgb(236, 175, 141);
-        }
-        &:nth-child(2) {
-            background: rgb(223, 200, 208);
-            animation-delay: 0.5s;
-        }
-        &:nth-child(3) {
-            background: rgb(197, 229, 246);
-            animation-delay: 1.0s;
+            &:nth-of-type(1) {
+                animation-name: dot1;
+            }
+            &:nth-of-type(2) {
+                animation-name: dot2;
+            }
+            &:nth-of-type(3) {
+                animation-name: dot3;
+            }
+            &:nth-of-type(4) {
+                animation-name: dot4;
+            }
         }
     }
 }
 
-@keyframes burst {
+@keyframes spin {
     0% {
-        opacity: 1;
-        transform: scale(0.5);
-    }
-    50% {
-        opacity: 0;
-        transform: scale(1);
+        transform: rotate(0);
     }
     100% {
-        opacity: 0;
-        transform: scale(1);
+        transform: rotate(720deg);
+    }
+}
+
+@keyframes dot1 {
+    0% {
+        transform: translateX(calc(-1 * var(--dot-distance))) scale(0.5);
+    }
+    50% {
+        transform: translateX(0px) scale(1);
+    }
+    100% {
+        transform: translateX(calc(-1 * var(--dot-distance))) scale(0.5);
+    }
+}
+@keyframes dot2 {
+    0% {
+        transform: translateX(var(--dot-distance)) scale(0.5);
+    }
+    50% {
+        transform: translateX(0px) scale(1);
+    }
+    100% {
+        transform: translateX(var(--dot-distance)) scale(0.5);
+    }
+}
+@keyframes dot3 {
+    0% {
+        transform: translateY(calc(-1 * var(--dot-distance))) scale(0.5);
+    }
+    50% {
+        transform: translateY(0px) scale(1);
+    }
+    100% {
+        transform: translateY(calc(-1 * var(--dot-distance))) scale(0.5);
+    }
+}
+@keyframes dot4 {
+    0% {
+        transform: translateY(var(--dot-distance)) scale(0.5);
+    }
+    50% {
+        transform: translateY(0px) scale(1);
+    }
+    100% {
+        transform: translateY(var(--dot-distance)) scale(0.5);
     }
 }

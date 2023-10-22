@@ -13,7 +13,11 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    color: inherit;
+    color: rgba(0, 0, 0, 0.8);
+
+    width: 100%;
+    max-width: 400px;
+    align-self: center;
 
     &.primary {
         color: rgba(255, 255, 255, 0.9);
@@ -31,38 +35,13 @@
         }
     }
 
-    .loading-container {
-        display: flex;
-        // opacity: 0;
-        // transform: scaleX(0);
+    &:disabled {
+        cursor: default;
 
-        // animation-name: loading-appear;
-        // animation-duration: 0.4s;
-        // animation-timing-function: linear;
-        // animation-fill-mode: both;
-        // animation-direction: backwards;
+        color: rgba(0, 0, 0, 0.6);
 
-        // &.isLoading {
-        //     animation-direction: forwards;
-        // }
-
-        &:not(.isLoading) {
-            display: none;
+        &.primary {
+            color: rgba(255, 255, 255, 0.7);
         }
     }
 }
-
-// @keyframes loading-appear {
-//     0% {
-//         opacity: 0;
-//         transform: scaleX(0);
-//     }
-//     50% {
-//         opacity: 0;
-//         transform: scaleX(1);
-//     }
-//     100% {
-//         opacity: 1;
-//         transform: scaleX(1);
-//     }
-// }

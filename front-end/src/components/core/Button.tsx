@@ -1,6 +1,7 @@
 import React, { CSSProperties } from 'react'
 import { observer } from 'mobx-react-lite'
 import Spacer from './Spacer'
+import LoadingDots from './LoadingDots'
 
 type Props = {
     onClick?: () => void,
@@ -23,13 +24,10 @@ export default observer(({ onClick, isSubmit, isPrimary, isDanger, isDisabled, i
             disabled={isDisabled || isLoading}
             onClick={onClick}
         >
-            {children}
+            {isLoading
+                ? <LoadingDots size={18} color={isPrimary || isDanger ? 'rgb(255, 255, 255)' : 'var(--color-primary)'} />
+                : children}
 
-            <span className={`loading-container ${isLoading ? 'isLoading' : ''}`}>
-                <Spacer size={8} />
-                <img src='loading-spinner.gif' width={16}></img>
-            </span>
-            
         </button>
     )
 })

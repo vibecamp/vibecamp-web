@@ -59,7 +59,7 @@ const PaymentFormInner: FC<{ redirectUrl: string }> = observer(({ redirectUrl })
 
     return (
         !stripe || !elements
-            ? <LoadingDots />
+            ? <LoadingDots size={60} color='var(--color-accent-1)' />
             : <form id="payment-form" onSubmit={confirmPayment.load}>
                 <Col>
                     <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
