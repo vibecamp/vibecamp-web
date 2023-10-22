@@ -17,6 +17,7 @@ import StripePaymentForm from './core/StripePaymentForm'
 import { useObservableState, useRequest } from '../mobx/hooks'
 import { DEFAULT_FORM_ERROR } from '../utils'
 import LoadingDots from './core/LoadingDots'
+import InfoBlurb from './core/InfoBlurb'
 
 export default observer(() => {
     const state = useObservableState({
@@ -97,10 +98,10 @@ export default observer(() => {
 
                                             <Spacer size={8} />
 
-                                            <div>
+                                            <InfoBlurb>
                                                 You can give these to other people you know and
                                                 trust, to allow them to buy tickets
-                                            </div>
+                                            </InfoBlurb>
 
                                             <Spacer size={16} />
 
