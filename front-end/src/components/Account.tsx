@@ -8,7 +8,7 @@ import Col from './core/Col'
 export default observer(() => {
 
     return (
-        <Col padding={20}>
+        <Col padding={20} pageLevel>
             <h1 style={{ fontSize: 24 }}>My account</h1>
 
             <Spacer size={16} />

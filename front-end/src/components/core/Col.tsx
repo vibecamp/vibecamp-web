@@ -5,12 +5,13 @@ type Props = {
     align?: 'start' | 'center' | 'end' | 'stretch',
     justify?: 'start' | 'center' | 'end' | 'space-between' | 'space-around',
     padding?: CSSProperties['padding'],
+    pageLevel?: boolean,
     children: React.ReactNode
 }
 
-export default observer<Props>(({ align, justify, padding, children }) => {
+export default observer<Props>(({ align, justify, padding, pageLevel, children }) => {
     return (
-        <div className="col" style={{ alignItems: align, justifyContent: justify, padding }}>
+        <div className={`col ${pageLevel ? 'page-level' : ''}`} style={{ alignItems: align, justifyContent: justify, padding }}>
             {children}
         </div>
     )

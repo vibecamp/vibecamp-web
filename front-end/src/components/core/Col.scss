@@ -2,4 +2,9 @@
 .col {
     display: flex;
     flex-direction: column;
+
+    &.page-level {
+        max-width: 800px;
+        margin: 0 auto;
+    }
 }

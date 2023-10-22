@@ -56,7 +56,7 @@ export default observer(() => {
     })
 
     return (
-        <Col padding={20}>
+        <Col padding={20} pageLevel>
             <h1 style={{ fontSize: 24 }}>My tickets</h1>
 
             <Spacer size={16} />
