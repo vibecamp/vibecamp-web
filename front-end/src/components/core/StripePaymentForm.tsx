@@ -1,13 +1,13 @@
 import { useStripe, useElements, PaymentElement, Elements } from '@stripe/react-stripe-js'
 import { observer } from 'mobx-react-lite'
 import React, { FC } from 'react'
-import { useRequest, useRequestWithDependencies } from '../../mobx-utils'
 import Button from './Button'
 import Col from './Col'
 import LoadingDots from './LoadingDots'
 import Spacer from './Spacer'
 import { StripeElementsOptions, loadStripe } from '@stripe/stripe-js'
 import env from '../../env'
+import { useRequestWithDependencies } from '../../mobx/hooks'
 
 const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 

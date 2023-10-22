@@ -1,16 +1,12 @@
 import React, { ChangeEvent, HTMLInputTypeAttribute, useCallback, useRef } from 'react'
 import { observer } from 'mobx-react-lite'
 import { given } from '../../utils'
+import { CommonFieldProps } from './_common'
 
-type Props = {
+type Props = CommonFieldProps<string> & {
     label: string,
     placeholder?: string,
     type?: HTMLInputTypeAttribute,
-    disabled?: boolean,
-    value: string,
-    onChange: (val: string) => void,
-    onBlur?: () => void,
-    error?: string | undefined,
     multiline?: boolean
 }
 

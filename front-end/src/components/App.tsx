@@ -2,13 +2,14 @@ import React, { FC } from 'react'
 import { configure as configureMobx } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import Login from './Login'
-import { useAutorun, windowSize } from '../mobx-utils'
 import Store from '../Store'
 import Spacer from './core/Spacer'
 import Modal from './core/Modal'
 import { VIEWS_ARRAY } from '../views'
 import MultiView from './core/MultiView'
 import Stripes from './core/Stripes'
+import { windowSize } from '../mobx/browser'
+import { useAutorun } from '../mobx/hooks'
 
 console.log(Store)
 

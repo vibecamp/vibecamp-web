@@ -3,11 +3,11 @@ import { createTransformer } from 'mobx-utils'
 import jwtDecode from 'jwt-decode'
 
 import { EventData } from './model'
-import { RequestObservable, request } from './mobx-utils'
 import { FullAccountInfo, VibeJWTPayload } from '../../back-end/common/types'
 import { given, jsonParse } from './utils'
 import { ViewName, isViewName } from './views'
 import { vibefetch } from './vibefetch'
+import { request } from './mobx/request'
 
 const JWT_KEY = 'jwt'
 

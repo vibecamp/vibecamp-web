@@ -1,4 +1,3 @@
-
 export function wait(ms: number): Promise<void> {
     return new Promise(res => setTimeout(res, ms))
 }
@@ -18,3 +17,10 @@ export function jsonParse<TExpected>(json: string): unknown | undefined {
         return undefined
     }
 }
+
+export const preventingDefault = <F extends () => unknown>(fn: F) => (event: { preventDefault: () => void }) => {
+    event.preventDefault()
+    return fn()
+}
+
+export const DEFAULT_FORM_ERROR = 'Something went wrong, please try again'

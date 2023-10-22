@@ -4,34 +4,40 @@ import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
 import Store from '../Store'
-import { DEFAULT_FORM_ERROR, useObservableState, useRequest } from '../mobx-utils'
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/common/validation'
 import Stripes from './core/Stripes'
 import { vibefetch } from '../vibefetch'
+import { DEFAULT_FORM_ERROR, preventingDefault } from '../utils'
+import { useObservableState, useRequest, useStable } from '../mobx/hooks'
+import { Form, fieldToProps } from '../mobx/form'
+import LoadingDots from './core/LoadingDots'
 
 export default observer(() => {
     const state = useObservableState({
-        mode: 'login' as 'login' | 'signup',
-        emailAddress: '',
-        password: '',
-        validatingEmailAddress: false,
-        validatingPassword: false
+        mode: 'login' as 'login' | 'signup'
     })
 
-    const emailAddressError = getEmailValidationError(state.emailAddress)
-    const passwordError = getPasswordValidationError(state.password)
+    const loginForm = useStable(() => new Form({
+        initialValues: {
+            emailAddress: '',
+            password: '',
+        },
+        validators: {
+            emailAddress: getEmailValidationError,
+            password: getPasswordValidationError
+        }
+    }))
 
     const loginOrSignup = useRequest(async () => {
-        state.validatingEmailAddress = true
-        state.validatingPassword = true
+        loginForm.activateAllValidation()
 
-        if (emailAddressError || passwordError) {
+        if (!loginForm.isValid) {
             return
         }
 
-        const { jwt } = await vibefetch(Store.jwt, `/${state.mode}`, 'post', {
-            email_address: state.emailAddress,
-            password: state.password
+        const { jwt } = await vibefetch(null, `/${state.mode}`, 'post', {
+            email_address: loginForm.fields.emailAddress.value,
+            password: loginForm.fields.password.value
         })
 
         if (jwt == null) {
@@ -40,12 +46,11 @@ export default observer(() => {
 
         Store.jwt = jwt
 
-        state.emailAddress = ''
-        state.password = ''
+        loginForm.clear()
     }, { lazy: true })
 
     return (
-        <form className='login' onSubmit={loginOrSignup.load}>
+        <form className='login' onSubmit={preventingDefault(loginOrSignup.load)}>
             <Stripes position='top-left' />
 
             <img src="vibecamp.png" className='logo' />
@@ -56,10 +61,7 @@ export default observer(() => {
                 label='Email address'
                 type='email'
                 disabled={loginOrSignup.state.kind === 'loading'}
-                value={state.emailAddress}
-                onChange={val => { state.emailAddress = val; state.validatingEmailAddress = false }}
-                error={state.validatingEmailAddress ? emailAddressError : undefined}
-                onBlur={() => state.validatingEmailAddress = true}
+                {...fieldToProps(loginForm.fields.emailAddress)}
             />
 
             <Spacer size={16} />
@@ -68,10 +70,7 @@ export default observer(() => {
                 label='Password'
                 type='password'
                 disabled={loginOrSignup.state.kind === 'loading'}
-                value={state.password}
-                onChange={val => { state.password = val; state.validatingPassword = false }}
-                error={state.validatingPassword ? passwordError : undefined}
-                onBlur={() => state.validatingPassword = true}
+                {...fieldToProps(loginForm.fields.password)}
             />
 
             {loginOrSignup.state.kind === 'error' &&

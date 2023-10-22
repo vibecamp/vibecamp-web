@@ -7,7 +7,6 @@ import Ticket from './Ticket'
 import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
-import { DEFAULT_FORM_ERROR, useObservableState, useRequest } from '../mobx-utils'
 import Col from './core/Col'
 import { Maybe, PURCHASE_TYPES_BY_TYPE } from '../../../back-end/common/types'
 import RowSelect from './core/RowSelect'
@@ -15,6 +14,9 @@ import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
 import StripePaymentForm from './core/StripePaymentForm'
+import { useObservableState, useRequest } from '../mobx/hooks'
+import { DEFAULT_FORM_ERROR } from '../utils'
+import LoadingDots from './core/LoadingDots'
 
 export default observer(() => {
     const state = useObservableState({
@@ -56,13 +58,14 @@ export default observer(() => {
     })
 
     return (
-        <Col padding={20} pageLevel>
-            <h1 style={{ fontSize: 24 }}>My tickets</h1>
+        <Col padding={20} pageLevel justify={Store.accountInfo.state.kind !== 'result' ? 'center' : undefined} align={Store.accountInfo.state.kind !== 'result' ? 'center' : undefined}>
+            {Store.accountInfo.state.kind === 'result' &&
+                <h1 style={{ fontSize: 24 }}>My tickets</h1>}
 
-            <Spacer size={16} />
+            <Spacer size={Store.accountInfo.state.kind !== 'result' ? 300 : undefined} />
 
             {Store.accountInfo.state.kind === 'loading' ?
-                'Loading...'
+                <LoadingDots size={100} color='var(--color-accent-1)' />
                 : Store.accountInfo.state.kind === 'error' || Store.accountInfo.state.result == null ?
                     'Failed to load'
                     : Store.accountInfo.state.kind === 'result' ?
