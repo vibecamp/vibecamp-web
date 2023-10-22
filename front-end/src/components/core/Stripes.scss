@@ -1,35 +1,45 @@
 
-.stripes {
-    display: flex;
-    flex-direction: column;
-    width: 200vw;
-    height: 100px;
-    position: absolute;
-    transform-origin: center;
-    z-index: -1;
+.stripes-clip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    pointer-events: none;
 
-    >div {
-        flex-grow: 1;
+    .stripes {
+        display: flex;
+        flex-direction: column;
+        width: 200vw;
+        height: 100px;
+        position: absolute;
+        transform-origin: center;
+        z-index: -1;
 
-        &:nth-child(1) {
-            background: rgb(236, 175, 141);
-        }
-        &:nth-child(2) {
-            background: rgb(223, 200, 208);
-        }
-        &:nth-child(3) {
-            background: rgb(197, 229, 246);
-        }
-    }
+        >div {
+            flex-grow: 1;
 
-    &.bottom-right {
-        bottom: 50;
-        right: -100vw;
-        transform: scale(-1) rotate(-20deg);
-    }
-    &.top-left {
-        top: 0;
-        left: -100vw;
-        transform: rotate(-20deg);
+            &:nth-child(1) {
+                background: rgb(236, 175, 141);
+            }
+            &:nth-child(2) {
+                background: rgb(223, 200, 208);
+            }
+            &:nth-child(3) {
+                background: rgb(197, 229, 246);
+            }
+        }
+
+        &.bottom-right {
+            bottom: 50;
+            right: -50vw;
+            transform: scale(-1) rotate(-20deg);
+        }
+        &.top-left {
+            top: 0;
+            left: -50vw;
+            transform: rotate(-20deg);
+        }
     }
 }
