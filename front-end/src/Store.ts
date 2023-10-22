@@ -3,8 +3,8 @@ import { createTransformer } from 'mobx-utils'
 import jwtDecode from 'jwt-decode'
 
 import { EventData } from './model'
-import { request } from './mobx-utils'
-import { VibeJWTPayload } from '../../back-end/common/types'
+import { RequestObservable, request } from './mobx-utils'
+import { FullAccountInfo, VibeJWTPayload } from '../../back-end/common/types'
 import { given, jsonParse } from './utils'
 import { ViewName, isViewName } from './views'
 import { vibefetch } from './vibefetch'
@@ -20,8 +20,6 @@ class Store {
         autorun(() => {
             localStorage.setItem(JWT_KEY, JSON.stringify(this.jwt))
         })
-
-        autorun(() => console.log(JSON.parse(JSON.stringify(this.accountInfo.state))))
     }
 
     /// Navigation
@@ -52,7 +50,13 @@ class Store {
         }
     }
 
-    readonly accountInfo = request(() => vibefetch(this.jwt, '/account', 'get', undefined))
+    readonly accountInfo = request(() => {
+        if (this.jwt != null) {
+            return vibefetch(this.jwt, '/account', 'get', undefined)
+        } else {
+            return null
+        }
+    })
 
     get purchasedTickets() {
         return this.accountInfo.state.result?.purchases

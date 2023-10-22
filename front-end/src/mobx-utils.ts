@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 export const DEFAULT_FORM_ERROR = 'Something went wrong, please try again'
 
-type RequestObservable<T> = {
+export type RequestObservable<T> = {
     state: RequestState<T>
     load: () => void
     dispose: () => void
@@ -15,7 +15,7 @@ export type RequestState<T> =
     | { readonly kind: 'result', readonly result: T }
     | { readonly kind: 'error', readonly result: undefined, readonly error: unknown }
 
-export function request<T>(fn: () => Promise<T>, { lazy }: { lazy?: boolean } = {}): RequestObservable<T> {
+export function request<T>(fn: () => Promise<T> | T, { lazy }: { lazy?: boolean } = {}): RequestObservable<T> {
     let latestRequestId: string | undefined
     async function load() {
         const thisRequestId = latestRequestId = String(Math.random())
@@ -34,31 +34,23 @@ export function request<T>(fn: () => Promise<T>, { lazy }: { lazy?: boolean } = 
                 console.error(error)
             }
         }
-
-        return res.state
     }
 
     let autorunDisposer: IReactionDisposer | undefined
     const res: RequestObservable<T> = observable({
         state: { kind: 'idle', result: undefined },
-        load: (
-            lazy
-                ? () => {
-                    if (autorunDisposer == null) {
-                        autorunDisposer = autorun(load)
-                    } else {
-                        return load()
-                    }
-                }
-                : load
-        ),
+        load,
         dispose: () => {
             autorunDisposer?.()
         }
     })
 
     if (!lazy) {
-        autorunDisposer = autorun(load)
+        // HACK: setTimeout to delay autorun until (probably) all observed
+        // values have been made observable by makeAutoObservable
+        setTimeout(() => {
+            autorunDisposer = autorun(load)
+        }, 0)
     }
 
     return res
