@@ -58,7 +58,9 @@ ${columns.map(({ column_name, type }) => `    ${column_name}: ${type},`).join('\
 export type TableName = keyof Tables`
 
 const tableRowsToDump = [
-    'purchase_type'
+    'purchase_type',
+    'volunteer_type',
+    'age_group'
 ] as const
 
 const tableRows: Record<string, Array<unknown>> = Object.fromEntries(await Promise.all(

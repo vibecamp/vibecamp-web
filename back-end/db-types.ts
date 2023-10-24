@@ -10,6 +10,7 @@ export type Tables = {
   },
   age_group: {
     age_group: string,
+    description: string,
     is_child: boolean,
   },
   attendee: {
@@ -19,10 +20,12 @@ export type Tables = {
     dietary_restrictions: string,
     discord_handle: string | null,
     interested_in_pre_call: boolean,
-    interested_in_volunteering: boolean,
+    interested_in_volunteering_as: string | null,
+    medical_training: string | null,
     name: string | null,
     notes: string,
     planning_to_camp: boolean,
+    twitter_handle: string | null,
   },
   event: {
     created_by_account_id: number,
@@ -74,6 +77,10 @@ export type Tables = {
     price_in_cents: number,
     purchase_type_id: string,
   },
+  volunteer_type: {
+    description: string,
+    volunteer_type_id: string,
+  },
 }
 
 export type TableName = keyof Tables
@@ -84,5 +91,15 @@ export const TABLE_ROWS = {
     {"purchase_type_id":"SLEEPING_BAG_VIBECLIPSE_2024","price_in_cents":1200,"festival_id":1,"max_available":null,"description":"Sleeping bag","max_per_account":null},
     {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024","price_in_cents":12300,"festival_id":1,"max_available":600,"description":"Adult Ticket","max_per_account":2},
     {"purchase_type_id":"ATTENDANCE_CHILD_VIBECLIPSE_2024","price_in_cents":12300,"festival_id":1,"max_available":null,"description":"Child Ticket","max_per_account":4},
+  ],
+  volunteer_type: [
+    {"volunteer_type_id":"FAE","description":"Fae"},
+    {"volunteer_type_id":"GENERAL","description":"General volunteer"},
+  ],
+  age_group: [
+    {"age_group":"BETWEEN_2_AND_18","is_child":true,"description":"Between 2 and 18 years old"},
+    {"age_group":"UNDER_2","is_child":true,"description":"Under 2 years old"},
+    {"age_group":"BETWEEN_18_AND_21","is_child":false,"description":"Between 18 and 21 years old"},
+    {"age_group":"OVER_21","is_child":false,"description":"Over 21 years old"},
   ],
 } as const
