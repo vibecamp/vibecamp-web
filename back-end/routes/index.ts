@@ -4,6 +4,7 @@ import v1_auth from './v1/auth.ts'
 import v1_account from './v1/account.ts'
 import v1_event from './v1/event.ts'
 import v1_purchase from './v1/purchase.ts'
+import v1_misc from './v1/misc.ts'
 
 export const router = new Router()
 
@@ -12,6 +13,7 @@ export const router = new Router()
 v1_auth(router)
 v1_account(router)
 v1_event(router)
+v1_misc(router)
 v1_purchase(router)
 
 router.get('/', (ctx) => {

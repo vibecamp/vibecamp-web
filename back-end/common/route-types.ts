@@ -68,6 +68,15 @@ export type Routes = {
         method: 'post',
         body: Purchases,
         response: { stripe_client_secret: string } | null
+    },
+    '/festival-info': {
+        method: 'get',
+        body: unknown,
+        response: {
+            festival_name: string,
+            start_date: string,
+            end_date: string
+        } | null
     }
 }
 
