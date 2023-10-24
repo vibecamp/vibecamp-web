@@ -38,7 +38,11 @@ export default function register(router: Router) {
           FROM purchase, purchase_type
           WHERE purchase_type.purchase_type_id = purchase.purchase_type_id AND purchase.owned_by_account_id = ${account_id}
           group by purchase.purchase_type_id
-        `).rows)
+        `).rows.map(row => ({
+          ...row,
+          // `count` comes back from the client as a BigInt, which causes problems if not converted
+          count: Number(row.count)
+        })))
 
       for (const [purchaseType, toPurchaseCount] of objectEntries(purchases)) {
         const { festival_id, max_available, max_per_account } = PURCHASE_TYPES_BY_TYPE[purchaseType]
