@@ -170,7 +170,7 @@ const SelectionView: FC<{ state: { ATTENDANCE_VIBECLIPSE_2024: number, ATTENDANC
 
     return (
         <form onSubmit={() => state.purchaseState = 'attendee-info'}>
-            <Col>
+            <Col padding={20}>
                 You currently have:
                 <div>
                     {Store.purchasedTickets.length} adult tickets, and
