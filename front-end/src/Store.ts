@@ -50,6 +50,24 @@ class Store {
         }
     }
 
+    readonly festival = request(async () => {
+        if (this.jwt != null) {
+            const festival = await vibefetch(this.jwt, '/festival-info', 'get', undefined)
+
+            if (festival == null) {
+                return null
+            }
+
+            return {
+                festival_name: festival.festival_name,
+                start_date: new Date(festival.start_date),
+                end_date: new Date(festival.end_date),
+            } as const
+        } else {
+            return null
+        }
+    })
+
     readonly accountInfo = request(() => {
         if (this.jwt != null) {
             return vibefetch(this.jwt, '/account', 'get', undefined)
