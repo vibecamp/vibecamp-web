@@ -31,7 +31,7 @@ const TYPE_MAP: Record<DataType, string> = {
     'uuid': 'string',
     'integer': 'number',
     'point': 'unknown',
-    'date': 'unknown',
+    'date': 'Date',
     'timestamp with time zone': 'unknown'
 }
 

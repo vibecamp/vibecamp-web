@@ -37,11 +37,11 @@ export type Tables = {
     start: unknown,
   },
   festival: {
-    end_date: unknown,
+    end_date: Date,
     festival_id: number,
     festival_name: string,
     festival_site_id: number,
-    start_date: unknown,
+    start_date: Date,
   },
   festival_site: {
     festival_site_id: number,
@@ -56,11 +56,11 @@ export type Tables = {
     used_by_account_id: number | null,
   },
   next_festival: {
-    end_date: unknown | null,
+    end_date: Date | null,
     festival_id: number | null,
     festival_name: string | null,
     festival_site_id: number | null,
-    start_date: unknown | null,
+    start_date: Date | null,
   },
   purchase: {
     assigned_to_attendee_id: number | null,
