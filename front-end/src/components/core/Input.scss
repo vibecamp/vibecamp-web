@@ -25,6 +25,13 @@
         color: var(--focus-color);
     }
 
+    > input::placeholder {
+        color: rgba(0, 0, 0, 0.2);
+    }
+    > textarea::placeholder {
+        color: rgba(0, 0, 0, 0.3);
+    }
+
     > input,
     > textarea {
         appearance: none;

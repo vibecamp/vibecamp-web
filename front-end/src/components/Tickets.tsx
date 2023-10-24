@@ -8,8 +8,7 @@ import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
 import Col from './core/Col'
-import { Maybe, PURCHASE_TYPES_BY_TYPE } from '../../../back-end/common/types'
-import RowSelect from './core/RowSelect'
+import { Maybe } from '../../../back-end/common/types'
 import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
@@ -18,14 +17,16 @@ import { useObservableState, useRequest } from '../mobx/hooks'
 import { DEFAULT_FORM_ERROR } from '../utils'
 import LoadingDots from './core/LoadingDots'
 import InfoBlurb from './core/InfoBlurb'
+import Checkbox from './core/Checkbox'
+import AttendeeInfoForm, { AttendeeInfo } from './AttendeeInfoForm'
 
 export default observer(() => {
     const state = useObservableState({
         code: '',
-        ATTENDANCE_VIBECLIPSE_2024: 0,
-        ATTENDANCE_CHILD_VIBECLIPSE_2024: 0,
-        purchaseState: 'none' as 'none' | 'selection' | 'attendee-info' | 'payment'
+        purchaseState: 'none' as 'none' | 'selection' | 'payment'
     })
+
+    const purchaseState = useObservableState(INITIAL_PURCHASE_STATE)
 
     const submitInviteCode = useRequest(async () => {
         const success = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: state.code })
@@ -36,8 +37,10 @@ export default observer(() => {
     }, { lazy: true })
 
     const stripeOptions = useRequest(async () => {
-        const { ATTENDANCE_VIBECLIPSE_2024, ATTENDANCE_CHILD_VIBECLIPSE_2024 } = state
-        const purchases = { ATTENDANCE_VIBECLIPSE_2024, ATTENDANCE_CHILD_VIBECLIPSE_2024 }
+        const purchases = {
+            ATTENDANCE_VIBECLIPSE_2024: purchaseState.secondaryAdultAttendee == null ? 1 : 2,
+            ATTENDANCE_CHILD_VIBECLIPSE_2024: purchaseState.childAttendees.length
+        }
 
         if (Object.values(purchases).some(count => count > 0)) {
             const stripe_client_secret = (await vibefetch(
@@ -46,6 +49,10 @@ export default observer(() => {
                 'post',
                 purchases
             ))?.stripe_client_secret
+
+            if (stripe_client_secret == null) {
+                return undefined
+            }
 
             return {
                 clientSecret: stripe_client_secret,
@@ -63,7 +70,7 @@ export default observer(() => {
             {Store.accountInfo.state.kind === 'result' &&
                 <h1 style={{ fontSize: 24 }}>My tickets</h1>}
 
-            <Spacer size={Store.accountInfo.state.kind !== 'result' ? 300 : 16} />
+            <Spacer size={Store.accountInfo.state.kind !== 'result' ? 300 : 24} />
 
             {Store.accountInfo.state.kind === 'loading' ?
                 <LoadingDots size={100} color='var(--color-accent-1)' />
@@ -76,12 +83,12 @@ export default observer(() => {
                                     {Store.purchasedTickets.map(p =>
                                         <React.Fragment key={p.purchase_id}>
                                             <Ticket name='Unknown attendee' ticketType='adult' />
-                                            <Spacer size={16} />
+                                            <Spacer size={24} />
                                         </React.Fragment>)}
 
                                     {/* isDisabled={Store.purchasedTickets.length >= MAX_TICKETS_PER_ACCOUNT.adult} */}
                                     <Button isPrimary onClick={() => state.purchaseState = 'selection'}>
-                                        Buy {Store.purchasedTickets.length > 0 && 'more'} tickets
+                                        Buy tickets
                                     </Button>
 
                                     {Store.accountInfo.state.result.inviteCodes.length > 0 &&
@@ -106,7 +113,7 @@ export default observer(() => {
                                             <Spacer size={16} />
 
                                             {Store.accountInfo.state.result.inviteCodes.map(({ code, used_by }, index) => <React.Fragment key={index}>
-                                                {index > 0 && <Spacer size={16} />}
+                                                {index > 0 && <Spacer size={8} />}
 
                                                 <InviteCode code={code} usedBy={used_by} />
                                             </React.Fragment>)}
@@ -126,7 +133,7 @@ export default observer(() => {
                                             for the current event.
                                         </div>
 
-                                        <Spacer size={16} />
+                                        <Spacer size={24} />
 
                                         <Input
                                             label='Invite code'
@@ -156,7 +163,7 @@ export default observer(() => {
             <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => state.purchaseState = 'none'}>
                 <MultiView
                     views={[
-                        { name: 'selection', content: <SelectionView state={state} /> },
+                        { name: 'selection', content: <SelectionView purchaseState={purchaseState} goToNext={() => state.purchaseState = 'payment'} /> },
                         { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} redirectUrl={location.origin + '#Tickets'} /> }
                     ]}
                     currentView={state.purchaseState}
@@ -166,39 +173,94 @@ export default observer(() => {
     )
 })
 
-const SelectionView: FC<{ state: { ATTENDANCE_VIBECLIPSE_2024: number, ATTENDANCE_CHILD_VIBECLIPSE_2024: number, purchaseState: 'none' | 'selection' | 'attendee-info' | 'payment' } }> = observer(({ state }) => {
+const SelectionView: FC<{ purchaseState: typeof INITIAL_PURCHASE_STATE, goToNext: () => void }> = observer(({ purchaseState, goToNext }) => {
 
     return (
-        <form onSubmit={() => state.purchaseState = 'attendee-info'}>
+        <form onSubmit={goToNext}>
             <Col padding={20}>
-                You currently have:
+                {/* You currently have:
                 <div>
                     {Store.purchasedTickets.length} adult tickets, and
                 </div>
                 <div>
                     {0} child tickets
-                </div>
+                </div> */}
 
-                {(['ATTENDANCE_VIBECLIPSE_2024', 'ATTENDANCE_CHILD_VIBECLIPSE_2024'] as const).map(purchaseType => {
-                    const purchaseTypeInfo = PURCHASE_TYPES_BY_TYPE[purchaseType]
-
-                    return (
-                        <React.Fragment key={purchaseType}>
-                            <Spacer size={16} />
-
-                            <RowSelect
-                                label={`${purchaseTypeInfo.description} to purchase`}
-                                value={state[purchaseType]}
-                                onChange={val => state[purchaseType] = val}
-                                options={new Array((purchaseTypeInfo.max_per_account ?? 4) + 1).fill(null).map((_, index) => index)}
-                            />
-                        </React.Fragment>
-                    )
-                })}
+                <AttendeeInfoForm attendeeInfo={purchaseState.primaryAdultAttendee} isChild={false} isAccountHolder={true} />
 
                 <Spacer size={24} />
 
-                <Button isSubmit isPrimary isDisabled={(['ATTENDANCE_VIBECLIPSE_2024', 'ATTENDANCE_CHILD_VIBECLIPSE_2024'] as const).every(t => state[t] === 0)}>
+                <hr/>
+
+                <Spacer size={24} />
+
+                <Checkbox value={purchaseState.secondaryAdultAttendee != null} onChange={bringing => {
+                    if (bringing) {
+                        purchaseState.secondaryAdultAttendee = {...BLANK_ATTENDEE}
+                    } else {
+                        purchaseState.secondaryAdultAttendee = null
+                    }
+                }}>
+                    {'I\'m bringing another adult with me'}
+                </Checkbox>
+
+                <Spacer size={8} />
+
+                <InfoBlurb>
+                    {`You can purchase a ticket for up to one other adult attendee
+                    if you'd like. Their ticket and info will have to be managed
+                    through your account here, but they'll otherwise be a full
+                    attendee (with a badge and everything)`}
+                </InfoBlurb>
+
+                {purchaseState.secondaryAdultAttendee != null &&
+                    <>
+                        <Spacer size={24} />
+
+                        <AttendeeInfoForm attendeeInfo={purchaseState.secondaryAdultAttendee} isChild={false} isAccountHolder={false} />
+                    </>}
+
+                <Spacer size={24} />
+
+                <hr/>
+
+                <Spacer size={24} />
+
+                {purchaseState.childAttendees.map((attendee, index) =>
+                    <React.Fragment key={index}>
+                        <Spacer size={24} />
+
+                        <AttendeeInfoForm attendeeInfo={attendee} isChild={true} isAccountHolder={false} />
+                    </React.Fragment>)}
+
+                <Spacer size={24} />
+
+                <Button onClick={() => purchaseState.childAttendees.push({...BLANK_ATTENDEE})} disabled={purchaseState.childAttendees.length >= 5}>
+                    + Add a minor
+                </Button>
+
+                {purchaseState.childAttendees.length === 5 &&
+                    <>
+                        <Spacer size={8} />
+        
+                        <InfoBlurb>
+                            {'Can\'t buy tickets for more than five children on one account, sorry!'}
+                        </InfoBlurb>
+                    </>}
+
+                <Spacer size={8} />
+
+                <InfoBlurb>
+                    {`Minors between age 2-18 will need their own tickets, but
+                    those will live under your account. Children under 2 years
+                    old do not need a ticket.`}
+                </InfoBlurb>
+
+                <Spacer size={24} />
+
+                {/* TODO: Pricing/purchase summary */}
+
+                <Button isSubmit isPrimary>
                     Purchase
                 </Button>
             </Col>
@@ -235,3 +297,22 @@ const InviteCode: FC<{ code: string, usedBy: Maybe<string> }> = observer(({ code
         </div>
     )
 })
+
+const BLANK_ATTENDEE: Readonly<AttendeeInfo> = {
+    dietary_restrictions: '',
+    name: null,
+    discord_handle: null,
+    twitter_handle: null,
+    interested_in_volunteering_as: null,
+    interested_in_pre_call: false,
+    planning_to_camp: false,
+    associated_account_id: 1,
+    age_group: null,
+    medical_training: null
+}
+
+const INITIAL_PURCHASE_STATE = {
+    primaryAdultAttendee: {...BLANK_ATTENDEE},
+    secondaryAdultAttendee: null as AttendeeInfo | null,
+    childAttendees: [] as AttendeeInfo[],
+}

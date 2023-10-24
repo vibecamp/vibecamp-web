@@ -57,17 +57,3 @@ const Nav: FC = observer(() => {
         </div>
     )
 })
-
-
-// const attendeeInfo = useObservableState({
-//     dietary_restrictions: '',
-//     name: null,
-//     notes: '',
-//     discord_handle: '',
-//     interested_in_volunteering: false,
-//     interested_in_pre_call: false,
-//     planning_to_camp: false,
-//     attendee_id: 1,
-//     associated_account_id: 1,
-//     age_group: null,
-// })

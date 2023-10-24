@@ -4,7 +4,6 @@ import { given } from '../../utils'
 import { CommonFieldProps } from './_common'
 
 type Props = CommonFieldProps<string> & {
-    label: string,
     placeholder?: string,
     type?: HTMLInputTypeAttribute,
     multiline?: boolean
