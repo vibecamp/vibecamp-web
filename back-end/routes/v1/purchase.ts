@@ -33,7 +33,7 @@ export default function register(router: Router) {
       }
 
       const alreadyPurchased = await withDBConnection(async db =>
-        (await db.queryObject<{ purchase_type_id: Tables['purchase_type']['purchase_type_id'], count: number }>`
+        (await db.queryObject<{ purchase_type_id: Tables['purchase_type']['purchase_type_id'], count: BigInt }>`
           SELECT purchase.purchase_type_id, COUNT(*)
           FROM purchase, purchase_type
           WHERE purchase_type.purchase_type_id = purchase.purchase_type_id AND purchase.owned_by_account_id = ${account_id}
