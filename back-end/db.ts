@@ -130,7 +130,7 @@ const insertTable = (db: Pick<PoolClient, 'queryObject'>) =>
       `
         INSERT INTO ${table}
           (${columnNames})
-          VALUES (${columnNumbers}})
+          VALUES (${columnNumbers})
         RETURNING *
       `,
       columnValues
