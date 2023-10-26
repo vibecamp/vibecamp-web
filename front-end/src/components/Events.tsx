@@ -28,7 +28,7 @@ export default observer(() => {
                 <Event event={e} key={e.id} />)}
 
             <Modal isOpen={Store.eventBeingEdited != null} onClose={Store.stopEditingEvent}>
-                {given(Store.eventBeingEdited, eventBeingEdited => (
+                {() => given(Store.eventBeingEdited, eventBeingEdited => (
                     <>
 
                         <Input

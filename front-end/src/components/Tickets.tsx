@@ -161,13 +161,14 @@ export default observer(() => {
                         : null}
 
             <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => state.purchaseState = 'none'}>
-                <MultiView
-                    views={[
-                        { name: 'selection', content: <SelectionView purchaseState={purchaseState} goToNext={() => state.purchaseState = 'payment'} /> },
-                        { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} redirectUrl={location.origin + '#Tickets'} /> }
-                    ]}
-                    currentView={state.purchaseState}
-                />
+                {() =>
+                    <MultiView
+                        views={[
+                            { name: 'selection', content: <SelectionView purchaseState={purchaseState} goToNext={() => state.purchaseState = 'payment'} /> },
+                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} redirectUrl={location.origin + '#Tickets'} /> }
+                        ]}
+                        currentView={state.purchaseState}
+                    />}
             </Modal>
         </Col>
     )

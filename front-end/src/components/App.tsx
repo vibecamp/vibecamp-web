@@ -38,7 +38,8 @@ export default observer(() => {
             <Nav />
 
             <Modal isOpen={!Store.loggedIn} side='left'>
-                <Login />
+                {() =>
+                    <Login />}
             </Modal>
         </>
     )

@@ -93,7 +93,7 @@ export default observer(() => {
 
             <Spacer size={8} />
 
-            <Button isDisabled={loginOrSignup.state.kind === 'error'} onClick={() => state.mode = (state.mode === 'login' ? 'signup' : 'login')}>
+            <Button disabled={loginOrSignup.state.kind === 'error'} onClick={() => state.mode = (state.mode === 'login' ? 'signup' : 'login')}>
                 {state.mode === 'login'
                     ? 'Create an account'
                     : 'I already have an account'}
