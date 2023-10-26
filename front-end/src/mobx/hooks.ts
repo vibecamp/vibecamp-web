@@ -25,10 +25,12 @@ export function useRequest<T>(fn: () => Promise<T>, options: { lazy?: boolean } 
 }
 
 export function useRequestWithDependencies<T>(fn: () => Promise<T>, deps?: unknown[], options: { lazy?: boolean } = {}): RequestObservable<T> {
-    const req = useStable(() => request(fn, options))
+    const [req, setReq] = useState(() => request(fn, options))
 
     useEffect(() => {
-        return req.dispose
+        const r = request(fn, options)
+        setReq(r)
+        return r.dispose
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, deps)
 
