@@ -5,7 +5,8 @@ import { RequestObservable, request } from './request'
 export function useAutorun(fn: () => void) {
     useEffect(() => {
         return autorun(fn)
-    })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 }
 
 export function useComputed<T>(fn: () => T): T {
@@ -17,7 +18,8 @@ export function useRequest<T>(fn: () => Promise<T>, options: { lazy?: boolean } 
 
     useEffect(() => {
         return req.dispose
-    })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return req
 }
