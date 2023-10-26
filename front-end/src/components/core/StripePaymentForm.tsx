@@ -8,27 +8,29 @@ import Spacer from './Spacer'
 import { StripeElementsOptions, loadStripe } from '@stripe/stripe-js'
 import env from '../../env'
 import { useRequestWithDependencies } from '../../mobx/hooks'
+import { preventingDefault } from '../../utils'
 
 const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 
 type Props = {
     stripeOptions: StripeElementsOptions | undefined,
+    onPrePurchase?: () => Promise<void> | void,
     redirectUrl: string
 }
 
-export default observer(({ stripeOptions, redirectUrl }: Props) => {
+export default observer(({ stripeOptions, ...otherProps }: Props) => {
     if (stripeOptions == null) {
         return null
     }
 
     return (
         <Elements options={stripeOptions} stripe={stripePromise}>
-            <PaymentFormInner redirectUrl={redirectUrl} />
+            <PaymentFormInner {...otherProps} />
         </Elements>
     )
 })
 
-const PaymentFormInner: FC<{ redirectUrl: string }> = observer(({ redirectUrl }) => {
+const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ onPrePurchase, redirectUrl }) => {
     const stripe = useStripe()
     const elements = useElements()
 
@@ -37,6 +39,8 @@ const PaymentFormInner: FC<{ redirectUrl: string }> = observer(({ redirectUrl })
             console.error('Stripe not initialized yet')
             return
         }
+
+        await onPrePurchase?.()
 
         const { error } = await stripe.confirmPayment({
             elements,
@@ -55,12 +59,12 @@ const PaymentFormInner: FC<{ redirectUrl: string }> = observer(({ redirectUrl })
         } else {
             return 'An unexpected error occurred.'
         }
-    }, [elements, redirectUrl, stripe], { lazy: true })
+    }, [stripe, elements, onPrePurchase, redirectUrl], { lazy: true })
 
     return (
         !stripe || !elements
             ? <LoadingDots size={60} color='var(--color-accent-1)' />
-            : <form id="payment-form" onSubmit={confirmPayment.load}>
+            : <form id="payment-form" onSubmit={preventingDefault(confirmPayment.load)}>
                 <Col padding={20}>
                     <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
 

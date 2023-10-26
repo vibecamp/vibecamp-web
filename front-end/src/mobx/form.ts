@@ -1,10 +1,12 @@
 import { action, makeAutoObservable } from 'mobx'
 import { CommonFieldProps } from '../components/core/_common'
 
-type FormOptions<T extends Record<string, unknown>> = {
+export type FormOptions<T extends Record<string, unknown>> = {
     initialValues: T,
     validators: Partial<{ [key in keyof T]: (val: T[key]) => string | undefined }>,
 }
+
+export type FormValidators<T extends Record<string, unknown>> = Partial<{ [key in keyof T]: (val: T[key]) => string | undefined }>
 
 export class Form<TValues extends Record<string, unknown>> {
     constructor(

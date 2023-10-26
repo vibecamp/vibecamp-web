@@ -8,17 +8,21 @@ import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
 import Col from './core/Col'
-import { Maybe } from '../../../back-end/common/types'
+import { AttendeeInfo, Maybe } from '../../../back-end/common/types'
 import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
 import StripePaymentForm from './core/StripePaymentForm'
-import { useObservableState, useRequest } from '../mobx/hooks'
-import { DEFAULT_FORM_ERROR } from '../utils'
+import { useObservableState, useRequest, useStable } from '../mobx/hooks'
+import { DEFAULT_FORM_ERROR, preventingDefault } from '../utils'
 import LoadingDots from './core/LoadingDots'
 import InfoBlurb from './core/InfoBlurb'
 import Checkbox from './core/Checkbox'
-import AttendeeInfoForm, { AttendeeInfo } from './AttendeeInfoForm'
+import AttendeeInfoForm from './AttendeeInfoForm'
+import { makeAutoObservable } from 'mobx'
+import { Form, FormValidators } from '../mobx/form'
+import { request } from '../mobx/request'
+import { exists } from '../../../back-end/common/utils'
 
 export default observer(() => {
     const state = useObservableState({
@@ -26,7 +30,7 @@ export default observer(() => {
         purchaseState: 'none' as 'none' | 'selection' | 'payment'
     })
 
-    const purchaseState = useObservableState(INITIAL_PURCHASE_STATE)
+    const purchaseState = useStable(() => new PurchaseFormState())
 
     const submitInviteCode = useRequest(async () => {
         const success = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: state.code })
@@ -119,7 +123,7 @@ export default observer(() => {
                                             </React.Fragment>)}
                                         </>}
                                 </>
-                                : <form onSubmit={submitInviteCode.load}>
+                                : <form onSubmit={preventingDefault(submitInviteCode.load)}>
                                     <Col>
                                         <h2>
                                             Welcome!
@@ -160,12 +164,12 @@ export default observer(() => {
                         </>
                         : null}
 
-            <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => state.purchaseState = 'none'}>
+            <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => { console.log('modal onClose'); state.purchaseState = 'none'}}>
                 {() =>
                     <MultiView
                         views={[
                             { name: 'selection', content: <SelectionView purchaseState={purchaseState} goToNext={() => state.purchaseState = 'payment'} /> },
-                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} redirectUrl={location.origin + '#Tickets'} /> }
+                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} onPrePurchase={purchaseState.createAttendees.load} redirectUrl={location.origin + '#Tickets'} /> }
                         ]}
                         currentView={state.purchaseState}
                     />}
@@ -174,10 +178,10 @@ export default observer(() => {
     )
 })
 
-const SelectionView: FC<{ purchaseState: typeof INITIAL_PURCHASE_STATE, goToNext: () => void }> = observer(({ purchaseState, goToNext }) => {
+const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void }> = observer(({ purchaseState, goToNext }) => {
 
     return (
-        <form onSubmit={goToNext}>
+        <form onSubmit={preventingDefault(goToNext)}>
             <Col padding={20}>
                 {/* You currently have:
                 <div>
@@ -195,13 +199,7 @@ const SelectionView: FC<{ purchaseState: typeof INITIAL_PURCHASE_STATE, goToNext
 
                 <Spacer size={32} />
 
-                <Checkbox value={purchaseState.secondaryAdultAttendee != null} onChange={bringing => {
-                    if (bringing) {
-                        purchaseState.secondaryAdultAttendee = {...BLANK_ATTENDEE}
-                    } else {
-                        purchaseState.secondaryAdultAttendee = null
-                    }
-                }}>
+                <Checkbox value={purchaseState.secondaryAdultAttendee != null} onChange={purchaseState.setBringingSecondary}>
                     {'I\'m bringing another adult with me'}
                 </Checkbox>
 
@@ -240,7 +238,7 @@ const SelectionView: FC<{ purchaseState: typeof INITIAL_PURCHASE_STATE, goToNext
                         <Spacer size={32} />
                     </React.Fragment>)}
 
-                <Button onClick={() => purchaseState.childAttendees.push({...BLANK_ATTENDEE})} disabled={purchaseState.childAttendees.length >= 5}>
+                <Button onClick={purchaseState.addChildAttendee} disabled={purchaseState.childAttendees.length >= 5}>
                     + Add a minor
                 </Button>
 
@@ -304,13 +302,12 @@ const InviteCode: FC<{ code: string, usedBy: Maybe<string> }> = observer(({ code
 })
 
 const BLANK_ATTENDEE: Readonly<AttendeeInfo> = {
-    name: null,
+    name: '',
     discord_handle: null,
     twitter_handle: null,
     interested_in_volunteering_as: null,
     interested_in_pre_call: false,
     planning_to_camp: false,
-    associated_account_id: 1,
     age_group: null,
     medical_training: null,
     special_diet: null,
@@ -324,8 +321,71 @@ const BLANK_ATTENDEE: Readonly<AttendeeInfo> = {
     has_allergy_soy: false,
 }
 
-const INITIAL_PURCHASE_STATE = {
-    primaryAdultAttendee: {...BLANK_ATTENDEE},
-    secondaryAdultAttendee: null as AttendeeInfo | null,
-    childAttendees: [] as AttendeeInfo[],
+class PurchaseFormState {
+    constructor() {
+        makeAutoObservable(this)
+    }
+
+    primaryAdultAttendee = new Form({
+        initialValues: {...BLANK_ATTENDEE},
+        validators: ATTENDEE_VALIDATORS
+    })
+
+    secondaryAdultAttendee: Form<AttendeeInfo> | null = null
+    
+    childAttendees: Form<AttendeeInfo>[] = []
+
+    readonly setBringingSecondary = (bringing: boolean) => {
+        if (bringing) {
+            this.secondaryAdultAttendee = new Form({
+                initialValues: {...BLANK_ATTENDEE},
+                validators: ATTENDEE_VALIDATORS
+            })
+        } else {
+            this.secondaryAdultAttendee = null
+        }
+    }
+
+    readonly addChildAttendee = () => {
+        this.childAttendees.push(new Form({
+            initialValues: {...BLANK_ATTENDEE},
+            validators: ATTENDEE_VALIDATORS
+        }))
+    }
+
+    get isValid() {
+        return this.primaryAdultAttendee.isValid
+            && (this.secondaryAdultAttendee == null || this.secondaryAdultAttendee?.isValid)
+            && this.childAttendees.every(c => c.isValid)
+    }
+
+    readonly createAttendees = request(async () => {
+        if (!this.isValid) {
+            return
+        }
+
+        await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', [
+            this.primaryAdultAttendee.fieldValues,
+            this.secondaryAdultAttendee?.fieldValues,
+            ...this.childAttendees.map(c => c.fieldValues)
+        ].filter(exists))
+    }, { lazy: true })
+}
+
+const ATTENDEE_VALIDATORS: FormValidators<AttendeeInfo> = {
+    name: val => {
+        if (val === '') {
+            return 'Please enter a name'
+        }
+    },
+    twitter_handle: val => {
+        if (val?.startsWith('@')) {
+            return 'No @ needed, just the rest of the handle'
+        }
+    },
+    age_group: val => {
+        if (val == null) {
+            return 'Please select an age group'
+        }
+    }
 }

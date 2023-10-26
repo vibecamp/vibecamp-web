@@ -7,25 +7,28 @@ import Checkbox from './core/Checkbox'
 import InfoBlurb from './core/InfoBlurb'
 import RadioGroup from './core/RadioGroup'
 import Store from '../Store'
+import { Form, fieldToProps } from '../mobx/form'
+import { AttendeeInfo } from '../../../back-end/common/types'
 
 type Props = {
-    attendeeInfo: AttendeeInfo,
+    attendeeInfo: Form<AttendeeInfo>,
     isChild: boolean,
     isAccountHolder: boolean
 }
-
-export type AttendeeInfo = Omit<Tables['attendee'], 'attendee_id' | 'notes'>
 
 export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
 
     return (
         <>
-            {attendeeInfo.name &&
+            {attendeeInfo.fields.name.value &&
                 <div className='attendee-info-form-sticky-header'>
-                    {`${attendeeInfo.name}'s info`}
+                    {`${attendeeInfo.fields.name.value}'s info`}
                 </div>}
 
-            <Input label='Name' value={attendeeInfo.name ?? ''} onChange={val => attendeeInfo.name = val} />
+            <Input
+                label='Name'
+                {...fieldToProps(attendeeInfo.fields.name)}
+            />
 
             <Spacer size={12} />
 
@@ -37,7 +40,12 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
 
             <Spacer size={24} />
 
-            <Input label='Discord handle (optional)' placeholder='gptbrooke' value={attendeeInfo.discord_handle ?? ''} onChange={val => attendeeInfo.discord_handle = val} />
+            <Input 
+                label='Discord handle (optional)'
+                placeholder='gptbrooke' 
+                {...fieldToProps(attendeeInfo.fields.discord_handle)}
+                value={attendeeInfo.fields.discord_handle.value ?? ''}
+            />
 
             <Spacer size={12} />
 
@@ -49,7 +57,12 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
 
             <Spacer size={24} />
 
-            <Input label='Twitter handle (optional)' placeholder='@gptbrooke' value={attendeeInfo.twitter_handle ?? ''} onChange={val => attendeeInfo.twitter_handle = val} />
+            <Input 
+                label='Twitter handle (optional)' 
+                placeholder='@gptbrooke' 
+                {...fieldToProps(attendeeInfo.fields.twitter_handle)}
+                value={attendeeInfo.fields.twitter_handle.value ?? ''}
+            />
 
             <Spacer size={12} />
 
@@ -61,9 +74,8 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
 
             <RadioGroup
                 label={isAccountHolder ? 'I am...' : 'This person is...'}
-                value={attendeeInfo.age_group}
-                onChange={val => attendeeInfo.age_group = val}
                 options={isChild ? CHILD_AGE_GROUP_OPTIONS : ADULT_AGE_GROUP_OPTIONS}
+                {...fieldToProps(attendeeInfo.fields.age_group)}
             />
 
             <Spacer size={12} />
@@ -74,7 +86,7 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
                     : 'This age should be at the time of the festival'}
             </InfoBlurb>
 
-            {attendeeInfo.age_group === 'UNDER_2' &&
+            {attendeeInfo.fields.age_group.value === 'UNDER_2' &&
                 <>
                     <Spacer size={8} />
 
@@ -87,9 +99,8 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
 
             <RadioGroup
                 label='Dietary restriction:'
-                value={attendeeInfo.special_diet}
-                onChange={val => attendeeInfo.special_diet = val}
                 options={DIET_OPTIONS}
+                {...fieldToProps(attendeeInfo.fields.special_diet)}
             />
 
             <Spacer size={24} />
@@ -102,7 +113,7 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
                 <React.Fragment key={allergy}>
                     <Spacer size={8} />
 
-                    <Checkbox value={attendeeInfo[`has_allergy_${allergy}`]} onChange={val => attendeeInfo[`has_allergy_${allergy}`] = val} key={allergy}>
+                    <Checkbox {...fieldToProps(attendeeInfo.fields[`has_allergy_${allergy}`])} key={allergy}>
                         {capitalize(snakeCaseToSpaces(allergy))}
                     </Checkbox>
                 </React.Fragment>)}
@@ -111,9 +122,8 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
 
             <RadioGroup
                 label="I'm interested in volunteering as a..."
-                value={attendeeInfo.interested_in_volunteering_as}
-                onChange={val => attendeeInfo.interested_in_volunteering_as = val}
                 options={VOLUNTEER_OPTIONS}
+                {...fieldToProps(attendeeInfo.fields.interested_in_volunteering_as)}
             />
 
             <Spacer size={12} />
@@ -130,7 +140,7 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
 
             <Spacer size={24} />
 
-            <Checkbox value={attendeeInfo.interested_in_pre_call} onChange={val => attendeeInfo.interested_in_pre_call = val}>
+            <Checkbox {...fieldToProps(attendeeInfo.fields.interested_in_pre_call)}>
                 {`I'm interested in being introduced to other attendees on a
                 video call before the event`}
             </Checkbox>
