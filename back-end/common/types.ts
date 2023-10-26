@@ -24,6 +24,10 @@ export type FullAccountInfo = {
     }>
 }
 
+export type AttendeeInfo = Omit<Tables['attendee'], 'attendee_id' | 'notes' | 'associated_account_id' | 'age_group'> & {
+    age_group: Tables['attendee']['age_group'] | null
+}
+
 export type UnknownObject = Record<string | number | symbol, unknown>
 
 export type Maybe<T> = T | null | undefined

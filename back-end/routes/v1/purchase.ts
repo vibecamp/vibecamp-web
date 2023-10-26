@@ -12,6 +12,23 @@ import { Purchases } from '../../common/route-types.ts'
 import { PURCHASE_TYPES_BY_TYPE } from '../../common/types.ts'
 
 export default function register(router: Router) {
+  defineRoute(router, {
+    endpoint: '/purchase/create-attendees',
+    method: 'post',
+    requireAuth: true,
+    handler: async ({ jwt: { account_id }, body: attendees }) => {
+      await withDBConnection(async db => {
+        for (const attendee of attendees) {
+          db.insertTable('attendee', {
+            ...attendee,
+            associated_account_id: account_id
+          })
+        }
+      })
+
+      return [null, Status.OK]
+    }
+  })
 
   defineRoute(router, {
     endpoint: '/purchase/create-intent',
@@ -107,13 +124,10 @@ export default function register(router: Router) {
           .map(([key, value]) => [key, Number(value)])) // convert counts back to numbers
 
         return await withDBTransaction(async (db) => {
-          const festival_id = (await db.queryTable('next_festival'))[0]?.festival_id
-
           for (const [purchaseType, count] of objectEntries(purchases)) {
             for (let i = 0; i < count!; i++) {
               await db.insertTable('purchase', {
-                festival_id,
-                owned_by_account_id: accountId,
+                owned_by_account_id: accountId ?? null,
                 // assigned_to_attendee_id: 
                 purchase_type_id: purchaseType
               })

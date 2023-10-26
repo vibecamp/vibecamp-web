@@ -1,5 +1,5 @@
 import { TABLE_ROWS, Tables } from "../db-types.ts"
-import { FullAccountInfo } from "./types.ts"
+import { AttendeeInfo, FullAccountInfo } from "./types.ts"
 
 export type Routes = {
     '/account': {
@@ -63,6 +63,11 @@ export type Routes = {
         method: 'get',
         body: undefined,
         response: { events: null }
+    },
+    '/purchase/create-attendees': {
+        method: 'post',
+        body: AttendeeInfo[],
+        response: null
     },
     '/purchase/create-intent': {
         method: 'post',
