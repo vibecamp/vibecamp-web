@@ -20,9 +20,14 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
 
     return (
         <>
+            {attendeeInfo.name &&
+                <div className='attendee-info-form-sticky-header'>
+                    {`${attendeeInfo.name}'s info`}
+                </div>}
+
             <Input label='Name' value={attendeeInfo.name ?? ''} onChange={val => attendeeInfo.name = val} />
 
-            <Spacer size={8} />
+            <Spacer size={12} />
 
             <InfoBlurb>
                 {`Whatever name you'd like to go by (in comms, etc). Can be
@@ -34,11 +39,19 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
 
             <Input label='Discord handle (optional)' placeholder='gptbrooke' value={attendeeInfo.discord_handle ?? ''} onChange={val => attendeeInfo.discord_handle = val} />
 
+            <Spacer size={12} />
+
+            <InfoBlurb>
+                {`If you provide your Discord handle, we can give you attendee 
+                status on the Vibecamp server and add you to attendee-specific
+                channels`}
+            </InfoBlurb>
+
             <Spacer size={24} />
 
             <Input label='Twitter handle (optional)' placeholder='@gptbrooke' value={attendeeInfo.twitter_handle ?? ''} onChange={val => attendeeInfo.twitter_handle = val} />
 
-            <Spacer size={8} />
+            <Spacer size={12} />
 
             <InfoBlurb>
                 {'Username, not display name!'}
@@ -53,7 +66,7 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
                 options={isChild ? CHILD_AGE_GROUP_OPTIONS : ADULT_AGE_GROUP_OPTIONS}
             />
 
-            <Spacer size={8} />
+            <Spacer size={12} />
 
             <InfoBlurb>
                 {Store.festival.state.result != null
@@ -72,14 +85,27 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
 
             <Spacer size={24} />
 
-            <Input label='Dietary restrictions' placeholder='(none)' multiline value={attendeeInfo.dietary_restrictions} onChange={val => attendeeInfo.dietary_restrictions = val} />
+            <RadioGroup
+                label='Dietary restriction:'
+                value={attendeeInfo.special_diet}
+                onChange={val => attendeeInfo.special_diet = val}
+                options={DIET_OPTIONS}
+            />
 
-            <Spacer size={8} />
+            <Spacer size={24} />
 
-            <InfoBlurb>
-                {`Including allergies, intolerances, and religious/ethical
-                restrictions`}
-            </InfoBlurb>
+            <div>
+                Allergies:
+            </div>
+
+            {ALLERGIES.map(allergy =>
+                <React.Fragment key={allergy}>
+                    <Spacer size={8} />
+
+                    <Checkbox value={attendeeInfo[`has_allergy_${allergy}`]} onChange={val => attendeeInfo[`has_allergy_${allergy}`] = val} key={allergy}>
+                        {capitalize(snakeCaseToSpaces(allergy))}
+                    </Checkbox>
+                </React.Fragment>)}
 
             <Spacer size={24} />
 
@@ -90,32 +116,32 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
                 options={VOLUNTEER_OPTIONS}
             />
 
-            <Spacer size={8} />
+            <Spacer size={12} />
 
             <InfoBlurb>
                 Volunteers for vibeclipse fall into two major categories. Fae, and general volunteers.
-                <Spacer size={4} />
+                <Spacer size={6} />
                 Fae are part of our safety team, which is responsible for psychological, social, and physical safety during the event.
-                <Spacer size={4} />
+                <Spacer size={6} />
                 General volunteers are our muscle. They will be tasked with setup, breakdown, and general physical tasks.
-                <Spacer size={4} />
+                <Spacer size={6} />
                 If you indicate you are willing to volunteer we will reach out to you with more details via email.
             </InfoBlurb>
 
             <Spacer size={24} />
+
+            <Checkbox value={attendeeInfo.interested_in_pre_call} onChange={val => attendeeInfo.interested_in_pre_call = val}>
+                {`I'm interested in being introduced to other attendees on a
+                video call before the event`}
+            </Checkbox>
+
+            <Spacer size={12} />
 
             <InfoBlurb>
                 {`We're all about building community, and we'd like to do that
                 even when we aren't renting out a campground. Would you like
                 to participate in group videocalls or other online gatherings?`}
             </InfoBlurb>
-
-            <Spacer size={8} />
-
-            <Checkbox value={attendeeInfo.interested_in_pre_call} onChange={val => attendeeInfo.interested_in_pre_call = val}>
-                {`I'm interested in being introduced to other attendees on a
-                video call before the event`}
-            </Checkbox>
 
         </>
     )
@@ -145,3 +171,26 @@ const VOLUNTEER_OPTIONS = [
             label: description
         }))
 ] as const
+
+const DIET_OPTIONS = [
+    { value: null, label: 'No restrictions' },
+    ...TABLE_ROWS.diet
+        .map(diet => ({
+            value: diet.diet_id,
+            label: diet.description
+        }))
+]
+
+const ALLERGIES = [
+    'milk',
+    'eggs',
+    'fish',
+    'shellfish',
+    'tree_nuts',
+    'peanuts',
+    'wheat',
+    'soy'
+] as const
+
+const capitalize = (str: string) => str[0]?.toUpperCase() + str.substring(1)
+const snakeCaseToSpaces = (str: string) => str.replaceAll('_', ' ')

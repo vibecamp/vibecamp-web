@@ -229,3 +229,17 @@ iframe {
     margin: 0 !important;
     width: 100% !important;
 }
+
+.attendee-info-form-sticky-header {
+    position: sticky;
+    top: 8px;
+    left: -20;
+    background: white;
+    z-index: 10;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+}

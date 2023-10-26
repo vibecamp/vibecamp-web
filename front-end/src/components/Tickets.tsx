@@ -189,11 +189,11 @@ const SelectionView: FC<{ purchaseState: typeof INITIAL_PURCHASE_STATE, goToNext
 
                 <AttendeeInfoForm attendeeInfo={purchaseState.primaryAdultAttendee} isChild={false} isAccountHolder={true} />
 
-                <Spacer size={24} />
+                <Spacer size={32} />
 
                 <hr/>
 
-                <Spacer size={24} />
+                <Spacer size={32} />
 
                 <Checkbox value={purchaseState.secondaryAdultAttendee != null} onChange={bringing => {
                     if (bringing) {
@@ -221,20 +221,24 @@ const SelectionView: FC<{ purchaseState: typeof INITIAL_PURCHASE_STATE, goToNext
                         <AttendeeInfoForm attendeeInfo={purchaseState.secondaryAdultAttendee} isChild={false} isAccountHolder={false} />
                     </>}
 
-                <Spacer size={24} />
+                <Spacer size={32} />
 
                 <hr/>
 
-                <Spacer size={24} />
+                <Spacer size={32} />
 
                 {purchaseState.childAttendees.map((attendee, index) =>
                     <React.Fragment key={index}>
+                        <AttendeeInfoForm attendeeInfo={attendee} isChild={true} isAccountHolder={false} />
+
                         <Spacer size={24} />
 
-                        <AttendeeInfoForm attendeeInfo={attendee} isChild={true} isAccountHolder={false} />
-                    </React.Fragment>)}
+                        <Button isDanger onClick={() => purchaseState.childAttendees.splice(index, 1)}>
+                            Remove
+                        </Button>
 
-                <Spacer size={24} />
+                        <Spacer size={32} />
+                    </React.Fragment>)}
 
                 <Button onClick={() => purchaseState.childAttendees.push({...BLANK_ATTENDEE})} disabled={purchaseState.childAttendees.length >= 5}>
                     + Add a minor
@@ -300,7 +304,6 @@ const InviteCode: FC<{ code: string, usedBy: Maybe<string> }> = observer(({ code
 })
 
 const BLANK_ATTENDEE: Readonly<AttendeeInfo> = {
-    dietary_restrictions: '',
     name: null,
     discord_handle: null,
     twitter_handle: null,
@@ -309,7 +312,16 @@ const BLANK_ATTENDEE: Readonly<AttendeeInfo> = {
     planning_to_camp: false,
     associated_account_id: 1,
     age_group: null,
-    medical_training: null
+    medical_training: null,
+    special_diet: null,
+    has_allergy_milk: false,
+    has_allergy_eggs: false,
+    has_allergy_fish: false,
+    has_allergy_shellfish: false,
+    has_allergy_tree_nuts: false,
+    has_allergy_peanuts: false,
+    has_allergy_wheat: false,
+    has_allergy_soy: false,
 }
 
 const INITIAL_PURCHASE_STATE = {
