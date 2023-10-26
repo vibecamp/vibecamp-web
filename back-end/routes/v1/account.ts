@@ -80,14 +80,22 @@ export default function register(router: Router) {
     endpoint: '/account/update-attendee',
     method: 'put',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { age_group, attendee_id, dietary_restrictions, discord_handle, interested_in_pre_call, interested_in_volunteering, name, planning_to_camp } }) => {
+    handler: async ({ jwt: { account_id }, body: { age_group, attendee_id, special_diet, has_allergy_eggs, has_allergy_fish, has_allergy_shellfish, has_allergy_soy, has_allergy_wheat, has_allergy_milk, has_allergy_peanuts, has_allergy_tree_nuts, discord_handle, interested_in_pre_call, interested_in_volunteering_as, name, planning_to_camp } }) => {
       const attendee = await withDBConnection(async db =>
         (await db.updateTable('attendee', {
           age_group,
-          dietary_restrictions,
           discord_handle,
           interested_in_pre_call,
-          interested_in_volunteering,
+          interested_in_volunteering_as,
+          special_diet,
+          has_allergy_eggs,
+          has_allergy_fish,
+          has_allergy_shellfish,
+          has_allergy_soy,
+          has_allergy_wheat,
+          has_allergy_milk,
+          has_allergy_peanuts,
+          has_allergy_tree_nuts,
           name,
           planning_to_camp
         }, [

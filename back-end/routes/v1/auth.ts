@@ -52,7 +52,7 @@ export default function register(router: Router) {
       const uncreatedInviteCodes = referralStatus.allowedToRefer - inviteCodes.length
       if (uncreatedInviteCodes > 0) {
         await withDBTransaction(async (db) => {
-          if (nextFestival != null) {
+          if (nextFestival?.festival_id != null) {
             for (let i = 0; i < uncreatedInviteCodes; i++) {
               await db.insertTable('invite_code', {
                 created_by_account_id: account.account_id,
