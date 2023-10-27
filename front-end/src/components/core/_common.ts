@@ -1,7 +1,7 @@
 
 export type CommonFieldProps<T> = {
 
-    label: string,
+    label?: string,
 
     value: T,
     

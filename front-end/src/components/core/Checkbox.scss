@@ -1,9 +1,8 @@
-
 .checkbox {
     display: flex;
     align-items: baseline;
 
-    > input[type="checkbox"] {
+    >input[type="checkbox"] {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -26,7 +25,7 @@
             opacity: 0;
             transition: all 0.1s ease-out;
         }
-        
+
         &:checked {
             background: var(--color-accent-1);
             border-color: var(--color-accent-1);
@@ -35,6 +34,20 @@
                 opacity: 1;
             }
         }
+    }
 
+    >.error {
+        color: red;
+        overflow: hidden;
+        height: 1.2em;
+        margin-top: 4px;
+
+        transition: all 0.1s ease-out;
+
+        &:not(.visible) {
+            pointer-events: none;
+            opacity: 0;
+            height: 0;
+        }
     }
 }

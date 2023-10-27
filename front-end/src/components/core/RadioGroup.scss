@@ -1,62 +1,76 @@
-
 .radio-group {
-    border: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    
-    &:disabled {
-        opacity: 0.6;
+  border: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 
-        > label {
-            cursor: default;
-        }
+  &:disabled {
+    opacity: 0.6;
+
+    >label {
+      cursor: default;
     }
+  }
 
-    > label {
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      
-      > input {
-        appearance: none;
-        margin: 0;
-        position: relative;
-        
+  >label {
+    margin-top: 8px;
+    display: flex;
+    align-items:center;
+    cursor: pointer;
+
+    >input {
+      appearance: none;
+      margin: 0;
+      position: relative;
+
+      &::before {
+        content: '';
+        display: block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        margin-right: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        transition: all 0.1s ease-out;
+      }
+
+      &::after {
+        content: '';
+        display: block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: transparent;
+        position: absolute;
+        top: calc(8px - 3px);
+        left: calc(8px - 3px);
+        transition: all 0.1s ease-out;
+      }
+
+      &:checked {
         &::before {
-          content: '';
-          display: block;
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
-          margin-right: 8px;
-          border: 1px solid rgba(0, 0, 0, 0.2);
-          transition: all 0.1s ease-out;
+          background: rgb(79, 176, 229);
+          border-color: transparent;
         }
-        
         &::after {
-          content: '';
-          display: block;
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: transparent;
-          position: absolute;
-          top: calc(8px - 3px);
-          left: calc(8px - 3px);
-          transition: all 0.1s ease-out;
-        }
-        
-        &:checked {
-          &::before {
-            background: rgb(79, 176, 229);
-            border-color: transparent;
-          }
-          &::after {
-            background: rgba(255, 255, 255, 0.8);
-          }
+          background: rgba(255, 255, 255, 0.8);
         }
       }
     }
   }
+
+  >.error {
+    color: red;
+    overflow: hidden;
+    height: 1.2em;
+    margin-top: 4px;
+
+    transition: all 0.1s ease-out;
+
+    &:not(.visible) {
+      pointer-events: none;
+      opacity: 0;
+      height: 0;
+    }
+  }
+}
