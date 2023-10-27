@@ -9,11 +9,14 @@ import { StripeElementsOptions, loadStripe } from '@stripe/stripe-js'
 import env from '../../env'
 import { useRequestWithDependencies } from '../../mobx/hooks'
 import { preventingDefault } from '../../utils'
+import PriceBreakdown from '../PriceBreakdown'
+import { Purchases } from '../../../../back-end/common/route-types'
 
 const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 
 type Props = {
     stripeOptions: StripeElementsOptions | undefined,
+    purchases?: Purchases,
     onPrePurchase?: () => Promise<void> | void,
     redirectUrl: string
 }
@@ -30,7 +33,7 @@ export default observer(({ stripeOptions, ...otherProps }: Props) => {
     )
 })
 
-const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ onPrePurchase, redirectUrl }) => {
+const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ purchases, onPrePurchase, redirectUrl }) => {
     const stripe = useStripe()
     const elements = useElements()
 
@@ -68,10 +71,16 @@ const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ onPrePurc
                 <Col padding={20}>
                     <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
 
+                    {purchases &&
+                        <>
+                            <Spacer size={16} />
+
+                            <PriceBreakdown purchases={purchases} />
+                        </>}
+
                     <Spacer size={16} />
 
-                    {confirmPayment.state.result &&
-                        confirmPayment.state.result}
+                    {confirmPayment.state.result}
 
                     <Spacer size={8} />
 
