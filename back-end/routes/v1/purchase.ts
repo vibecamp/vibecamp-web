@@ -60,8 +60,13 @@ export default function register(router: Router) {
           count: Number(row.count)
         })))
 
-      for (const [purchaseType, toPurchaseCount] of objectEntries(purchases)) {
-        const { festival_id, max_available, max_per_account } = PURCHASE_TYPES_BY_TYPE[purchaseType]
+      for (const [purchaseTypeId, toPurchaseCount] of objectEntries(purchases)) {
+        const purchaseType = PURCHASE_TYPES_BY_TYPE[purchaseTypeId]
+        if (purchaseType == null) {
+          throw Error(`Can't create purchase intent with invalid purchase type: ${purchaseTypeId}`)
+        }
+
+        const { festival_id, max_available, max_per_account } = purchaseType
 
         // TODO: check max_available against total purchased across all accounts
 
@@ -69,7 +74,7 @@ export default function register(router: Router) {
           return [null, Status.Unauthorized]
         }
 
-        const alreadyPurchasedCount = alreadyPurchased.find(p => p.purchase_type_id === purchaseType)?.count ?? 0
+        const alreadyPurchasedCount = alreadyPurchased.find(p => p.purchase_type_id === purchaseTypeId)?.count ?? 0
 
         if (max_per_account != null && alreadyPurchasedCount + toPurchaseCount! > max_per_account) {
           return [null, Status.Unauthorized]

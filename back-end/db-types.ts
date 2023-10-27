@@ -82,10 +82,14 @@ export type TableName = keyof Tables
 
 export const TABLE_ROWS = {
   purchase_type: [
-    {"purchase_type_id":"BUS_VIBECLIPSE_2024","price_in_cents":1200,"festival_id":1,"max_available":null,"description":"Bus ticket (two-way)","max_per_account":null},
-    {"purchase_type_id":"SLEEPING_BAG_VIBECLIPSE_2024","price_in_cents":1200,"festival_id":1,"max_available":null,"description":"Sleeping bag","max_per_account":null},
     {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024","price_in_cents":12300,"festival_id":1,"max_available":600,"description":"Adult Ticket","max_per_account":2},
     {"purchase_type_id":"ATTENDANCE_CHILD_VIBECLIPSE_2024","price_in_cents":12300,"festival_id":1,"max_available":null,"description":"Child Ticket","max_per_account":4},
+    {"purchase_type_id":"SLEEPING_BAG_VIBECLIPSE_2024","price_in_cents":3500,"festival_id":1,"max_available":null,"description":"Sleeping bag","max_per_account":null},
+    {"purchase_type_id":"BUS_330PM_VIBECLIPSE_2024","price_in_cents":6000,"festival_id":1,"max_available":null,"description":"Bus leaving AUS at 3:30 PM EST (meet at 3:00)","max_per_account":null},
+    {"purchase_type_id":"BUS_430PM_VIBECLIPSE_2024","price_in_cents":6000,"festival_id":1,"max_available":null,"description":"Bus leaving AUS at 4:30 PM EST (meet at 4:00)","max_per_account":null},
+    {"purchase_type_id":"BUS_730PM_VIBECLIPSE_2024","price_in_cents":6000,"festival_id":1,"max_available":50,"description":"Bus leaving AUS at 7:30 PM EST (meet at 7:15, 50 available)","max_per_account":null},
+    {"purchase_type_id":"BUS_830PM_VIBECLIPSE_2024","price_in_cents":6000,"festival_id":1,"max_available":50,"description":"Bus leaving AUS at 8:30 PM EST (meet at 8:15, 50 available)","max_per_account":null},
+    {"purchase_type_id":"PILLOW_WITH_CASE_VIBECLIPSE_2024","price_in_cents":2000,"festival_id":1,"max_available":null,"description":"Pillow (with pillowcase)","max_per_account":null},
   ],
   volunteer_type: [
     {"volunteer_type_id":"FAE","description":"Fae"},
