@@ -1,7 +1,7 @@
 name: Typecheck, lint, and build front-end
 on: [push]
 jobs:
-  Lint:
+  front-end | Lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -11,7 +11,7 @@ jobs:
       - name: Lint
         working-directory: front-end
         run: npx eslint .
-  Typecheck:
+  front-end | Typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,15 +21,10 @@ jobs:
       - name: Typecheck
         working-directory: front-end
         run: npx tsc --noEmit
-  Build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: npm install
-        working-directory: front-end
-        run: npm install
-      - name: Build
-        working-directory: front-end
-        run: ./build.sh
-
-
+    back-end | Check:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - name: Typecheck
+          working-directory: back-end
+          run: deno task check

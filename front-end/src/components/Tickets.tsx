@@ -386,7 +386,6 @@ const InviteCode: FC<{ code: string, usedBy: Maybe<string> }> = observer(({ code
 })
 
 const BUS_TICKET_OPTIONS = [
-    { value: null, label: 'No Cost - I\'ll get myself to camp, thanks!' },
     ...[
         PURCHASE_TYPES_BY_TYPE.BUS_330PM_VIBECLIPSE_2024,
         PURCHASE_TYPES_BY_TYPE.BUS_430PM_VIBECLIPSE_2024,
@@ -395,7 +394,8 @@ const BUS_TICKET_OPTIONS = [
     ].map(r => ({
         value: r.purchase_type_id,
         label: `$${(r.price_in_cents / 100).toFixed(2)} - ${r.description}`
-    }))
+    })),
+    { value: null, label: 'No Cost - I\'ll get myself to camp, thanks!' },
 ]
 
 const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
