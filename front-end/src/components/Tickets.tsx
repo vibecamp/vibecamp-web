@@ -96,12 +96,12 @@ export default observer(() => {
                                         </>}
 
                                     {Store.purchasedTickets.map(p => {
-                                        const attendee = Store.accountInfo.state.result?.attendees.find(a => a.attendee_id === p.assigned_to_attendee_id)
-                                        const ageGroup = TABLE_ROWS.age_group.find(a => a.age_group === attendee?.age_group)
+                                        // const attendee = Store.accountInfo.state.result?.attendees.find(a => a.attendee_id === p.assigned_to_attendee_id)
+                                        // const ageGroup = TABLE_ROWS.age_group.find(a => a.age_group === attendee?.age_group)
 
                                         return (
                                             <React.Fragment key={p.purchase_id}>
-                                                <Ticket name={attendee?.name} ticketType={ageGroup?.is_child ? 'child' : 'adult'} />
+                                                <Ticket name={undefined} ticketType={p.purchase_type_id === 'ATTENDANCE_CHILD_VIBECLIPSE_2024' ? 'child' : 'adult'} />
                                                 <Spacer size={24} />
                                             </React.Fragment>
                                         )

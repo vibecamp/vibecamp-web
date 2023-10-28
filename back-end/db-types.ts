@@ -69,7 +69,6 @@ export type Tables = {
     start_date: Date | null,
   },
   purchase: {
-    assigned_to_attendee_id: number | null,
     owned_by_account_id: number | null,
     purchase_id: number,
     purchase_type_id: string,
