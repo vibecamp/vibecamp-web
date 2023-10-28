@@ -24,6 +24,7 @@ export type Tables = {
     has_allergy_wheat: boolean,
     interested_in_pre_call: boolean,
     interested_in_volunteering_as: string | null,
+    is_primary_for_account: boolean,
     medical_training: string | null,
     name: string,
     notes: string,
