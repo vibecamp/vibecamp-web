@@ -23,8 +23,8 @@ export default observer(() => {
             password: '',
         },
         validators: {
-            emailAddress: getEmailValidationError,
-            password: getPasswordValidationError
+            emailAddress: val => state.mode === 'login' ? getEmailValidationError(val) : undefined,
+            password: val => state.mode === 'signup' ? getPasswordValidationError(val) : undefined
         }
     }))
 
