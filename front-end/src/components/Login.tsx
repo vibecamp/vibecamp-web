@@ -71,6 +71,7 @@ export default observer(() => {
                     label='Password'
                     type='password'
                     disabled={loginOrSignup.state.kind === 'loading'}
+                    autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
                     {...fieldToProps(loginForm.fields.password)}
                 />
 

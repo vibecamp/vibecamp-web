@@ -6,10 +6,11 @@ import { CommonFieldProps } from './_common'
 type Props = CommonFieldProps<string> & {
     placeholder?: string,
     type?: HTMLInputTypeAttribute,
-    multiline?: boolean
+    multiline?: boolean,
+    autocomplete?: 'new-password' | 'current-password'
 }
 
-export default observer(({ label, placeholder, type, disabled, value, onChange, onBlur, error, multiline }: Props) => {
+export default observer(({ label, placeholder, type, disabled, value, onChange, onBlur, error, multiline, autocomplete }: Props) => {
     const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         onChange(e.target.value)
     }, [onChange])
@@ -38,6 +39,7 @@ export default observer(({ label, placeholder, type, disabled, value, onChange, 
                     type={type} 
                     disabled={disabled} 
                     placeholder={placeholder}
+                    autoComplete={autocomplete}
                 />}
 
             <div className={`error ${error != null ? 'visible' : ''}`}>
