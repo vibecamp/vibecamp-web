@@ -199,13 +199,6 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
     return (
         <form onSubmit={preventingDefault(goToNext)}>
             <Col padding={20}>
-                {/* You currently have:
-                <div>
-                    {Store.purchasedTickets.length} adult tickets, and
-                </div>
-                <div>
-                    {0} child tickets
-                </div> */}
 
                 <AttendeeInfoForm attendeeInfo={purchaseState.primaryAdultAttendee} isChild={false} isAccountHolder={true} />
 
@@ -219,7 +212,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                     {'I\'m bringing another adult with me'}
                 </Checkbox>
 
-                <Spacer size={8} />
+                <Spacer size={12} />
 
                 <InfoBlurb>
                     {`You can purchase a ticket for up to one other adult attendee
@@ -260,18 +253,18 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
 
                 {purchaseState.childAttendees.length === 5 &&
                     <>
-                        <Spacer size={8} />
+                        <Spacer size={12} />
 
                         <InfoBlurb>
                             {'Can\'t buy tickets for more than five children on one account, sorry!'}
                         </InfoBlurb>
                     </>}
 
-                <Spacer size={8} />
+                <Spacer size={12} />
 
                 <InfoBlurb>
                     {`Minors between age 2-18 will need their own tickets, but
-                    those will live under your account. Children under 2 years
+                    those will live under your account. Children under two years
                     old do not need a ticket.`}
                 </InfoBlurb>
 
@@ -284,7 +277,10 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                 <RadioGroup
                     value={purchaseState.needsSleepingBags}
                     onChange={val => purchaseState.needsSleepingBags = val}
-                    options={BEDDING_OPTIONS}
+                    options={[
+                        { value: true, label: `Yes, I would like to purchase ${purchaseState.allAttendeeForms.length === 1 ? 'a sleeping bag' : `${purchaseState.allAttendeeForms.length} sleeping bags`} ($${PURCHASE_TYPES_BY_TYPE.SLEEPING_BAG_VIBECLIPSE_2024.price_in_cents / 100} each)` },
+                        { value: false, label: `No, ${purchaseState.allAttendeeForms.length === 1 ? 'I' : 'we'} will be bringing ${purchaseState.allAttendeeForms.length === 1 ? 'my' : 'our'} own bedding` },
+                    ] }
                     error={
                         purchaseState.selectionValidationActive &&
                             purchaseState.needsSleepingBags === undefined
@@ -296,7 +292,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                 <Spacer size={16} />
 
                 <Checkbox value={purchaseState.needsPillow} onChange={val => purchaseState.needsPillow = val}>
-                    I would like a pillow (${PURCHASE_TYPES_BY_TYPE.PILLOW_WITH_CASE_VIBECLIPSE_2024.price_in_cents / 100} each)
+                    I would like {purchaseState.allAttendeeForms.length === 1 ? 'a pillow' : `${purchaseState.allAttendeeForms.length} pillows`} (${PURCHASE_TYPES_BY_TYPE.PILLOW_WITH_CASE_VIBECLIPSE_2024.price_in_cents / 100} each)
                 </Checkbox>
 
                 <Spacer size={24} />
@@ -385,11 +381,6 @@ const InviteCode: FC<{ code: string, usedBy: Maybe<string> }> = observer(({ code
     )
 })
 
-const BEDDING_OPTIONS = [
-    { value: true, label: `Yes, I would like to purchase sleeping bag(s) ($${PURCHASE_TYPES_BY_TYPE.SLEEPING_BAG_VIBECLIPSE_2024.price_in_cents / 100} each)` },
-    { value: false, label: 'No, I will be bringing my own bedding' },
-] as const
-
 const BUS_TICKET_OPTIONS = [
     { value: null, label: 'No Cost - I\'ll get myself to camp, thanks!' },
     ...[
@@ -403,7 +394,7 @@ const BUS_TICKET_OPTIONS = [
     }))
 ]
 
-const BLANK_ATTENDEE: Readonly<AttendeeInfo> = {
+const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
     name: '',
     discord_handle: null,
     twitter_handle: null,
@@ -429,7 +420,7 @@ class PurchaseFormState {
     }
 
     primaryAdultAttendee = new Form({
-        initialValues: { ...BLANK_ATTENDEE },
+        initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: true },
         validators: attendeeValidators(false)
     })
 
@@ -453,7 +444,7 @@ class PurchaseFormState {
     readonly setBringingSecondary = (bringing: boolean) => {
         if (bringing) {
             this.secondaryAdultAttendee = new Form({
-                initialValues: { ...BLANK_ATTENDEE },
+                initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean },
                 validators: attendeeValidators(false)
             })
         } else {
@@ -463,7 +454,7 @@ class PurchaseFormState {
 
     readonly addChildAttendee = () => {
         this.childAttendees.push(new Form({
-            initialValues: { ...BLANK_ATTENDEE },
+            initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean },
             validators: attendeeValidators(true)
         }))
     }

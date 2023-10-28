@@ -1,6 +1,6 @@
 import React from 'react'
 import { observer } from 'mobx-react-lite'
-import { TABLE_ROWS, Tables } from '../../../back-end/db-types'
+import { TABLE_ROWS } from '../../../back-end/db-types'
 import Input from './core/Input'
 import Spacer from './core/Spacer'
 import Checkbox from './core/Checkbox'
@@ -12,11 +12,14 @@ import { AttendeeInfo } from '../../../back-end/common/types'
 
 type Props = {
     attendeeInfo: Form<AttendeeInfo>,
-    isChild: boolean,
-    isAccountHolder: boolean
+    isAccountHolder: boolean,
+    isChild: boolean
 }
 
-export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
+const INFO_BLURB_SPACE = 12
+const FIELD_SPACE = 24
+
+export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
 
     return (
         <>
@@ -26,19 +29,19 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
                 </div>}
 
             <Input
-                label='Name'
+                label='Attendee name'
                 {...fieldToProps(attendeeInfo.fields.name)}
             />
 
-            <Spacer size={12} />
+            <Spacer size={INFO_BLURB_SPACE} />
 
             <InfoBlurb>
-                {`Whatever name you'd like to go by (in comms, etc). Can be
+                {`Whatever name ${isAccountHolder ? 'you\'d' : 'this person would'} like to go by (in comms, etc). Can be
                 real or twitter display name or whatever. Does not need to be
-                your legal name!`}
+                ${isAccountHolder ? 'your' : 'their'} legal name!`}
             </InfoBlurb>
 
-            <Spacer size={24} />
+            <Spacer size={FIELD_SPACE} />
 
             <Input 
                 label='Discord handle (optional)'
@@ -47,15 +50,15 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
                 value={attendeeInfo.fields.discord_handle.value ?? ''}
             />
 
-            <Spacer size={12} />
+            <Spacer size={INFO_BLURB_SPACE} />
 
             <InfoBlurb>
-                {`If you provide your Discord handle, we can give you attendee 
-                status on the Vibecamp server and add you to attendee-specific
+                {`If ${isAccountHolder ? 'you' : 'they'} provide ${isAccountHolder ? 'your' : 'their'} Discord handle, we can give ${isAccountHolder ? 'you' : 'them'} attendee 
+                status on the Vibecamp server and add ${isAccountHolder ? 'you' : 'them'} to attendee-specific
                 channels`}
             </InfoBlurb>
 
-            <Spacer size={24} />
+            <Spacer size={FIELD_SPACE} />
 
             <Input 
                 label='Twitter handle (optional)' 
@@ -64,13 +67,13 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
                 value={attendeeInfo.fields.twitter_handle.value ?? ''}
             />
 
-            <Spacer size={12} />
+            <Spacer size={INFO_BLURB_SPACE} />
 
             <InfoBlurb>
                 {'Username, not display name!'}
             </InfoBlurb>
 
-            <Spacer size={24} />
+            <Spacer size={FIELD_SPACE} />
 
             <RadioGroup
                 label={isAccountHolder ? 'I am...' : 'This person is...'}
@@ -78,24 +81,24 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
                 {...fieldToProps(attendeeInfo.fields.age_group)}
             />
 
-            <Spacer size={12} />
+            {attendeeInfo.fields.age_group.value === 'UNDER_2' &&
+                <>
+                    <Spacer size={INFO_BLURB_SPACE} />
+    
+                    <InfoBlurb>
+                        {'Children under two don\'t need a ticket!'}
+                    </InfoBlurb>
+                </>}
 
+            <Spacer size={INFO_BLURB_SPACE} />
+                
             <InfoBlurb>
                 {Store.festival.state.result != null
                     ? `This age should be at the time of ${Store.festival.state.result.festival_name} (${Store.festival.state.result.start_date.toDateString()} - ${Store.festival.state.result.end_date.toDateString()})`
                     : 'This age should be at the time of the festival'}
             </InfoBlurb>
 
-            {attendeeInfo.fields.age_group.value === 'UNDER_2' &&
-                <>
-                    <Spacer size={8} />
-
-                    <InfoBlurb>
-                        {'Children under 2 don\'t need a ticket!'}
-                    </InfoBlurb>
-                </>}
-
-            <Spacer size={24} />
+            <Spacer size={FIELD_SPACE} />
 
             <RadioGroup
                 label='Dietary restriction:'
@@ -103,7 +106,7 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
                 {...fieldToProps(attendeeInfo.fields.special_diet)}
             />
 
-            <Spacer size={24} />
+            <Spacer size={FIELD_SPACE} />
 
             <div>
                 Allergies:
@@ -118,41 +121,46 @@ export default observer(({ attendeeInfo, isChild, isAccountHolder }: Props) => {
                     </Checkbox>
                 </React.Fragment>)}
 
-            <Spacer size={24} />
+            {!isChild &&
+                <>
+                    <Spacer size={FIELD_SPACE} />
+    
+                    <RadioGroup
+                        label={`${isAccountHolder ? 'I\'m' : 'They\'re'} interested in volunteering as a...`}
+                        options={VOLUNTEER_OPTIONS}
+                        {...fieldToProps(attendeeInfo.fields.interested_in_volunteering_as)}
+                    />
+    
+                    <Spacer size={INFO_BLURB_SPACE} />
+                
+                    <InfoBlurb>
+                        Volunteers for vibeclipse fall into two major categories. Fae, and general volunteers.
+                        <Spacer size={6} />
+                        Fae are part of our safety team, which is responsible for psychological, social, and physical safety during the event.
+                        <Spacer size={6} />
+                        General volunteers are our muscle. They will be tasked with setup, breakdown, and general physical tasks.
+                        <Spacer size={6} />
+                        {isAccountHolder
+                            ? 'If you indicate you are willing to volunteer we will reach out to you with more details via email.'
+                            : 'If this person indicates they are willing to volunteer we will reach out to you with more details via email.'}
+                        
+                    </InfoBlurb>
+                    
+                    <Spacer size={FIELD_SPACE} />
 
-            <RadioGroup
-                label="I'm interested in volunteering as a..."
-                options={VOLUNTEER_OPTIONS}
-                {...fieldToProps(attendeeInfo.fields.interested_in_volunteering_as)}
-            />
-
-            <Spacer size={12} />
-
-            <InfoBlurb>
-                Volunteers for vibeclipse fall into two major categories. Fae, and general volunteers.
-                <Spacer size={6} />
-                Fae are part of our safety team, which is responsible for psychological, social, and physical safety during the event.
-                <Spacer size={6} />
-                General volunteers are our muscle. They will be tasked with setup, breakdown, and general physical tasks.
-                <Spacer size={6} />
-                If you indicate you are willing to volunteer we will reach out to you with more details via email.
-            </InfoBlurb>
-
-            <Spacer size={24} />
-
-            <Checkbox {...fieldToProps(attendeeInfo.fields.interested_in_pre_call)}>
-                {`I'm interested in being introduced to other attendees on a
-                video call before the event`}
-            </Checkbox>
-
-            <Spacer size={12} />
-
-            <InfoBlurb>
-                {`We're all about building community, and we'd like to do that
-                even when we aren't renting out a campground. Would you like
-                to participate in group videocalls or other online gatherings?`}
-            </InfoBlurb>
-
+                    <Checkbox {...fieldToProps(attendeeInfo.fields.interested_in_pre_call)}>
+                        {`${isAccountHolder ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
+                        video call before the event`}
+                    </Checkbox>
+                    
+                    <Spacer size={INFO_BLURB_SPACE} />
+                
+                    <InfoBlurb>
+                        {`We're all about building community, and we'd like to do that
+                        even when we aren't renting out a campground. Would ${isAccountHolder ? 'you' : 'this person'} like
+                        to participate in group videocalls or other online gatherings?`}
+                    </InfoBlurb>
+                </>}
         </>
     )
 })
