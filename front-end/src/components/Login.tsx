@@ -62,6 +62,7 @@ export default observer(() => {
                     label='Email address'
                     type='email'
                     disabled={loginOrSignup.state.kind === 'loading'}
+                    autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
                     {...fieldToProps(loginForm.fields.emailAddress)}
                 />
 
