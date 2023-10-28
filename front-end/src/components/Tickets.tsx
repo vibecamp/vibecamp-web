@@ -392,9 +392,15 @@ const BEDDING_OPTIONS = [
 
 const BUS_TICKET_OPTIONS = [
     { value: null, label: 'No Cost - I\'ll get myself to camp, thanks!' },
-    ...TABLE_ROWS.purchase_type
-        .filter(r => r.purchase_type_id.startsWith('BUS_'))
-        .map(r => ({ value: r.purchase_type_id, label: `$${(r.price_in_cents / 100).toFixed(2)} - ${r.description}` }))
+    ...[
+        PURCHASE_TYPES_BY_TYPE.BUS_330PM_VIBECLIPSE_2024,
+        PURCHASE_TYPES_BY_TYPE.BUS_430PM_VIBECLIPSE_2024,
+        PURCHASE_TYPES_BY_TYPE.BUS_730PM_VIBECLIPSE_2024,
+        PURCHASE_TYPES_BY_TYPE.BUS_830PM_VIBECLIPSE_2024
+    ].map(r => ({
+        value: r.purchase_type_id,
+        label: `$${(r.price_in_cents / 100).toFixed(2)} - ${r.description}`
+    }))
 ]
 
 const BLANK_ATTENDEE: Readonly<AttendeeInfo> = {
