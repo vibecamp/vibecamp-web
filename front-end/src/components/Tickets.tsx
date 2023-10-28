@@ -107,9 +107,10 @@ export default observer(() => {
                                         )
                                     })}
 
-                                    <Button isPrimary onClick={() => state.purchaseState = 'selection'}>
-                                        Buy tickets
-                                    </Button>
+                                    {Store.purchasedTickets.length === 0 &&
+                                        <Button isPrimary onClick={() => state.purchaseState = 'selection'}>
+                                            Buy tickets
+                                        </Button>}
 
                                     {Store.accountInfo.state.result.inviteCodes.length > 0 &&
                                         <>
