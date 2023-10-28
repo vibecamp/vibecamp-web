@@ -36,6 +36,7 @@ app.use(async (ctx, next) => {
 const ALLOWED_ORIGINS = new Set([
   'https://vibe.camp',
   'https://next.vibe.camp',
+  'https://my.vibe.camp',
   'http://localhost:8080',
 ])
 
