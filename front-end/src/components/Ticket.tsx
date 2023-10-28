@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite'
 import { QRCodeSVG } from 'qrcode.react'
 
 type Props = {
-    name: string,
+    name: string | undefined,
     ticketType: 'adult' | 'child'
 }
 
@@ -73,7 +73,7 @@ export default observer(({ name, ticketType }: Props) => {
             </svg>
 
             {/* TODO: When QR code is tapped, open a big bright one for easier scanning */}
-            <QRCodeSVG value="https://vibe.camp" style={{ position: 'absolute', height: QR_HEIGHT, width: 'auto', top: `calc(50% - (${QR_HEIGHT} / 2))`, left: '50%', opacity: FOREGROUND_OPACITY }} />
+            {/* <QRCodeSVG value="https://vibe.camp" style={{ position: 'absolute', height: QR_HEIGHT, width: 'auto', top: `calc(50% - (${QR_HEIGHT} / 2))`, left: '50%', opacity: FOREGROUND_OPACITY }} /> */}
         </div>
     )
 })

@@ -8,7 +8,7 @@ import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
 import Col from './core/Col'
-import { AttendeeInfo, Maybe } from '../../../back-end/common/types'
+import { AttendeeInfo, Maybe, PURCHASE_TYPES_BY_TYPE, PurchaseType } from '../../../back-end/common/types'
 import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
@@ -23,6 +23,10 @@ import { makeAutoObservable } from 'mobx'
 import { Form, FormValidators } from '../mobx/form'
 import { request } from '../mobx/request'
 import { exists } from '../../../back-end/common/utils'
+import { TABLE_ROWS } from '../../../back-end/db-types'
+import PriceBreakdown from './PriceBreakdown'
+import RadioGroup from './core/RadioGroup'
+import { Purchases } from '../../../back-end/common/route-types'
 
 export default observer(() => {
     const state = useObservableState({
@@ -33,25 +37,16 @@ export default observer(() => {
     const purchaseState = useStable(() => new PurchaseFormState())
 
     const submitInviteCode = useRequest(async () => {
-        const success = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: state.code })
-
-        if (!success) {
-            throw Error()
-        }
+        await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: state.code })
     }, { lazy: true })
 
     const stripeOptions = useRequest(async () => {
-        const purchases = {
-            ATTENDANCE_VIBECLIPSE_2024: purchaseState.secondaryAdultAttendee == null ? 1 : 2,
-            ATTENDANCE_CHILD_VIBECLIPSE_2024: purchaseState.childAttendees.length
-        }
-
-        if (Object.values(purchases).some(count => count > 0)) {
+        if (Object.values(purchaseState.purchases).some(count => count > 0)) {
             const stripe_client_secret = (await vibefetch(
                 Store.jwt,
                 '/purchase/create-intent',
                 'post',
-                purchases
+                purchaseState.purchases
             ))?.stripe_client_secret
 
             if (stripe_client_secret == null) {
@@ -69,6 +64,14 @@ export default observer(() => {
         }
     })
 
+    function goToPayment() {
+        purchaseState.activateAllValidation()
+
+        if (purchaseState.isValid) {
+            state.purchaseState = 'payment'
+        }
+    }
+
     return (
         <Col padding={20} pageLevel justify={Store.accountInfo.state.kind !== 'result' ? 'center' : undefined} align={Store.accountInfo.state.kind !== 'result' ? 'center' : undefined}>
             {Store.accountInfo.state.kind === 'result' &&
@@ -84,13 +87,26 @@ export default observer(() => {
                         <>
                             {Store.accountInfo.state.result.allowed_to_purchase
                                 ? <>
-                                    {Store.purchasedTickets.map(p =>
-                                        <React.Fragment key={p.purchase_id}>
-                                            <Ticket name='Unknown attendee' ticketType='adult' />
-                                            <Spacer size={24} />
-                                        </React.Fragment>)}
+                                    {Store.purchasedTickets.length === 0 &&
+                                        <>
+                                            <div style={{ textAlign: 'center' }}>
+                                                {'(after you purchase tickets they\'ll show up here)'}
+                                            </div>
+                                            <Spacer size={32} />
+                                        </>}
 
-                                    {/* isDisabled={Store.purchasedTickets.length >= MAX_TICKETS_PER_ACCOUNT.adult} */}
+                                    {Store.purchasedTickets.map(p => {
+                                        const attendee = Store.accountInfo.state.result?.attendees.find(a => a.attendee_id === p.assigned_to_attendee_id)
+                                        const ageGroup = TABLE_ROWS.age_group.find(a => a.age_group === attendee?.age_group)
+
+                                        return (
+                                            <React.Fragment key={p.purchase_id}>
+                                                <Ticket name={attendee?.name} ticketType={ageGroup?.is_child ? 'child' : 'adult'} />
+                                                <Spacer size={24} />
+                                            </React.Fragment>
+                                        )
+                                    })}
+
                                     <Button isPrimary onClick={() => state.purchaseState = 'selection'}>
                                         Buy tickets
                                     </Button>
@@ -168,8 +184,8 @@ export default observer(() => {
                 {() =>
                     <MultiView
                         views={[
-                            { name: 'selection', content: <SelectionView purchaseState={purchaseState} goToNext={() => state.purchaseState = 'payment'} /> },
-                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} onPrePurchase={purchaseState.createAttendees.load} redirectUrl={location.origin + '#Tickets'} /> }
+                            { name: 'selection', content: <SelectionView purchaseState={purchaseState} goToNext={goToPayment} /> },
+                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseState.purchases} onPrePurchase={purchaseState.createAttendees.load} redirectUrl={location.origin + '#Tickets'} /> }
                         ]}
                         currentView={state.purchaseState}
                     />}
@@ -259,9 +275,77 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                     old do not need a ticket.`}
                 </InfoBlurb>
 
+                <Spacer size={32} />
+
+                <hr/>
+
+                <Spacer size={32} />
+
+                <RadioGroup
+                    value={purchaseState.needsSleepingBags}
+                    onChange={val => purchaseState.needsSleepingBags = val}
+                    options={BEDDING_OPTIONS}
+                    error={
+                        purchaseState.selectionValidationActive &&
+                        purchaseState.needsSleepingBags === undefined
+                            ? 'Please select an option'
+                            : undefined
+                    }
+                />
+
+                <Spacer size={16} />
+
+                <Checkbox value={purchaseState.needsPillow} onChange={val => purchaseState.needsPillow = val}>
+                    I would like a pillow (${PURCHASE_TYPES_BY_TYPE.PILLOW_WITH_CASE_VIBECLIPSE_2024.price_in_cents / 100} each)
+                </Checkbox>
+
                 <Spacer size={24} />
 
-                {/* TODO: Pricing/purchase summary */}
+                <InfoBlurb>
+                    {`If you're staying in a cabin, Camp Champions provides 
+                    only bare slightly-smaller-than-twin mattresses on the 
+                    bunks, so we're each responsible for bringing our own 
+                    bedding. Of course this is also true if you're camping. 
+                    Would you like to arrange to rent bedding for the weekend? 
+                    We'll be offering 3-season sleeping bags. The sleeping bags 
+                    will be donated to homeless outreach after vibeclipse, but 
+                    you're also welcome to keep them if you want.`}
+                </InfoBlurb>
+
+                <Spacer size={24} />
+
+                <RadioGroup
+                    value={purchaseState.needsBusTickets}
+                    onChange={val => purchaseState.needsBusTickets = val}
+                    options={BUS_TICKET_OPTIONS}
+                    error={
+                        purchaseState.selectionValidationActive &&
+                        purchaseState.needsBusTickets === undefined
+                            ? 'Please select an option'
+                            : undefined
+                    }
+                />
+
+                <Spacer size={8} />
+
+                <InfoBlurb>
+                    {`You are certainly welcome to drive directly to Camp 
+                    Champions, but if you'd rather just get to AUS airport and 
+                    leave the rest to us you can sign up for a bus slot for $60. 
+                    When signing up, you will also pick a time slot for the 
+                    trip TO camp. (All bus ticket tickets include a return trip 
+                    to AUS airport leaving at 3:30 PM on Monday, April 8th)`}
+                </InfoBlurb>
+
+                <Spacer size={32} />
+
+                <hr/>
+
+                <Spacer size={32} />
+
+                <PriceBreakdown purchases={purchaseState.purchases} />
+
+                <Spacer size={24} />
 
                 <Button isSubmit isPrimary>
                     Purchase
@@ -301,6 +385,18 @@ const InviteCode: FC<{ code: string, usedBy: Maybe<string> }> = observer(({ code
     )
 })
 
+const BEDDING_OPTIONS = [
+    { value: true, label: `Yes, I would like to purchase sleeping bag(s) ($${PURCHASE_TYPES_BY_TYPE.SLEEPING_BAG_VIBECLIPSE_2024.price_in_cents / 100} each)` },
+    { value: false, label: 'No, I will be bringing my own bedding' },
+] as const
+
+const BUS_TICKET_OPTIONS = [
+    { value: null, label: 'No Cost - I\'ll get myself to camp, thanks!' },
+    ...TABLE_ROWS.purchase_type
+        .filter(r => r.purchase_type_id.startsWith('BUS_'))
+        .map(r => ({ value: r.purchase_type_id, label: `$${(r.price_in_cents / 100).toFixed(2)} - ${r.description}` }))
+]
+
 const BLANK_ATTENDEE: Readonly<AttendeeInfo> = {
     name: '',
     discord_handle: null,
@@ -335,6 +431,19 @@ class PurchaseFormState {
     
     childAttendees: Form<AttendeeInfo>[] = []
 
+    needsSleepingBags: boolean | undefined = undefined
+    needsPillow = false
+    needsBusTickets: PurchaseType | null | undefined = undefined
+    selectionValidationActive = false
+
+    get allAttendeeForms() {
+        return [
+            this.primaryAdultAttendee,
+            this.secondaryAdultAttendee,
+            ...this.childAttendees
+        ].filter(exists)
+    }
+
     readonly setBringingSecondary = (bringing: boolean) => {
         if (bringing) {
             this.secondaryAdultAttendee = new Form({
@@ -353,10 +462,36 @@ class PurchaseFormState {
         }))
     }
 
+    readonly activateAllValidation = () => {
+        this.allAttendeeForms.forEach(f => f.activateAllValidation())
+        this.selectionValidationActive = true
+    }
+
     get isValid() {
-        return this.primaryAdultAttendee.isValid
-            && (this.secondaryAdultAttendee == null || this.secondaryAdultAttendee?.isValid)
-            && this.childAttendees.every(c => c.isValid)
+        return this.allAttendeeForms.every(f => f.isValid) 
+            && this.needsSleepingBags !== undefined 
+            && this.needsBusTickets !== undefined
+    }
+
+    get purchases() {
+        const p: Purchases = {
+            ATTENDANCE_VIBECLIPSE_2024: this.secondaryAdultAttendee == null ? 1 : 2,
+            ATTENDANCE_CHILD_VIBECLIPSE_2024: this.childAttendees.length
+        }
+
+        if (this.needsSleepingBags) {
+            p.SLEEPING_BAG_VIBECLIPSE_2024 = this.allAttendeeForms.length
+        }
+
+        if (this.needsPillow)  {
+            p.PILLOW_WITH_CASE_VIBECLIPSE_2024 = this.allAttendeeForms.length
+        }
+
+        if (this.needsBusTickets) {
+            p[this.needsBusTickets] = this.allAttendeeForms.length
+        }
+
+        return p
     }
 
     readonly createAttendees = request(async () => {
@@ -364,11 +499,7 @@ class PurchaseFormState {
             return
         }
 
-        await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', [
-            this.primaryAdultAttendee.fieldValues,
-            this.secondaryAdultAttendee?.fieldValues,
-            ...this.childAttendees.map(c => c.fieldValues)
-        ].filter(exists))
+        await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', this.allAttendeeForms.map(f => f.fieldValues))
     }, { lazy: true })
 }
 
