@@ -20,10 +20,13 @@
         flex-shrink: 0;
 
         &::before {
-            content: '✓';
+            @extend .material-symbols-outlined;
+
+            content: 'check';
             color: rgba(255, 255, 255, 0.9);
             opacity: 0;
             transition: all 0.1s ease-out;
+            font-size:14px;
         }
 
         &:checked {

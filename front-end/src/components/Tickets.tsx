@@ -250,7 +250,9 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                     </React.Fragment>)}
 
                 <Button onClick={purchaseState.addChildAttendee} disabled={purchaseState.childAttendees.length >= 5}>
-                    + Add a minor
+                    <span className="material-symbols-outlined" style={{ fontSize: 'inherit' }}>add</span>
+                    <Spacer size={4} />
+                    Add a minor
                 </Button>
 
                 {purchaseState.childAttendees.length === 5 &&
@@ -370,8 +372,8 @@ const InviteCode: FC<{ code: string, usedBy: Maybe<string> }> = observer(({ code
 
                 <button onClick={copy}>
                     {copied
-                        ? '✓'
-                        : '⎘'}
+                        ? <span className="material-symbols-outlined">check</span>
+                        : <span className="material-symbols-outlined">content_copy</span>}
                 </button>
             </div>
 
