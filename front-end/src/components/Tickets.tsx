@@ -180,7 +180,7 @@ export default observer(() => {
                         </>
                         : null}
 
-            <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => { console.log('modal onClose'); state.purchaseState = 'none'}}>
+            <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => state.purchaseState = 'none'}>
                 {() =>
                     <MultiView
                         views={[
@@ -211,7 +211,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
 
                 <Spacer size={32} />
 
-                <hr/>
+                <hr />
 
                 <Spacer size={32} />
 
@@ -237,7 +237,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
 
                 <Spacer size={32} />
 
-                <hr/>
+                <hr />
 
                 <Spacer size={32} />
 
@@ -261,7 +261,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                 {purchaseState.childAttendees.length === 5 &&
                     <>
                         <Spacer size={8} />
-        
+
                         <InfoBlurb>
                             {'Can\'t buy tickets for more than five children on one account, sorry!'}
                         </InfoBlurb>
@@ -277,7 +277,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
 
                 <Spacer size={32} />
 
-                <hr/>
+                <hr />
 
                 <Spacer size={32} />
 
@@ -287,9 +287,9 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                     options={BEDDING_OPTIONS}
                     error={
                         purchaseState.selectionValidationActive &&
-                        purchaseState.needsSleepingBags === undefined
-                            ? 'Please select an option'
-                            : undefined
+                            purchaseState.needsSleepingBags === undefined
+                                ? 'Please select an option'
+                                : undefined
                     }
                 />
 
@@ -320,9 +320,9 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                     options={BUS_TICKET_OPTIONS}
                     error={
                         purchaseState.selectionValidationActive &&
-                        purchaseState.needsBusTickets === undefined
-                            ? 'Please select an option'
-                            : undefined
+                            purchaseState.needsBusTickets === undefined
+                                ? 'Please select an option'
+                                : undefined
                     }
                 />
 
@@ -339,7 +339,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
 
                 <Spacer size={32} />
 
-                <hr/>
+                <hr />
 
                 <Spacer size={32} />
 
@@ -423,12 +423,12 @@ class PurchaseFormState {
     }
 
     primaryAdultAttendee = new Form({
-        initialValues: {...BLANK_ATTENDEE},
-        validators: ATTENDEE_VALIDATORS
+        initialValues: { ...BLANK_ATTENDEE },
+        validators: attendeeValidators(false)
     })
 
     secondaryAdultAttendee: Form<AttendeeInfo> | null = null
-    
+
     childAttendees: Form<AttendeeInfo>[] = []
 
     needsSleepingBags: boolean | undefined = undefined
@@ -447,8 +447,8 @@ class PurchaseFormState {
     readonly setBringingSecondary = (bringing: boolean) => {
         if (bringing) {
             this.secondaryAdultAttendee = new Form({
-                initialValues: {...BLANK_ATTENDEE},
-                validators: ATTENDEE_VALIDATORS
+                initialValues: { ...BLANK_ATTENDEE },
+                validators: attendeeValidators(false)
             })
         } else {
             this.secondaryAdultAttendee = null
@@ -457,8 +457,8 @@ class PurchaseFormState {
 
     readonly addChildAttendee = () => {
         this.childAttendees.push(new Form({
-            initialValues: {...BLANK_ATTENDEE},
-            validators: ATTENDEE_VALIDATORS
+            initialValues: { ...BLANK_ATTENDEE },
+            validators: attendeeValidators(true)
         }))
     }
 
@@ -468,9 +468,10 @@ class PurchaseFormState {
     }
 
     get isValid() {
-        return this.allAttendeeForms.every(f => f.isValid) 
-            && this.needsSleepingBags !== undefined 
+        return this.allAttendeeForms.every(f => f.isValid)
+            && this.needsSleepingBags !== undefined
             && this.needsBusTickets !== undefined
+            && this.childAttendees.every(a => a.fields.age_group.value !== 'UNDER_2')
     }
 
     get purchases() {
@@ -483,7 +484,7 @@ class PurchaseFormState {
             p.SLEEPING_BAG_VIBECLIPSE_2024 = this.allAttendeeForms.length
         }
 
-        if (this.needsPillow)  {
+        if (this.needsPillow) {
             p.PILLOW_WITH_CASE_VIBECLIPSE_2024 = this.allAttendeeForms.length
         }
 
@@ -503,7 +504,7 @@ class PurchaseFormState {
     }, { lazy: true })
 }
 
-const ATTENDEE_VALIDATORS: FormValidators<AttendeeInfo> = {
+const attendeeValidators = (isMinor: boolean): FormValidators<AttendeeInfo> => ({
     name: val => {
         if (val === '') {
             return 'Please enter a name'
@@ -518,5 +519,8 @@ const ATTENDEE_VALIDATORS: FormValidators<AttendeeInfo> = {
         if (val == null) {
             return 'Please select an age group'
         }
+        if (isMinor && val === 'UNDER_2') {
+            return 'Children under two get in free! If you need to remove this attendee entry, there\'s a red button at the bottom'
+        }
     }
-}
+})
