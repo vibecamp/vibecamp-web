@@ -38,7 +38,7 @@
         background: none;
 
         color: rgba(0, 0, 0, 0.8);
-        border: 1px solid rgba(0, 0, 0, 0.3);
+        border: var(--controls-border);
         background: white;
         font-size: 16px;
         font-weight: 300;

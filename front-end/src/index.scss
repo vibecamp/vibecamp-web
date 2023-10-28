@@ -13,7 +13,7 @@
 @import './components/core/RowSelect.scss';
 @import './components/core/Stripes.scss';
 
-* {
+*, ::before, ::after {
     transition: all 0.1s ease-out;
     transition: width 0s;
     transition: height 0s;
@@ -30,6 +30,9 @@ html {
     --color-primary: rgba(0, 0, 0, 0.8);
     --color-secondary: rgba(0, 0, 0, 0.2);
     --color-accent-1: rgb(79, 176, 229);
+
+    --checkbox-size: 16px;
+    --controls-border: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 body {
@@ -175,7 +178,7 @@ hr {
     color: rgba(0, 0, 0, 0.9);
 
     > .code-widget {
-        border: 1px solid rgba(0, 0, 0, 0.3);
+        border: var(--controls-border);
         background: white;
         font-weight: 300;
         border-radius: 8px;

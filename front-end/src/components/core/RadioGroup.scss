@@ -22,28 +22,30 @@
       appearance: none;
       margin: 0;
       position: relative;
+      margin-right: 8px;
 
       &::before {
         content: '';
         display: block;
-        width: 14px;
-        height: 14px;
+        width: var(--checkbox-size);
+        height: var(--checkbox-size);
         border-radius: 50%;
-        margin-right: 8px;
-        border: 1px solid rgba(0, 0, 0, 0.2);
+        border: var(--controls-border);
         transition: all 0.1s ease-out;
       }
 
       &::after {
+        --dot-size: 8px;
+
         content: '';
         display: block;
-        width: 6px;
-        height: 6px;
+        width: var(--dot-size);
+        height: var(--dot-size);
         border-radius: 50%;
         background: transparent;
         position: absolute;
-        top: calc(8px - 3px);
-        left: calc(8px - 3px);
+        top: calc(calc(var(--checkbox-size)) / 2 - var(--dot-size) / 2);
+        left: calc(calc(var(--checkbox-size)) / 2 - var(--dot-size) / 2);
         transition: all 0.1s ease-out;
       }
 

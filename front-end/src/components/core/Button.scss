@@ -4,7 +4,7 @@
     border: none;
     background: none;
 
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    border: var(--controls-border);
     background: white;
     border-radius: 8px;
     padding: 10px 20px;
