@@ -1,7 +1,7 @@
 name: Typecheck, lint, and build front-end
 on: [push]
 jobs:
-  front-end | Lint:
+  front-end-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -11,7 +11,7 @@ jobs:
       - name: Lint
         working-directory: front-end
         run: npx eslint .
-  front-end | Typecheck:
+  front-end-typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,7 +21,7 @@ jobs:
       - name: Typecheck
         working-directory: front-end
         run: npx tsc --noEmit
-    back-end | Check:
+    back-end-check:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v2
