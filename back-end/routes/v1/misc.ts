@@ -1,6 +1,7 @@
 import { Router, Status } from 'oak'
 import { withDBConnection } from '../../db.ts'
-import { defineRoute } from './_common.ts'
+import { cached, defineRoute } from './_common.ts'
+import { ONE_MINUTE_MS } from '../../common/constants.ts'
 
 export default function register(router: Router) {
 
@@ -8,7 +9,7 @@ export default function register(router: Router) {
         endpoint: '/festival-info',
         method: 'get',
         requireAuth: true,
-        handler: async () => {
+        handler: cached(3 * ONE_MINUTE_MS, async () => {
             const festival = await withDBConnection(async db => (await db.queryTable('next_festival'))[0])
 
             if (festival == null) {
@@ -26,6 +27,6 @@ export default function register(router: Router) {
                 start_date: start_date.toISOString(),
                 end_date: end_date.toISOString(),
             }, Status.OK]
-        }
+        })
     })
 }

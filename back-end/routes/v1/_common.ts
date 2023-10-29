@@ -10,6 +10,7 @@ import { getJwtPayload } from './auth.ts'
 import { wait } from '../../common/utils.ts'
 import { getNumericDate } from "djwts"
 import { Routes } from "../../common/route-types.ts"
+import { ONE_SECOND_MS } from '../../common/constants.ts'
 
 export type AnyRouterContext = RouterContext<
   string,
@@ -31,6 +32,8 @@ type UnauthenticatedRouteContext<TEndpoint extends keyof Routes> = {
 type AuthenticatedRouteContext<TEndpoint extends keyof Routes> = UnauthenticatedRouteContext<TEndpoint> & {
   jwt: VibeJWTPayload
 }
+
+type AnyRouteContext = UnauthenticatedRouteContext<keyof Routes> & Partial<AuthenticatedRouteContext<keyof Routes>>
 
 /**
  * Formalized way to define a route on a router:
@@ -75,28 +78,22 @@ export function defineRoute<TEndpoint extends keyof Routes>(
         return [null, Status.Unauthorized]
       }
 
-      const [res, status] = await Promise.race([
+      const response = await Promise.race([
         config.handler({ ctx, body: parsedBody, jwt }),
-        wait(HANDLER_TIMEOUT_MS).then(() =>
-          [null, Status.RequestTimeout] as const
-        ),
+        timeout(),
       ])
 
-      ctx.response.body = JSON.stringify(res)
-      ctx.response.status = status
-      ctx.response.type = 'json'
+      constructResponse(ctx, response)
+
       return next()
     } else {
-      const [res, status] = await Promise.race([
+      const response = await Promise.race([
         config.handler({ ctx, body: parsedBody }),
-        wait(HANDLER_TIMEOUT_MS).then(() =>
-          [null, Status.RequestTimeout] as const
-        ),
+        timeout(),
       ])
 
-      ctx.response.body = JSON.stringify(res)
-      ctx.response.status = status
-      ctx.response.type = 'json'
+      constructResponse(ctx, response)
+
       return next()
     }
   }
@@ -109,13 +106,36 @@ export function defineRoute<TEndpoint extends keyof Routes>(
     case 'post':
       router.post(...args)
       break
-    // case 'put':
-    //   router.put(...args)
-    //   break
-    // case 'delete':
-    //   router.delete(...args)
-    //   break
   }
 }
 
-const HANDLER_TIMEOUT_MS = 10_000
+function constructResponse<TEndpoint extends keyof Routes>(ctx: AnyRouterContext, [res, status]: readonly [Routes[TEndpoint]['response'], Status]) {
+  ctx.response.body = JSON.stringify(res)
+  ctx.response.status = status
+  ctx.response.type = 'json'
+}
+
+async function timeout() {
+  await wait(10 * ONE_SECOND_MS)
+  return [null, Status.RequestTimeout] as const
+}
+
+export const cached = <TContext extends AnyRouteContext, TReturn>(ms: number, fn: (context: TContext) => Promise<TReturn>): (context: TContext) => Promise<TReturn> => {
+  const cache = new Map<string, { timestamp: number, value: TReturn }>()
+
+  return async (context: TContext): Promise<TReturn> => {
+    const { ctx: _, ...contextWithoutCtx } = context
+    const cacheKey = JSON.stringify(contextWithoutCtx)
+
+    const cached = cache.get(cacheKey)
+    if (cached != null && Date.now() - cached.timestamp < ms) {
+      return cached.value
+    }
+
+    const value = await fn(context)
+
+    cache.set(cacheKey, { timestamp: Date.now(), value })
+
+    return value
+  }
+}
