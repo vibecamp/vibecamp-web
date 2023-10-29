@@ -9,6 +9,7 @@ import RadioGroup from './core/RadioGroup'
 import Store from '../Store'
 import { Form, fieldToProps } from '../mobx/form'
 import { AttendeeInfo } from '../../../back-end/common/types'
+import { prettyDate } from '../utils'
 
 type Props = {
     attendeeInfo: Form<AttendeeInfo>,
@@ -94,7 +95,7 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
                 
             <InfoBlurb>
                 {Store.festival.state.result != null
-                    ? `This age should be at the time of ${Store.festival.state.result.festival_name} (${Store.festival.state.result.start_date.toDateString()} - ${Store.festival.state.result.end_date.toDateString()})`
+                    ? `This age should be at the time of ${Store.festival.state.result.festival_name} (${prettyDate(Store.festival.state.result.start_date)} - ${prettyDate(Store.festival.state.result.end_date)})`
                     : 'This age should be at the time of the festival'}
             </InfoBlurb>
 

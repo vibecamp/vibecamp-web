@@ -24,3 +24,5 @@ export const preventingDefault = <F extends () => unknown>(fn: F) => (event: { p
 }
 
 export const DEFAULT_FORM_ERROR = 'Something went wrong, please try again'
+
+export const prettyDate = (date: Date) => `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
