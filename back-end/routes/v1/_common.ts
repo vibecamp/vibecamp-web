@@ -48,13 +48,13 @@ export function defineRoute<TEndpoint extends keyof Routes>(
       method: Routes[TEndpoint]['method'],
       endpoint: TEndpoint
       requireAuth?: false
-      handler: (context: UnauthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response']>
+      handler: (context: UnauthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response'] | null>
     }
     | {
       method: Routes[TEndpoint]['method'],
       endpoint: TEndpoint
       requireAuth: true
-      handler: (context: AuthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response']>
+      handler: (context: AuthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response'] | null>
     },
 ) {
   const endpoint = API_BASE + config.endpoint

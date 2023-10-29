@@ -5,17 +5,17 @@ export type Routes = {
     '/account': {
         method: 'get',
         body: undefined,
-        response: FullAccountInfo | null
+        response: FullAccountInfo
     },
     '/account/create-attendee': {
         method: 'post',
         body: Omit<Tables['attendee'], 'attendee_id' | 'associated_account_id' | 'notes'>,
-        response: Tables['attendee'] | null
+        response: Tables['attendee']
     },
     '/account/update-attendee': {
         method: 'put',
         body: Pick<Tables['attendee'], 'attendee_id'> & Partial<Tables['attendee']>,
-        response: Tables['attendee'] | null
+        response: Tables['attendee']
     },
     '/account/submit-invite-code': {
         method: 'post',
@@ -72,7 +72,7 @@ export type Routes = {
     '/purchase/create-intent': {
         method: 'post',
         body: Purchases,
-        response: { stripe_client_secret: string } | null
+        response: { stripe_client_secret: string }
     },
     '/festival-info': {
         method: 'get',
@@ -81,7 +81,7 @@ export type Routes = {
             festival_name: string,
             start_date: string,
             end_date: string
-        } | null
+        }
     }
 }
 
