@@ -120,6 +120,23 @@ async function timeout() {
   return [null, Status.RequestTimeout] as const
 }
 
+export const rateLimited = <TContext extends AnyRouteContext, TReturn extends [unknown, Status]>(ms: number, fn: (context: TContext) => Promise<TReturn>): (context: TContext) => Promise<[TReturn[0] | null, Status]> => {
+  const lastRequestFor = new Map<string, number>()
+
+
+  return async (context: TContext): Promise<[TReturn[0] | null, Status]> => {
+    const rateLimitKey = context.ctx.request.ip
+
+    const lastRequestForThis = lastRequestFor.get(rateLimitKey)
+    if (lastRequestForThis != null && Date.now() - lastRequestForThis < ms) {
+      return [null, Status.TooManyRequests]
+    }
+
+    lastRequestFor.set(rateLimitKey, Date.now())
+    return fn(context)
+  }
+}
+
 export const cached = <TContext extends AnyRouteContext, TReturn>(ms: number, fn: (context: TContext) => Promise<TReturn>): (context: TContext) => Promise<TReturn> => {
   const cache = new Map<string, { timestamp: number, value: TReturn }>()
 

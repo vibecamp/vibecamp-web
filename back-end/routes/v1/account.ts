@@ -1,8 +1,9 @@
 import { Router, Status } from 'oak'
-import { defineRoute } from './_common.ts'
+import { defineRoute, rateLimited } from './_common.ts'
 import { accountReferralStatus, withDBConnection, withDBTransaction } from '../../db.ts'
 import { Tables } from "../../db-types.ts"
 import { allPromises } from "../../common/utils.ts"
+import { ONE_SECOND_MS } from '../../common/constants.ts'
 
 export default function register(router: Router) {
 
@@ -115,7 +116,7 @@ export default function register(router: Router) {
     endpoint: '/account/submit-invite-code',
     method: 'post',
     requireAuth: true,
-    handler: async ({ jwt, body: { invite_code } }) => {
+    handler: rateLimited(ONE_SECOND_MS, async ({ jwt, body: { invite_code } }) => {
       const { account_id } = jwt
 
       try {
@@ -158,6 +159,6 @@ export default function register(router: Router) {
         console.error(e)
         return [null, Status.InternalServerError]
       }
-    },
+    }),
   })
 }

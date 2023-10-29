@@ -1,6 +1,6 @@
 import { VibeJWTPayload } from '../../common/types.ts'
 import { Router, Status } from 'oak'
-import { AnyRouterContext, defineRoute } from './_common.ts'
+import { AnyRouterContext, defineRoute, rateLimited } from './_common.ts'
 import { create, getNumericDate, verify } from 'djwts'
 import { compare, hash } from 'bcrypt'
 import { Tables } from '../../db-types.ts'
@@ -22,10 +22,11 @@ const header = {
 } as const
 
 export default function register(router: Router) {
+
   defineRoute(router, {
     endpoint: '/login',
     method: 'post',
-    handler: async ({ body: { email_address, password } }) => {
+    handler: rateLimited(500, async ({ body: { email_address, password } }) => {
 
       // get account from DB
       const account = (await withDBConnection(async (db) => {
@@ -65,13 +66,13 @@ export default function register(router: Router) {
 
       // construct the JWT token and respond with it
       return [{ jwt: await createAccountJwt(account) }, Status.OK]
-    },
+    }),
   })
 
   defineRoute(router, {
     endpoint: '/signup',
     method: 'post',
-    handler: async ({ body: { email_address, password } }) => {
+    handler: rateLimited(500, async ({ body: { email_address, password } }) => {
       // extract email/password from request
       if (getEmailValidationError(email_address) || getPasswordValidationError(password)) {
         return [{ jwt: null }, Status.BadRequest]
@@ -97,7 +98,7 @@ export default function register(router: Router) {
 
       // construct the JWT token and respond with it
       return [{ jwt: await createAccountJwt(account) }, Status.OK]
-    },
+    }),
   })
 }
 
