@@ -203,8 +203,8 @@ const ACTIVE_TRANSACTION_NAMES = new Set<string>()
  */
 export async function accountReferralStatus(
   db: Pick<Transaction, 'queryObject'>,
-  account_id: number,
-  festival_id: Maybe<number>
+  account_id: Tables['account']['account_id'],
+  festival_id: Maybe<Tables['festival']['festival_id']>
 ): Promise<{ allowedToRefer: number, allowedToPurchase: boolean }> {
   const none = { allowedToRefer: 0, allowedToPurchase: false }
 

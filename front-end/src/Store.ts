@@ -151,7 +151,7 @@ async function loadAllEvents(): Promise<EventData[]> {
             locationAddress: '',
             visibility: 'public' as const,
             visibilityWhitelist: [],
-            creator: 0
+            creator: '0'
         },
         {
             id: '2',
@@ -163,7 +163,7 @@ async function loadAllEvents(): Promise<EventData[]> {
             locationAddress: '',
             visibility: 'public' as const,
             visibilityWhitelist: [],
-            creator: 1
+            creator: '1'
         },
         {
             id: '3',
@@ -175,7 +175,7 @@ async function loadAllEvents(): Promise<EventData[]> {
             locationAddress: '',
             visibility: 'public' as const,
             visibilityWhitelist: [],
-            creator: -1
+            creator: '-1'
         },
         {
             id: '4',
@@ -187,7 +187,7 @@ async function loadAllEvents(): Promise<EventData[]> {
             locationAddress: '',
             visibility: 'public' as const,
             visibilityWhitelist: [],
-            creator: 2
+            creator: '2'
         }
     ].sort((a, b) => new Date(a.start).valueOf() - new Date(b.start).valueOf())
 }

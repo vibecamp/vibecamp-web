@@ -102,7 +102,7 @@ const Event: FC<{ event: EventData }> = observer(({ event }) => {
     const end = new Date(event.end)
 
     return (
-        <div className={'card' + ' ' + 'eventCard' + ' ' + (event.creator === -1 ? 'official' : '')}>
+        <div className={'card' + ' ' + 'eventCard' + ' ' + (event.creator === '-1' ? 'official' : '')}>
             <div className='eventName'>
                 {event.name}
 

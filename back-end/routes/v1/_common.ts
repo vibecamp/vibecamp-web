@@ -22,7 +22,7 @@ export type AnyRouterMiddleware = RouterMiddleware<string>
 
 export const API_BASE = '/api/v1'
 
-type RouteResponse<TResult> = Promise<[TResult, Status]>
+type RouteResponse<TResult> = Promise<[(TResult & { error?: string }) | null, Status]>
 
 type UnauthenticatedRouteContext<TEndpoint extends keyof Routes> = {
   ctx: AnyRouterContext
@@ -48,13 +48,13 @@ export function defineRoute<TEndpoint extends keyof Routes>(
       method: Routes[TEndpoint]['method'],
       endpoint: TEndpoint
       requireAuth?: false
-      handler: (context: UnauthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response'] | null>
+      handler: (context: UnauthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response']>
     }
     | {
       method: Routes[TEndpoint]['method'],
       endpoint: TEndpoint
       requireAuth: true
-      handler: (context: AuthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response'] | null>
+      handler: (context: AuthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response']>
     },
 ) {
   const endpoint = API_BASE + config.endpoint

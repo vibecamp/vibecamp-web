@@ -10,19 +10,19 @@ export type VibeJWTPayload = {
     iat?: number,
     jti?: string,
     [key: string]: unknown,
-    account_id: number
+    account_id: Tables['account']['account_id']
 }
 
-export type FullAccountInfo = {
-    account_id: number,
-    email_address: string,
-    allowed_to_purchase: boolean,
-    attendees: Array<Tables['attendee']>,
-    purchases: Array<Tables['purchase']>,
-    inviteCodes: Array<Tables['invite_code'] & {
-        used_by: string | null
-    }>
-}
+export type FullAccountInfo =
+    & Pick<Tables['account'], 'account_id' | 'email_address'>
+    & {
+        allowed_to_purchase: boolean,
+        attendees: Array<Tables['attendee']>,
+        purchases: Array<Tables['purchase']>,
+        inviteCodes: Array<Tables['invite_code'] & {
+            used_by: string | null
+        }>
+    }
 
 export type AttendeeInfo = Omit<Tables['attendee'], 'attendee_id' | 'notes' | 'associated_account_id' | 'age_group'> & {
     age_group: Tables['attendee']['age_group'] | null

@@ -1,6 +1,6 @@
 export type Tables = {
   account: {
-    account_id: number,
+    account_id: string,
     account_notes: string,
     email_address: string,
     is_application_accepted: boolean,
@@ -11,7 +11,7 @@ export type Tables = {
   age_group: (typeof TABLE_ROWS)['age_group'][number]
   attendee: {
     age_group: string,
-    associated_account_id: number,
+    associated_account_id: string,
     attendee_id: number,
     discord_handle: string | null,
     has_allergy_eggs: boolean,
@@ -34,7 +34,7 @@ export type Tables = {
   },
   diet: (typeof TABLE_ROWS)['diet'][number]
   event: {
-    created_by_account_id: number,
+    created_by_account_id: string,
     description: string,
     end: unknown | null,
     event_id: number,
@@ -56,10 +56,10 @@ export type Tables = {
   },
   invite_code: {
     code: string,
-    created_by_account_id: number,
+    created_by_account_id: string,
     festival_id: number,
     invite_code_id: number,
-    used_by_account_id: number | null,
+    used_by_account_id: string | null,
   },
   next_festival: {
     end_date: Date | null,
@@ -69,7 +69,7 @@ export type Tables = {
     start_date: Date | null,
   },
   purchase: {
-    owned_by_account_id: number | null,
+    owned_by_account_id: string | null,
     purchase_id: number,
     purchase_type_id: string,
     purchased_on: unknown,

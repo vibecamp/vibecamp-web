@@ -18,5 +18,5 @@ export type EventData = {
     locationAddress: string,
     visibility: 'public' | 'mutuals' | 'whitelist',
     visibilityWhitelist: string[],
-    creator: number,
+    creator: string,
 }

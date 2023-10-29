@@ -87,7 +87,7 @@ export default function register(router: Router) {
         .reduce((sum, amount) => sum + amount, 0)
 
       const metadata: PurchaseMetadata = {
-        accountId: String(account_id),
+        accountId: account_id,
         ...objectFromEntries(objectEntries(purchases).map(([key, value]) => [key, String(value)]))
       }
 
@@ -122,8 +122,7 @@ export default function register(router: Router) {
 
     switch (event.type) {
       case 'charge.succeeded': {
-        const { accountId: accountIdRaw, ...purchasesRaw } = event.data.object.metadata as PurchaseMetadata
-        const accountId = Number(accountIdRaw)
+        const { accountId, ...purchasesRaw } = event.data.object.metadata as PurchaseMetadata
 
         const purchases: Purchases = objectFromEntries(objectEntries(purchasesRaw)
           .map(([key, value]) => [key, Number(value)])) // convert counts back to numbers
