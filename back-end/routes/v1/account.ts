@@ -31,7 +31,7 @@ export default function register(router: Router) {
           attendees: db.queryTable('attendee', { where: ['associated_account_id', '=', account_id] }),
           purchases: db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] }),
           inviteCodes: db.queryObject<Tables['invite_code'] & { used_by: string | null }>`
-            SELECT invite_code_id, code, email_address as used_by FROM invite_code
+            SELECT code, email_address as used_by FROM invite_code
             LEFT JOIN account ON account_id = used_by_account_id
             WHERE created_by_account_id = ${account_id}
           `,

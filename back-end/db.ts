@@ -216,7 +216,7 @@ export async function accountReferralStatus(
     & Pick<Tables['account'], 'account_id' | 'is_seed_account'>
     & Pick<Tables['invite_code'], 'created_by_account_id'>
   >`
-    select * from account_referral_chain(${account_id}, ${festival_id})
+    SELECT * FROM account_referral_chain(${account_id}, ${festival_id})
   `).rows
 
   // account doesn't exist
