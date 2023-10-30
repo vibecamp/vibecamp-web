@@ -128,8 +128,6 @@ export default function register(router: Router) {
             return [null, Status.InternalServerError]
           }
 
-          const invite_code_id = inviteCodeResult.invite_code_id
-
           if (inviteCodeResult.used_by_account_id != null) {
             // invite code already used
             return [null, Status.InternalServerError]
@@ -148,10 +146,9 @@ export default function register(router: Router) {
             return [null, Status.InternalServerError]
           }
 
-          await db.queryObject`
-            UPDATE invite_code SET used_by_account_id = ${account_id}
-            WHERE invite_code_id = ${invite_code_id}
-          `
+          await db.updateTable('invite_code', {
+            used_by_account_id: account_id
+          }, [['code', '=', invite_code]])
 
           return [null, Status.OK]
         })
