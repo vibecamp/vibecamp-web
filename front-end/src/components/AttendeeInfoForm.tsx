@@ -203,25 +203,25 @@ const VOLUNTEER_OPTIONS = [
         }))
 ] as const
 
-const DIET_OPTIONS = [
-    { value: null, label: 'No restrictions' },
-    ...TABLE_ROWS.diet
-        .map(diet => ({
-            value: diet.diet_id,
-            label: diet.description
-        }))
-]
+// const DIET_OPTIONS = [
+//     { value: null, label: 'No restrictions' },
+//     ...TABLE_ROWS.diet
+//         .map(diet => ({
+//             value: diet.diet_id,
+//             label: diet.description
+//         }))
+// ]
 
-const ALLERGIES = [
-    'milk',
-    'eggs',
-    'fish',
-    'shellfish',
-    'tree_nuts',
-    'peanuts',
-    'wheat',
-    'soy'
-] as const
+// const ALLERGIES = [
+//     'milk',
+//     'eggs',
+//     'fish',
+//     'shellfish',
+//     'tree_nuts',
+//     'peanuts',
+//     'wheat',
+//     'soy'
+// ] as const
 
-const capitalize = (str: string) => str[0]?.toUpperCase() + str.substring(1)
-const snakeCaseToSpaces = (str: string) => str.replaceAll('_', ' ')
+// const capitalize = (str: string) => str[0]?.toUpperCase() + str.substring(1)
+// const snakeCaseToSpaces = (str: string) => str.replaceAll('_', ' ')
