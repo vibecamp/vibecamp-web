@@ -31,6 +31,7 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
 
             <Input
                 label='Attendee name'
+                placeholder='Brooke'
                 {...fieldToProps(attendeeInfo.fields.name)}
             />
 
@@ -99,12 +100,12 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
                     : 'This age should be at the time of the festival'}
             </InfoBlurb>
 
-            <Spacer size={FIELD_SPACE} />
+            {/* <Spacer size={FIELD_SPACE} />
 
             <RadioGroup
                 label='Dietary restriction:'
                 options={DIET_OPTIONS}
-                {...fieldToProps(attendeeInfo.fields.special_diet)}
+                {...fieldToProps(attendeeInfo.fields.diet)}
             />
 
             <Spacer size={INFO_BLURB_SPACE} />
@@ -131,7 +132,7 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
                 lookout for that announcement. In the case that we can't
                 accommodate your dietary preference you will need to bring
                 your own food.`}
-            </InfoBlurb>
+            </InfoBlurb> */}
 
             {!isChild &&
                 <>

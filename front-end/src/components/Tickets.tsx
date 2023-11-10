@@ -345,6 +345,30 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                     to AUS airport leaving at 3:30 PM on Monday, April 8th)`}
                 </InfoBlurb>
 
+                <Spacer size={24} />
+
+                <a 
+                    className='button primary'
+                    href='https://admin.gazeboevents.com/forms/706B540F-AF67-4D4B-9C42-A402E51C2039' 
+                    target='_blank'
+                    rel="noreferrer"
+                >
+                    Campsite forms &nbsp; <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
+                </a>
+
+                <Spacer size={12} />
+
+                <InfoBlurb>
+                    {`Please click the link above to sign the Camp Champions
+                    waiver. Every attendee must sign this waiver. IF YOU HAVE
+                    ALLERGIES OR SPECIAL DIETARY NEEDS (EG: vegetarian) you `}
+                    <i>must</i>
+                    {` also fill out the 'Retreat Special Diets Form' (Found at
+                    this same page). If you do not fill out this special diets
+                    form at least 3 weeks prior to vibeclipse we will not be
+                    able to accommodate any special dietary needs.`}
+                </InfoBlurb>
+
                 <Spacer size={32} />
 
                 <hr />
@@ -415,15 +439,15 @@ const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
     planning_to_camp: false,
     age_group: null,
     medical_training: null,
-    special_diet: null,
-    has_allergy_milk: false,
-    has_allergy_eggs: false,
-    has_allergy_fish: false,
-    has_allergy_shellfish: false,
-    has_allergy_tree_nuts: false,
-    has_allergy_peanuts: false,
-    has_allergy_wheat: false,
-    has_allergy_soy: false,
+    diet: null,
+    has_allergy_milk: null,
+    has_allergy_eggs: null,
+    has_allergy_fish: null,
+    has_allergy_shellfish: null,
+    has_allergy_tree_nuts: null,
+    has_allergy_peanuts: null,
+    has_allergy_wheat: null,
+    has_allergy_soy: null,
 }
 
 class PurchaseFormState {
@@ -530,6 +554,11 @@ const attendeeValidators = (isMinor: boolean): FormValidators<AttendeeInfo & { h
         }
         if (isMinor && val === 'UNDER_2') {
             return 'Children under two get in free! If you need to remove this attendee entry, there\'s a red button at the bottom'
+        }
+    },
+    has_clicked_waiver: val => {
+        if (!val) {
+            return 'Campsite waivers must be filled out for each attendee'
         }
     }
 })

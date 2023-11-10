@@ -18,6 +18,7 @@ export type Tables = {
     age_group: Tables['age_group']['age_group'],
     associated_account_id: Tables['account']['account_id'],
     attendee_id: string,
+    diet: Tables['diet']['diet_id'] | null,
     discord_handle: string | null,
     has_allergy_eggs: boolean | null,
     has_allergy_fish: boolean | null,
@@ -34,7 +35,6 @@ export type Tables = {
     name: string,
     notes: string,
     planning_to_camp: boolean,
-    special_diet: Tables['diet']['diet_id'] | null,
     twitter_handle: string | null,
   },
   diet: (typeof TABLE_ROWS)['diet'][number]
