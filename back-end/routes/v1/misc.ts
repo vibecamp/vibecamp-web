@@ -1,7 +1,7 @@
 import { Router, Status } from 'oak'
-import { withDBConnection } from '../../db.ts'
+import { withDBConnection } from '../../utils/db.ts'
 import { cached, defineRoute } from './_common.ts'
-import { ONE_MINUTE_MS } from '../../common/constants.ts'
+import { ONE_MINUTE_MS } from '../../utils/constants.ts'
 
 export default function register(router: Router) {
 

@@ -1,6 +1,6 @@
 import React from 'react'
 import { observer } from 'mobx-react-lite'
-import { TABLE_ROWS } from '../../../back-end/db-types'
+import { TABLE_ROWS } from '../../../back-end/types/db-types'
 import Input from './core/Input'
 import Spacer from './core/Spacer'
 import Checkbox from './core/Checkbox'
@@ -8,7 +8,7 @@ import InfoBlurb from './core/InfoBlurb'
 import RadioGroup from './core/RadioGroup'
 import Store from '../Store'
 import { Form, fieldToProps } from '../mobx/form'
-import { AttendeeInfo } from '../../../back-end/common/types'
+import { AttendeeInfo } from '../../../back-end/types/misc'
 import { prettyDate } from '../utils'
 
 type Props = {
@@ -107,7 +107,7 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
                 {...fieldToProps(attendeeInfo.fields.special_diet)}
             />
 
-            <Spacer size={FIELD_SPACE} />
+            <Spacer size={INFO_BLURB_SPACE} />
 
             <div>
                 Allergies:
@@ -121,6 +121,17 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
                         {capitalize(snakeCaseToSpaces(allergy))}
                     </Checkbox>
                 </React.Fragment>)}
+
+            <Spacer size={INFO_BLURB_SPACE} />
+
+            <InfoBlurb>
+                {`Please indicate your dietary preferences, and we will do our
+                best to accommodate everyone. We will message what diets we are
+                able to accommodate ahead of the event, so please be on the
+                lookout for that announcement. In the case that we can't
+                accommodate your dietary preference you will need to bring
+                your own food.`}
+            </InfoBlurb>
 
             {!isChild &&
                 <>

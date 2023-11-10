@@ -1,11 +1,11 @@
 import { Pool, PoolClient, Transaction } from 'postgres'
-import env from './env.ts'
+import env from '../env.ts'
 import {
   REFERRAL_MAXES,
-} from './common/constants.ts'
-import { TableName, Tables } from './db-types.ts'
-import { Maybe } from "./common/types.ts"
-import { objectEntries } from './common/utils.ts'
+} from './constants.ts'
+import { TableName, Tables } from '../types/db-types.ts'
+import { Maybe } from "../types/misc.ts"
+import { objectEntries } from './misc.ts'
 import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
 
 const url = new URL(env.DB_URL)

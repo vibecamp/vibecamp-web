@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react'
 
 type Props = {
     name: string | undefined,
-    ticketType: 'adult' | 'child'
+    ticketType: 'adult' | 'child' | undefined
 }
 
 const TICKET_WIDTH = 750
@@ -53,7 +53,7 @@ export default observer(({ name, ticketType }: Props) => {
 
                     <pattern id="swirlpattern" x="0" y="0" width="1" height="1"
                         viewBox="0 0 1024 576" preserveAspectRatio="xMidYMid slice">
-                        <image width="1024" height="576" xlinkHref={ticketType === 'adult' ? '/swirl1.png' : '/swirl2.png'} />
+                        <image width="1024" height="576" xlinkHref={ticketType === 'adult' || ticketType == null ? '/swirl1.png' : '/swirl2.png'} />
                     </pattern>
                 </defs>
 
@@ -67,7 +67,7 @@ export default observer(({ name, ticketType }: Props) => {
                         {name}
                     </text>
                     <text x={0} y={NAME_FONT_SIZE} style={{ fontSize: TYPE_FONT_SIZE }} opacity={FOREGROUND_OPACITY}>
-                        {ticketType === 'adult' ? 'adult ticket' : 'child ticket'}
+                        {ticketType == null ? '' : ticketType === 'adult' ? 'adult ticket' : 'child ticket'}
                     </text>
                 </g>
             </svg>

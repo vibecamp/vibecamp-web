@@ -1,4 +1,4 @@
-import { Routes } from '../../back-end/common/route-types'
+import { Routes } from '../../back-end/types/route-types'
 import env from './env'
 export const API_PREFIX = '/api/v1'
 

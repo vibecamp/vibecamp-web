@@ -3,7 +3,7 @@ import { createTransformer } from 'mobx-utils'
 import jwtDecode from 'jwt-decode'
 
 import { EventData } from './model'
-import { FullAccountInfo, VibeJWTPayload } from '../../back-end/common/types'
+import { VibeJWTPayload } from '../../back-end/types/misc'
 import { given, jsonParse } from './utils'
 import { ViewName, isViewName } from './views'
 import { vibefetch } from './vibefetch'
@@ -77,8 +77,17 @@ class Store {
     })
 
     get purchasedTickets() {
-        return this.accountInfo.state.result?.purchases
-            .filter(p => p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024') ?? [] // TODO
+        const accountInfo = this.accountInfo.state.result
+
+        if (accountInfo != null) {
+            const tickets = accountInfo.purchases
+                .filter(p => p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024' || p.purchase_type_id === 'ATTENDANCE_CHILD_VIBECLIPSE_2024')
+            const attendees = [...accountInfo.attendees]
+
+            return tickets.map((t, i) => ({ ...t, attendeeInfo: attendees[i] }))
+        } else {
+            return []
+        }
     }
 
     /// Events

@@ -1,11 +1,11 @@
-import { VibeJWTPayload } from '../../common/types.ts'
+import { VibeJWTPayload } from '../../types/misc.ts'
 import { Router, Status } from 'oak'
 import { AnyRouterContext, defineRoute, rateLimited } from './_common.ts'
 import { create, getNumericDate, verify } from 'djwts'
 import { compare, hash } from 'bcrypt'
-import { Tables } from '../../db-types.ts'
-import { accountReferralStatus, withDBConnection, withDBTransaction } from '../../db.ts'
-import { getEmailValidationError, getPasswordValidationError } from '../../common/validation.ts'
+import { Tables } from '../../types/db-types.ts'
+import { accountReferralStatus, withDBConnection, withDBTransaction } from '../../utils/db.ts'
+import { getEmailValidationError, getPasswordValidationError } from '../../utils/validation.ts'
 
 const encoder = new TextEncoder()
 const JWT_SECRET_KEY = await crypto.subtle.importKey(
@@ -39,29 +39,6 @@ export default function register(router: Router) {
       // verify password
       if (!await authenticatePassword(account, password)) {
         return [{ jwt: null }, Status.Unauthorized]
-      }
-
-      const nextFestival = await withDBConnection(async (db) =>
-        (await db.queryTable('next_festival'))[0])
-
-      const { referralStatus, inviteCodes } = await withDBConnection(async (db) => {
-        return {
-          referralStatus: await accountReferralStatus(db, account.account_id, nextFestival?.festival_id),
-          inviteCodes: await db.queryTable('invite_code', { where: ['created_by_account_id', '=', account.account_id] })
-        }
-      })
-      const uncreatedInviteCodes = referralStatus.allowedToRefer - inviteCodes.length
-      if (uncreatedInviteCodes > 0) {
-        await withDBTransaction(async (db) => {
-          if (nextFestival?.festival_id != null) {
-            for (let i = 0; i < uncreatedInviteCodes; i++) {
-              await db.insertTable('invite_code', {
-                created_by_account_id: account.account_id,
-                festival_id: nextFestival.festival_id
-              })
-            }
-          }
-        })
       }
 
       // construct the JWT token and respond with it

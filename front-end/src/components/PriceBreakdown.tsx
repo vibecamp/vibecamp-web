@@ -1,9 +1,9 @@
 import React from 'react'
 import { observer } from 'mobx-react-lite'
-import { PURCHASE_TYPES_BY_TYPE } from '../../../back-end/common/types'
-import { objectEntries } from '../../../back-end/common/utils'
+import { PURCHASE_TYPES_BY_TYPE } from '../../../back-end/types/misc'
+import { objectEntries, sum } from '../../../back-end/utils/misc'
 import Spacer from './core/Spacer'
-import { Purchases } from '../../../back-end/common/route-types'
+import { Purchases } from '../../../back-end/types/route-types'
 
 type Props = {
     purchases: Purchases
@@ -41,7 +41,7 @@ export default observer(({ purchases }: Props) => {
                     ${entries
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         .map(([purchase_id, count]) => PURCHASE_TYPES_BY_TYPE[purchase_id].price_in_cents * count! / 100)
-                        .reduce((total, amount) => total + amount, 0)
+                        .reduce(sum, 0)
                         .toFixed(2)}
                 </div>
             </div>

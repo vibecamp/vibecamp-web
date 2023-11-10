@@ -15,7 +15,7 @@
     "start": "deno run --allow-net --allow-env --check index.ts",
     "dev": "deno run --allow-net --allow-env --allow-read index.ts",
     "check": "deno check index.ts",
-    "db-generate-types": "deno run --allow-all ./db-generate-types.ts"
+    "typegen": "deno run --allow-all ./generate-db-types.ts"
   },
   "lock": false,
   "compilerOptions": {

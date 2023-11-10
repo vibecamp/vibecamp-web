@@ -10,7 +10,7 @@ import env from '../../env'
 import { useRequestWithDependencies } from '../../mobx/hooks'
 import { preventingDefault } from '../../utils'
 import PriceBreakdown from '../PriceBreakdown'
-import { Purchases } from '../../../../back-end/common/route-types'
+import { Purchases } from '../../../../back-end/types/route-types'
 
 const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 

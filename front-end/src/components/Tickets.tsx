@@ -8,7 +8,7 @@ import Spacer from './core/Spacer'
 import Input from './core/Input'
 import Button from './core/Button'
 import Col from './core/Col'
-import { AttendeeInfo, Maybe, PURCHASE_TYPES_BY_TYPE, PurchaseType } from '../../../back-end/common/types'
+import { AttendeeInfo, Maybe, PURCHASE_TYPES_BY_TYPE, PurchaseType } from '../../../back-end/types/misc'
 import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
@@ -22,11 +22,22 @@ import AttendeeInfoForm from './AttendeeInfoForm'
 import { makeAutoObservable } from 'mobx'
 import { Form, FormValidators } from '../mobx/form'
 import { request } from '../mobx/request'
-import { exists } from '../../../back-end/common/utils'
-import { TABLE_ROWS } from '../../../back-end/db-types'
+import { exists } from '../../../back-end/utils/misc'
 import PriceBreakdown from './PriceBreakdown'
 import RadioGroup from './core/RadioGroup'
-import { Purchases } from '../../../back-end/common/route-types'
+import { Purchases } from '../../../back-end/types/route-types'
+
+// HACK: When the purchase flow completes, the redirect may happen before the
+// webhook has been triggered to record the purchases. To prevent confusion,
+// if we've just returned to this screen after a payment, we wait a couple
+// seconds then reload the page (assigning `location.search` reloads the page,
+// and at the same time prevents subsequent reloads)
+const awaitingPurchaseRecord = location.search.includes('payment_intent')
+if (awaitingPurchaseRecord) {
+    setTimeout(() => {
+        location.search = ''
+    }, 2000)
+}
 
 export default observer(() => {
     const state = useObservableState({
@@ -79,7 +90,7 @@ export default observer(() => {
 
             <Spacer size={Store.accountInfo.state.kind !== 'result' ? 300 : 24} />
 
-            {Store.accountInfo.state.kind === 'loading' ?
+            {awaitingPurchaseRecord || Store.accountInfo.state.kind === 'loading' ?
                 <LoadingDots size={100} color='var(--color-accent-1)' />
                 : Store.accountInfo.state.kind === 'error' || Store.accountInfo.state.result == null ?
                     'Failed to load'
@@ -95,15 +106,12 @@ export default observer(() => {
                                             <Spacer size={32} />
                                         </>}
 
-                                    {Store.purchasedTickets.map((p, index) => {
-                                        // const attendee = Store.accountInfo.state.result?.attendees.find(a => a.attendee_id === p.assigned_to_attendee_id)
-                                        // const ageGroup = TABLE_ROWS.age_group.find(a => a.age_group === attendee?.age_group)
-
+                                    {Store.purchasedTickets.map((t, index) => {
                                         return (
-                                            <React.Fragment key={p.purchase_id}>
-                                                {index > 0 && 
+                                            <React.Fragment key={t.purchase_id}>
+                                                {index > 0 &&
                                                     <Spacer size={24} />}
-                                                <Ticket name={undefined} ticketType={p.purchase_type_id === 'ATTENDANCE_CHILD_VIBECLIPSE_2024' ? 'child' : 'adult'} />
+                                                <Ticket name={t.attendeeInfo?.name} ticketType={t.attendeeInfo == null ? undefined : t.attendeeInfo?.age_group === 'BETWEEN_18_AND_21' || t.attendeeInfo?.age_group === 'OVER_21' ? 'adult' : 'child'} />
                                             </React.Fragment>
                                         )
                                     })}
@@ -284,12 +292,12 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                     options={[
                         { value: true, label: `Yes, I would like to purchase ${purchaseState.allAttendeeForms.length === 1 ? 'a sleeping bag' : `${purchaseState.allAttendeeForms.length} sleeping bags`} ($${PURCHASE_TYPES_BY_TYPE.SLEEPING_BAG_VIBECLIPSE_2024.price_in_cents / 100} each)` },
                         { value: false, label: `No, ${purchaseState.allAttendeeForms.length === 1 ? 'I' : 'we'} will be bringing ${purchaseState.allAttendeeForms.length === 1 ? 'my' : 'our'} own bedding` },
-                    ] }
+                    ]}
                     error={
                         purchaseState.selectionValidationActive &&
                             purchaseState.needsSleepingBags === undefined
-                                ? 'Please select an option'
-                                : undefined
+                            ? 'Please select an option'
+                            : undefined
                     }
                 />
 
@@ -321,8 +329,8 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                     error={
                         purchaseState.selectionValidationActive &&
                             purchaseState.needsBusTickets === undefined
-                                ? 'Please select an option'
-                                : undefined
+                            ? 'Please select an option'
+                            : undefined
                     }
                 />
 
@@ -424,7 +432,7 @@ class PurchaseFormState {
     }
 
     primaryAdultAttendee = new Form({
-        initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: true },
+        initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: true, has_clicked_waiver: false },
         validators: attendeeValidators(false)
     })
 
@@ -448,7 +456,7 @@ class PurchaseFormState {
     readonly setBringingSecondary = (bringing: boolean) => {
         if (bringing) {
             this.secondaryAdultAttendee = new Form({
-                initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean },
+                initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean, has_clicked_waiver: false },
                 validators: attendeeValidators(false)
             })
         } else {
@@ -458,7 +466,7 @@ class PurchaseFormState {
 
     readonly addChildAttendee = () => {
         this.childAttendees.push(new Form({
-            initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean },
+            initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean, has_clicked_waiver: false },
             validators: attendeeValidators(true)
         }))
     }
@@ -505,7 +513,7 @@ class PurchaseFormState {
     }, { lazy: true })
 }
 
-const attendeeValidators = (isMinor: boolean): FormValidators<AttendeeInfo> => ({
+const attendeeValidators = (isMinor: boolean): FormValidators<AttendeeInfo & { has_clicked_waiver: boolean }> => ({
     name: val => {
         if (val === '') {
             return 'Please enter a name'

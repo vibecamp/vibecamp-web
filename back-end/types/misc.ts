@@ -1,5 +1,5 @@
-import { TABLE_ROWS, Tables } from "../db-types.ts"
-import { objectFromEntries } from './utils.ts'
+import { TABLE_ROWS, Tables } from "./db-types.ts"
+import { objectFromEntries } from '../utils/misc.ts'
 
 export type VibeJWTPayload = {
     iss?: string,

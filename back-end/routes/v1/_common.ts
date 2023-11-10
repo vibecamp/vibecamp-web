@@ -1,4 +1,4 @@
-import { Maybe, VibeJWTPayload } from '../../common/types.ts'
+import { Maybe, VibeJWTPayload } from '../../types/misc.ts'
 import {
   RouteParams,
   Router,
@@ -7,10 +7,10 @@ import {
   Status,
 } from 'oak'
 import { getJwtPayload } from './auth.ts'
-import { wait } from '../../common/utils.ts'
+import { wait } from '../../utils/misc.ts'
 import { getNumericDate } from "djwts"
-import { Routes } from "../../common/route-types.ts"
-import { ONE_SECOND_MS } from '../../common/constants.ts'
+import { Routes } from "../../types/route-types.ts"
+import { ONE_SECOND_MS } from '../../utils/constants.ts'
 
 export type AnyRouterContext = RouterContext<
   string,

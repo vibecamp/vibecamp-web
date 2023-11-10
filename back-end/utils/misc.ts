@@ -1,3 +1,5 @@
+import { Purchases } from '../types/route-types.ts'
+
 export async function allPromises<
   TPromises extends Record<string, Promise<unknown>>,
 >(
@@ -30,4 +32,8 @@ export function wait(ms: number): Promise<void> {
 
 export function exists<T>(val: T | null | undefined): val is T {
   return val != null
+}
+
+export function sum(a: number, b: number) {
+  return a + b
 }

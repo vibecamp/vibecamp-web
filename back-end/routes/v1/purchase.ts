@@ -1,15 +1,16 @@
 import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
-import { stripe } from '../../stripe.ts'
+import { stripe } from '../../utils/stripe.ts'
 import {
   accountReferralStatus,
   withDBConnection,
   withDBTransaction,
-} from '../../db.ts'
-import { objectEntries, objectFromEntries } from '../../common/utils.ts'
-import { TABLE_ROWS, Tables } from "../../db-types.ts"
-import { Purchases } from '../../common/route-types.ts'
-import { PURCHASE_TYPES_BY_TYPE } from '../../common/types.ts'
+} from '../../utils/db.ts'
+import { objectEntries, objectFromEntries, sum } from '../../utils/misc.ts'
+import { TABLE_ROWS, Tables } from "../../types/db-types.ts"
+import { Purchases } from '../../types/route-types.ts'
+import { PURCHASE_TYPES_BY_TYPE } from '../../types/misc.ts'
+import { sendMail, receiptEmail } from '../../utils/mailgun.ts'
 
 export default function register(router: Router) {
   defineRoute(router, {
@@ -19,7 +20,7 @@ export default function register(router: Router) {
     handler: async ({ jwt: { account_id }, body: attendees }) => {
       await withDBConnection(async db => {
         for (const attendee of attendees) {
-          db.insertTable('attendee', {
+          await db.insertTable('attendee', {
             ...attendee,
             associated_account_id: account_id
           })
@@ -84,7 +85,7 @@ export default function register(router: Router) {
       const amount = objectEntries(purchases)
         .map(([purchaseType, count]) =>
           PURCHASE_TYPES_BY_TYPE[purchaseType].price_in_cents * count!)
-        .reduce((sum, amount) => sum + amount, 0)
+        .reduce(sum, 0)
 
       const metadata: PurchaseMetadata = {
         accountId: account_id,
@@ -127,7 +128,7 @@ export default function register(router: Router) {
         const purchases: Purchases = objectFromEntries(objectEntries(purchasesRaw)
           .map(([key, value]) => [key, Number(value)])) // convert counts back to numbers
 
-        return await withDBTransaction(async (db) => {
+        await withDBTransaction(async (db) => {
           for (const [purchaseType, count] of objectEntries(purchases)) {
             for (let i = 0; i < count!; i++) {
               await db.insertTable('purchase', {
@@ -137,8 +138,12 @@ export default function register(router: Router) {
               })
             }
           }
+
+          const account = (await db.queryTable('account', { where: ['account_id', '=', accountId] }))[0]!
+
+          await sendMail(receiptEmail(account, purchases))
         })
-      }
+      } break;
       default:
         console.warn(`Unhandled Stripe event type ${event.type}`);
     }
