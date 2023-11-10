@@ -53,12 +53,12 @@ export default observer(() => {
 
     const stripeOptions = useRequest(async () => {
         if (Object.values(purchaseState.purchases).some(count => count > 0)) {
-            const stripe_client_secret = (await vibefetch(
+            const { response: { stripe_client_secret } } = await vibefetch(
                 Store.jwt,
                 '/purchase/create-intent',
                 'post',
                 purchaseState.purchases
-            ))?.stripe_client_secret
+            )
 
             if (stripe_client_secret == null) {
                 return undefined

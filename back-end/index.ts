@@ -40,14 +40,11 @@ app.use(async (ctx, next) => {
   try {
     await next()
   } catch (err) {
-    console.log({ err })
     if (isHttpError(err)) {
       ctx.response.status = err.status
     } else {
       ctx.response.status = 500
     }
-    ctx.response.body = { error: err.message }
-    ctx.response.type = 'json'
   }
 })
 

@@ -52,7 +52,7 @@ class Store {
 
     readonly festival = request(async () => {
         if (this.jwt != null) {
-            const festival = await vibefetch(this.jwt, '/festival-info', 'get', undefined)
+            const festival = (await vibefetch(this.jwt, '/festival-info', 'get', undefined)).response
 
             if (festival == null) {
                 return null
@@ -68,9 +68,9 @@ class Store {
         }
     })
 
-    readonly accountInfo = request(() => {
+    readonly accountInfo = request(async () => {
         if (this.jwt != null) {
-            return vibefetch(this.jwt, '/account', 'get', undefined)
+            return (await vibefetch(this.jwt, '/account', 'get', undefined)).response
         } else {
             return null
         }

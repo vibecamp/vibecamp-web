@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react'
 import { observer } from 'mobx-react-lite'
 import { CommonFieldProps } from './_common'
+import ErrorMessage from './ErrorMessage'
 
 type Props = Omit<CommonFieldProps<boolean>, 'label'> & {
     children: React.ReactNode
@@ -15,9 +16,7 @@ export default observer(({ value, onChange, error, onBlur, children}: Props) => 
 
             {children}
 
-            <div className={`error ${error != null ? 'visible' : ''}`}>
-                {error}
-            </div>
+            <ErrorMessage error={error} />
         </label>
     )
 })

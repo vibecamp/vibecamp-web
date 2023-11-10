@@ -2,6 +2,7 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { CommonFieldProps } from './_common'
 import { useStable } from '../../mobx/hooks'
+import ErrorMessage from './ErrorMessage'
 
 type Props<T> = Omit<CommonFieldProps<T>, 'value'> & {
     value: T | undefined,
@@ -33,9 +34,7 @@ function RadioGroup<T>({label, value, onChange, disabled, error, onBlur, options
                     {option.label}
                 </label>)}
 
-            <div className={`error ${error != null ? 'visible' : ''}`}>
-                {error}
-            </div>
+            <ErrorMessage error={error} />
         </fieldset>
     )
 }

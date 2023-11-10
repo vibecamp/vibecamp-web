@@ -11,6 +11,7 @@ import { DEFAULT_FORM_ERROR, preventingDefault } from '../utils'
 import { useObservableState, useRequest, useStable } from '../mobx/hooks'
 import { Form, fieldToProps } from '../mobx/form'
 import Col from './core/Col'
+import ErrorMessage from './core/ErrorMessage'
 
 export default observer(() => {
     const state = useObservableState({
@@ -35,10 +36,14 @@ export default observer(() => {
             return
         }
 
-        const { jwt } = await vibefetch(null, `/${state.mode}`, 'post', {
+        const { response: { jwt }, status } = await vibefetch(null, `/${state.mode}`, 'post', {
             email_address: loginForm.fields.emailAddress.value,
             password: loginForm.fields.password.value
         })
+
+        if (state.mode === 'login' && status === 401) {
+            throw 'Incorrect email or password'
+        }
 
         if (jwt == null) {
             throw Error()
@@ -78,12 +83,16 @@ export default observer(() => {
 
                 {loginOrSignup.state.kind === 'error' &&
                 <>
-                    <Spacer size={8} />
-
-                    <div style={{ color: 'red' }}>
-                        {DEFAULT_FORM_ERROR}
-                    </div>
                 </>}
+
+                <Spacer size={8} />
+
+                <ErrorMessage
+                    error={
+                        loginOrSignup.state.kind !== 'error' ? undefined :
+                            typeof loginOrSignup.state.error === 'string'? loginOrSignup.state.error :
+                                DEFAULT_FORM_ERROR
+                    }/>
 
                 <Spacer size={24} />
 

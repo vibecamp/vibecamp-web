@@ -1,0 +1,14 @@
+
+.error-message {
+    color: red;
+    overflow: hidden;
+    height: 1.2em;
+
+    transition: all 0.1s ease-out;
+
+    &:not(.visible) {
+        pointer-events: none;
+        opacity: 0;
+        height: 0;
+    }
+}

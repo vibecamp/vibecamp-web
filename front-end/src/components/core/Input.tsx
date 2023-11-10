@@ -2,6 +2,7 @@ import React, { ChangeEvent, HTMLInputTypeAttribute, useCallback, useRef } from 
 import { observer } from 'mobx-react-lite'
 import { given } from '../../utils'
 import { CommonFieldProps } from './_common'
+import ErrorMessage from './ErrorMessage'
 
 type Props = CommonFieldProps<string> & {
     placeholder?: string,
@@ -42,9 +43,7 @@ export default observer(({ label, placeholder, type, disabled, value, onChange, 
                     autoComplete={autocomplete}
                 />}
 
-            <div className={`error ${error != null ? 'visible' : ''}`}>
-                {error}
-            </div>
+            <ErrorMessage error={error} />
         </label>
     )
 })

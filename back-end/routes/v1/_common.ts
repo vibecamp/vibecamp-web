@@ -22,7 +22,7 @@ export type AnyRouterMiddleware = RouterMiddleware<string>
 
 export const API_BASE = '/api/v1'
 
-type RouteResponse<TResult> = Promise<[(TResult & { error?: string }) | null, Status]>
+type RouteResponse<TResult> = Promise<[(TResult) | null, Status]>
 
 type UnauthenticatedRouteContext<TEndpoint extends keyof Routes> = {
   ctx: AnyRouterContext

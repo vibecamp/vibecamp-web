@@ -61,18 +61,7 @@
     }
   }
 
-  >.error {
-    color: red;
-    overflow: hidden;
-    height: 1.2em;
-    margin-top: 4px;
-
-    transition: all 0.1s ease-out;
-
-    &:not(.visible) {
-      pointer-events: none;
-      opacity: 0;
-      height: 0;
-    }
+  >.error-message {
+      margin-top: 4px;
   }
 }
