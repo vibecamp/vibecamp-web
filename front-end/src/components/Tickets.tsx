@@ -222,7 +222,7 @@ const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => 
 
     return (
         <form onSubmit={preventingDefault(goToNext)}>
-            <Col padding={20}>
+            <Col padding={20} pageLevel>
 
                 <AttendeeInfoForm attendeeInfo={purchaseFormState.primaryAdultAttendee} isChild={false} isAccountHolder={true} />
 
