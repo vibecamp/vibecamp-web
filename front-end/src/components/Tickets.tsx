@@ -43,7 +43,7 @@ if (awaitingPurchaseRecord) {
 export default observer(() => {
     const state = useObservableState({
         code: '',
-        purchaseModalState: 'none' as 'none' | 'selection' | 'payment'
+        purchaseModalState: 'selection' as 'none' | 'selection' | 'payment'
     })
 
     const closePurchaseModal = useStable(() => () => {
@@ -69,7 +69,7 @@ export default observer(() => {
     }, { lazy: true })
 
     const stripeOptions = useRequest(async () => {
-        if (Object.values(purchaseFormState.purchases).some(count => count > 0)) {
+        if (Store.loggedIn && Object.values(purchaseFormState.purchases).some(count => count > 0)) {
             const { response } = await vibefetch(
                 Store.jwt,
                 '/purchase/create-intent',

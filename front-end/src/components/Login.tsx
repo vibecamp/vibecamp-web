@@ -64,7 +64,7 @@ export default observer(() => {
             <Col padding={20}>
                 <Stripes position='top-left' />
 
-                <img src="vibecamp.png" className='logo' />
+                <img src="vibecamp.png" className='logo' alt='Vibecamp logo' />
 
                 <Spacer size={24} />
 
@@ -86,18 +86,14 @@ export default observer(() => {
                     {...fieldToProps(loginForm.fields.password)}
                 />
 
-                {loginOrSignup.state.kind === 'error' &&
-                <>
-                </>}
-
                 <Spacer size={8} />
 
                 <ErrorMessage
                     error={
                         loginOrSignup.state.kind !== 'error' ? undefined :
-                            typeof loginOrSignup.state.error === 'string'? loginOrSignup.state.error :
+                            typeof loginOrSignup.state.error === 'string' ? loginOrSignup.state.error :
                                 DEFAULT_FORM_ERROR
-                    }/>
+                    } />
 
                 <Spacer size={24} />
 

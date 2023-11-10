@@ -32,12 +32,12 @@
         }
 
         &.bottom-right {
-            bottom: 50;
+            bottom: 50px;
             right: -50vw;
             transform: scale(-1) rotate(-20deg);
         }
         &.top-left {
-            top: 0;
+            top: 0px;
             left: -50vw;
             transform: rotate(-20deg);
         }
