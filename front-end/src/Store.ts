@@ -37,6 +37,10 @@ class Store {
         }
     }) ?? null
 
+    readonly logOut = () => {
+        this.jwt = null
+    }
+
     get loggedIn() {
         return this.jwt != null
     }

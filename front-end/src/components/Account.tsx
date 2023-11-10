@@ -19,7 +19,7 @@ export default observer(() => {
                 onChange={val => eventBeingEdited.name = val}
             /> */}
 
-            <Button isDanger isPrimary onClick={() => Store.jwt = null}>
+            <Button isDanger isPrimary onClick={Store.logOut}>
                 Log out
             </Button>
 

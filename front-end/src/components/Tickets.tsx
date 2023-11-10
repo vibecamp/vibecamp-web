@@ -26,6 +26,7 @@ import { exists } from '../../../back-end/utils/misc'
 import PriceBreakdown from './PriceBreakdown'
 import RadioGroup from './core/RadioGroup'
 import { Purchases } from '../../../back-end/types/route-types'
+import { createTransformer } from 'mobx-utils'
 
 // HACK: When the purchase flow completes, the redirect may happen before the
 // webhook has been triggered to record the purchases. To prevent confusion,
@@ -42,22 +43,38 @@ if (awaitingPurchaseRecord) {
 export default observer(() => {
     const state = useObservableState({
         code: '',
-        purchaseState: 'none' as 'none' | 'selection' | 'payment'
+        purchaseModalState: 'none' as 'none' | 'selection' | 'payment'
     })
 
-    const purchaseState = useStable(() => new PurchaseFormState())
+    const closePurchaseModal = useStable(() => () => {
+        state.purchaseModalState = 'none'
+    })
+
+    const openPurchaseModal = useStable(() => () => {
+        state.purchaseModalState = 'selection'
+    })
+
+    const goToPayment = useStable(() => () => {
+        purchaseFormState.activateAllValidation()
+
+        if (purchaseFormState.isValid) {
+            state.purchaseModalState = 'payment'
+        }
+    })
+
+    const purchaseFormState = useStable(() => new PurchaseFormState())
 
     const submitInviteCode = useRequest(async () => {
         await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: state.code })
     }, { lazy: true })
 
     const stripeOptions = useRequest(async () => {
-        if (Object.values(purchaseState.purchases).some(count => count > 0)) {
+        if (Object.values(purchaseFormState.purchases).some(count => count > 0)) {
             const { response } = await vibefetch(
                 Store.jwt,
                 '/purchase/create-intent',
                 'post',
-                purchaseState.purchases
+                purchaseFormState.purchases
             )
             const { stripe_client_secret } = response ?? {}
 
@@ -75,14 +92,6 @@ export default observer(() => {
             return undefined
         }
     })
-
-    function goToPayment() {
-        purchaseState.activateAllValidation()
-
-        if (purchaseState.isValid) {
-            state.purchaseState = 'payment'
-        }
-    }
 
     return (
         <Col padding={20} pageLevel justify={Store.accountInfo.state.kind !== 'result' ? 'center' : undefined} align={Store.accountInfo.state.kind !== 'result' ? 'center' : undefined}>
@@ -118,7 +127,7 @@ export default observer(() => {
                                     })}
 
                                     {Store.purchasedTickets.length === 0 &&
-                                        <Button isPrimary onClick={() => state.purchaseState = 'selection'}>
+                                        <Button isPrimary onClick={openPurchaseModal}>
                                             Buy tickets
                                         </Button>}
 
@@ -191,14 +200,14 @@ export default observer(() => {
                         </>
                         : null}
 
-            <Modal title='Ticket purchase' isOpen={state.purchaseState !== 'none'} onClose={() => state.purchaseState = 'none'}>
+            <Modal title='Ticket purchase' isOpen={state.purchaseModalState !== 'none'} onClose={closePurchaseModal}>
                 {() =>
                     <MultiView
                         views={[
-                            { name: 'selection', content: <SelectionView purchaseState={purchaseState} goToNext={goToPayment} /> },
-                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseState.purchases} onPrePurchase={purchaseState.createAttendees.load} redirectUrl={location.origin + '#Tickets'} /> }
+                            { name: 'selection', content: <SelectionView purchaseState={purchaseFormState} goToNext={goToPayment} /> },
+                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseFormState.purchases} onPrePurchase={purchaseFormState.createAttendees.load} redirectUrl={location.origin + '#Tickets'} /> }
                         ]}
-                        currentView={state.purchaseState}
+                        currentView={state.purchaseModalState}
                     />}
             </Modal>
         </Col>
@@ -206,6 +215,9 @@ export default observer(() => {
 })
 
 const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void }> = observer(({ purchaseState, goToNext }) => {
+    const removeChildAttendee = useStable(() => createTransformer((index: number) => () => {
+        purchaseState.childAttendees.splice(index, 1)
+    }))
 
     return (
         <form onSubmit={preventingDefault(goToNext)}>
@@ -251,7 +263,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
 
                         <Spacer size={24} />
 
-                        <Button isDanger onClick={() => purchaseState.childAttendees.splice(index, 1)}>
+                        <Button isDanger onClick={removeChildAttendee(index)}>
                             Remove
                         </Button>
 

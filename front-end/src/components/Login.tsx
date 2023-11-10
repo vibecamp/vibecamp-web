@@ -18,6 +18,10 @@ export default observer(() => {
         mode: 'login' as 'login' | 'signup'
     })
 
+    const toggleState = useStable(() => () => {
+        state.mode = (state.mode === 'login' ? 'signup' : 'login')
+    })
+
     const loginForm = useStable(() => new Form({
         initialValues: {
             emailAddress: '',
@@ -106,7 +110,7 @@ export default observer(() => {
 
                 <Spacer size={8} />
 
-                <Button disabled={loginOrSignup.state.kind === 'error'} onClick={() => state.mode = (state.mode === 'login' ? 'signup' : 'login')}>
+                <Button onClick={toggleState}>
                     {state.mode === 'login'
                         ? 'Create an account'
                         : 'I already have an account'}
