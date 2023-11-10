@@ -27,6 +27,7 @@ import PriceBreakdown from './PriceBreakdown'
 import RadioGroup from './core/RadioGroup'
 import { Purchases } from '../../../back-end/types/route-types'
 import { createTransformer } from 'mobx-utils'
+import ErrorMessage from './core/ErrorMessage'
 
 // HACK: When the purchase flow completes, the redirect may happen before the
 // webhook has been triggered to record the purchases. To prevent confusion,
@@ -204,7 +205,7 @@ export default observer(() => {
                 {() =>
                     <MultiView
                         views={[
-                            { name: 'selection', content: <SelectionView purchaseState={purchaseFormState} goToNext={goToPayment} /> },
+                            { name: 'selection', content: <SelectionView purchaseFormState={purchaseFormState} goToNext={goToPayment} /> },
                             { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseFormState.purchases} onPrePurchase={purchaseFormState.createAttendees.load} redirectUrl={location.origin + '#Tickets'} /> }
                         ]}
                         currentView={state.purchaseModalState}
@@ -214,16 +215,16 @@ export default observer(() => {
     )
 })
 
-const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void }> = observer(({ purchaseState, goToNext }) => {
+const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => void }> = observer(({ purchaseFormState, goToNext }) => {
     const removeChildAttendee = useStable(() => createTransformer((index: number) => () => {
-        purchaseState.childAttendees.splice(index, 1)
+        purchaseFormState.childAttendees.splice(index, 1)
     }))
 
     return (
         <form onSubmit={preventingDefault(goToNext)}>
             <Col padding={20}>
 
-                <AttendeeInfoForm attendeeInfo={purchaseState.primaryAdultAttendee} isChild={false} isAccountHolder={true} />
+                <AttendeeInfoForm attendeeInfo={purchaseFormState.primaryAdultAttendee} isChild={false} isAccountHolder={true} />
 
                 <Spacer size={32} />
 
@@ -231,7 +232,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
 
                 <Spacer size={32} />
 
-                <Checkbox value={purchaseState.secondaryAdultAttendee != null} onChange={purchaseState.setBringingSecondary}>
+                <Checkbox value={purchaseFormState.secondaryAdultAttendee != null} onChange={purchaseFormState.setBringingSecondary}>
                     {'I\'m bringing another adult with me'}
                 </Checkbox>
 
@@ -244,11 +245,11 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                     attendee (with a badge and everything)`}
                 </InfoBlurb>
 
-                {purchaseState.secondaryAdultAttendee != null &&
+                {purchaseFormState.secondaryAdultAttendee != null &&
                     <>
                         <Spacer size={24} />
 
-                        <AttendeeInfoForm attendeeInfo={purchaseState.secondaryAdultAttendee} isChild={false} isAccountHolder={false} />
+                        <AttendeeInfoForm attendeeInfo={purchaseFormState.secondaryAdultAttendee} isChild={false} isAccountHolder={false} />
                     </>}
 
                 <Spacer size={32} />
@@ -257,7 +258,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
 
                 <Spacer size={32} />
 
-                {purchaseState.childAttendees.map((attendee, index) =>
+                {purchaseFormState.childAttendees.map((attendee, index) =>
                     <React.Fragment key={index}>
                         <AttendeeInfoForm attendeeInfo={attendee} isChild={true} isAccountHolder={false} />
 
@@ -270,13 +271,13 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                         <Spacer size={32} />
                     </React.Fragment>)}
 
-                <Button onClick={purchaseState.addChildAttendee} disabled={purchaseState.childAttendees.length >= 5}>
+                <Button onClick={purchaseFormState.addChildAttendee} disabled={purchaseFormState.childAttendees.length >= 5}>
                     <span className="material-symbols-outlined" style={{ fontSize: 'inherit' }}>add</span>
                     <Spacer size={4} />
                     Add a minor
                 </Button>
 
-                {purchaseState.childAttendees.length === 5 &&
+                {purchaseFormState.childAttendees.length === 5 &&
                     <>
                         <Spacer size={12} />
 
@@ -300,15 +301,15 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                 <Spacer size={32} />
 
                 <RadioGroup
-                    value={purchaseState.needsSleepingBags}
-                    onChange={val => purchaseState.needsSleepingBags = val}
+                    value={purchaseFormState.needsSleepingBags}
+                    onChange={val => purchaseFormState.needsSleepingBags = val}
                     options={[
-                        { value: true, label: `Yes, I would like to purchase ${purchaseState.allAttendeeForms.length === 1 ? 'a sleeping bag' : `${purchaseState.allAttendeeForms.length} sleeping bags`} ($${PURCHASE_TYPES_BY_TYPE.SLEEPING_BAG_VIBECLIPSE_2024.price_in_cents / 100} each)` },
-                        { value: false, label: `No, ${purchaseState.allAttendeeForms.length === 1 ? 'I' : 'we'} will be bringing ${purchaseState.allAttendeeForms.length === 1 ? 'my' : 'our'} own bedding` },
+                        { value: true, label: `Yes, I would like to purchase ${purchaseFormState.allAttendeeForms.length === 1 ? 'a sleeping bag' : `${purchaseFormState.allAttendeeForms.length} sleeping bags`} ($${PURCHASE_TYPES_BY_TYPE.SLEEPING_BAG_VIBECLIPSE_2024.price_in_cents / 100} each)` },
+                        { value: false, label: `No, ${purchaseFormState.allAttendeeForms.length === 1 ? 'I' : 'we'} will be bringing ${purchaseFormState.allAttendeeForms.length === 1 ? 'my' : 'our'} own bedding` },
                     ]}
                     error={
-                        purchaseState.selectionValidationActive &&
-                            purchaseState.needsSleepingBags === undefined
+                        purchaseFormState.selectionValidationActive &&
+                            purchaseFormState.needsSleepingBags === undefined
                             ? 'Please select an option'
                             : undefined
                     }
@@ -316,8 +317,8 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
 
                 <Spacer size={16} />
 
-                <Checkbox value={purchaseState.needsPillow} onChange={val => purchaseState.needsPillow = val}>
-                    I would like {purchaseState.allAttendeeForms.length === 1 ? 'a pillow' : `${purchaseState.allAttendeeForms.length} pillows`} (${PURCHASE_TYPES_BY_TYPE.PILLOW_WITH_CASE_VIBECLIPSE_2024.price_in_cents / 100} each)
+                <Checkbox value={purchaseFormState.needsPillow} onChange={val => purchaseFormState.needsPillow = val}>
+                    I would like {purchaseFormState.allAttendeeForms.length === 1 ? 'a pillow' : `${purchaseFormState.allAttendeeForms.length} pillows`} (${PURCHASE_TYPES_BY_TYPE.PILLOW_WITH_CASE_VIBECLIPSE_2024.price_in_cents / 100} each)
                 </Checkbox>
 
                 <Spacer size={24} />
@@ -336,12 +337,12 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                 <Spacer size={24} />
 
                 <RadioGroup
-                    value={purchaseState.needsBusTickets}
-                    onChange={val => purchaseState.needsBusTickets = val}
+                    value={purchaseFormState.needsBusTickets}
+                    onChange={val => purchaseFormState.needsBusTickets = val}
                     options={BUS_TICKET_OPTIONS}
                     error={
-                        purchaseState.selectionValidationActive &&
-                            purchaseState.needsBusTickets === undefined
+                        purchaseFormState.selectionValidationActive &&
+                            purchaseFormState.needsBusTickets === undefined
                             ? 'Please select an option'
                             : undefined
                     }
@@ -365,11 +366,16 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
                     href='https://admin.gazeboevents.com/forms/706B540F-AF67-4D4B-9C42-A402E51C2039' 
                     target='_blank'
                     rel="noreferrer"
+                    onClick={purchaseFormState.handleWaiverClick}
                 >
                     Campsite forms &nbsp; <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
                 </a>
 
-                <Spacer size={12} />
+                <Spacer size={4} />
+
+                <ErrorMessage error={purchaseFormState.primaryAdultAttendee.fields.has_clicked_waiver.displayError} />
+
+                <Spacer size={8} />
 
                 <InfoBlurb>
                     {`Please click the link above to sign the Camp Champions
@@ -388,7 +394,7 @@ const SelectionView: FC<{ purchaseState: PurchaseFormState, goToNext: () => void
 
                 <Spacer size={32} />
 
-                <PriceBreakdown purchases={purchaseState.purchases} />
+                <PriceBreakdown purchases={purchaseFormState.purchases} />
 
                 <Spacer size={24} />
 
@@ -490,10 +496,14 @@ class PurchaseFormState {
         ].filter(exists)
     }
 
+    readonly handleWaiverClick = () => {
+        this.primaryAdultAttendee.fields.has_clicked_waiver.set(true)
+    }
+
     readonly setBringingSecondary = (bringing: boolean) => {
         if (bringing) {
             this.secondaryAdultAttendee = new Form({
-                initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean, has_clicked_waiver: false },
+                initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean },
                 validators: attendeeValidators(false)
             })
         } else {
@@ -503,7 +513,7 @@ class PurchaseFormState {
 
     readonly addChildAttendee = () => {
         this.childAttendees.push(new Form({
-            initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean, has_clicked_waiver: false },
+            initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean },
             validators: attendeeValidators(true)
         }))
     }
@@ -518,6 +528,7 @@ class PurchaseFormState {
             && this.needsSleepingBags !== undefined
             && this.needsBusTickets !== undefined
             && this.childAttendees.every(a => a.fields.age_group.value !== 'UNDER_2')
+            && this.primaryAdultAttendee.fields.has_clicked_waiver.value === true
     }
 
     get purchases() {
@@ -550,7 +561,7 @@ class PurchaseFormState {
     }, { lazy: true })
 }
 
-const attendeeValidators = (isMinor: boolean): FormValidators<AttendeeInfo & { has_clicked_waiver: boolean }> => ({
+const attendeeValidators = (isMinor: boolean): FormValidators<AttendeeInfo & { has_clicked_waiver?: boolean }> => ({
     name: val => {
         if (val === '') {
             return 'Please enter a name'
@@ -570,7 +581,7 @@ const attendeeValidators = (isMinor: boolean): FormValidators<AttendeeInfo & { h
         }
     },
     has_clicked_waiver: val => {
-        if (!val) {
+        if (val != null && val === false) {
             return 'Campsite waivers must be filled out for each attendee'
         }
     }
