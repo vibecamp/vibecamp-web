@@ -43,7 +43,7 @@ if (awaitingPurchaseRecord) {
 export default observer(() => {
     const state = useObservableState({
         code: '',
-        purchaseModalState: 'selection' as 'none' | 'selection' | 'payment'
+        purchaseModalState: 'none' as 'none' | 'selection' | 'payment'
     })
 
     const closePurchaseModal = useStable(() => () => {
