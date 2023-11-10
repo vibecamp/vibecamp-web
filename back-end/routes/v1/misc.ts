@@ -11,15 +11,13 @@ export default function register(router: Router) {
         requireAuth: true,
         handler: cached(3 * ONE_MINUTE_MS, async () => {
             const festival = await withDBConnection(async db => (await db.queryTable('next_festival'))[0])
-
             if (festival == null) {
-                return [null, Status.NotFound]
+                throw Error('Failed to find next_festival in the database')
             }
 
             const { festival_name, start_date, end_date } = festival
-
             if (festival_name == null || start_date == null || end_date == null) {
-                return [null, Status.InternalServerError]
+                throw Error('next_festival incomplete')
             }
 
             return [{

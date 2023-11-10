@@ -142,43 +142,38 @@ export default function register(router: Router) {
     handler: rateLimited(ONE_SECOND_MS, async ({ jwt, body: { invite_code } }) => {
       const { account_id } = jwt
 
-      try {
-        return await withDBTransaction(async (db) => {
-          const inviteCodeResult = (await db.queryTable('invite_code', { where: ['code', '=', invite_code] }))[0]
+      return await withDBTransaction(async (db) => {
+        const inviteCodeResult = (await db.queryTable('invite_code', { where: ['code', '=', invite_code] }))[0]
 
-          if (inviteCodeResult == null) {
-            // invite code doesn't exist
-            return [null, Status.InternalServerError]
-          }
+        if (inviteCodeResult == null) {
+          // invite code doesn't exist
+          throw Error(`Invalid invite code submitted: "${invite_code}"`)
+        }
 
-          if (inviteCodeResult.used_by_account_id != null) {
-            // invite code already used
-            return [null, Status.InternalServerError]
-          }
+        if (inviteCodeResult.used_by_account_id != null) {
+          // invite code already used
+          throw Error(`Already-used invite code submitted: "${invite_code}"`)
+        }
 
-          const accountResult = await db.queryTable('account', { where: ['account_id', '=', account_id] })
-          const currentAccount = accountResult[0]
-          if (currentAccount == null) {
-            // account doesn't exist
-            return [null, Status.InternalServerError]
-          }
+        const accountResult = await db.queryTable('account', { where: ['account_id', '=', account_id] })
+        const currentAccount = accountResult[0]
+        if (currentAccount == null) {
+          // account doesn't exist
+          throw Error(`Tried to submit invite code from account that doesn't exist: "${account_id}"`)
+        }
 
-          const codeUsedByCurrentAccount = (await db.queryTable('invite_code', { where: ['used_by_account_id', '=', account_id] }))[0]
-          if (codeUsedByCurrentAccount != null) {
-            // this account already used an invite code
-            return [null, Status.InternalServerError]
-          }
+        const codeUsedByCurrentAccount = (await db.queryTable('invite_code', { where: ['used_by_account_id', '=', account_id] }))[0]
+        if (codeUsedByCurrentAccount != null) {
+          // this account already used an invite code
+          throw Error(`Account tried to submit an invite code but has already used one: "${account_id}"`)
+        }
 
-          await db.updateTable('invite_code', {
-            used_by_account_id: account_id
-          }, [['code', '=', invite_code]])
+        await db.updateTable('invite_code', {
+          used_by_account_id: account_id
+        }, [['code', '=', invite_code]])
 
-          return [null, Status.OK]
-        })
-      } catch (e) {
-        console.error(e)
-        return [null, Status.InternalServerError]
-      }
+        return [null, Status.OK]
+      })
     }),
   })
 }

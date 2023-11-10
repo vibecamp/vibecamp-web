@@ -9,9 +9,9 @@ const MAILGUN_DOMAIN = 'mail.vibe.camp'
 const FROM = `Vibecamp <support@${MAILGUN_DOMAIN}>`
 
 export type Email = {
-    to: string,
-    subject: string,
-    html: string,
+    readonly to: string,
+    readonly subject: string,
+    readonly html: string,
 }
 
 export async function sendMail(email: Email) {
@@ -30,8 +30,7 @@ export async function sendMail(email: Email) {
     )
 
     if (!res.ok) {
-        console.error('Failed to send mailgun email', res)
-        throw Error('Failed to send mailgun email')
+        throw Error(`Failed to send mailgun email: ${JSON.stringify(email)}`)
     }
 }
 

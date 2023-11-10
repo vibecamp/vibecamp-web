@@ -36,10 +36,11 @@ export default observer(() => {
             return
         }
 
-        const { response: { jwt }, status } = await vibefetch(null, `/${state.mode}`, 'post', {
+        const { response, status } = await vibefetch(null, `/${state.mode}`, 'post', {
             email_address: loginForm.fields.emailAddress.value,
             password: loginForm.fields.password.value
         })
+        const { jwt } = response ?? {}
 
         if (state.mode === 'login' && status === 401) {
             throw 'Incorrect email or password'

@@ -37,3 +37,25 @@ export function exists<T>(val: T | null | undefined): val is T {
 export function sum(a: number, b: number) {
   return a + b
 }
+
+// Overengineering this a little to reduce allocations...
+const spacesStrCache = new Map<number, string>()
+export const spaces = (length: number): string => {
+  const cached = spacesStrCache.get(length)
+
+  if (cached != null) {
+    return cached
+  } else {
+    const str = new Array(length).fill(' ').join('')
+    spacesStrCache.set(length, str)
+    return str
+  }
+}
+
+export const pad = (str: string, length: number) => {
+  const spacesToAdd = Math.max(length - str.length, 0)
+  return str + spaces(spacesToAdd)
+}
+
+export const indent = (str: string) =>
+  str.split('\n').map(line => '\t' + line).join('\n')

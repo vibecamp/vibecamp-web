@@ -5,6 +5,7 @@ import {
   RouterContext,
   RouterMiddleware,
   Status,
+  Response,
 } from 'oak'
 import { getJwtPayload } from './auth.ts'
 import { wait } from '../../utils/misc.ts'
@@ -25,7 +26,7 @@ export const API_BASE = '/api/v1'
 type RouteResponse<TResult> = Promise<[(TResult) | null, Status]>
 
 type UnauthenticatedRouteContext<TEndpoint extends keyof Routes> = {
-  ctx: AnyRouterContext
+  ctx: AnyRouterContext & { response: ResponseWithError }
   body: Routes[TEndpoint]['body']
 }
 
@@ -34,6 +35,8 @@ type AuthenticatedRouteContext<TEndpoint extends keyof Routes> = Unauthenticated
 }
 
 type AnyRouteContext = UnauthenticatedRouteContext<keyof Routes> & Partial<AuthenticatedRouteContext<keyof Routes>>
+
+export type ResponseWithError = Response & { error?: string }
 
 /**
  * Formalized way to define a route on a router:
@@ -61,12 +64,8 @@ export function defineRoute<TEndpoint extends keyof Routes>(
   const handler: AnyRouterMiddleware = async (ctx, next) => {
     let parsedBody: Record<string, unknown> = {}
 
-    try {
-      if (config.method !== 'get') {
-        parsedBody = await ctx.request.body({ type: 'json' }).value
-      }
-      // deno-lint-ignore no-empty
-    } catch {
+    if (config.method !== 'get') {
+      parsedBody = await ctx.request.body({ type: 'json' }).value
     }
 
     // if this route requires auth, decode the JWT payload and assert that

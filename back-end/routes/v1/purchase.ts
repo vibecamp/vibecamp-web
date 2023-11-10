@@ -40,8 +40,7 @@ export default function register(router: Router) {
         (await db.queryTable('next_festival'))[0])
 
       if (nextFestival == null) {
-        console.error('Failed to find next_festival in the database!')
-        return [null, Status.InternalServerError]
+        throw Error('Failed to find next_festival in the database')
       }
 
       const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id, nextFestival.festival_id))
@@ -145,7 +144,7 @@ export default function register(router: Router) {
         })
       } break;
       default:
-        console.warn(`Unhandled Stripe event type ${event.type}`);
+        console.warn(`\tUnhandled Stripe event type ${event.type}`);
     }
   })
 }
