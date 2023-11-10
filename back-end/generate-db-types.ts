@@ -1,7 +1,10 @@
 
 import { withDBConnection } from "./utils/db.ts";
 
-type DataType =
+/**
+ * Possible postgres column type names
+ */
+type PostgresColumnType =
     | 'boolean'
     | 'text'
     | 'integer'
@@ -10,12 +13,37 @@ type DataType =
     | 'point'
     | 'uuid'
 
+/**
+ * Postgres column type -> TypeScript type
+ */
+const TYPE_MAP: Record<PostgresColumnType, string> = {
+    'boolean': 'boolean',
+    'text': 'string',
+    'uuid': 'string',
+    'integer': 'number',
+    'point': 'unknown',
+    'date': 'Date',
+    'timestamp with time zone': 'unknown'
+}
+
+/**
+ * The **entire contents** of these tables will be downloaded and written into
+ * db-types.ts. This should only be done for "enum-like" tables that are
+ * relatively small, and don't change very often!
+ */
+const TABLES_TO_DUMP: readonly string[] = [
+    'purchase_type',
+    'volunteer_type',
+    'age_group',
+    'diet'
+]
+
 await withDBConnection(async db => {
 
     const columns = (await db.queryObject<{
         table_name: string,
         column_name: string,
-        data_type: DataType,
+        data_type: PostgresColumnType,
         is_nullable: 'YES' | 'NO',
         constraint_type: 'PRIMARY KEY' | 'FOREIGN KEY' | null,
         referencing_table_name: string | null,
@@ -38,16 +66,8 @@ await withDBConnection(async db => {
         ORDER BY information_schema.tables.table_name, information_schema.columns.column_name ASC
     `).rows
 
-    // dumped table content
-    const tableRowsToDump: readonly string[] = [
-        'purchase_type',
-        'volunteer_type',
-        'age_group',
-        'diet'
-    ]
-
     const tableRows: Record<string, Array<unknown>> = Object.fromEntries(await Promise.all(
-        tableRowsToDump
+        TABLES_TO_DUMP
             .map(async table_name =>
                 [table_name, await db.queryTable(table_name as any)] as const)
     ))
@@ -63,19 +83,6 @@ ${rows.map(row => `    ${JSON.stringify(row)},`).join('\n')}
     // table schemas
     const tables: Record<string, Array<{ column_name: string, type: string }>> = {}
     // const primaryKeys = new Set<string>()
-
-    /**
-     * Postgres column type -> TypeScript type
-     */
-    const TYPE_MAP: Record<DataType, string> = {
-        'boolean': 'boolean',
-        'text': 'string',
-        'uuid': 'string',
-        'integer': 'number',
-        'point': 'unknown',
-        'date': 'Date',
-        'timestamp with time zone': 'unknown'
-    }
 
     const justColumns = columns.reduce((cols, row) => {
         const key = row.table_name + '__' + row.column_name
@@ -123,7 +130,7 @@ ${rows.map(row => `    ${JSON.stringify(row)},`).join('\n')}
         
 export type Tables = {
 ${Object.entries(tables).map(([tableName, columns]) =>
-            tableRowsToDump.includes(tableName)
+            TABLES_TO_DUMP.includes(tableName)
                 ? `  ${tableName}: (typeof TABLE_ROWS)['${tableName}'][number]`
                 : `  ${tableName}: {
 ${columns.map(({ column_name, type }) => `    ${column_name}: ${type},`).join('\n')}
