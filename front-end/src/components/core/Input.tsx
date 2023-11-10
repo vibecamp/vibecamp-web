@@ -19,27 +19,29 @@ export default observer(({ label, placeholder, type, disabled, value, onChange, 
     const textarea = useRef<HTMLTextAreaElement | null>(null)
     const textareaHeight = given(textarea.current?.scrollHeight, scrollHeight => scrollHeight + 2) ?? undefined
 
+    const sharedProps = {
+        value,
+        onChange: handleChange,
+        onBlur,
+        disabled,
+        placeholder,
+        'aria-invalid': error != null,
+        'aria-errormessage': error
+    }
+
     return (
         <label className='input'>
             <div>{label}</div>
 
             {multiline
                 ? <textarea
-                    value={value}
-                    onChange={handleChange} 
-                    onBlur={onBlur} 
-                    disabled={disabled}
-                    placeholder={placeholder}
+                    {...sharedProps}
                     style={{ height: textareaHeight }}
                     ref={textarea}
                 />
                 : <input
-                    value={value}
-                    onChange={handleChange} 
-                    onBlur={onBlur}
+                    {...sharedProps}
                     type={type} 
-                    disabled={disabled} 
-                    placeholder={placeholder}
                     autoComplete={autocomplete}
                 />}
 

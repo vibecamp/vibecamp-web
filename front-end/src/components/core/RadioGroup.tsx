@@ -29,6 +29,8 @@ function RadioGroup<T>({label, value, onChange, disabled, error, onBlur, options
                         onBlur={onBlur}
                         disabled={disabled}
                         checked={value === option.value}
+                        aria-invalid={error != null}
+                        aria-errormessage={error}
                     />
 
                     {option.label}

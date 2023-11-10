@@ -12,7 +12,13 @@ export default observer(({ value, onChange, error, onBlur, children}: Props) => 
 
     return (
         <label className='checkbox'>
-            <input type='checkbox' checked={value} onChange={handleChange} onBlur={onBlur}></input>
+            <input 
+                type='checkbox' 
+                checked={value} 
+                onChange={handleChange}
+                onBlur={onBlur}
+                aria-invalid={error != null}
+                aria-errormessage={error} />
 
             {children}
 
