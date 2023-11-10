@@ -1,9 +1,41 @@
-import { Application, isHttpError } from 'oak'
+import { Application, isHttpError, isErrorStatus, STATUS_TEXT } from 'oak'
 import { router } from './routes/index.ts'
 
 const app = new Application()
 
+// Overengineering this a little to reduce allocations...
+const spacesStrCache = new Map<number, string>()
+const spaces = (length: number): string => {
+  const cached = spacesStrCache.get(length)
+
+  if (cached != null) {
+    return cached
+  } else {
+    const str = new Array(length).fill(' ').join('')
+    spacesStrCache.set(length, str)
+    return str
+  }
+}
+
+const pad = (str: string, length: number) => {
+  const spacesToAdd = Math.max(length - str.length, 0)
+  return str + spaces(spacesToAdd)
+}
+
 // middleware
+app.use(async (ctx, next) => {
+  await next()
+
+  const baseLog = `[ ${new Date().toISOString()}  ${pad(ctx.request.method, 7)}  ${pad(ctx.request.url.pathname, 34)} ]: ${ctx.response.status} ${STATUS_TEXT[ctx.response.status]}`
+
+  if (isErrorStatus(ctx.response.status)) {
+    console.error(baseLog + '\t' + '<TODO error>')
+  } else {
+    console.info(baseLog)
+  }
+})
+
+
 app.use(async (ctx, next) => {
   try {
     await next()
