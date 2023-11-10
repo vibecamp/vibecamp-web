@@ -37,7 +37,8 @@ export default observer(({ isOpen, onClose, title, side = 'right', children }: P
 
     return (
         <div className={'modal' + ' ' + side + ' ' + modalState}>
-            <div className='dialog'>
+            <dialog className='dialog' aria-modal={modalState === 'open'}>
+
                 {(onClose || title) &&
                     <div className='header'>
                         {onClose != null &&
@@ -56,10 +57,12 @@ export default observer(({ isOpen, onClose, title, side = 'right', children }: P
                         {onClose != null &&
                             <span className='balancer'></span>}
                     </div>}
+
                 <div className="content">
                     {children()}
                 </div>
-            </div>
+
+            </dialog>
         </div>
     )
 })
