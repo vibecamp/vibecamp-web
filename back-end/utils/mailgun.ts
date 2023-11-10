@@ -61,5 +61,3 @@ export const receiptEmail = (account: Pick<Tables['account'], 'email_address'>, 
         </div>
     `
 })
-
-sendMail(receiptEmail({ email_address: 'mail@brandons.me' }, { 'ATTENDANCE_VIBECLIPSE_2024': 1, 'ATTENDANCE_CHILD_VIBECLIPSE_2024': 2, 'BUS_430PM_VIBECLIPSE_2024': 3, 'SLEEPING_BAG_VIBECLIPSE_2024': 3 }))
