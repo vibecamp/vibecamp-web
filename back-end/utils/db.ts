@@ -151,7 +151,7 @@ const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
     const columnAssignments = rowEntries.map(([column], index) => `${column} = $${index + 1}`).join('\n')
     const columnValues = rowEntries.map(([_, value]) => value)
 
-    const whereClauses = where.map(([column, op], index) => `${column as string} ${op} $${columnAssignments.length + index + 1}`).join(' AND ')
+    const whereClauses = where.map(([column, op], index) => `${column as string} ${op} $${rowEntries.length + index + 1}`).join(' AND ')
     const whereValues = where.map(([_column, _op, value]) => value)
 
     return (await db.queryObject<Tables[TTableName]>(
