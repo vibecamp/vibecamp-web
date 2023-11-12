@@ -67,6 +67,7 @@ export default observer(() => {
 
     const submitInviteCode = useRequest(async () => {
         await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: state.code })
+        await Store.accountInfo.load()
     }, { lazy: true })
 
     const stripeOptions = useRequest(async () => {
