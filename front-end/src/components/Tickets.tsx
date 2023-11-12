@@ -480,9 +480,9 @@ class PurchaseFormState {
         validators: attendeeValidators(false)
     })
 
-    secondaryAdultAttendee: Form<AttendeeInfo> | null = null
+    secondaryAdultAttendee: Form<AttendeeInfo & { has_clicked_waiver?: boolean }> | null = null
 
-    childAttendees: Form<AttendeeInfo>[] = []
+    childAttendees: Form<AttendeeInfo & { has_clicked_waiver?: boolean }>[] = []
 
     needsSleepingBags: boolean | undefined = undefined
     needsPillow = false
@@ -558,7 +558,10 @@ class PurchaseFormState {
             return
         }
 
-        await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', this.allAttendeeForms.map(f => f.fieldValues))
+        await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', this.allAttendeeForms.map(f => {
+            const { has_clicked_waiver, ...values } = f.fieldValues
+            return values
+        }))
     }, { lazy: true })
 }
 
