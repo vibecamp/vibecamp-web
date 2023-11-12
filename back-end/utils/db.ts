@@ -26,6 +26,12 @@ const db = new Pool({
   }
 }, 20)
 
+Deno.addSignalListener("SIGINT", () => {
+  console.log("Releasing DB connections")
+  db.end()
+  Deno.exit()
+})
+
 /**
  * Acquire a DB connection from the pool, perform queries with it, and then
  * release the connection and return any result
