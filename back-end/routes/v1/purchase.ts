@@ -122,6 +122,8 @@ export default function register(router: Router) {
 
     switch (event.type) {
       case 'charge.succeeded': {
+        console.info(`\tHandled Stripe event type ${event.type}`);
+
         const { accountId, ...purchasesRaw } = event.data.object.metadata as PurchaseMetadata
 
         const purchases: Purchases = objectFromEntries(objectEntries(purchasesRaw)
