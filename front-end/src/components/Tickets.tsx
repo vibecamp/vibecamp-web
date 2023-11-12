@@ -95,14 +95,17 @@ export default observer(() => {
         }
     })
 
+    const loading = awaitingPurchaseRecord || Store.accountInfo.state.kind === 'loading'
+    const loadingOrError = loading || Store.accountInfo.state.kind === 'error'
+
     return (
-        <Col padding={20} pageLevel justify={Store.accountInfo.state.kind !== 'result' ? 'center' : undefined} align={Store.accountInfo.state.kind !== 'result' ? 'center' : undefined}>
+        <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
             {Store.accountInfo.state.kind === 'result' &&
                 <h1 style={{ fontSize: 24 }}>My tickets</h1>}
 
-            <Spacer size={Store.accountInfo.state.kind !== 'result' ? 300 : 24} />
+            <Spacer size={loadingOrError ? 300 : 24} />
 
-            {awaitingPurchaseRecord || Store.accountInfo.state.kind === 'loading' ?
+            {loading ?
                 <LoadingDots size={100} color='var(--color-accent-1)' />
                 : Store.accountInfo.state.kind === 'error' || Store.accountInfo.state.result == null ?
                     'Failed to load'
