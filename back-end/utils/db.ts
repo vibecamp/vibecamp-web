@@ -154,7 +154,8 @@ const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
   ): Promise<Tables[TTableName][]> => {
     const rowEntries = objectEntries(row)
 
-    const columnAssignments = rowEntries.map(([column], index) => `${column} = $${index + 1}`).join('\n')
+    const columns = rowEntries.map(([column], index) => column).join(', ')
+    const columnPlaceholders = rowEntries.map((_, index) => `$${index + 1}`).join(', ')
     const columnValues = rowEntries.map(([_, value]) => value)
 
     const whereClauses = where.map(([column, op], index) => `${column as string} ${op} $${rowEntries.length + index + 1}`).join(' AND ')
@@ -164,7 +165,7 @@ const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
       `
         UPDATE ${table}
           SET
-            ${columnAssignments}
+            (${columns}) = (${columnPlaceholders})
           WHERE
             ${whereClauses}
           RETURNING *
