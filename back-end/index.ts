@@ -1,4 +1,4 @@
-import { Application, isHttpError, isErrorStatus, STATUS_TEXT, Response } from 'oak'
+import { Application, isHttpError, STATUS_TEXT } from 'oak'
 import { router } from './routes/index.ts'
 import { ResponseWithError } from './routes/v1/_common.ts'
 import { pad, indent } from './utils/misc.ts'

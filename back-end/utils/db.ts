@@ -154,7 +154,7 @@ const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
   ): Promise<Tables[TTableName][]> => {
     const rowEntries = objectEntries(row)
 
-    const columns = rowEntries.map(([column], index) => column).join(', ')
+    const columns = rowEntries.map(([column]) => column).join(', ')
     const columnPlaceholders = rowEntries.map((_, index) => `$${index + 1}`).join(', ')
     const columnValues = rowEntries.map(([_, value]) => value)
 

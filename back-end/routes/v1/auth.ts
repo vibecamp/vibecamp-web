@@ -4,7 +4,7 @@ import { AnyRouterContext, defineRoute, rateLimited } from './_common.ts'
 import { create, getNumericDate, verify } from 'djwts'
 import { compare, hash } from 'bcrypt'
 import { Tables } from '../../types/db-types.ts'
-import { accountReferralStatus, withDBConnection, withDBTransaction } from '../../utils/db.ts'
+import { withDBConnection } from '../../utils/db.ts'
 import { getEmailValidationError, getPasswordValidationError } from '../../utils/validation.ts'
 
 const encoder = new TextEncoder()
@@ -127,7 +127,7 @@ async function authenticatePassword(
   password: string,
 ): Promise<boolean> {
   const saltedPassword = password + account.password_salt
-  const passwordMatches = await compare(saltedPassword, account.password_hash)
+  const passwordMatches = await compare(saltedPassword, account.password_hash ?? '')
   return passwordMatches
 }
 
