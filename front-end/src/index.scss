@@ -9,6 +9,7 @@
 @import './components/core/LoadingDots.scss';
 @import './components/core/Modal.scss';
 @import './components/core/MultiView.scss';
+@import './components/core/NumberInput.scss';
 @import './components/core/RadioGroup.scss';
 @import './components/core/Row.scss';
 @import './components/core/RowSelect.scss';
@@ -246,7 +247,7 @@ iframe {
     z-index: 10;
     width: 100%;
     padding: 8px;
-    margin-bottom: 8;
+    margin-bottom: 8px;
     text-align: center;
     border-radius: 8px;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
