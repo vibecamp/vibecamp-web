@@ -5,8 +5,8 @@ import {
 } from './constants.ts'
 import { TableName, Tables } from '../types/db-types.ts'
 import { Maybe } from "../types/misc.ts"
-import { objectEntries } from './misc.ts'
 import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
+import { WhereClause, queryTableQuery, insertTableQuery, updateTableQuery } from './db-inner.ts'
 
 const url = new URL(env.DB_URL)
 
@@ -103,20 +103,9 @@ const queryTable = (db: Pick<PoolClient, 'queryObject'>) =>
     TColumnName extends keyof Tables[TTableName],
   >(
     table: TTableName,
-    { where }: { where?: WhereClause<TTableName, TColumnName> } = {}
+    opts: { where?: WhereClause<TTableName, TColumnName> } = {}
   ): Promise<Tables[TTableName][]> => {
-    if (where != null) {
-      const [column, op, value] = where
-
-      return (await db.queryObject<Tables[TTableName]>(
-        `SELECT * FROM ${table} WHERE ${column as string} ${op} $1`,
-        [value]
-      )).rows
-    } else {
-      return (await db.queryObject<Tables[TTableName]>(
-        `SELECT * FROM ${table}`
-      )).rows
-    }
+    return (await db.queryObject<Tables[TTableName]>(...queryTableQuery(table, opts))).rows
   }
 
 const insertTable = (db: Pick<PoolClient, 'queryObject'>) =>
@@ -126,21 +115,7 @@ const insertTable = (db: Pick<PoolClient, 'queryObject'>) =>
     table: TTableName,
     row: Partial<Tables[TableName]>
   ): Promise<Tables[TTableName][]> => {
-    const rowEntries = objectEntries(row)
-
-    const columnNames = rowEntries.map(([columnName]) => columnName).join(', ')
-    const columnValues = rowEntries.map(([_, value]) => value)
-    const columnNumbers = rowEntries.map((_, index) => `$${index + 1}`).join(', ')
-
-    return (await db.queryObject<Tables[TTableName]>(
-      `
-        INSERT INTO ${table}
-          (${columnNames})
-          VALUES (${columnNumbers})
-        RETURNING *
-      `,
-      columnValues
-    )).rows
+    return (await db.queryObject<Tables[TTableName]>(...insertTableQuery(table, row))).rows
   }
 
 const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
@@ -152,32 +127,9 @@ const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
     row: Partial<Tables[TableName]>,
     where: WhereClause<TTableName, TColumnNames[number]>[]
   ): Promise<Tables[TTableName][]> => {
-    const rowEntries = objectEntries(row)
-
-    const columns = rowEntries.map(([column]) => column).join(', ')
-    const columnPlaceholders = rowEntries.map((_, index) => `$${index + 1}`).join(', ')
-    const columnValues = rowEntries.map(([_, value]) => value)
-
-    const whereClauses = where.map(([column, op], index) => `${column as string} ${op} $${rowEntries.length + index + 1}`).join(' AND ')
-    const whereValues = where.map(([_column, _op, value]) => value)
-
-    return (await db.queryObject<Tables[TTableName]>(
-      `
-        UPDATE ${table}
-          SET
-            (${columns}) = (${columnPlaceholders})
-          WHERE
-            ${whereClauses}
-          RETURNING *
-      `,
-      [...columnValues, ...whereValues]
-    )).rows
+    return (await db.queryObject<Tables[TTableName]>(...updateTableQuery(table, row, where))).rows
   }
 
-type WhereClause<
-  TTableName extends TableName,
-  TColumnName extends keyof Tables[TTableName],
-> = [TColumnName, '=' | '<' | '>', Tables[TTableName][TColumnName]]
 
 /**
  * Get a unique and unused name for a transaction

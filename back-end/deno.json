@@ -12,9 +12,9 @@
     "singleQuote": true
   },
   "tasks": {
-    "start": "deno run --allow-net --allow-env --check index.ts",
+    "start": "deno task check && deno run --allow-net --allow-env index.ts",
     "dev": "deno run --allow-net --allow-env --allow-read index.ts",
-    "check": "deno check index.ts",
+    "check": "deno check index.ts && deno test",
     "typegen": "deno run --allow-all ./generate-db-types.ts"
   },
   "lock": false,
