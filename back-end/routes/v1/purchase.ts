@@ -11,6 +11,7 @@ import { TABLE_ROWS, Tables } from "../../types/db-types.ts"
 import { Purchases } from '../../types/route-types.ts'
 import { PURCHASE_TYPES_BY_TYPE } from '../../types/misc.ts'
 import { sendMail, receiptEmail } from '../../utils/mailgun.ts'
+import env from '../../env.ts'
 
 export default function register(router: Router) {
   defineRoute(router, {
@@ -119,7 +120,7 @@ export default function register(router: Router) {
     const event = await stripe.webhooks.constructEventAsync(
       rawBody,
       ctx.request.headers.get('stripe-signature'),
-      'whsec_accf21614aa842e5fc86edbcb06352e28cdd2c9d04c429a100f4ac52dee77e19'
+      env.STRIPE_SIGNING_SECRET
     )
     console.log('event:', event)
 

@@ -20,5 +20,6 @@ function assertEnv(key: string): string {
 export default {
   DB_URL: assertEnv('DB_URL'),
   STRIPE_SECRET_KEY: assertEnv('STRIPE_SECRET_KEY'),
+  STRIPE_SIGNING_SECRET: assertEnv('STRIPE_SIGNING_SECRET'),
   MAILGUN_API_KEY: assertEnv('MAILGUN_API_KEY'),
 }
