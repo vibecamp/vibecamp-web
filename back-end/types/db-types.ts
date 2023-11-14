@@ -10,8 +10,8 @@ export type Tables = {
     email_address: string,
     is_application_accepted: boolean,
     is_seed_account: boolean,
-    password_hash: string,
-    password_salt: string,
+    password_hash: string | null,
+    password_salt: string | null,
   },
   age_group: (typeof TABLE_ROWS)['age_group'][number]
   attendee: {
@@ -87,13 +87,13 @@ export type TableName = keyof Tables
 export const TABLE_ROWS = {
   purchase_type: [
     {"purchase_type_id":"SLEEPING_BAG_VIBECLIPSE_2024","price_in_cents":3500,"max_available":null,"description":"Sleeping bag","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
-    {"purchase_type_id":"BUS_330PM_VIBECLIPSE_2024","price_in_cents":6000,"max_available":null,"description":"Bus leaving AUS at 3:30 PM EST (meet at 3:00)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
-    {"purchase_type_id":"BUS_430PM_VIBECLIPSE_2024","price_in_cents":6000,"max_available":null,"description":"Bus leaving AUS at 4:30 PM EST (meet at 4:00)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
-    {"purchase_type_id":"BUS_730PM_VIBECLIPSE_2024","price_in_cents":6000,"max_available":50,"description":"Bus leaving AUS at 7:30 PM EST (meet at 7:15, 50 available)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
-    {"purchase_type_id":"BUS_830PM_VIBECLIPSE_2024","price_in_cents":6000,"max_available":50,"description":"Bus leaving AUS at 8:30 PM EST (meet at 8:15, 50 available)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
     {"purchase_type_id":"PILLOW_WITH_CASE_VIBECLIPSE_2024","price_in_cents":2000,"max_available":null,"description":"Pillow (with pillowcase)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
     {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024","price_in_cents":55000,"max_available":600,"description":"Adult Ticket","max_per_account":2,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
     {"purchase_type_id":"ATTENDANCE_CHILD_VIBECLIPSE_2024","price_in_cents":55000,"max_available":null,"description":"Child Ticket","max_per_account":4,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
+    {"purchase_type_id":"BUS_330PM_VIBECLIPSE_2024","price_in_cents":6000,"max_available":null,"description":"Bus leaving AUS at 3:30 PM CST (meet at 3:00)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
+    {"purchase_type_id":"BUS_730PM_VIBECLIPSE_2024","price_in_cents":6000,"max_available":50,"description":"Bus leaving AUS at 7:30 PM CST (meet at 7:15, 50 available)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
+    {"purchase_type_id":"BUS_430PM_VIBECLIPSE_2024","price_in_cents":6000,"max_available":null,"description":"Bus leaving AUS at 4:30 PM CST (meet at 4:00)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
+    {"purchase_type_id":"BUS_830PM_VIBECLIPSE_2024","price_in_cents":6000,"max_available":50,"description":"Bus leaving AUS at 8:30 PM CST (meet at 8:15, 50 available)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
   ],
   volunteer_type: [
     {"volunteer_type_id":"FAE","description":"Fae"},
