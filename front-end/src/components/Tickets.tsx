@@ -76,6 +76,10 @@ export default observer(() => {
             throw 'This invite code has already been used'
         }
 
+        if (status !== 200) {
+            throw DEFAULT_FORM_ERROR
+        }
+
         await Store.accountInfo.load()
     }, { lazy: true })
 
@@ -196,15 +200,6 @@ export default observer(() => {
                                             value={state.code}
                                             onChange={val => state.code = val}
                                         />
-
-                                        {submitInviteCode.state.kind === 'error' &&
-                                            <>
-                                                <Spacer size={8} />
-
-                                                <div style={{ color: 'red' }}>
-                                                    {DEFAULT_FORM_ERROR}
-                                                </div>
-                                            </>}
 
                                         <ErrorMessage
                                             error={submitInviteCode.state.kind === 'error' ? (
@@ -378,14 +373,14 @@ const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => 
                     get to AUS airport and leave the rest to us, you can sign
                     up for a bus seat for $60 round trip.`}
                     <b>All tickets include a return trip to AUS from Camp
-                    Champions with a departure time of 3:30 pm, April 8th.</b>
+                        Champions with a departure time of 3:30 pm, April 8th.</b>
                 </InfoBlurb>
 
                 <Spacer size={24} />
 
-                <a 
+                <a
                     className='button primary'
-                    href='https://admin.gazeboevents.com/forms/706B540F-AF67-4D4B-9C42-A402E51C2039' 
+                    href='https://admin.gazeboevents.com/forms/706B540F-AF67-4D4B-9C42-A402E51C2039'
                     target='_blank'
                     rel="noreferrer"
                     onClick={purchaseFormState.handleWaiverClick}

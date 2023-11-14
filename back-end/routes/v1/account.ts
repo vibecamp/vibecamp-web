@@ -2,7 +2,7 @@ import { Router, Status } from 'oak'
 import { defineRoute, rateLimited } from './_common.ts'
 import { accountReferralStatus, withDBConnection, withDBTransaction } from '../../utils/db.ts'
 import { Tables } from "../../types/db-types.ts"
-import { allPromises } from "../../utils/misc.ts"
+import { allPromises, validUuid } from "../../utils/misc.ts"
 import { ONE_SECOND_MS } from '../../utils/constants.ts'
 
 export default function register(router: Router) {
@@ -141,6 +141,14 @@ export default function register(router: Router) {
     requireAuth: true,
     handler: rateLimited(ONE_SECOND_MS, async ({ jwt, body: { invite_code } }) => {
       const { account_id } = jwt
+
+      // we do our own check because postgres will throw an error on a
+      // malformed uuid, causing a 500 response
+      if (!validUuid(invite_code)) {
+        // invite code doesn't exist
+        console.error(`Invalid invite code submitted: "${invite_code}"`)
+        return [null, Status.NotFound]
+      }
 
       return await withDBTransaction(async (db) => {
         const inviteCodeResult = (await db.queryTable('invite_code', { where: ['code', '=', invite_code] }))[0]

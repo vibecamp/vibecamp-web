@@ -58,3 +58,6 @@ export const pad = (str: string, length: number) => {
 
 export const indent = (str: string) =>
   str.split('\n').map(line => '\t' + line).join('\n')
+
+const UUID_REGEX = /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/
+export const validUuid = (str: string) => UUID_REGEX.test(str)
