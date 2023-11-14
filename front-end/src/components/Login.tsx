@@ -33,7 +33,7 @@ export default observer(() => {
             password: val => state.mode === 'signup' ? getPasswordValidationError(val) : undefined,
             passwordConfirmation: (val, otherValues) => {
                 if (state.mode === 'signup' && val !== otherValues.password) {
-                    return 'Passwords do not match'
+                    return 'Passwords don\'t match'
                 }
             }
         }
