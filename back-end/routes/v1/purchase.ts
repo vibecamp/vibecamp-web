@@ -114,15 +114,12 @@ export default function register(router: Router) {
     & Record<(typeof TABLE_ROWS)['purchase_type'][number]['purchase_type_id'], string> // stripe converts numbers to strings for some reason
 
   router.post('/purchase/record', async ctx => {
-    console.log('reuest:', ctx.request)
     const rawBody = await ctx.request.body({ type: 'bytes' }).value
-    console.log('rawBody:', rawBody)
     const event = await stripe.webhooks.constructEventAsync(
       rawBody,
       ctx.request.headers.get('stripe-signature'),
       env.STRIPE_SIGNING_SECRET
     )
-    console.log('event:', event)
 
     switch (event.type) {
       case 'charge.succeeded': {
