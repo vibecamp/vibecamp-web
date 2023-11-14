@@ -34,7 +34,6 @@ const TYPE_MAP: Record<PostgresColumnType, string> = {
 const TABLES_TO_DUMP: readonly string[] = [
     'purchase_type',
     'volunteer_type',
-    'age_group',
     'diet'
 ]
 

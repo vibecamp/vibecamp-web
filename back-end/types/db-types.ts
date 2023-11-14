@@ -13,13 +13,13 @@ export type Tables = {
     password_hash: string | null,
     password_salt: string | null,
   },
-  age_group: (typeof TABLE_ROWS)['age_group'][number]
   attendee: {
-    age_group: Tables['age_group']['age_group'],
+    age: number | null,
     associated_account_id: Tables['account']['account_id'],
     attendee_id: string,
     diet: Tables['diet']['diet_id'] | null,
     discord_handle: string | null,
+    festival_id: Tables['festival']['festival_id'],
     has_allergy_eggs: boolean | null,
     has_allergy_fish: boolean | null,
     has_allergy_milk: boolean | null,
@@ -62,7 +62,7 @@ export type Tables = {
   invite_code: {
     code: string,
     created_by_account_id: Tables['account']['account_id'],
-    festival_id: Tables['festival']['festival_id'],
+    festival_id: Tables['attendee']['festival_id'],
     used_by_account_id: Tables['account']['account_id'] | null,
   },
   next_festival: {
@@ -98,12 +98,6 @@ export const TABLE_ROWS = {
   volunteer_type: [
     {"volunteer_type_id":"FAE","description":"Fae"},
     {"volunteer_type_id":"GENERAL","description":"General volunteer"},
-  ],
-  age_group: [
-    {"age_group":"BETWEEN_2_AND_18","is_child":true,"description":"Between 2 and 18 years old"},
-    {"age_group":"UNDER_2","is_child":true,"description":"Under 2 years old"},
-    {"age_group":"BETWEEN_18_AND_21","is_child":false,"description":"Between 18 and 21 years old"},
-    {"age_group":"OVER_21","is_child":false,"description":"Over 21 years old"},
   ],
   diet: [
     {"diet_id":"VEGETARIAN","description":"Vegetarian"},
