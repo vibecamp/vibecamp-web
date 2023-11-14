@@ -7,11 +7,6 @@ export type Routes = {
         body: undefined,
         response: FullAccountInfo
     },
-    '/account/create-attendee': {
-        method: 'post',
-        body: Omit<Tables['attendee'], 'attendee_id' | 'associated_account_id' | 'notes'>,
-        response: Tables['attendee']
-    },
     '/account/update-attendee': {
         method: 'put',
         body: Pick<Tables['attendee'], 'attendee_id'> & Partial<Tables['attendee']>,

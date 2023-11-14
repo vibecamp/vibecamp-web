@@ -19,11 +19,14 @@ export default function register(router: Router) {
     method: 'post',
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: attendees }) => {
-      await withDBConnection(async db => {
+      await withDBTransaction(async db => {
+        const festival_id = (await db.queryTable('next_festival'))[0]?.festival_id!
+
         for (const attendee of attendees) {
           await db.insertTable('attendee', {
             ...attendee,
-            associated_account_id: account_id
+            associated_account_id: account_id,
+            festival_id
           })
         }
       })
