@@ -66,7 +66,16 @@ export default observer(() => {
     const purchaseFormState = useStable(() => new PurchaseFormState())
 
     const submitInviteCode = useRequest(async () => {
-        await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: state.code })
+        const { status } = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: state.code })
+
+        if (status === 404) {
+            throw 'Invalid invite code'
+        }
+
+        if (status === 403) {
+            throw 'This invite code has already been used'
+        }
+
         await Store.accountInfo.load()
     }, { lazy: true })
 
@@ -101,7 +110,9 @@ export default observer(() => {
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
             {Store.accountInfo.state.kind === 'result' &&
-                <h1 style={{ fontSize: 24 }}>My tickets</h1>}
+                <h1 style={{ fontSize: 24, alignSelf: 'flex-start' }}>
+                    My tickets
+                </h1>}
 
             <Spacer size={loadingOrError ? 300 : 24} />
 
@@ -194,6 +205,14 @@ export default observer(() => {
                                                     {DEFAULT_FORM_ERROR}
                                                 </div>
                                             </>}
+
+                                        <ErrorMessage
+                                            error={submitInviteCode.state.kind === 'error' ? (
+                                                typeof submitInviteCode.state.error === 'string'
+                                                    ? submitInviteCode.state.error
+                                                    : DEFAULT_FORM_ERROR
+                                            ) : undefined}
+                                        />
 
                                         <Spacer size={8} />
 

@@ -147,12 +147,14 @@ export default function register(router: Router) {
 
         if (inviteCodeResult == null) {
           // invite code doesn't exist
-          throw Error(`Invalid invite code submitted: "${invite_code}"`)
+          console.error(`Invalid invite code submitted: "${invite_code}"`)
+          return [null, Status.NotFound]
         }
 
         if (inviteCodeResult.used_by_account_id != null) {
           // invite code already used
-          throw Error(`Already-used invite code submitted: "${invite_code}"`)
+          console.error(`Already-used invite code submitted: "${invite_code}"`)
+          return [null, Status.Forbidden]
         }
 
         const accountResult = await db.queryTable('account', { where: ['account_id', '=', account_id] })
