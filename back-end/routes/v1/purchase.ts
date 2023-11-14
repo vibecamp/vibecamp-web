@@ -145,9 +145,13 @@ export default function register(router: Router) {
 
           await sendMail(receiptEmail(account, purchases))
         })
+
+        ctx.response.status = Status.OK
       } break;
-      default:
-        console.warn(`\tUnhandled Stripe event type ${event.type}`);
+      default: {
+        console.warn(`\tUnhandled Stripe event type ${event.type}`)
+        ctx.response.status = Status.BadRequest
+      }
     }
   })
 }
