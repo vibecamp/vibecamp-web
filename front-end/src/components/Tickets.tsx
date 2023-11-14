@@ -141,7 +141,7 @@ export default observer(() => {
                                             <React.Fragment key={t.purchase_id}>
                                                 {index > 0 &&
                                                     <Spacer size={24} />}
-                                                <Ticket name={t.attendeeInfo?.name} ticketType={t.attendeeInfo == null ? undefined : t.attendeeInfo?.age_group === 'BETWEEN_18_AND_21' || t.attendeeInfo?.age_group === 'OVER_21' ? 'adult' : 'child'} />
+                                                <Ticket name={t.attendeeInfo?.name} ticketType={t.attendeeInfo == null ? undefined : t.attendeeInfo?.age != null && t.attendeeInfo.age >= 18 ? 'adult' : 'child'} />
                                             </React.Fragment>
                                         )
                                     })}
@@ -223,7 +223,7 @@ export default observer(() => {
                 {() =>
                     <MultiView
                         views={[
-                            { name: 'selection', content: <SelectionView purchaseFormState={purchaseFormState} goToNext={goToPayment} /> },
+                            { name: 'selection', content: <SelectionView purchaseFormState={purchaseFormState} goToNext={goToPayment} readyToPay={stripeOptions.state.result != null} /> },
                             { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseFormState.purchases} onPrePurchase={purchaseFormState.createAttendees.load} redirectUrl={location.origin + '#Tickets'} /> }
                         ]}
                         currentView={state.purchaseModalState}
@@ -233,26 +233,48 @@ export default observer(() => {
     )
 })
 
-const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => void }> = observer(({ purchaseFormState, goToNext }) => {
-    const removeChildAttendee = useStable(() => createTransformer((index: number) => () => {
-        purchaseFormState.childAttendees.splice(index, 1)
+const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => void, readyToPay: boolean }> = observer(({ purchaseFormState, goToNext, readyToPay }) => {
+    const removeAttendee = useStable(() => createTransformer((index: number) => () => {
+        purchaseFormState.additionalAttendees.splice(index, 1)
     }))
 
     return (
         <form onSubmit={preventingDefault(goToNext)}>
             <Col padding={20} pageLevel>
 
-                <AttendeeInfoForm attendeeInfo={purchaseFormState.primaryAdultAttendee} isChild={false} isAccountHolder={true} />
+                <AttendeeInfoForm attendeeInfo={purchaseFormState.primaryAttendee} isChild={false} isAccountHolder={true} />
 
                 <Spacer size={32} />
-
                 <hr />
-
                 <Spacer size={32} />
 
-                <Checkbox value={purchaseFormState.secondaryAdultAttendee != null} onChange={purchaseFormState.setBringingSecondary}>
-                    {'I\'m bringing another adult with me'}
-                </Checkbox>
+                {purchaseFormState.additionalAttendees.map((attendee, index) =>
+                    <React.Fragment key={index}>
+                        <AttendeeInfoForm attendeeInfo={attendee} isChild={true} isAccountHolder={false} />
+
+                        <Spacer size={24} />
+
+                        <Button isDanger onClick={removeAttendee(index)}>
+                            Remove {attendee.fields.name.value || 'attendee'}
+                        </Button>
+
+                        <Spacer size={32} />
+                    </React.Fragment>)}
+
+                <Button onClick={purchaseFormState.addAttendee} disabled={purchaseFormState.allAttendeeForms.length === 6}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 'inherit' }}>add</span>
+                    <Spacer size={4} />
+                    Bring another attendee
+                </Button>
+
+                {purchaseFormState.allAttendeeForms.length === 6 &&
+                    <>
+                        <Spacer size={12} />
+
+                        <InfoBlurb>
+                            {'Ticket limit for one account reached'}
+                        </InfoBlurb>
+                    </>}
 
                 <Spacer size={12} />
 
@@ -260,62 +282,16 @@ const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => 
                     {`You can purchase a ticket for up to one other adult attendee
                     if you'd like. Their ticket and info will have to be managed
                     through your account here, but they'll otherwise be a full
-                    attendee (with a badge and everything)`}
-                </InfoBlurb>
-
-                {purchaseFormState.secondaryAdultAttendee != null &&
-                    <>
-                        <Spacer size={24} />
-
-                        <AttendeeInfoForm attendeeInfo={purchaseFormState.secondaryAdultAttendee} isChild={false} isAccountHolder={false} />
-                    </>}
-
-                <Spacer size={32} />
-
-                <hr />
-
-                <Spacer size={32} />
-
-                {purchaseFormState.childAttendees.map((attendee, index) =>
-                    <React.Fragment key={index}>
-                        <AttendeeInfoForm attendeeInfo={attendee} isChild={true} isAccountHolder={false} />
-
-                        <Spacer size={24} />
-
-                        <Button isDanger onClick={removeChildAttendee(index)}>
-                            Remove
-                        </Button>
-
-                        <Spacer size={32} />
-                    </React.Fragment>)}
-
-                <Button onClick={purchaseFormState.addChildAttendee} disabled={purchaseFormState.childAttendees.length >= 5}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 'inherit' }}>add</span>
+                    attendee (with a badge and everything). You can purchase
+                    additional tickets for up to four minors.`}
                     <Spacer size={4} />
-                    Add a minor
-                </Button>
-
-                {purchaseFormState.childAttendees.length === 5 &&
-                    <>
-                        <Spacer size={12} />
-
-                        <InfoBlurb>
-                            {'Can\'t buy tickets for more than five children on one account, sorry!'}
-                        </InfoBlurb>
-                    </>}
-
-                <Spacer size={12} />
-
-                <InfoBlurb>
                     {`Minors between age 2-18 will need their own tickets, but
                     those will live under your account. Children under two years
                     old do not need a ticket.`}
                 </InfoBlurb>
 
                 <Spacer size={32} />
-
                 <hr />
-
                 <Spacer size={32} />
 
                 <RadioGroup
@@ -371,7 +347,7 @@ const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => 
                 <InfoBlurb>
                     {`Parking will be free at the event, but if you'd rather
                     get to AUS airport and leave the rest to us, you can sign
-                    up for a bus seat for $60 round trip.`}
+                    up for a bus seat for $60 round trip.`}&nbsp;
                     <b>All tickets include a return trip to AUS from Camp
                         Champions with a departure time of 3:30 pm, April 8th.</b>
                 </InfoBlurb>
@@ -390,7 +366,7 @@ const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => 
 
                 <Spacer size={4} />
 
-                <ErrorMessage error={purchaseFormState.primaryAdultAttendee.fields.has_clicked_waiver.displayError} />
+                <ErrorMessage error={purchaseFormState.primaryAttendee.fields.has_clicked_waiver.displayError} />
 
                 <Spacer size={8} />
 
@@ -406,17 +382,25 @@ const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => 
                 </InfoBlurb>
 
                 <Spacer size={32} />
-
                 <hr />
-
                 <Spacer size={32} />
 
                 <PriceBreakdown purchases={purchaseFormState.purchases} />
 
-                <Spacer size={24} />
+                <Spacer size={8} />
 
-                <Button isSubmit isPrimary>
-                    Purchase
+                <ErrorMessage error={
+                    purchaseFormState.adultAttendees.length > PURCHASE_TYPES_BY_TYPE.ATTENDANCE_VIBECLIPSE_2024.max_per_account!
+                        ? `Can only purchase ${PURCHASE_TYPES_BY_TYPE.ATTENDANCE_VIBECLIPSE_2024.max_per_account} adult tickets per account`
+                    : purchaseFormState.childAttendees.length > PURCHASE_TYPES_BY_TYPE.ATTENDANCE_CHILD_VIBECLIPSE_2024.max_per_account!
+                        ? `Can only purchase ${PURCHASE_TYPES_BY_TYPE.ATTENDANCE_CHILD_VIBECLIPSE_2024.max_per_account} child tickets per account`
+                    : undefined
+                } />
+
+                <Spacer size={16} />
+
+                <Button isSubmit isPrimary disabled={!readyToPay}>
+                    Proceed to payment
                 </Button>
             </Col>
         </form>
@@ -473,7 +457,7 @@ const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
     interested_in_volunteering_as: null,
     interested_in_pre_call: false,
     planning_to_camp: false,
-    age_group: null,
+    age: null,
     medical_training: null,
     diet: null,
     has_allergy_milk: null,
@@ -491,14 +475,12 @@ class PurchaseFormState {
         makeAutoObservable(this)
     }
 
-    primaryAdultAttendee = new Form({
+    primaryAttendee = new Form({
         initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: true, has_clicked_waiver: false },
-        validators: attendeeValidators(false)
+        validators: ATTENDEE_VALIDATORS
     })
 
-    secondaryAdultAttendee: Form<AttendeeInfo & { has_clicked_waiver?: boolean }> | null = null
-
-    childAttendees: Form<AttendeeInfo & { has_clicked_waiver?: boolean }>[] = []
+    additionalAttendees: Form<AttendeeInfo & { has_clicked_waiver?: boolean }>[] = []
 
     needsSleepingBags: boolean | undefined = undefined
     needsPillow = false
@@ -507,31 +489,19 @@ class PurchaseFormState {
 
     get allAttendeeForms() {
         return [
-            this.primaryAdultAttendee,
-            this.secondaryAdultAttendee,
-            ...this.childAttendees
+            this.primaryAttendee,
+            ...this.additionalAttendees
         ].filter(exists)
     }
 
     readonly handleWaiverClick = () => {
-        this.primaryAdultAttendee.fields.has_clicked_waiver.set(true)
+        this.primaryAttendee.fields.has_clicked_waiver.set(true)
     }
 
-    readonly setBringingSecondary = (bringing: boolean) => {
-        if (bringing) {
-            this.secondaryAdultAttendee = new Form({
-                initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean },
-                validators: attendeeValidators(false)
-            })
-        } else {
-            this.secondaryAdultAttendee = null
-        }
-    }
-
-    readonly addChildAttendee = () => {
-        this.childAttendees.push(new Form({
+    readonly addAttendee = () => {
+        this.additionalAttendees.push(new Form({
             initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean },
-            validators: attendeeValidators(true)
+            validators: ATTENDEE_VALIDATORS
         }))
     }
 
@@ -540,33 +510,42 @@ class PurchaseFormState {
         this.selectionValidationActive = true
     }
 
+    get adultAttendees() {
+        return this.allAttendeeForms.filter(a => a.fields.age.value == null || a.fields.age.value >= 18)
+    }
+
+    get childAttendees() {
+        return this.allAttendeeForms.filter(a => a.fields.age.value != null && a.fields.age.value < 18)
+    }
+
     get isValid() {
-        return this.allAttendeeForms.every(f => f.isValid)
+        return this.allAttendeeForms.every(a => a.isValid)
             && this.needsSleepingBags !== undefined
             && this.needsBusTickets !== undefined
-            && this.childAttendees.every(a => a.fields.age_group.value !== 'UNDER_2')
-            && this.primaryAdultAttendee.fields.has_clicked_waiver.value === true
+            && this.primaryAttendee.fields.has_clicked_waiver.value === true
+            && this.adultAttendees.length <= PURCHASE_TYPES_BY_TYPE.ATTENDANCE_VIBECLIPSE_2024.max_per_account!
+            && this.childAttendees.length <= PURCHASE_TYPES_BY_TYPE.ATTENDANCE_CHILD_VIBECLIPSE_2024.max_per_account!
     }
 
     get purchases() {
-        const p: Purchases = {
-            ATTENDANCE_VIBECLIPSE_2024: this.secondaryAdultAttendee == null ? 1 : 2,
+        const purchases: Purchases = {
+            ATTENDANCE_VIBECLIPSE_2024: this.adultAttendees.length,
             ATTENDANCE_CHILD_VIBECLIPSE_2024: this.childAttendees.length
         }
 
         if (this.needsSleepingBags) {
-            p.SLEEPING_BAG_VIBECLIPSE_2024 = this.allAttendeeForms.length
+            purchases.SLEEPING_BAG_VIBECLIPSE_2024 = this.allAttendeeForms.length
         }
 
         if (this.needsPillow) {
-            p.PILLOW_WITH_CASE_VIBECLIPSE_2024 = this.allAttendeeForms.length
+            purchases.PILLOW_WITH_CASE_VIBECLIPSE_2024 = this.allAttendeeForms.length
         }
 
         if (this.needsBusTickets) {
-            p[this.needsBusTickets] = this.allAttendeeForms.length
+            purchases[this.needsBusTickets] = this.allAttendeeForms.length
         }
 
-        return p
+        return purchases
     }
 
     readonly createAttendees = request(async () => {
@@ -581,7 +560,7 @@ class PurchaseFormState {
     }, { lazy: true })
 }
 
-const attendeeValidators = (isMinor: boolean): FormValidators<AttendeeInfo & { has_clicked_waiver?: boolean }> => ({
+const ATTENDEE_VALIDATORS: FormValidators<AttendeeInfo & { has_clicked_waiver?: boolean }> = {
     name: val => {
         if (val === '') {
             return 'Please enter a name'
@@ -592,12 +571,17 @@ const attendeeValidators = (isMinor: boolean): FormValidators<AttendeeInfo & { h
             return 'No @ needed, just the rest of the handle'
         }
     },
-    age_group: val => {
+    age: val => {
         if (val == null) {
-            return 'Please select an age group'
+            return 'Please enter an age in years'
         }
-        if (isMinor && val === 'UNDER_2') {
-            return 'Children under two get in free! If you need to remove this attendee entry, there\'s a red button at the bottom'
+
+        if (val < 0 || val > 150 || Math.floor(val) !== val) {
+            return 'Please enter a valid age in years'
+        }
+
+        if (val < 2) {
+            return 'Children under two get in free!'
         }
     },
     has_clicked_waiver: val => {
@@ -605,4 +589,4 @@ const attendeeValidators = (isMinor: boolean): FormValidators<AttendeeInfo & { h
             return 'Campsite waivers must be filled out for each attendee'
         }
     }
-})
+}

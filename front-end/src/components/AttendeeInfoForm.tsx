@@ -10,6 +10,7 @@ import Store from '../Store'
 import { Form, fieldToProps } from '../mobx/form'
 import { AttendeeInfo } from '../../../back-end/types/misc'
 import { prettyDate } from '../utils'
+import NumberInput from './core/NumberInput'
 
 type Props = {
     attendeeInfo: Form<AttendeeInfo>,
@@ -77,13 +78,13 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
 
             <Spacer size={FIELD_SPACE} />
 
-            <RadioGroup
+            <NumberInput
                 label={isAccountHolder ? 'I am...' : 'This person is...'}
-                options={isChild ? CHILD_AGE_GROUP_OPTIONS : ADULT_AGE_GROUP_OPTIONS}
-                {...fieldToProps(attendeeInfo.fields.age_group)}
+                placeholder='(years old)'
+                {...fieldToProps(attendeeInfo.fields.age)}
             />
 
-            {attendeeInfo.fields.age_group.value === 'UNDER_2' &&
+            {attendeeInfo.fields.age.value != null && attendeeInfo.fields.age.value < 2 &&
                 <>
                     <Spacer size={INFO_BLURB_SPACE} />
     
@@ -99,40 +100,6 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
                     ? `This age should be at the time of ${Store.festival.state.result.festival_name} (${prettyDate(Store.festival.state.result.start_date)} - ${prettyDate(Store.festival.state.result.end_date)})`
                     : 'This age should be at the time of the festival'}
             </InfoBlurb>
-
-            {/* <Spacer size={FIELD_SPACE} />
-
-            <RadioGroup
-                label='Dietary restriction:'
-                options={DIET_OPTIONS}
-                {...fieldToProps(attendeeInfo.fields.diet)}
-            />
-
-            <Spacer size={INFO_BLURB_SPACE} />
-
-            <div>
-                Allergies:
-            </div>
-
-            {ALLERGIES.map(allergy =>
-                <React.Fragment key={allergy}>
-                    <Spacer size={8} />
-
-                    <Checkbox {...fieldToProps(attendeeInfo.fields[`has_allergy_${allergy}`])} key={allergy}>
-                        {capitalize(snakeCaseToSpaces(allergy))}
-                    </Checkbox>
-                </React.Fragment>)}
-
-            <Spacer size={INFO_BLURB_SPACE} />
-
-            <InfoBlurb>
-                {`Please indicate your dietary preferences, and we will do our
-                best to accommodate everyone. We will message what diets we are
-                able to accommodate ahead of the event, so please be on the
-                lookout for that announcement. In the case that we can't
-                accommodate your dietary preference you will need to bring
-                your own food.`}
-            </InfoBlurb> */}
 
             {!isChild &&
                 <>
@@ -174,7 +141,7 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
                         connection before arriving at ${Store.festival.state.result?.festival_name}.
                         If ${isAccountHolder ? 'you' : 'this person'} would like
                         to be invited to online hangouts please check the box
-                        below.`}
+                        below.`}&nbsp;
                         <b>If you check this box, your email address
                         ({Store.accountInfo.state.result?.email_address}) may be
                         viewable by a limited number of attendees who also
@@ -184,20 +151,6 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
         </>
     )
 })
-
-const ADULT_AGE_GROUP_OPTIONS = TABLE_ROWS.age_group
-    .filter(g => !g.is_child)
-    .map(({ age_group, description }) => ({
-        value: age_group,
-        label: description
-    }))
-
-const CHILD_AGE_GROUP_OPTIONS = TABLE_ROWS.age_group
-    .filter(g => g.is_child)
-    .map(({ age_group, description }) => ({
-        value: age_group,
-        label: description
-    }))
 
 const VOLUNTEER_OPTIONS = [
     { value: null, label: 'Not interested in volunteering' },
@@ -209,26 +162,3 @@ const VOLUNTEER_OPTIONS = [
             label: description
         }))
 ] as const
-
-// const DIET_OPTIONS = [
-//     { value: null, label: 'No restrictions' },
-//     ...TABLE_ROWS.diet
-//         .map(diet => ({
-//             value: diet.diet_id,
-//             label: diet.description
-//         }))
-// ]
-
-// const ALLERGIES = [
-//     'milk',
-//     'eggs',
-//     'fish',
-//     'shellfish',
-//     'tree_nuts',
-//     'peanuts',
-//     'wheat',
-//     'soy'
-// ] as const
-
-// const capitalize = (str: string) => str[0]?.toUpperCase() + str.substring(1)
-// const snakeCaseToSpaces = (str: string) => str.replaceAll('_', ' ')
