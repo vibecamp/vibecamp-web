@@ -169,9 +169,16 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
                     <Spacer size={INFO_BLURB_SPACE} />
                 
                     <InfoBlurb>
-                        {`We're all about building community, and we'd like to do that
-                        even when we aren't renting out a campground. Would ${isAccountHolder ? 'you' : 'this person'} like
-                        to participate in group videocalls or other online gatherings?`}
+                        {`We'd like to introduce people to some of their fellow
+                        attendees so they can lay the foundations of
+                        connection before arriving at ${Store.festival.state.result?.festival_name}.
+                        If ${isAccountHolder ? 'you' : 'this person'} would like
+                        to be invited to online hangouts please check the box
+                        below.`}
+                        <b>If you check this box, your email address
+                        ({Store.accountInfo.state.result?.email_address}) may be
+                        viewable by a limited number of attendees who also
+                        choose to participate.</b>
                     </InfoBlurb>
                 </>}
         </>

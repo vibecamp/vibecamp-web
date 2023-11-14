@@ -152,7 +152,7 @@ export default observer(() => {
 
                                             <InfoBlurb>
                                                 You can give these to other people you know and
-                                                trust, to allow them to buy tickets
+                                                trust to allow them to buy tickets
                                             </InfoBlurb>
 
                                             <Spacer size={16} />
@@ -325,17 +325,17 @@ const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => 
                     I would like {purchaseFormState.allAttendeeForms.length === 1 ? 'a pillow' : `${purchaseFormState.allAttendeeForms.length} pillows`} (${PURCHASE_TYPES_BY_TYPE.PILLOW_WITH_CASE_VIBECLIPSE_2024.price_in_cents / 100} each)
                 </Checkbox>
 
-                <Spacer size={24} />
+                <Spacer size={16} />
 
                 <InfoBlurb>
-                    {`If you're staying in a cabin, Camp Champions provides 
-                    only bare slightly-smaller-than-twin mattresses on the 
-                    bunks, so we're each responsible for bringing our own 
-                    bedding. Of course this is also true if you're camping. 
-                    Would you like to arrange to rent bedding for the weekend? 
-                    We'll be offering 3-season sleeping bags. The sleeping bags 
-                    will be donated to homeless outreach after vibeclipse, but 
-                    you're also welcome to keep them if you want.`}
+                    {`Camp Champions will have small (slightly smaller than 
+                    twin), bare mattresses within the cabins. We recommend 
+                    you pack along whatever bedding you'd be most 
+                    comfortable with, but if for whatever reason you are 
+                    unable to provide your own, we'll be offering 3-season 
+                    sleeping bags for purchase. If you buy one and would prefer 
+                    to donate it instead, we'll be making a donation run at the 
+                    end of the event.`}
                 </InfoBlurb>
 
                 <Spacer size={24} />
@@ -355,12 +355,11 @@ const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => 
                 <Spacer size={8} />
 
                 <InfoBlurb>
-                    {`You are certainly welcome to drive directly to Camp 
-                    Champions, but if you'd rather just get to AUS airport and 
-                    leave the rest to us you can sign up for a bus slot for $60. 
-                    When signing up, you will also pick a time slot for the 
-                    trip TO camp. (All bus ticket tickets include a return trip 
-                    to AUS airport leaving at 3:30 PM on Monday, April 8th)`}
+                    {`Parking will be free at the event, but if you'd rather
+                    get to AUS airport and leave the rest to us, you can sign
+                    up for a bus seat for $60 round trip.`}
+                    <b>All tickets include a return trip to AUS from Camp
+                    Champions with a departure time of 3:30 pm, April 8th.</b>
                 </InfoBlurb>
 
                 <Spacer size={24} />
@@ -448,7 +447,7 @@ const BUS_TICKET_OPTIONS = [
         PURCHASE_TYPES_BY_TYPE.BUS_830PM_VIBECLIPSE_2024
     ].map(r => ({
         value: r.purchase_type_id,
-        label: `$${(r.price_in_cents / 100).toFixed(2)} - ${r.description}`
+        label: `$${(r.price_in_cents / 100).toFixed(2)} per attendee - ${r.description}`
     })),
     { value: null, label: 'No Cost - I\'ll get myself to camp, thanks!' },
 ]
