@@ -3,7 +3,7 @@ import { CommonFieldProps } from '../components/core/_common'
 
 export type FormOptions<T extends Record<string, unknown>> = {
     initialValues: T,
-    validators: Partial<{ [key in keyof T]: (val: T[key], otherValues: T) => string | undefined }>,
+    validators: FormValidators<T>,
 }
 
 export type FormValidators<T extends Record<string, unknown>> = Partial<{ [key in keyof T]: (val: T[key]) => string | undefined }>
@@ -17,7 +17,7 @@ export class Form<TValues extends Record<string, unknown>> {
                 [key in keyof TValues]: Field<TValues[key]>
             }
             for (const key in opts.initialValues) {
-                fields[key] = new Field(opts.initialValues[key], val => opts.validators[key]?.(val, this.fieldValues))
+                fields[key] = new Field(opts.initialValues[key], opts.validators[key])
             }
             this.fields = fields
         }

@@ -31,8 +31,8 @@ export default observer(() => {
         validators: {
             emailAddress: val => state.mode === 'login' ? getEmailValidationError(val) : undefined,
             password: val => state.mode === 'signup' ? getPasswordValidationError(val) : undefined,
-            passwordConfirmation: (val, otherValues) => {
-                if (state.mode === 'signup' && val !== otherValues.password) {
+            passwordConfirmation: val => {
+                if (state.mode === 'signup' && val !== loginForm.fields.password.value) {
                     return 'Passwords don\'t match'
                 }
             }
