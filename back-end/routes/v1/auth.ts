@@ -50,6 +50,7 @@ export default function register(router: Router) {
     endpoint: '/signup',
     method: 'post',
     handler: rateLimited(500, async ({ body: { email_address, password } }) => {
+
       // extract email/password from request
       if (getEmailValidationError(email_address) || getPasswordValidationError(password)) {
         return [{ jwt: null }, Status.BadRequest]
@@ -61,11 +62,22 @@ export default function register(router: Router) {
       )
 
       const accounts = await withDBConnection(async (db) => {
-        return await db.insertTable('account', {
-          email_address,
-          password_hash,
-          password_salt
-        })
+        const existingAccount = (await db.queryTable('account', { where: ['email_address', '=', email_address] }))[0]
+
+        if (existingAccount != null && existingAccount.password_hash == null && existingAccount.password_salt == null) {
+          return await db.updateTable('account', {
+            password_hash,
+            password_salt
+          }, [
+            ['account_id', '=', existingAccount.account_id]
+          ])
+        } else {
+          return await db.insertTable('account', {
+            email_address,
+            password_hash,
+            password_salt
+          })
+        }
       })
 
       const account = accounts[0]
