@@ -26,10 +26,16 @@ export default observer(() => {
         initialValues: {
             emailAddress: '',
             password: '',
+            passwordConfirmation: ''
         },
         validators: {
             emailAddress: val => state.mode === 'login' ? getEmailValidationError(val) : undefined,
-            password: val => state.mode === 'signup' ? getPasswordValidationError(val) : undefined
+            password: val => state.mode === 'signup' ? getPasswordValidationError(val) : undefined,
+            passwordConfirmation: (val, otherValues) => {
+                if (state.mode === 'signup' && val !== otherValues.password) {
+                    return 'Passwords do not match'
+                }
+            }
         }
     }))
 
@@ -85,6 +91,18 @@ export default observer(() => {
                     autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
                     {...fieldToProps(loginForm.fields.password)}
                 />
+
+                {state.mode === 'signup' &&
+                    <>
+                        <Spacer size={16} />
+
+                        <Input
+                            label='Confirm password'
+                            type='password'
+                            disabled={loginOrSignup.state.kind === 'loading'}
+                            {...fieldToProps(loginForm.fields.passwordConfirmation)}
+                        />
+                    </>}
 
                 <Spacer size={8} />
 
