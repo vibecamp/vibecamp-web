@@ -27,7 +27,7 @@ export default observer(({ label, value, onChange, disabled, error, onBlur, plac
 
     return (
         <label className='number-input'>
-            <div>{label}</div>
+            <div className='label'>{label}</div>
 
             <input
                 type='number'

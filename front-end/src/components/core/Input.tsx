@@ -31,7 +31,7 @@ export default observer(({ label, placeholder, type, disabled, value, onChange, 
 
     return (
         <label className='input'>
-            <div>{label}</div>
+            <div className='label'>{label}</div>
 
             {multiline
                 ? <textarea

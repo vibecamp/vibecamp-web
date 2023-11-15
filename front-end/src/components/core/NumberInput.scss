@@ -4,23 +4,22 @@
     font-size: 14px;
     color: rgba(0, 0, 0, 0.7);
 
-    transition: color 0.1s ease-out, opacity 0.1s ease-out;
-
     &:disabled {
         opacity: 0.6;
     }
 
-    &:nth-of-type(3n + 1) {
-        --focus-color: rgb(255, 158, 0);
-    }
-    &:nth-of-type(3n + 2) {
-        --focus-color: rgb(255, 0, 174);
-    }
-    &:nth-of-type(3n + 3) {
-        --focus-color: rgb(0, 166, 255);
-    }
+    --focus-color: rgb(0, 166, 255);
+    // &:nth-of-type(3n + 1) {
+    //     --focus-color: rgb(255, 158, 0);
+    // }
+    // &:nth-of-type(3n + 2) {
+    //     --focus-color: rgb(255, 0, 174);
+    // }
+    // &:nth-of-type(3n + 3) {
+    //     --focus-color: rgb(0, 166, 255);
+    // }
 
-    &:focus-within {
+    &:focus-within>.label {
         color: var(--focus-color);
     }
 
@@ -44,8 +43,6 @@
         border-radius: 8px;
         padding: 10px;
         margin-top: 5px;
-
-        transition: border-color 0.1s ease-out;
 
         &:focus {
             outline: none;

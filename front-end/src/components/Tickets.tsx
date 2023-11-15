@@ -197,6 +197,7 @@ export default observer(() => {
 
                                         <Input
                                             label='Invite code'
+                                            placeholder='11111111-1111-1111-1111-111111111111'
                                             value={state.code}
                                             onChange={val => state.code = val}
                                         />
@@ -212,7 +213,7 @@ export default observer(() => {
                                         <Spacer size={8} />
 
                                         <Button isSubmit isPrimary isLoading={submitInviteCode.state.kind === 'loading'}>
-                                            Enter invite code
+                                            Use invite code
                                         </Button>
                                     </Col>
                                 </form>}

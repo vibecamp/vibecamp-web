@@ -31,7 +31,6 @@
         height: var(--checkbox-size);
         border-radius: 50%;
         border: var(--controls-border);
-        transition: all 0.1s ease-out;
       }
 
       &::after {
@@ -46,7 +45,6 @@
         position: absolute;
         top: calc(calc(var(--checkbox-size)) / 2 - var(--dot-size) / 2);
         left: calc(calc(var(--checkbox-size)) / 2 - var(--dot-size) / 2);
-        transition: all 0.1s ease-out;
       }
 
       &:checked {
