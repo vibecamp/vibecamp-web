@@ -17,6 +17,10 @@ configureMobx({
     enforceActions: 'never',
 })
 
+if (WindowObservables.hashState?.currentView == null) {
+    WindowObservables.assignHashState({ currentView: 'Tickets' })
+}
+
 export default observer(() => {
     useAutorun(() => {
         const root = document.getElementById('root')

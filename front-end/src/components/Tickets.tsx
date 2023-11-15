@@ -224,7 +224,7 @@ export default observer(() => {
                     <MultiView
                         views={[
                             { name: 'selection', content: <SelectionView purchaseFormState={purchaseFormState} goToNext={goToPayment} readyToPay={stripeOptions.state.result != null} /> },
-                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseFormState.purchases} onPrePurchase={purchaseFormState.createAttendees.load} redirectUrl={location.origin + '#Tickets'} /> }
+                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseFormState.purchases} onPrePurchase={purchaseFormState.createAttendees.load} redirectUrl={location.origin + '#%7B"currentView"%3A"Tickets"%7D'} /> }
                         ]}
                         currentView={WindowObservables.hashState?.purchaseModalState}
                     />}
