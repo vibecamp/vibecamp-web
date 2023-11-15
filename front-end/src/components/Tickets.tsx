@@ -141,7 +141,7 @@ export default observer(() => {
                                             <React.Fragment key={t.purchase_id}>
                                                 {index > 0 &&
                                                     <Spacer size={24} />}
-                                                <Ticket name={t.attendeeInfo?.name} ticketType={t.attendeeInfo == null ? undefined : t.attendeeInfo?.age != null && t.attendeeInfo.age >= 18 ? 'adult' : 'child'} />
+                                                <Ticket name={t.attendeeInfo?.name} ticketType={t.attendeeInfo == null ? undefined : t.attendeeInfo?.age != null && t.attendeeInfo.age >= 16 ? 'adult' : 'child'} />
                                             </React.Fragment>
                                         )
                                     })}
@@ -286,7 +286,7 @@ const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => 
                     attendee (with a badge and everything). You can purchase
                     additional tickets for up to four minors.`}
                     <Spacer size={4} />
-                    {`Minors between age 2-18 will need their own tickets, but
+                    {`Minors over two will need their own tickets, but
                     those will live under your account. Children under two years
                     old do not need a ticket.`}
                 </InfoBlurb>
@@ -391,10 +391,10 @@ const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => 
                 <Spacer size={8} />
 
                 <ErrorMessage error={
-                    purchaseFormState.adultAttendees.length > PURCHASE_TYPES_BY_TYPE.ATTENDANCE_VIBECLIPSE_2024.max_per_account!
-                        ? `Can only purchase ${PURCHASE_TYPES_BY_TYPE.ATTENDANCE_VIBECLIPSE_2024.max_per_account} adult tickets per account`
-                    : purchaseFormState.childAttendees.length > PURCHASE_TYPES_BY_TYPE.ATTENDANCE_CHILD_VIBECLIPSE_2024.max_per_account!
-                        ? `Can only purchase ${PURCHASE_TYPES_BY_TYPE.ATTENDANCE_CHILD_VIBECLIPSE_2024.max_per_account} child tickets per account`
+                    purchaseFormState.adultAttendees.length > 2
+                        ? 'Can only purchase two adult tickets per account'
+                    : purchaseFormState.childAttendees.length > 5
+                        ? 'Can only purchase five child tickets per account'
                     : undefined
                 } />
 
@@ -512,11 +512,11 @@ class PurchaseFormState {
     }
 
     get adultAttendees() {
-        return this.allAttendeeForms.filter(a => a.fields.age.value == null || a.fields.age.value >= 18)
+        return this.allAttendeeForms.filter(a => a.fields.age.value == null || a.fields.age.value >= 16)
     }
 
     get childAttendees() {
-        return this.allAttendeeForms.filter(a => a.fields.age.value != null && a.fields.age.value < 18)
+        return this.allAttendeeForms.filter(a => a.fields.age.value != null && a.fields.age.value < 16)
     }
 
     get isValid() {
@@ -524,14 +524,18 @@ class PurchaseFormState {
             && this.needsSleepingBags !== undefined
             && this.needsBusTickets !== undefined
             && this.primaryAttendee.fields.has_clicked_waiver.value === true
-            && this.adultAttendees.length <= PURCHASE_TYPES_BY_TYPE.ATTENDANCE_VIBECLIPSE_2024.max_per_account!
-            && this.childAttendees.length <= PURCHASE_TYPES_BY_TYPE.ATTENDANCE_CHILD_VIBECLIPSE_2024.max_per_account!
+            && this.adultAttendees.length <= 2
+            && this.childAttendees.length <= 5
     }
 
     get purchases() {
-        const purchases: Purchases = {
-            ATTENDANCE_VIBECLIPSE_2024: this.adultAttendees.length,
-            ATTENDANCE_CHILD_VIBECLIPSE_2024: this.childAttendees.length
+        const purchases: Purchases = {}
+
+        for (const attendee of this.allAttendeeForms) {
+            const ticketType = purchaseTypeFromAge(attendee.fields.age.value)
+            if (ticketType) {
+                purchases[ticketType] = (purchases[ticketType] ?? 0) + 1
+            }
         }
 
         if (this.needsSleepingBags) {
@@ -559,6 +563,27 @@ class PurchaseFormState {
             return values
         }))
     }, { lazy: true })
+}
+
+const purchaseTypeFromAge = (age: number | null): PurchaseType | undefined => {
+    if (age == null) {
+        return 'ATTENDANCE_VIBECLIPSE_2024_OVER_16'
+    }
+
+    if (age < 2) {
+        return undefined
+    }
+    if (age < 5) {
+        return 'ATTENDANCE_VIBECLIPSE_2024_2_TO_5'
+    }
+    if (age < 10) {
+        return 'ATTENDANCE_VIBECLIPSE_2024_5_TO_10'
+    }
+    if (age < 16) {
+        return 'ATTENDANCE_VIBECLIPSE_2024_10_TO_16'
+    }
+    
+    return 'ATTENDANCE_VIBECLIPSE_2024_OVER_16'
 }
 
 const ATTENDEE_VALIDATORS: FormValidators<AttendeeInfo & { has_clicked_waiver?: boolean }> = {
