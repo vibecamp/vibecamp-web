@@ -28,6 +28,7 @@ import RadioGroup from './core/RadioGroup'
 import { Purchases } from '../../../back-end/types/route-types'
 import { createTransformer } from 'mobx-utils'
 import ErrorMessage from './core/ErrorMessage'
+import WindowObservables from '../mobx/WindowObservables'
 
 // HACK: When the purchase flow completes, the redirect may happen before the
 // webhook has been triggered to record the purchases. To prevent confusion,
@@ -43,23 +44,22 @@ if (awaitingPurchaseRecord) {
 
 export default observer(() => {
     const state = useObservableState({
-        code: '',
-        purchaseModalState: 'none' as 'none' | 'selection' | 'payment'
+        code: ''
     })
 
     const closePurchaseModal = useStable(() => () => {
-        state.purchaseModalState = 'none'
+        WindowObservables.assignHashState({ purchaseModalState: 'none' })
     })
 
     const openPurchaseModal = useStable(() => () => {
-        state.purchaseModalState = 'selection'
+        WindowObservables.assignHashState({ purchaseModalState: 'selection' })
     })
 
     const goToPayment = useStable(() => () => {
         purchaseFormState.activateAllValidation()
 
         if (purchaseFormState.isValid) {
-            state.purchaseModalState = 'payment'
+            WindowObservables.assignHashState({ purchaseModalState: 'payment' })
         }
     })
 
@@ -219,14 +219,14 @@ export default observer(() => {
                         </>
                         : null}
 
-            <Modal title='Ticket purchase' isOpen={state.purchaseModalState !== 'none'} onClose={closePurchaseModal}>
+            <Modal title='Ticket purchase' isOpen={WindowObservables.hashState?.purchaseModalState === 'selection' || WindowObservables.hashState?.purchaseModalState === 'payment'} onClose={closePurchaseModal}>
                 {() =>
                     <MultiView
                         views={[
                             { name: 'selection', content: <SelectionView purchaseFormState={purchaseFormState} goToNext={goToPayment} readyToPay={stripeOptions.state.result != null} /> },
                             { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseFormState.purchases} onPrePurchase={purchaseFormState.createAttendees.load} redirectUrl={location.origin + '#Tickets'} /> }
                         ]}
-                        currentView={state.purchaseModalState}
+                        currentView={WindowObservables.hashState?.purchaseModalState}
                     />}
             </Modal>
         </Col>

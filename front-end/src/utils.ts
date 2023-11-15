@@ -10,7 +10,7 @@ export function given<T, R>(val: T | null | undefined, fn: (val: T) => R): R | n
     }
 }
 
-export function jsonParse<TExpected>(json: string): unknown | undefined {
+export function jsonParse(json: string): unknown | undefined {
     try {
         return JSON.parse(json)
     } catch {

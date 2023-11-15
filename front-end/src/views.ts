@@ -1,3 +1,4 @@
+import { objectEntries } from '../../back-end/utils/misc'
 import Account from './components/Account'
 import Tickets from './components/Tickets'
 
@@ -24,7 +25,7 @@ export const VIEWS = {
     }
 } as const
 
-export const VIEWS_ARRAY = (Object.entries(VIEWS) as [ViewName, typeof VIEWS[ViewName]][])
+export const VIEWS_ARRAY = objectEntries(VIEWS)
     .map(([name, {icon, component}]) => ({ name, icon, component } as const))
 
 export function isViewName(str: string): str is ViewName {

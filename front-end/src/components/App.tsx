@@ -8,7 +8,7 @@ import Modal from './core/Modal'
 import { VIEWS_ARRAY } from '../views'
 import MultiView from './core/MultiView'
 import Stripes from './core/Stripes'
-import { windowSize } from '../mobx/browser'
+import WindowObservables from '../mobx/WindowObservables'
 import { useAutorun } from '../mobx/hooks'
 
 console.log(Store)
@@ -21,7 +21,7 @@ export default observer(() => {
     useAutorun(() => {
         const root = document.getElementById('root')
         if (root != null) {
-            root.style.height = windowSize.height + 'px'
+            root.style.height = WindowObservables.height + 'px'
         }
     })
 
@@ -32,7 +32,7 @@ export default observer(() => {
             <MultiView
                 views={VIEWS_ARRAY.map(({ name, component: Component }) =>
                     ({ name, content: <Component /> }))}
-                currentView={Store.currentView}
+                currentView={WindowObservables.hashState?.currentView}
             />
 
             <Nav />
@@ -49,7 +49,12 @@ const Nav: FC = observer(() => {
     return (
         <div className='nav'>
             {VIEWS_ARRAY.map(({ name, icon }, index) => (
-                <button className={name === Store.currentView ? 'active' : undefined} onClick={Store.setCurrentView(name)} title={name} key={index}>
+                <button 
+                    className={name === WindowObservables.hashState?.currentView ? 'active' : undefined} 
+                    onClick={() => WindowObservables.assignHashState({ currentView: name })}
+                    title={name} 
+                    key={index}
+                >
                     <span className="material-symbols-outlined">{icon}</span>
                     <Spacer size={4} />
                     <span style={{ fontSize: 8 }}>{name}</span>

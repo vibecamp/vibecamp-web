@@ -22,10 +22,6 @@ class Store {
         })
     }
 
-    /// Navigation
-    currentView: ViewName = isViewName(viewFromUrl) ? viewFromUrl : 'Tickets'
-    readonly setCurrentView = createTransformer((view: ViewName) => () => this.currentView = view)
-
     /// User
     jwt: string | null = given(localStorage.getItem(JWT_KEY), jwt => {
         const parsed = jsonParse(jwt)

@@ -1,12 +1,12 @@
 import React, { CSSProperties, ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
 
-type Props<TView extends string> = {
+type Props<TView> = {
     views: readonly { readonly name: TView, readonly content: ReactNode }[],
     currentView: TView,
 }
 
-function MultiView<TView extends string>({views, currentView}: Props<TView>) {
+function MultiView<TView>({views, currentView}: Props<TView>) {
     return (
         <div className='multi-view' style={{
             '--view-count': views.length,
@@ -14,7 +14,7 @@ function MultiView<TView extends string>({views, currentView}: Props<TView>) {
         } as CSSProperties}>
             <div className='sliding-container'>
                 {views.map(({ name, content }) =>
-                    <div className='slide' key={name}>
+                    <div className='slide' key={String(name)}>
                         {content}
                     </div>)}
             </div>
