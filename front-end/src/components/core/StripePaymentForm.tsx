@@ -11,6 +11,7 @@ import { useRequestWithDependencies } from '../../mobx/hooks'
 import { preventingDefault } from '../../utils'
 import PriceBreakdown from '../PriceBreakdown'
 import { Purchases } from '../../../../back-end/types/route-types'
+import ErrorMessage from './ErrorMessage'
 
 const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 
@@ -18,7 +19,7 @@ type Props = {
     stripeOptions: StripeElementsOptions | undefined,
     purchases?: Purchases,
     onPrePurchase?: () => Promise<void> | void,
-    redirectUrl: string
+    onCompletePurchase?: () => void,
 }
 
 export default observer(({ stripeOptions, ...otherProps }: Props) => {
@@ -33,7 +34,7 @@ export default observer(({ stripeOptions, ...otherProps }: Props) => {
     )
 })
 
-const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ purchases, onPrePurchase, redirectUrl }) => {
+const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ purchases, onPrePurchase, onCompletePurchase }) => {
     const stripe = useStripe()
     const elements = useElements()
 
@@ -48,8 +49,9 @@ const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ purchases
         const { error } = await stripe.confirmPayment({
             elements,
             confirmParams: {
-                return_url: redirectUrl,
+                return_url: location.origin,
             },
+            redirect: 'if_required'
         })
 
         // This point will only be reached if there is an immediate error when
@@ -57,18 +59,20 @@ const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ purchases
         // your `return_url`. For some payment methods like iDEAL, your customer will
         // be redirected to an intermediate site first to authorize the payment, then
         // redirected to the `return_url`.
-        if (error.type === 'card_error' || error.type === 'validation_error') {
+        if (error?.type === 'card_error' || error?.type === 'validation_error') {
             return error.message
-        } else {
+        } else if (error != null) {
             return 'An unexpected error occurred.'
+        } else {
+            onCompletePurchase()
         }
-    }, [stripe, elements, onPrePurchase, redirectUrl], { lazy: true })
+    }, [stripe, elements, onPrePurchase, onCompletePurchase], { lazy: true })
 
     return (
         !stripe || !elements
             ? <LoadingDots size={60} color='var(--color-accent-1)' />
             : <form id="payment-form" onSubmit={preventingDefault(confirmPayment.load)}>
-                <Col padding={20}>
+                <Col padding={20} pageLevel>
                     <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
 
                     {purchases &&
@@ -80,7 +84,7 @@ const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ purchases
 
                     <Spacer size={16} />
 
-                    {confirmPayment.state.result}
+                    <ErrorMessage error={confirmPayment.state.result} />
 
                     <Spacer size={8} />
 

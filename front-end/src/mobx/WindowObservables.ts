@@ -55,7 +55,10 @@ class _WindowObservables {
     }
 }
 
-type HashState = Readonly<Record<string, string | number | boolean | null>>
+type HashState = Readonly<Record<string, string | number | boolean | null>> & {
+    currentView?: string | number | boolean | null,
+    purchaseModalState?: string | number | boolean | null
+}
 
 const WindowObservables = new _WindowObservables()
 export default WindowObservables

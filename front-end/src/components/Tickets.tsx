@@ -30,17 +30,6 @@ import { createTransformer } from 'mobx-utils'
 import ErrorMessage from './core/ErrorMessage'
 import WindowObservables from '../mobx/WindowObservables'
 
-// HACK: When the purchase flow completes, the redirect may happen before the
-// webhook has been triggered to record the purchases. To prevent confusion,
-// if we've just returned to this screen after a payment, we wait a couple
-// seconds then reload the page (assigning `location.search` reloads the page,
-// and at the same time prevents subsequent reloads)
-const awaitingPurchaseRecord = location.search.includes('payment_intent')
-if (awaitingPurchaseRecord) {
-    setTimeout(() => {
-        location.search = ''
-    }, 2000)
-}
 
 export default observer(() => {
     const state = useObservableState({
@@ -108,7 +97,7 @@ export default observer(() => {
         }
     })
 
-    const loading = awaitingPurchaseRecord || Store.accountInfo.state.kind === 'loading'
+    const loading = Store.accountInfo.state.kind === 'loading'
     const loadingOrError = loading || Store.accountInfo.state.kind === 'error'
 
     return (
@@ -225,7 +214,7 @@ export default observer(() => {
                     <MultiView
                         views={[
                             { name: 'selection', content: <SelectionView purchaseFormState={purchaseFormState} goToNext={goToPayment} readyToPay={stripeOptions.state.result != null} /> },
-                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseFormState.purchases} onPrePurchase={purchaseFormState.createAttendees.load} redirectUrl={location.origin + '#%7B"currentView"%3A"Tickets"%7D'} /> }
+                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseFormState.purchases} onPrePurchase={purchaseFormState.createAttendees.load} onCompletePurchase={showTickets} /> }
                         ]}
                         currentView={WindowObservables.hashState?.purchaseModalState}
                     />}
@@ -233,6 +222,19 @@ export default observer(() => {
         </Col>
     )
 })
+
+const showTickets = () => {
+    Store.accountInfo.load()
+    WindowObservables.assignHashState({ currentView: 'Tickets', purchaseModalState: 'none' })
+
+    // HACK: When the purchase flow completes, the webhook will take an
+    // indeterminate amount of time to record the purchases. So, we wait a couple
+    // seconds before refreshing the list, which should usually be enough
+    setTimeout(() => {
+        Store.accountInfo.load()
+    }, 2000)
+
+}
 
 const SelectionView: FC<{ purchaseFormState: PurchaseFormState, goToNext: () => void, readyToPay: boolean }> = observer(({ purchaseFormState, goToNext, readyToPay }) => {
     const removeAttendee = useStable(() => createTransformer((index: number) => () => {
