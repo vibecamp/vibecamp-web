@@ -64,7 +64,7 @@ const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ purchases
         } else if (error != null) {
             return 'An unexpected error occurred.'
         } else {
-            onCompletePurchase()
+            onCompletePurchase?.()
         }
     }, [stripe, elements, onPrePurchase, onCompletePurchase], { lazy: true })
 
