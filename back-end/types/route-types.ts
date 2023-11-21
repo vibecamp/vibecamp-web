@@ -7,9 +7,19 @@ export type Routes = {
         body: undefined,
         response: FullAccountInfo
     },
+    '/account/update-email': {
+        method: 'put',
+        body: Pick<Tables['account'], 'email_address'>,
+        response: null
+    },
+    '/account/update-password': {
+        method: 'put',
+        body: { password: string },
+        response: null
+    },
     '/account/update-attendee': {
         method: 'put',
-        body: Pick<Tables['attendee'], 'attendee_id'> & Partial<Tables['attendee']>,
+        body: Pick<Tables['attendee'], 'attendee_id'> & Partial<Omit<Tables['attendee'], 'associated_account_id' | 'notes'>>,
         response: Tables['attendee']
     },
     '/account/submit-invite-code': {

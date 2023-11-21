@@ -46,6 +46,7 @@ app.use(async (ctx, next) => {
 app.use(async (ctx, next) => {
   ctx.response.headers.set('Access-Control-Allow-Credentials', 'true')
   ctx.response.headers.set('Access-Control-Allow-Headers', 'Authorization')
+  ctx.response.headers.set('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS')
 
   // https://stackoverflow.com/a/1850482
   const requesterOrigin = ctx.request.headers.get('origin')

@@ -58,7 +58,7 @@ export default function register(router: Router) {
 
       // create account in DB
       const { password_hash, password_salt } = await hashAndSaltPassword(
-        password,
+        password
       )
 
       const accounts = await withDBConnection(async (db) => {
@@ -131,7 +131,7 @@ async function authenticatePassword(
   return passwordMatches
 }
 
-async function hashAndSaltPassword(
+export async function hashAndSaltPassword(
   password: string,
 ): Promise<{ password_hash: string; password_salt: string }> {
   const password_salt = crypto.randomUUID()

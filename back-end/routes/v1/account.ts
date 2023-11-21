@@ -4,7 +4,8 @@ import { DBClient, accountReferralStatus, withDBConnection, withDBTransaction } 
 import { Tables } from "../../types/db-types.ts"
 import { allPromises } from "../../utils/misc.ts"
 import { ONE_SECOND_MS } from '../../utils/constants.ts'
-import { getUuidValidationError } from '../../utils/validation.ts'
+import { hashAndSaltPassword } from './auth.ts'
+import { getPasswordValidationError, getUuidValidationError } from '../../utils/validation.ts'
 
 export default function register(router: Router) {
 
@@ -87,28 +88,49 @@ export default function register(router: Router) {
   })
 
   defineRoute(router, {
+    endpoint: '/account/update-email',
+    method: 'put',
+    requireAuth: true,
+    handler: async ({ jwt: { account_id }, body: { email_address } }) => {
+      await withDBConnection(db =>
+        db.updateTable('account', { email_address }, [
+          ['account_id', '=', account_id],
+        ]))
+
+      return [null, Status.OK]
+    }
+  })
+
+  defineRoute(router, {
+    endpoint: '/account/update-password',
+    method: 'put',
+    requireAuth: true,
+    handler: async ({ jwt: { account_id }, body: { password } }) => {
+
+      if (getPasswordValidationError(password)) {
+        return [null, Status.BadRequest]
+      }
+
+      const { password_hash, password_salt } = await hashAndSaltPassword(
+        password
+      )
+
+      await withDBConnection(db =>
+        db.updateTable('account', { password_hash, password_salt }, [
+          ['account_id', '=', account_id],
+        ]))
+
+      return [null, Status.OK]
+    }
+  })
+
+  defineRoute(router, {
     endpoint: '/account/update-attendee',
     method: 'put',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { age, attendee_id, diet, has_allergy_eggs, has_allergy_fish, has_allergy_shellfish, has_allergy_soy, has_allergy_wheat, has_allergy_milk, has_allergy_peanuts, has_allergy_tree_nuts, discord_handle, interested_in_pre_call, interested_in_volunteering_as, name, planning_to_camp } }) => {
+    handler: async ({ jwt: { account_id }, body: { attendee_id, ...attendeeUpdate } }) => {
       const attendee = await withDBConnection(async db =>
-        (await db.updateTable('attendee', {
-          age,
-          discord_handle,
-          interested_in_pre_call,
-          interested_in_volunteering_as,
-          diet,
-          has_allergy_eggs,
-          has_allergy_fish,
-          has_allergy_shellfish,
-          has_allergy_soy,
-          has_allergy_wheat,
-          has_allergy_milk,
-          has_allergy_peanuts,
-          has_allergy_tree_nuts,
-          name,
-          planning_to_camp
-        }, [
+        (await db.updateTable('attendee', attendeeUpdate, [
           ['associated_account_id', '=', account_id],
           ['attendee_id', '=', attendee_id],
         ]))[0])
