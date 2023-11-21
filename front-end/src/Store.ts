@@ -1,11 +1,9 @@
 import { autorun, makeAutoObservable } from 'mobx'
-import { createTransformer } from 'mobx-utils'
 import jwtDecode from 'jwt-decode'
 
 import { EventData } from './model'
 import { VibeJWTPayload } from '../../back-end/types/misc'
 import { given, jsonParse } from './utils'
-import { ViewName, isViewName } from './views'
 import { vibefetch } from './vibefetch'
 import { request } from './mobx/request'
 
@@ -59,7 +57,7 @@ class Store {
             }
 
             return {
-                festival_name: festival.festival_name,
+                ...festival,
                 start_date: new Date(festival.start_date),
                 end_date: new Date(festival.end_date),
             } as const

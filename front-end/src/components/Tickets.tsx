@@ -206,6 +206,20 @@ export default observer(() => {
                                         </Button>
                                     </Col>
                                 </form>}
+
+                            {Store.festival.state.result?.info_url &&
+                                <>
+                                    <Spacer size={24} />
+
+                                    <a 
+                                        className='button primary'
+                                        href={Store.festival.state.result.info_url}
+                                        target='_blank'
+                                        rel="noreferrer"
+                                    >
+                                        Info about {Store.festival.state.result.festival_name} &nbsp; <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
+                                    </a>
+                                </>}
                         </>
                         : null}
 
