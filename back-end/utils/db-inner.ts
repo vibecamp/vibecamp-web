@@ -68,11 +68,17 @@ export const updateTableQuery = <
     const whereClauses = where.map(([column, op], index) => `${column as string} ${op} $${rowEntries.length + index + 1}`).join(' AND ')
     const whereValues = where.map(([_column, _op, value]) => value)
 
+    const setClause = (
+        rowEntries.length > 1
+            ? `(${columns}) = (${columnPlaceholders})`
+            : `${columns} = ${columnPlaceholders}`
+    )
+
     return [
         `
       UPDATE ${table}
         SET
-          (${columns}) = (${columnPlaceholders})
+          ${setClause}
         WHERE
           ${whereClauses}
         RETURNING *

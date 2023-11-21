@@ -70,7 +70,36 @@ Deno.test({
 })
 
 Deno.test({
-    name: 'Update table query',
+    name: 'Update table query 1',
+    fn() {
+        const [query, params] = updateTableQuery(
+            'account',
+            { email_address: 'foo@bar.com' },
+            [
+                ['password_hash', '=', '1234'],
+                ['password_salt', '=', '4567']
+            ]
+        )
+
+        assertEquals(
+            normalizeQuery(query),
+            normalizeQuery(`
+            UPDATE account
+            SET email_address = $1
+            WHERE password_hash = $2 AND password_salt = $3
+            RETURNING *
+        `)
+        )
+
+        assertEquals(
+            params,
+            ['foo@bar.com', '1234', '4567']
+        )
+    }
+})
+
+Deno.test({
+    name: 'Update table query 2',
     fn() {
         const [query, params] = updateTableQuery(
             'account',
