@@ -1,4 +1,4 @@
-import { Maybe } from "../types/misc"
+import { Maybe } from '../types/misc.ts'
 
 export function getEmailValidationError(val: Maybe<string>) {
     if (val == null || val.length === 0) {
