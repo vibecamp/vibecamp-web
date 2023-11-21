@@ -98,14 +98,7 @@ export function defineRoute<TEndpoint extends keyof Routes>(
   }
   const args = [endpoint, handler] as const
 
-  switch (config.method) {
-    case 'get':
-      router.get(...args)
-      break
-    case 'post':
-      router.post(...args)
-      break
-  }
+  router[config.method](...args)
 }
 
 function constructResponse<TEndpoint extends keyof Routes>(ctx: AnyRouterContext, [res, status]: readonly [Routes[TEndpoint]['response'], Status]) {

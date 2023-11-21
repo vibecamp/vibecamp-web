@@ -77,7 +77,7 @@ export default function register(router: Router) {
         }
 
         const allPurchased = await withDBConnection(async db => Number(
-          (await db.queryObject<{ count: bigint }>`select count(*) from purchase where purchase_type_id = ${purchaseTypeId}`).rows[0]?.count
+          (await db.queryObject<{ count: bigint }>`SELECT COUNT(*) FROM purchase WHERE purchase_type_id = ${purchaseTypeId}`).rows[0]!.count
         ))
         if (max_available != null && allPurchased + toPurchaseCount! > max_available) {
           throw [null, Status.Unauthorized]

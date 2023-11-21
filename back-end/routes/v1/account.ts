@@ -2,8 +2,9 @@ import { Router, Status } from 'oak'
 import { defineRoute, rateLimited } from './_common.ts'
 import { DBClient, accountReferralStatus, withDBConnection, withDBTransaction } from '../../utils/db.ts'
 import { Tables } from "../../types/db-types.ts"
-import { allPromises, validUuid } from "../../utils/misc.ts"
+import { allPromises } from "../../utils/misc.ts"
 import { ONE_SECOND_MS } from '../../utils/constants.ts'
+import { getUuidValidationError } from '../../utils/validation.ts'
 
 export default function register(router: Router) {
 
@@ -129,7 +130,7 @@ export default function register(router: Router) {
 
       // we do our own check because postgres will throw an error on a
       // malformed uuid, causing a 500 response
-      if (!validUuid(invite_code)) {
+      if (getUuidValidationError(invite_code) != null) {
         // invite code doesn't exist
         console.error(`Invalid invite code submitted: "${invite_code}"`)
         return [null, Status.NotFound]

@@ -17,6 +17,10 @@ export function objectKeys<TObject extends Record<string | number | symbol, unkn
   return Object.keys(obj)
 }
 
+export function objectValues<TObject extends Record<string | number | symbol, unknown>>(obj: TObject): Array<TObject[keyof TObject]> {
+  return Object.values(obj) as Array<TObject[keyof TObject]>
+}
+
 export function objectEntries<TObject extends Record<string | number | symbol, unknown>>(obj: TObject): Array<[keyof TObject, TObject[keyof TObject]]> {
   return Object.entries(obj) as Array<[keyof TObject, TObject[keyof TObject]]>
 }
@@ -58,6 +62,3 @@ export const pad = (str: string, length: number) => {
 
 export const indent = (str: string) =>
   str.split('\n').map(line => '\t' + line).join('\n')
-
-const UUID_REGEX = /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/
-export const validUuid = (str: string) => UUID_REGEX.test(str)

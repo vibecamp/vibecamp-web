@@ -6,10 +6,10 @@
 export type Tables = {
   account: {
     account_id: string,
-    account_notes: string,
     email_address: string,
     is_application_accepted: boolean | null,
     is_seed_account: boolean,
+    notes: string,
     password_hash: string | null,
     password_salt: string | null,
   },
