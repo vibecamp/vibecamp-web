@@ -72,10 +72,15 @@ export default function register(router: Router) {
 
         const { festival_id, max_available, max_per_account } = purchaseType
 
-        // TODO: check max_available against total purchased across all accounts
-
         if (festival_id !== nextFestival.festival_id) {
           return [null, Status.Unauthorized]
+        }
+
+        const allPurchased = await withDBConnection(async db => Number(
+          (await db.queryObject<{ count: bigint }>`select count(*) from purchase where purchase_type_id = ${purchaseTypeId}`).rows[0]?.count
+        ))
+        if (max_available != null && allPurchased + toPurchaseCount! > max_available) {
+          throw [null, Status.Unauthorized]
         }
 
         const alreadyPurchasedCount = alreadyPurchased.find(p => p.purchase_type_id === purchaseTypeId)?.count ?? 0
