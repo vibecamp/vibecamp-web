@@ -8,7 +8,7 @@ export type Tables = {
     account_id: string,
     account_notes: string,
     email_address: string,
-    is_application_accepted: boolean,
+    is_application_accepted: boolean | null,
     is_seed_account: boolean,
     password_hash: string | null,
     password_salt: string | null,
@@ -52,6 +52,7 @@ export type Tables = {
     festival_id: string,
     festival_name: string,
     festival_site_id: Tables['festival_site']['festival_site_id'],
+    info_url: string | null,
     start_date: Date,
   },
   festival_site: {
@@ -70,6 +71,7 @@ export type Tables = {
     festival_id: string | null,
     festival_name: string | null,
     festival_site_id: string | null,
+    info_url: string | null,
     start_date: Date | null,
   },
   purchase: {
@@ -93,9 +95,9 @@ export const TABLE_ROWS = {
     {"purchase_type_id":"BUS_430PM_VIBECLIPSE_2024","price_in_cents":6000,"max_available":null,"description":"Bus leaving AUS at 4:30 PM CST (meet at 4:00)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
     {"purchase_type_id":"BUS_830PM_VIBECLIPSE_2024","price_in_cents":6000,"max_available":50,"description":"Bus leaving AUS at 8:30 PM CST (meet at 8:15, 50 available)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
     {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_OVER_16","price_in_cents":55000,"max_available":600,"description":"Ticket","max_per_account":2,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
-    {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_10_TO_16","price_in_cents":33000,"max_available":null,"description":"Ticket (ages 10 to 16)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
-    {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_5_TO_10","price_in_cents":20000,"max_available":null,"description":"Ticket (ages 5 to 10)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
-    {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_2_TO_5","price_in_cents":10000,"max_available":null,"description":"Ticket (ages 2 to 5)","max_per_account":null,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
+    {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_10_TO_16","price_in_cents":33000,"max_available":null,"description":"Ticket (ages 10 to 16)","max_per_account":5,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
+    {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_5_TO_10","price_in_cents":20000,"max_available":null,"description":"Ticket (ages 5 to 10)","max_per_account":5,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
+    {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_2_TO_5","price_in_cents":10000,"max_available":null,"description":"Ticket (ages 2 to 5)","max_per_account":5,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6"},
   ],
   volunteer_type: [
     {"volunteer_type_id":"FAE","description":"Fae"},
