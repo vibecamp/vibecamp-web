@@ -32,6 +32,8 @@ Deno.addSignalListener("SIGINT", () => {
   Deno.exit()
 })
 
+export type DBClient = Pick<PoolClient, 'queryObject'> & CustomClientMethods
+
 /**
  * Acquire a DB connection from the pool, perform queries with it, and then
  * release the connection and return any result
@@ -40,9 +42,9 @@ Deno.addSignalListener("SIGINT", () => {
  * back into the pool
  */
 export async function withDBConnection<TResult>(
-  cb: (db: Pick<PoolClient, 'queryObject' | 'createTransaction'> & CustomClientMethods) => Promise<TResult>,
+  cb: (db: DBClient & Pick<PoolClient, 'createTransaction'>) => Promise<TResult>,
 ): Promise<TResult> {
-  const client = await db.connect() as unknown as Pick<PoolClient, 'queryObject' | 'createTransaction' | 'release'> & CustomClientMethods
+  const client = await db.connect() as unknown as DBClient & Pick<PoolClient, 'createTransaction' | 'release'>
   try {
     client.queryTable = queryTable(client)
     client.insertTable = insertTable(client)
@@ -64,14 +66,14 @@ export async function withDBConnection<TResult>(
  * finished
  */
 export async function withDBTransaction<TResult>(
-  cb: (db: Pick<Transaction, 'queryObject'> & CustomClientMethods) => Promise<TResult>,
+  cb: (db: DBClient) => Promise<TResult>,
 ): Promise<TResult> {
   return await withDBConnection(async (db) => {
     const transactionName = generateTransactionName()
     try {
       const transaction = db.createTransaction(transactionName, {
         isolation_level: 'serializable',
-      }) as unknown as Pick<Transaction, 'queryObject' | 'begin' | 'commit'> & CustomClientMethods
+      }) as unknown as DBClient & Pick<Transaction, 'begin' | 'commit'>
       await transaction.begin();
 
       transaction.queryTable = queryTable(transaction)

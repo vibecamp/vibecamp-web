@@ -72,8 +72,7 @@ export type Routes = {
     '/festival-info': {
         method: 'get',
         body: unknown,
-        response: {
-            festival_name: string,
+        response: Omit<Tables['festival'], 'start_date' | 'end_date'> & {
             start_date: string,
             end_date: string
         }

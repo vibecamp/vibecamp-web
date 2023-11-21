@@ -2,6 +2,7 @@ import { Router, Status } from 'oak'
 import { withDBConnection } from '../../utils/db.ts'
 import { cached, defineRoute } from './_common.ts'
 import { ONE_MINUTE_MS } from '../../utils/constants.ts'
+import { Tables } from '../../types/db-types.ts'
 
 export default function register(router: Router) {
 
@@ -10,20 +11,17 @@ export default function register(router: Router) {
         method: 'get',
         requireAuth: true,
         handler: cached(3 * ONE_MINUTE_MS, async () => {
-            const festival = await withDBConnection(async db => (await db.queryTable('next_festival'))[0])
+            const festival = await withDBConnection(async db =>
+                (await db.queryTable('next_festival'))[0] as Tables['festival'] | undefined)
+
             if (festival == null) {
                 throw Error('Failed to find next_festival in the database')
             }
 
-            const { festival_name, start_date, end_date } = festival
-            if (festival_name == null || start_date == null || end_date == null) {
-                throw Error('next_festival incomplete')
-            }
-
             return [{
-                festival_name,
-                start_date: start_date.toISOString(),
-                end_date: end_date.toISOString(),
+                ...festival,
+                start_date: festival.start_date.toISOString(),
+                end_date: festival.end_date.toISOString(),
             }, Status.OK]
         })
     })
