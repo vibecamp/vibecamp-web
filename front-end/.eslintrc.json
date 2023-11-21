@@ -46,6 +46,8 @@
         "react/prop-types": "off",
         "react-hooks/exhaustive-deps": ["error", {
             "additionalHooks": "(useRequestWithDependencies|useObservableState)"
-        }]
+        }],
+        "no-trailing-spaces": "error",
+        "no-multi-spaces": "error"
     }
 }
