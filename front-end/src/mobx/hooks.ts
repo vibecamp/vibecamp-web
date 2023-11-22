@@ -14,14 +14,7 @@ export function useComputed<T>(fn: () => T): T {
 }
 
 export function useRequest<T>(fn: () => Promise<T>, options: { lazy?: boolean } = {}): RequestObservable<T> {
-    const req = useStable(() => request(fn, options))
-
-    useEffect(() => {
-        return req.dispose
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-
-    return req
+    return useStable(() => request(fn, options))
 }
 
 export function useRequestWithDependencies<T>(fn: () => Promise<T>, deps?: unknown[], options: { lazy?: boolean } = {}): RequestObservable<T> {
@@ -43,5 +36,13 @@ export function useObservableState<T extends Record<string, unknown>>(init: T): 
 
 export function useStable<T>(init: () => T): T {
     const [val] = useState(init)
+
+    useEffect(() => {
+        const disposer = (val as any).dispose
+        if (typeof disposer === 'function') {
+            return disposer
+        }
+    }, [val])
+
     return val
 }
