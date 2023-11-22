@@ -1,9 +1,9 @@
 import React from 'react'
 import { observer } from 'mobx-react-lite'
-import { PURCHASE_TYPES_BY_TYPE } from '../../../back-end/types/misc'
-import { objectEntries, sum } from '../../../back-end/utils/misc'
-import Spacer from './core/Spacer'
-import { Purchases } from '../../../back-end/types/route-types'
+import { PURCHASE_TYPES_BY_TYPE } from '../../../../back-end/types/misc'
+import { objectEntries, sum } from '../../../../back-end/utils/misc'
+import Spacer from '../core/Spacer'
+import { Purchases } from '../../../../back-end/types/route-types'
 
 type Props = {
     purchases: Purchases

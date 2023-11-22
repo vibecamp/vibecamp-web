@@ -9,7 +9,7 @@ import { StripeElementsOptions, loadStripe } from '@stripe/stripe-js'
 import env from '../../env'
 import { useRequestWithDependencies } from '../../mobx/hooks'
 import { preventingDefault } from '../../utils'
-import PriceBreakdown from '../PriceBreakdown'
+import PriceBreakdown from '../tickets/PriceBreakdown'
 import { Purchases } from '../../../../back-end/types/route-types'
 import ErrorMessage from './ErrorMessage'
 

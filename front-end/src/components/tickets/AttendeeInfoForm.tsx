@@ -1,16 +1,16 @@
 import React from 'react'
 import { observer } from 'mobx-react-lite'
-import { TABLE_ROWS } from '../../../back-end/types/db-types'
-import Input from './core/Input'
-import Spacer from './core/Spacer'
-import Checkbox from './core/Checkbox'
-import InfoBlurb from './core/InfoBlurb'
-import RadioGroup from './core/RadioGroup'
-import Store from '../Store'
-import { Form, fieldToProps } from '../mobx/form'
-import { AttendeeInfo } from '../../../back-end/types/misc'
-import { prettyDate } from '../utils'
-import NumberInput from './core/NumberInput'
+import { TABLE_ROWS } from '../../../../back-end/types/db-types'
+import Input from '../core/Input'
+import Spacer from '../core/Spacer'
+import Checkbox from '../core/Checkbox'
+import InfoBlurb from '../core/InfoBlurb'
+import RadioGroup from '../core/RadioGroup'
+import Store from '../../Store'
+import { Form, fieldToProps } from '../../mobx/form'
+import { AttendeeInfo } from '../../../../back-end/types/misc'
+import { prettyDate } from '../../utils'
+import NumberInput from '../core/NumberInput'
 
 type Props = {
     attendeeInfo: Form<AttendeeInfo>,
@@ -46,9 +46,9 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
 
             <Spacer size={FIELD_SPACE} />
 
-            <Input 
+            <Input
                 label='Discord handle (optional)'
-                placeholder='gptbrooke' 
+                placeholder='gptbrooke'
                 {...fieldToProps(attendeeInfo.fields.discord_handle)}
                 value={attendeeInfo.fields.discord_handle.value ?? ''}
             />
@@ -63,9 +63,9 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
 
             <Spacer size={FIELD_SPACE} />
 
-            <Input 
-                label='Twitter handle (optional)' 
-                placeholder='@gptbrooke' 
+            <Input
+                label='Twitter handle (optional)'
+                placeholder='@gptbrooke'
                 {...fieldToProps(attendeeInfo.fields.twitter_handle)}
                 value={attendeeInfo.fields.twitter_handle.value ?? ''}
             />
@@ -87,14 +87,14 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
             {attendeeInfo.fields.age.value != null && attendeeInfo.fields.age.value < 2 &&
                 <>
                     <Spacer size={INFO_BLURB_SPACE} />
-    
+
                     <InfoBlurb>
                         {'Children under two don\'t need a ticket!'}
                     </InfoBlurb>
                 </>}
 
             <Spacer size={INFO_BLURB_SPACE} />
-                
+
             <InfoBlurb>
                 {Store.festival.state.result != null
                     ? `This age should be at the time of ${Store.festival.state.result.festival_name} (${prettyDate(Store.festival.state.result.start_date)} - ${prettyDate(Store.festival.state.result.end_date)})`
@@ -104,15 +104,15 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
             {!isChild &&
                 <>
                     <Spacer size={FIELD_SPACE} />
-    
+
                     <RadioGroup
                         label={`${isAccountHolder ? 'I\'m' : 'They\'re'} interested in volunteering as a...`}
                         options={VOLUNTEER_OPTIONS}
                         {...fieldToProps(attendeeInfo.fields.interested_in_volunteering_as)}
                     />
-    
+
                     <Spacer size={INFO_BLURB_SPACE} />
-                
+
                     <InfoBlurb>
                         Volunteers for vibeclipse fall into two major categories. Fae, and general volunteers.
                         <Spacer size={6} />
@@ -123,18 +123,18 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
                         {isAccountHolder
                             ? 'If you indicate you are willing to volunteer we will reach out to you with more details via email.'
                             : 'If this person indicates they are willing to volunteer we will reach out to you with more details via email.'}
-                        
+
                     </InfoBlurb>
-                    
+
                     <Spacer size={FIELD_SPACE} />
 
                     <Checkbox {...fieldToProps(attendeeInfo.fields.interested_in_pre_call)}>
                         {`${isAccountHolder ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
                         video call before the event`}
                     </Checkbox>
-                    
+
                     <Spacer size={INFO_BLURB_SPACE} />
-                
+
                     <InfoBlurb>
                         {`We'd like to introduce people to some of their fellow
                         attendees so they can lay the foundations of

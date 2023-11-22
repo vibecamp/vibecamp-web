@@ -5,7 +5,7 @@ import Button from './core/Button'
 import LoadingDots from './core/LoadingDots'
 import Modal from './core/Modal'
 import Spacer from './core/Spacer'
-import Ticket from './Ticket'
+import Ticket from './tickets/Ticket'
 
 
 

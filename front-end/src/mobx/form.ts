@@ -1,5 +1,8 @@
-import { action, makeAutoObservable } from 'mobx'
+import { action, makeAutoObservable, reaction } from 'mobx'
 import { CommonFieldProps } from '../components/core/_common'
+import { IDisposer } from 'mobx-utils'
+import { objectValues } from '../../../back-end/utils/misc'
+import { setter } from './misc'
 
 export type FormOptions<T extends Record<string, unknown>> = {
     initialValues: T,
@@ -25,6 +28,12 @@ export class Form<TValues extends Record<string, unknown>> {
         makeAutoObservable(this)
     }
 
+    readonly dispose = () => {
+        for (const field of objectValues(this.fields)) {
+            field.dispose()
+        }
+    }
+
     fields: {
         readonly [key in keyof TValues]: Field<TValues[key]>
     }
@@ -43,18 +52,12 @@ export class Form<TValues extends Record<string, unknown>> {
     }
 
     get isValid(): boolean {
-        for (const field in this.fields) {
-            if (this.fields[field].error) {
-                return false
-            }
-        }
-
-        return true
+        return objectValues(this.fields).every(field => field.isValid)
     }
 
     readonly clear = action(() => {
         for (const key in this.fields) {
-            this.fields[key].set(this.opts.initialValues[key])
+            this.fields[key].value = this.opts.initialValues[key]
         }
     })
 
@@ -71,14 +74,24 @@ class Field<T> {
         private readonly validator: undefined | ((val: T) => string | undefined)
     ) {
         makeAutoObservable(this)
+
+        this.validationActiveReaction = reaction(
+            () => this.value,
+            () => this.validationActive = false
+        )
     }
 
-    readonly set = (val: T): void => {
-        this.value = val
-        this.validationActive = false
+    private validationActiveReaction: IDisposer
+
+    readonly dispose = () => {
+        this.validationActiveReaction()
     }
+
     get error(): string | undefined {
         return this.validator?.(this.value)
+    }
+    get isValid() {
+        return this.error == null
     }
     get displayError(): string | undefined {
         if (this.validationActive) {
@@ -87,7 +100,7 @@ class Field<T> {
     }
 
     private validationActive = false
-    
+
     readonly activateValidation = (): void => {
         this.validationActive = true
     }
@@ -96,7 +109,7 @@ class Field<T> {
 export function fieldToProps<T>(field: Field<T>): Pick<CommonFieldProps<T>, 'value' | 'onChange' | 'error' | 'onBlur'> {
     return {
         value: field.value,
-        onChange: field.set,
+        onChange: setter(field, 'value'),
         error: field.displayError,
         onBlur: field.activateValidation
     }
