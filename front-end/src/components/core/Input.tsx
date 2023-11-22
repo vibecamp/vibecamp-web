@@ -30,7 +30,7 @@ export default observer(({ label, placeholder, type, disabled, value, onChange, 
     }
 
     return (
-        <label className='input'>
+        <label className={'input' + ' ' + (disabled ? 'disabled' : '')}>
             <div className='label'>{label}</div>
 
             {multiline
