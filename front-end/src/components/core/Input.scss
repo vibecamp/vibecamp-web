@@ -6,10 +6,6 @@
 
     transition: color 0.1s ease-out, opacity 0.1s ease-out;
 
-    &:disabled {
-        opacity: 0.6;
-    }
-
     --focus-color: rgb(0, 166, 255);
     // &:nth-of-type(3n + 1) {
     //     --focus-color: rgb(255, 158, 0);
@@ -59,6 +55,13 @@
     >textarea {
         resize: none;
         font-family: inherit;
+    }
+
+    &.disabled {
+        > input,
+        > textarea {
+            opacity: 0.6;
+        }
     }
 
     >.error-message {
