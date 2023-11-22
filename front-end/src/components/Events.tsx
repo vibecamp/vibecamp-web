@@ -7,6 +7,7 @@ import Button from './core/Button'
 import Input from './core/Input'
 import Modal from './core/Modal'
 import Spacer from './core/Spacer'
+import Icon from './core/Icon'
 
 
 export default observer(() => {
@@ -20,7 +21,7 @@ export default observer(() => {
                 <Button onClick={Store.newEvent}>
                         Create event
                     <Spacer size={8} />
-                    <span className="material-symbols-outlined">calendar_add_on</span>
+                    <Icon name='calendar_add_on' />
                 </Button>
             </h1>
 
@@ -110,33 +111,33 @@ const Event: FC<{ event: EventData }> = observer(({ event }) => {
                     <Button onClick={() => Store.editEvent(event.id)}>
                         Edit
                         <Spacer size={8} />
-                        <span className="material-symbols-outlined">edit_calendar</span>
+                        <Icon name='edit_calendar' />
                     </Button>}
 
                 {/* onClick={() => Store.currentUser.calendarEvents.push(event.id)} */}
                 <Button>
-                    <span className="material-symbols-outlined">rsvp</span>
+                    <Icon name='rsvp' />
                 </Button>
             </div>
 
             <Spacer size={8} />
 
             <div className='info'>
-                <span className="material-symbols-outlined">schedule</span>
+                <Icon name='schedule' />
                 {start.toTimeString()} - {end.toTimeString()}
             </div>
 
             <Spacer size={4} />
 
             <div className='info'>
-                <span className="material-symbols-outlined">location_on</span>
+                <Icon name='location_on' />
                 {event.locationName}
             </div>
 
             <Spacer size={4} />
 
             <div className='info'>
-                <span className="material-symbols-outlined">person</span>
+                <Icon name='person' />
                 <span className='eventCreator'>
                     {event.creator}
                 </span>

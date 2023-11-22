@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { observer } from 'mobx-react-lite'
+import Icon from './Icon'
 
 type Props = {
     isOpen: boolean,
@@ -17,7 +18,7 @@ export default observer(({ isOpen, onClose, title, side = 'right', children }: P
             if (modalState === 'closed') {
                 setModalState('opening')
             } else if (modalState === 'opening') {
-                requestAnimationFrame(() => 
+                requestAnimationFrame(() =>
                     setModalState('open'))
             }
         } else {
@@ -43,17 +44,15 @@ export default observer(({ isOpen, onClose, title, side = 'right', children }: P
                     <div className='header'>
                         {onClose != null &&
                             <button onClick={onClose}>
-                                <span className="material-symbols-outlined">
-                                    arrow_back_ios
-                                </span>
+                                <Icon name='arrow_back_ios' />
 
                                 Back
                             </button>}
-                        
+
                         <span className='title'>
                             {title}
                         </span>
-                        
+
                         {onClose != null &&
                             <span className='balancer'></span>}
                     </div>}

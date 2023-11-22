@@ -10,6 +10,7 @@ import MultiView from './core/MultiView'
 import Stripes from './core/Stripes'
 import WindowObservables from '../mobx/WindowObservables'
 import { useAutorun } from '../mobx/hooks'
+import Icon from './core/Icon'
 
 console.log(Store)
 
@@ -53,13 +54,13 @@ const Nav: FC = observer(() => {
     return (
         <div className='nav'>
             {VIEWS_ARRAY.map(({ name, icon }, index) => (
-                <button 
-                    className={name === WindowObservables.hashState?.currentView ? 'active' : undefined} 
+                <button
+                    className={name === WindowObservables.hashState?.currentView ? 'active' : undefined}
                     onClick={() => WindowObservables.assignHashState({ currentView: name })}
-                    title={name} 
+                    title={name}
                     key={index}
                 >
-                    <span className="material-symbols-outlined">{icon}</span>
+                    <Icon name={icon} />
                     <Spacer size={4} />
                     <span style={{ fontSize: 8 }}>{name}</span>
                 </button>
