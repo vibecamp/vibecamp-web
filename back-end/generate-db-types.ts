@@ -23,7 +23,7 @@ const TYPE_MAP: Record<PostgresColumnType, string> = {
     'integer': 'number',
     'point': 'unknown',
     'date': 'Date',
-    'timestamp with time zone': 'unknown'
+    'timestamp with time zone': 'Date'
 }
 
 /**
@@ -140,5 +140,3 @@ export type TableName = keyof Tables`
 
     await Deno.writeTextFile('./types/db-types.ts', dbTypesStr + '\n\n' + dbRowsStr)
 })
-
-// ${Array.from(primaryKeys).map(p => `const ${p} = Symbol('${p}')`).join('\n')}
