@@ -65,7 +65,8 @@ export const updateTableQuery = <
     const columnPlaceholders = rowEntries.map((_, index) => `$${index + 1}`).join(', ')
     const columnValues = rowEntries.map(([_, value]) => value)
 
-    const whereClauses = where.map(([column, op], index) => `${column as string} ${op} $${rowEntries.length + index + 1}`).join(' AND ')
+    const whereClauses = where.map(([column, op], index) =>
+        `${column as string} ${op} $${rowEntries.length + index + 1}`).join(' AND ')
     const whereValues = where.map(([_column, _op, value]) => value)
 
     const setClause = (
@@ -84,6 +85,30 @@ export const updateTableQuery = <
         RETURNING *
     `,
         [...columnValues, ...whereValues]
+    ]
+}
+
+export const deleteTableQuery = <
+    TTableName extends TableName,
+    TColumnNames extends Array<keyof Tables[TTableName]>
+>(
+    table: TTableName,
+    where: WhereClause<TTableName, TColumnNames[number]>[]
+): [string, unknown[]] => {
+    if (where.length === 0) {
+        throw Error(`Must supply a where clause to delete, or it will clear the whole ${table} table!`)
+    }
+
+    const whereClauses = where.map(([column, op], index) =>
+        `${column as string} ${op} $${index + 1}`).join(' AND ')
+    const whereValues = where.map(([_column, _op, value]) => value)
+
+    return [
+        `
+      DELETE FROM ${table}
+      WHERE ${whereClauses}
+    `,
+        [...whereValues]
     ]
 }
 

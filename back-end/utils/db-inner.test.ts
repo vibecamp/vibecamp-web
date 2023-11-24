@@ -1,5 +1,5 @@
 import { assertEquals } from 'https://deno.land/std@0.160.0/testing/asserts.ts'
-import { queryTableQuery, insertTableQuery, updateTableQuery } from './db-inner.ts'
+import { queryTableQuery, insertTableQuery, updateTableQuery, deleteTableQuery } from './db-inner.ts'
 
 Deno.test({
     name: 'Query table query 1',
@@ -126,5 +126,53 @@ Deno.test({
         )
     }
 })
+
+Deno.test({
+    name: 'Delete table query 1',
+    fn() {
+        const [query, params] = deleteTableQuery(
+            'account',
+            [
+                ['account_id', '=', '12345']
+            ]
+        )
+
+        assertEquals(
+            normalizeQuery(query),
+            normalizeQuery(`
+          DELETE FROM account WHERE account_id = $1
+        `)
+        )
+
+        assertEquals(
+            params,
+            ['12345']
+        )
+    }
+})
+
+// Deno.test({
+//     name: 'Delete table query 2',
+//     fn() {
+//         const [query, params] = deleteTableQuery(
+//             'account',
+//             []
+//         )
+
+//         // TODO: should throw!
+
+//         assertEquals(
+//             normalizeQuery(query),
+//             normalizeQuery(`
+//           SELECT * FROM account
+//         `)
+//         )
+
+//         assertEquals(
+//             params,
+//             []
+//         )
+//     }
+// })
 
 const normalizeQuery = (query: string) => (' ' + query + ' ').replace(/[\s]+/g, ' ')

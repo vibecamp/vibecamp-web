@@ -6,7 +6,7 @@ import {
 import { TableName, Tables } from '../types/db-types.ts'
 import { Maybe } from "../types/misc.ts"
 import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
-import { WhereClause, queryTableQuery, insertTableQuery, updateTableQuery } from './db-inner.ts'
+import { WhereClause, queryTableQuery, insertTableQuery, updateTableQuery, deleteTableQuery } from './db-inner.ts'
 
 const url = new URL(env.DB_URL)
 
@@ -49,6 +49,7 @@ export async function withDBConnection<TResult>(
     client.queryTable = queryTable(client)
     client.insertTable = insertTable(client)
     client.updateTable = updateTable(client)
+    client.deleteTable = deleteTable(client)
 
     // deno-lint-ignore no-explicit-any
     const result = await cb(client as any)
@@ -79,6 +80,7 @@ export async function withDBTransaction<TResult>(
       transaction.queryTable = queryTable(transaction)
       transaction.insertTable = insertTable(transaction)
       transaction.updateTable = updateTable(transaction)
+      transaction.deleteTable = deleteTable(transaction)
 
       // deno-lint-ignore no-explicit-any
       const result = await cb(transaction as any)
@@ -96,7 +98,8 @@ export async function withDBTransaction<TResult>(
 type CustomClientMethods = {
   queryTable: ReturnType<typeof queryTable>,
   insertTable: ReturnType<typeof insertTable>,
-  updateTable: ReturnType<typeof updateTable>
+  updateTable: ReturnType<typeof updateTable>,
+  deleteTable: ReturnType<typeof deleteTable>
 }
 
 const queryTable = (db: Pick<PoolClient, 'queryObject'>) =>
@@ -116,8 +119,8 @@ const insertTable = (db: Pick<PoolClient, 'queryObject'>) =>
   >(
     table: TTableName,
     row: Partial<Tables[TableName]>
-  ): Promise<Tables[TTableName][]> => {
-    return (await db.queryObject<Tables[TTableName]>(...insertTableQuery(table, row))).rows
+  ): Promise<Tables[TTableName]> => {
+    return (await db.queryObject<Tables[TTableName]>(...insertTableQuery(table, row))).rows[0]!
   }
 
 const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
@@ -130,6 +133,17 @@ const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
     where: WhereClause<TTableName, TColumnNames[number]>[]
   ): Promise<Tables[TTableName][]> => {
     return (await db.queryObject<Tables[TTableName]>(...updateTableQuery(table, row, where))).rows
+  }
+
+const deleteTable = (db: Pick<PoolClient, 'queryObject'>) =>
+  async <
+    TTableName extends TableName,
+    TColumnNames extends Array<keyof Tables[TTableName]>
+  >(
+    table: TTableName,
+    where: WhereClause<TTableName, TColumnNames[number]>[]
+  ): Promise<void> => {
+    await db.queryObject<Tables[TTableName]>(...deleteTableQuery(table, where))
   }
 
 
