@@ -6,6 +6,7 @@
 export type Tables = {
   account: {
     account_id: string,
+    display_name: string | null,
     email_address: string,
     is_application_accepted: boolean | null,
     is_seed_account: boolean,
@@ -39,13 +40,17 @@ export type Tables = {
   },
   diet: (typeof TABLE_ROWS)['diet'][number]
   event: {
-    created_by_account_id: Tables['account']['account_id'],
+    created_by: string | null,
     description: string,
-    end: unknown | null,
+    end: Date | null,
     event_id: string,
     location: string | null,
     name: string,
-    start: unknown,
+    start: Date,
+  },
+  event_bookmark: {
+    account_id: Tables['account']['account_id'],
+    event_id: Tables['event']['event_id'],
   },
   festival: {
     end_date: Date,
@@ -78,7 +83,7 @@ export type Tables = {
     owned_by_account_id: Tables['account']['account_id'] | null,
     purchase_id: string,
     purchase_type_id: Tables['purchase_type']['purchase_type_id'],
-    purchased_on: unknown,
+    purchased_on: Date,
   },
   purchase_type: (typeof TABLE_ROWS)['purchase_type'][number]
   volunteer_type: (typeof TABLE_ROWS)['volunteer_type'][number]
