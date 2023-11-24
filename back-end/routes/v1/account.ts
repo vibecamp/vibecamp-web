@@ -17,11 +17,14 @@ export default function register(router: Router) {
     handler: async ({ jwt }) => {
       const { account_id } = jwt
 
-      const queryInviteCodes = (db: DBClient) => db.queryObject<Tables['invite_code'] & { used_by: string | null }>`
-        SELECT code, email_address as used_by FROM invite_code
+      const queryInviteCodes = async (db: DBClient) => (await db.queryObject<Tables['invite_code'] & { email_address: string | null, display_name: string | null }>`
+        SELECT code, email_address, display_name FROM invite_code
         LEFT JOIN account ON account_id = used_by_account_id
         WHERE created_by_account_id = ${account_id}
-      `
+      `).rows.map(({ email_address, display_name, ...invite_code }) => ({
+        ...invite_code,
+        used_by: display_name ?? email_address
+      }))
 
       const {
         nextFestival,
@@ -44,7 +47,7 @@ export default function register(router: Router) {
             accounts: db.queryTable('account', { where: ['account_id', '=', account_id] }),
             attendees: db.queryTable('attendee', { where: ['associated_account_id', '=', account_id] }),
             purchases: db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] }),
-            currentInviteCodes: queryInviteCodes(db),
+            currentInviteCodes: queryInviteCodes(db)
           })
         }
       })
@@ -55,7 +58,7 @@ export default function register(router: Router) {
         let inviteCodes = currentInviteCodes
 
         // if this account should have invite codes, and has less than they should, create more
-        const uncreatedInviteCodes = allowedToRefer - currentInviteCodes.rows.length
+        const uncreatedInviteCodes = allowedToRefer - currentInviteCodes.length
         if (uncreatedInviteCodes > 0) {
           await withDBTransaction(async (db) => {
             if (nextFestival?.festival_id != null) {
@@ -74,10 +77,11 @@ export default function register(router: Router) {
           {
             account_id: account.account_id,
             email_address: account.email_address,
+            display_name: account.display_name,
             allowed_to_purchase: allowedToPurchase,
             attendees,
             purchases,
-            inviteCodes: inviteCodes.rows
+            inviteCodes
           },
           Status.OK
         ]

@@ -61,16 +61,16 @@ export default function register(router: Router) {
         password
       )
 
-      const accounts = await withDBConnection(async (db) => {
+      const account = await withDBConnection(async (db) => {
         const existingAccount = (await db.queryTable('account', { where: ['email_address', '=', email_address] }))[0]
 
         if (existingAccount != null && existingAccount.password_hash == null && existingAccount.password_salt == null) {
-          return await db.updateTable('account', {
+          return (await db.updateTable('account', {
             password_hash,
             password_salt
           }, [
             ['account_id', '=', existingAccount.account_id]
-          ])
+          ]))[0]
         } else {
           return await db.insertTable('account', {
             email_address,
@@ -80,7 +80,6 @@ export default function register(router: Router) {
         }
       })
 
-      const account = accounts[0]
       if (account == null) {
         return [{ jwt: null }, Status.InternalServerError]
       }
