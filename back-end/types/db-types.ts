@@ -42,11 +42,11 @@ export type Tables = {
   event: {
     created_by: string | null,
     description: string,
-    end: Date | null,
+    end_datetime: Date | null,
     event_id: string,
     location: string | null,
     name: string,
-    start: Date,
+    start_datetime: Date,
   },
   event_bookmark: {
     account_id: Tables['account']['account_id'],

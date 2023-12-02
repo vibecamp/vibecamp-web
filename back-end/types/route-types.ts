@@ -107,9 +107,9 @@ export type Routes = {
     }
 }
 
-export type EventJson = Omit<Tables['event'], 'start' | 'end'> & {
-    start: string,
-    end: string | null
+export type EventJson = Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & {
+    start_datetime: string,
+    end_datetime: string | null
 }
 
 export type Purchases = Partial<Record<(typeof TABLE_ROWS)['purchase_type'][number]['purchase_type_id'], number>>
