@@ -36,6 +36,7 @@ export default observer(({ label, value, onChange, disabled, error, onBlur, plac
                 step={1}
                 value={strValue}
                 onChange={handleChange}
+                ref={disableWheel}
                 onBlur={onBlur}
                 disabled={disabled}
             />
@@ -44,3 +45,16 @@ export default observer(({ label, value, onChange, disabled, error, onBlur, plac
         </label>
     )
 })
+
+
+const LISTENER_ADDED = 'listenerAdded'
+type WithListenerAddedFlag = { [LISTENER_ADDED]?: boolean }
+
+function disableWheel(_ref: HTMLInputElement | null) {
+    const ref = _ref as (HTMLInputElement & WithListenerAddedFlag) | null
+
+    if (ref != null && !ref[LISTENER_ADDED]) {
+        ref[LISTENER_ADDED] = true
+        ref.addEventListener('wheel', e => e.preventDefault(), { passive: false })
+    }
+}
