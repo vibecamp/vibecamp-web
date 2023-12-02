@@ -12,7 +12,7 @@ import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
 import StripePaymentForm from './core/StripePaymentForm'
-import { useRequest, useStable } from '../mobx/hooks'
+import { useAutorun, useRequest, useStable } from '../mobx/hooks'
 import LoadingDots from './core/LoadingDots'
 import { makeAutoObservable } from 'mobx'
 import { Form, FormValidators } from '../mobx/form'
@@ -70,6 +70,12 @@ export default observer(() => {
 
     const loading = Store.accountInfo.state.kind === 'loading'
     const loadingOrError = loading || Store.accountInfo.state.kind === 'error'
+
+    useAutorun(() => {
+        if (WindowObservables.hashState?.purchaseModalState === 'payment' && stripeOptions.state.kind === 'result' && stripeOptions.state.result == null) {
+            WindowObservables.assignHashState({ purchaseModalState: 'selection' })
+        }
+    })
 
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
