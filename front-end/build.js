@@ -24,7 +24,7 @@ const minify = process.argv.includes('--minify');
     )
 
     const appBundleOutput = 'out/app.js'
-    
+
     const appOptions = {
         entryPoints: ['src/index.tsx'],
         outfile: appBundleOutput,
