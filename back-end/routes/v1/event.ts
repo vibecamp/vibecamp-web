@@ -6,8 +6,8 @@ import { EventJson } from '../../types/route-types.ts'
 
 const eventToJson = (event: Tables['event']): EventJson => ({
   ...event,
-  start: event.start.toISOString(),
-  end: event.end?.toISOString() ?? null
+  start_datetime: event.start_datetime.toISOString(),
+  end_datetime: event.end_datetime?.toISOString() ?? null
 })
 
 export default function register(router: Router) {
