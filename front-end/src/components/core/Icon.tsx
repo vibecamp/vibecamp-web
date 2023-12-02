@@ -23,6 +23,10 @@ type MaterialIconName =
     | 'content_copy'
     | 'add'
     | 'confirmation_number'
+    | 'calendar_today'
+    | 'map'
+    | 'info'
+    | 'star'
 
 export default observer(({ name }: Props) => {
     return <span className="material-symbols-outlined">{name}</span>
