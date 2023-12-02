@@ -17,13 +17,13 @@ export default function register(router: Router) {
     handler: async ({ jwt }) => {
       const { account_id } = jwt
 
-      const queryInviteCodes = async (db: DBClient) => (await db.queryObject<Tables['invite_code'] & { email_address: string | null, display_name: string | null }>`
-        SELECT code, email_address, display_name FROM invite_code
+      const queryInviteCodes = async (db: DBClient) => (await db.queryObject<Tables['invite_code'] & { email_address: string | null }>`
+        SELECT code, email_address FROM invite_code
         LEFT JOIN account ON account_id = used_by_account_id
         WHERE created_by_account_id = ${account_id}
-      `).rows.map(({ email_address, display_name, ...invite_code }) => ({
+      `).rows.map(({ email_address, ...invite_code }) => ({
         ...invite_code,
-        used_by: display_name ?? email_address
+        used_by: email_address
       }))
 
       const {
