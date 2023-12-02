@@ -108,7 +108,7 @@ function constructResponse<TEndpoint extends keyof Routes>(ctx: AnyRouterContext
 }
 
 async function timeout() {
-  await wait(10 * ONE_SECOND_MS)
+  await wait(20 * ONE_SECOND_MS)
   return [null, Status.RequestTimeout] as const
 }
 
