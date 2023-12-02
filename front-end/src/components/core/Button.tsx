@@ -16,9 +16,9 @@ type Props = Pick<CommonFieldProps<never>, 'disabled'> & {
 export default observer(({ onClick, isSubmit, isPrimary, isDanger, disabled, isLoading, children, style }: Props) => {
 
     return (
-        <button 
+        <button
             className={'button' + ' ' + (isPrimary ? 'primary' : '') + ' ' + (isDanger ? 'danger' : '')}
-            style={style} 
+            style={style}
             type={isSubmit ? 'submit' : 'button'}
             disabled={disabled || isLoading}
             onClick={onClick}

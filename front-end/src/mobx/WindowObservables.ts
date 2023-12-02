@@ -32,7 +32,7 @@ class _WindowObservables {
 
     get hashState(): HashState | undefined {
         const parsed = jsonParse(decodeURIComponent(this.hash.substring(1)))
-        
+
         if (parsed == null || typeof parsed !== 'object') {
             return undefined
         }

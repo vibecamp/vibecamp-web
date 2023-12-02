@@ -189,7 +189,11 @@ export class PurchaseFormState {
     }
 
     readonly primaryAttendee = new Form({
-        initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: true, has_clicked_waiver: false },
+        initialValues: {
+            ...BLANK_ATTENDEE,
+            is_primary_for_account: true,
+            has_clicked_waiver: false
+        },
         validators: ATTENDEE_VALIDATORS
     })
 

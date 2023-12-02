@@ -41,7 +41,7 @@ export default observer(({ label, placeholder, type, disabled, value, onChange, 
                 />
                 : <input
                     {...sharedProps}
-                    type={type} 
+                    type={type}
                     autoComplete={autocomplete}
                 />}
 

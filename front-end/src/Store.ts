@@ -79,12 +79,12 @@ class Store {
 
         if (accountInfo != null) {
             const tickets = accountInfo.purchases
-                .filter(p => 
+                .filter(p =>
                     p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024_OVER_16' ||
                     p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024_10_TO_16' ||
                     p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024_5_TO_10' ||
                     p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024_2_TO_5')
-                    
+
             const attendees = [...accountInfo.attendees]
 
             return tickets.map((t, i) => ({ ...t, attendeeInfo: attendees[i] }))

@@ -17,7 +17,7 @@ export default observer(({ label, value, onChange, disabled, error, onBlur, plac
 
     const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
-        
+
         setStrValue(value)
 
         if (value !== '' && !isNaN(Number(value))) {
