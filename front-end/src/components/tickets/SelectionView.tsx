@@ -19,10 +19,9 @@ import { PurchaseFormState } from '../Tickets'
 type Props = {
     purchaseFormState: PurchaseFormState,
     goToNext: () => void,
-    readyToPay: boolean
 }
 
-export default observer(({ purchaseFormState, goToNext, readyToPay }: Props) => {
+export default observer(({ purchaseFormState, goToNext }: Props) => {
     const removeAttendee = useStable(() => createTransformer((index: number) => () => {
         purchaseFormState.additionalAttendees.splice(index, 1)
     }))
@@ -145,7 +144,7 @@ export default observer(({ purchaseFormState, goToNext, readyToPay }: Props) => 
 
                 <Spacer size={16} />
 
-                <Button isSubmit isPrimary disabled={!readyToPay}>
+                <Button isSubmit isPrimary>
                     Proceed to payment
                 </Button>
             </Col>

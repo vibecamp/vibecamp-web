@@ -140,7 +140,7 @@ export default observer(() => {
                 {() =>
                     <MultiView
                         views={[
-                            { name: 'selection', content: <SelectionView purchaseFormState={purchaseFormState} goToNext={goToPayment} readyToPay={stripeOptions.state.result != null} /> },
+                            { name: 'selection', content: <SelectionView purchaseFormState={purchaseFormState} goToNext={goToPayment} /> },
                             { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseFormState.purchases} onPrePurchase={purchaseFormState.createAttendees.load} onCompletePurchase={showTickets} /> }
                         ]}
                         currentView={WindowObservables.hashState?.purchaseModalState}
