@@ -77,7 +77,6 @@ export default function register(router: Router) {
           {
             account_id: account.account_id,
             email_address: account.email_address,
-            display_name: account.display_name,
             allowed_to_purchase: allowedToPurchase,
             attendees,
             purchases,
