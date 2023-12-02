@@ -105,7 +105,7 @@ export default observer(({ purchaseFormState, goToNext, readyToPay }: Props) => 
                     href='https://admin.gazeboevents.com/forms/706B540F-AF67-4D4B-9C42-A402E51C2039'
                     target='_blank'
                     rel="noreferrer"
-                    onClick={purchaseFormState.handleWaiverClick}
+                    onMouseDown={purchaseFormState.handleWaiverClick} {/* Must be MouseDown and not Click to handle long-press on mobile */}
                 >
                     Campsite forms &nbsp; <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
                 </a>

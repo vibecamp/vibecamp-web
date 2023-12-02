@@ -346,7 +346,7 @@ const ATTENDEE_VALIDATORS: FormValidators<AttendeeInfo & { has_clicked_waiver?: 
     },
     has_clicked_waiver: val => {
         if (val != null && val === false) {
-            return 'Campsite waivers must be filled out for each attendee'
+            return 'Campsite waivers must be filled out'
         }
     }
 }
