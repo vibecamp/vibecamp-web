@@ -44,7 +44,7 @@ export default observer(() => {
     const purchaseFormState = useStable(() => new PurchaseFormState())
 
     const stripeOptions = useRequest(async () => {
-        if (Store.loggedIn && Object.values(purchaseFormState.purchases).some(count => count > 0)) {
+        if (Store.loggedIn && purchaseFormState.isValid && Object.values(purchaseFormState.purchases).some(count => count > 0)) {
             const { response } = await vibefetch(
                 Store.jwt,
                 '/purchase/create-intent',
