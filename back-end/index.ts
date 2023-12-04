@@ -1,4 +1,4 @@
-import { Application, isHttpError, STATUS_TEXT } from 'oak'
+import { Application, isHttpError, Status, STATUS_TEXT } from 'oak'
 import { router } from './routes/index.ts'
 import { ResponseWithError } from './routes/v1/_common.ts'
 import { pad, indent } from './utils/misc.ts'
@@ -66,6 +66,11 @@ const ALLOWED_ORIGINS = new Set([
 ])
 
 // routes
+router.get('/healthz', async (ctx, next) => {
+  ctx.response.status = Status.OK
+  ctx.response.body = 'OK'
+  await next()
+})
 app.use(router.routes())
 app.use(router.allowedMethods())
 
