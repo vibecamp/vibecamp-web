@@ -11,13 +11,15 @@ const app = new Application()
 app.use(async (ctx, next) => {
   await next()
 
-  const baseLog = `[ ${new Date().toISOString()}  ${pad(ctx.request.method, 7)}  ${pad(ctx.request.url.pathname, 34)} ]: ${ctx.response.status} ${STATUS_TEXT[ctx.response.status]}`
-  const error = (ctx.response as ResponseWithError).error
+  if (ctx.request.url.pathname !== '/healthz') {
+    const baseLog = `[ ${new Date().toISOString()}  ${pad(ctx.request.method, 7)}  ${pad(ctx.request.url.pathname, 34)} ]: ${ctx.response.status} ${STATUS_TEXT[ctx.response.status]}`
+    const error = (ctx.response as ResponseWithError).error
 
-  if (error) {
-    console.error(baseLog + '\n' + indent(error))
-  } else {
-    console.info(baseLog)
+    if (error) {
+      console.error(baseLog + '\n' + indent(error))
+    } else {
+      console.info(baseLog)
+    }
   }
 })
 
