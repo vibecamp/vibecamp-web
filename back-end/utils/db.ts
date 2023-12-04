@@ -27,8 +27,13 @@ const db = new Pool({
 }, env.DB_CONNECTION_POOL_SIZE)
 
 function handleShutdown() {
-  console.log("Releasing DB connections")
-  db.end()
+  console.log("Releasing DB connections...")
+  try {
+    db.end()
+    console.log('connections released')
+  } catch {
+    console.log('connections had already been released')
+  }
 }
 
 Deno.addSignalListener('SIGINT', handleShutdown)
