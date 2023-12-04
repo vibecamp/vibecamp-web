@@ -24,7 +24,7 @@ const db = new Pool({
       return prevInterval * 2
     }
   }
-}, 20)
+}, env.DB_CONNECTION_POOL_SIZE)
 
 function handleShutdown() {
   console.log("Releasing DB connections")
