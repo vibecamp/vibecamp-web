@@ -10,11 +10,11 @@ const setterInner = createTransformer(<T, K extends keyof T>(obj: T) =>
             obj[key] = val
         }))
 
-export function setterExact<T, K extends keyof T>(obj: T, key: K, val: T[K]) {
-    return setterExactInner(obj)(key)(val)
+export function setTo<T, K extends keyof T>(obj: T, key: K, val: T[K]) {
+    return setToInner(obj)(key)(val)
 }
 
-const setterExactInner = createTransformer(<T, K extends keyof T>(obj: T) =>
+const setToInner = createTransformer(<T, K extends keyof T>(obj: T) =>
     createTransformer((key: K) =>
         createTransformer((val: T[K]) =>
             () => {
