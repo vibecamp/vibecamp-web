@@ -26,11 +26,13 @@ const db = new Pool({
   }
 }, 20)
 
-Deno.addSignalListener("SIGINT", () => {
+function handleShutdown() {
   console.log("Releasing DB connections")
   db.end()
-  Deno.exit()
-})
+}
+
+Deno.addSignalListener('SIGINT', handleShutdown)
+Deno.addSignalListener('SIGTERM', handleShutdown)
 
 export type DBClient = Pick<PoolClient, 'queryObject'> & CustomClientMethods
 
