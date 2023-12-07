@@ -35,3 +35,5 @@ export const PURCHASE_TYPES_BY_TYPE = objectFromEntries(
 )
 
 export type PurchaseType = keyof typeof PURCHASE_TYPES_BY_TYPE
+
+export type PurchaseCountMap = {[key in PurchaseType]: number}

@@ -4,9 +4,10 @@ import {
   REFERRAL_MAXES,
 } from './constants.ts'
 import { TableName, Tables } from '../types/db-types.ts'
-import { Maybe } from "../types/misc.ts"
-import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
+import {Maybe, PurchaseCountMap } from "../types/misc.ts"
 import { WhereClause, queryTableQuery, insertTableQuery, updateTableQuery, deleteTableQuery } from './db-inner.ts'
+import {Purchases} from "../types/route-types.ts";
+import {objectEntries} from "./misc.ts";
 
 const url = new URL(env.DB_URL)
 
@@ -220,22 +221,22 @@ export async function accountReferralStatus(
 
 export async function festivalStats(
     db: Pick<Transaction, 'queryObject'>,
-): Promise<{ accounts: number, purchaseCounts: {[key: string]: number} }> {
+): Promise<{ accounts: number, purchases: PurchaseCountMap> {
   const accountRes = (await db.queryObject<
-      & Pick<Tables['account'], 'account_id' | 'password_hash'>
+      number
   >`
     SELECT count(*) as accounts from account where password_hash is not null
   `).rows
 
-  const purchaseRes = (await db.queryObject<
-      & Pick<Tables['purchase'], 'purchase_type_id'>
+  const purchaseRes: Purchases = (await db.queryObject<
+      Record<Tables['purchase']['purchase_type_id'], number>
   >`
-    SELECT purchase_type_id, count(*) FROM purchase GROUP BY purchase_type_id;
+    SELECT purchase_type_id, count(*) as purchase_count FROM purchase GROUP BY purchase_type_id;
   `).rows
 
-  const purchases = {}
-  for (let [key, value] of Object.entries(purchaseRes)) {
-    purchases[value['purchase_type_id']] = Number(value['count'])
+  const purchases : PurchaseCountMap = {}
+  for (const [key, value] of objectEntries(purchaseRes)) {
+    purchases[value['purchase_type_id']] = Number(value['purchase_count'])
   }
 
   return {

@@ -1,5 +1,5 @@
 import { TABLE_ROWS, Tables } from "./db-types.ts"
-import { AttendeeInfo, FullAccountInfo } from "./misc.ts"
+import {AttendeeInfo, FullAccountInfo, PurchaseCountMap } from "./misc.ts"
 
 export type Routes = {
     '/account': {
@@ -108,7 +108,7 @@ export type Routes = {
     '/stats': {
         method: 'get',
         body: undefined,
-        response: { accounts: number, purchases: {[key: string]: number} }
+        response: { accounts: number, purchases: PurchaseCountMap }
     }
 
 }
