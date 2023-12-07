@@ -1,5 +1,5 @@
 import { TABLE_ROWS, Tables } from "./db-types.ts"
-import { AttendeeInfo, FullAccountInfo } from "./misc.ts"
+import {AttendeeInfo, FullAccountInfo, PurchaseCountMap } from "./misc.ts"
 
 export type Routes = {
     '/account': {
@@ -104,7 +104,13 @@ export type Routes = {
             start_date: string,
             end_date: string
         }
+    },
+    '/stats': {
+        method: 'get',
+        body: undefined,
+        response: { accounts: number, purchases: PurchaseCountMap }
     }
+
 }
 
 export type EventJson = Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & {

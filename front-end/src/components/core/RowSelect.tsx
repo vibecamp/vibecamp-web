@@ -11,7 +11,7 @@ type Props<TOption extends string|number> = {
     options: readonly TOption[],
 }
 
-function RowSelect<TOption extends string|number>({ label, disabled, value, onChange, options}: Props<TOption>) {
+function RowSelect<TOption extends string|number>({ label, disabled, value, onChange, options }: Props<TOption>) {
     const handleChange = useStable(() => createTransformer((option: TOption) => () => onChange(option)))
 
     return (

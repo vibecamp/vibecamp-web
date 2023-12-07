@@ -7,7 +7,7 @@ type Props = Omit<CommonFieldProps<boolean>, 'label'> & {
     children: React.ReactNode
 }
 
-export default observer(({ value, onChange, error, onBlur, children}: Props) => {
+export default observer(({ value, onChange, error, onBlur, children }: Props) => {
     const handleChange = useCallback(() => onChange(!value), [value, onChange])
 
     return (
