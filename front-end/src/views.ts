@@ -1,6 +1,7 @@
 import { objectEntries } from '../../back-end/utils/misc'
 import Account from './components/Account'
 import Tickets from './components/Tickets'
+import Stats from './components/Stats'
 
 export const VIEWS = {
     Tickets: {
@@ -22,11 +23,15 @@ export const VIEWS = {
     Account: {
         icon: 'person',
         component: Account
-    }
+    },
+    Stats: {
+        icon: 'info',
+        component: Stats
+    },
 } as const
 
 export const VIEWS_ARRAY = objectEntries(VIEWS)
-    .map(([name, {icon, component}]) => ({ name, icon, component } as const))
+    .map(([name, { icon, component }]) => ({ name, icon, component } as const))
 
 export function isViewName(str: string): str is ViewName {
     return Object.keys(VIEWS).includes(str)

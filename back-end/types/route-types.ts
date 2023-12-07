@@ -104,7 +104,13 @@ export type Routes = {
             start_date: string,
             end_date: string
         }
+    },
+    '/stats': {
+        method: 'get',
+        body: undefined,
+        response: { accounts: number, purchases: {[key: string]: number} }
     }
+
 }
 
 export type EventJson = Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & {

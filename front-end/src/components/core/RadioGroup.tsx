@@ -9,7 +9,7 @@ type Props<T> = Omit<CommonFieldProps<T>, 'value'> & {
     options: readonly { value: T, label: string }[]
 }
 
-function RadioGroup<T>({label, value, onChange, disabled, error, onBlur, options}: Props<T>) {
+function RadioGroup<T>({ label, value, onChange, disabled, error, onBlur, options }: Props<T>) {
 
     const changeHandlers = useStable(() => (value: T | typeof NULL) => () =>
         // @ts-expect-error null requires a workaround

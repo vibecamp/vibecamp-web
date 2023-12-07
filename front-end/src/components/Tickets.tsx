@@ -256,7 +256,7 @@ export class PurchaseFormState {
             }
         }
 
-        const {needsSleepingBags, needsPillow, needsBusTickets} = this.extraPurchasesForm.fieldValues
+        const { needsSleepingBags, needsPillow, needsBusTickets } = this.extraPurchasesForm.fieldValues
 
         if (needsSleepingBags) {
             purchases.SLEEPING_BAG_VIBECLIPSE_2024 = this.allAttendeeForms.length

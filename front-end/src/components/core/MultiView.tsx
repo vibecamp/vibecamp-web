@@ -6,7 +6,7 @@ type Props<TView> = {
     currentView: TView,
 }
 
-function MultiView<TView>({views, currentView}: Props<TView>) {
+function MultiView<TView>({ views, currentView }: Props<TView>) {
     return (
         <div className='multi-view' style={{
             '--view-count': views.length,

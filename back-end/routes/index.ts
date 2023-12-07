@@ -5,6 +5,7 @@ import v1_account from './v1/account.ts'
 import v1_event from './v1/event.ts'
 import v1_purchase from './v1/purchase.ts'
 import v1_misc from './v1/misc.ts'
+import v1_stats from './v1/stats.ts'
 
 export const router = new Router()
 
@@ -15,6 +16,7 @@ v1_account(router)
 v1_event(router)
 v1_misc(router)
 v1_purchase(router)
+v1_stats(router)
 
 router.get('/', (ctx) => {
   ctx.response.body = 'OK'

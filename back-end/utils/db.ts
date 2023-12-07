@@ -217,3 +217,29 @@ export async function accountReferralStatus(
     allowedToPurchase: true,
   }
 }
+
+export async function festivalStats(
+    db: Pick<Transaction, 'queryObject'>,
+): Promise<{ accounts: number, purchaseCounts: {[key: string]: number} }> {
+  const accountRes = (await db.queryObject<
+      & Pick<Tables['account'], 'account_id' | 'password_hash'>
+  >`
+    SELECT count(*) as accounts from account where password_hash is not null
+  `).rows
+
+  const purchaseRes = (await db.queryObject<
+      & Pick<Tables['purchase'], 'purchase_type_id'>
+  >`
+    SELECT purchase_type_id, count(*) FROM purchase GROUP BY purchase_type_id;
+  `).rows
+
+  const purchases = {}
+  for (let [key, value] of Object.entries(purchaseRes)) {
+    purchases[value['purchase_type_id']] = Number(value['count'])
+  }
+
+  return {
+    accounts: accountRes.length ? Number(accountRes[0].accounts) : 0,
+    purchases: purchases
+  }
+}
