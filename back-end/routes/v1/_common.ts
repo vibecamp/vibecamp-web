@@ -11,7 +11,7 @@ import { getJwtPayload } from './auth.ts'
 import { wait } from '../../utils/misc.ts'
 import { getNumericDate } from "djwts"
 import { Routes } from "../../types/route-types.ts"
-import { ONE_SECOND_MS } from '../../utils/constants.ts'
+import { ONE_DAY_MS, ONE_SECOND_MS } from '../../utils/constants.ts'
 
 export type AnyRouterContext = RouterContext<
   string,
@@ -115,6 +115,9 @@ async function timeout() {
 export const rateLimited = <TContext extends AnyRouteContext, TReturn extends [unknown, Status]>(ms: number, fn: (context: TContext) => Promise<TReturn>): (context: TContext) => Promise<[TReturn[0] | null, Status]> => {
   const lastRequestFor = new Map<string, number>()
 
+  setInterval(() => {
+    lastRequestFor.clear()
+  }, ONE_DAY_MS)
 
   return async (context: TContext): Promise<[TReturn[0] | null, Status]> => {
     const rateLimitKey = context.ctx.request.ip
