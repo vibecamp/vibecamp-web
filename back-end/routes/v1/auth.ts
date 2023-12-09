@@ -29,9 +29,8 @@ export default function register(router: Router) {
     handler: rateLimited(500, async ({ body: { email_address, password } }) => {
 
       // get account from DB
-      const account = (await withDBConnection(async (db) => {
-        return await db.queryTable('account', { where: ['email_address', '=', email_address] })
-      }))[0]
+      const account = (await withDBConnection(async (db) =>
+        db.queryObject<Tables['account']>`SELECT * FROM account WHERE LOWER(email_address) = LOWER(${email_address})`)).rows[0]
       if (account == null) {
         return [{ jwt: null }, Status.Unauthorized]
       }
@@ -62,10 +61,11 @@ export default function register(router: Router) {
       )
 
       const account = await withDBConnection(async (db) => {
-        const existingAccount = (await db.queryTable('account', { where: ['email_address', '=', email_address] }))[0]
+        const existingAccount = (await db.queryObject<Tables['account']>`SELECT * FROM account WHERE LOWER(email_address) = LOWER(${email_address})`).rows[0]
 
         if (existingAccount != null && existingAccount.password_hash == null && existingAccount.password_salt == null) {
           return (await db.updateTable('account', {
+            email_address,
             password_hash,
             password_salt
           }, [
