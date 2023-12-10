@@ -6,9 +6,9 @@ const crypto = require('crypto')
 const esbuild = require('esbuild')
 
 const watch = process.argv.includes('--watch')
-const minify = process.argv.includes('--minify');
+const minify = process.argv.includes('--minify')
 
-(async function() {
+void (async function() {
     let dotEnvEntries
     try {
         const contents = (await fs.readFile('.env')).toString('utf-8')
@@ -44,7 +44,7 @@ const minify = process.argv.includes('--minify');
     }
 
     if (watch) {
-        Promise.all([
+        await Promise.all([
             esbuild.context(appOptions).then(ctx => ctx.watch()),
             esbuild.context(serviceWorkerOptions).then(ctx => ctx.watch())
         ])
