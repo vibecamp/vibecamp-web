@@ -199,4 +199,60 @@ export default function register(router: Router) {
       })
     }),
   })
+
+  defineRoute(router, {
+    endpoint: '/account/submit-application',
+    method: 'post',
+    requireAuth: true,
+    handler: async ({ jwt: { account_id }, body: application }) => {
+      const {
+        anything_else,
+        attractive_virtues,
+        experiences_hoping_to_share,
+        group_activity,
+        hoping_to_get_out_of_the_festival,
+        how_found_out,
+        identify_as,
+        interested_in_volunteering,
+        last_conversation,
+        looking_forward_to_conversations,
+        name,
+        previous_events,
+        strongest_virtues,
+        twitter_handle,
+      } = application
+
+      return await withDBConnection(async db => {
+        const account = (await db.queryTable('account', { where: ['account_id', '=', account_id] }))[0]!
+
+        if (account.application_id != null) {
+          return [null, Status.BadRequest]
+        }
+
+        const application = await db.insertTable('application', {
+          anything_else,
+          attractive_virtues,
+          experiences_hoping_to_share,
+          group_activity,
+          hoping_to_get_out_of_the_festival,
+          how_found_out,
+          identify_as,
+          interested_in_volunteering,
+          last_conversation,
+          looking_forward_to_conversations,
+          name,
+          previous_events,
+          strongest_virtues,
+          twitter_handle,
+        })
+
+        const { application_id } = application
+
+        await db.updateTable('account', { application_id }, [['account_id', '=', account_id]])
+
+        return [null, Status.OK]
+      })
+
+    }
+  })
 }

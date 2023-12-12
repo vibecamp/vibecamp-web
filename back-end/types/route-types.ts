@@ -31,6 +31,11 @@ export type Routes = {
         },
         response: null
     },
+    '/account/submit-application': {
+        method: 'post',
+        body: NewApplication,
+        response: null
+    },
     '/login': {
         method: 'post',
         body: {
@@ -106,6 +111,8 @@ export type Routes = {
         }
     }
 }
+
+export type NewApplication = Omit<Tables['application'], 'application_id' | 'submitted_on' | 'is_accepted'>
 
 export type EventJson = Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & {
     start_datetime: string,
