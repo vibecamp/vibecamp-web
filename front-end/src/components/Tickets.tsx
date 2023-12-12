@@ -77,7 +77,7 @@ export default observer(() => {
         }
     })
 
-    const alreadyApplied = Store.accountInfo.state.result?.has_submitted_application
+    const { application_status } = Store.accountInfo.state.result ?? {}
 
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
@@ -138,10 +138,12 @@ export default observer(() => {
                                     <Spacer size={24} />
 
 
-                                    <Button isPrimary disabled={alreadyApplied} onClick={openApplicationModal}>
-                                        {alreadyApplied
+                                    <Button isPrimary disabled={application_status !== 'unsubmitted'} onClick={openApplicationModal}>
+                                        {application_status === 'pending'
                                             ? 'Your application is under review!'
-                                            : `Apply to ${Store.festival.state.result?.festival_name}`}
+                                            : application_status === 'rejected'
+                                                ? 'Application denied :('
+                                                : `Apply to ${Store.festival.state.result?.festival_name}`}
                                     </Button>
 
                                 </>}
