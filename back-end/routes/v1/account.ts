@@ -94,7 +94,9 @@ export default function register(router: Router) {
     endpoint: '/account/update-email',
     method: 'put',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { email_address } }) => {
+    handler: async ({ jwt: { account_id }, body: { email_address: raw_email_address } }) => {
+      const email_address = raw_email_address.toLowerCase()
+
       await withDBConnection(db =>
         db.updateTable('account', { email_address }, [
           ['account_id', '=', account_id],

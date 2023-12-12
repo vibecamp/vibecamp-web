@@ -26,11 +26,12 @@ export default function register(router: Router) {
   defineRoute(router, {
     endpoint: '/login',
     method: 'post',
-    handler: rateLimited(500, async ({ body: { email_address, password } }) => {
+    handler: rateLimited(500, async ({ body: { email_address: raw_email_address, password } }) => {
+      const email_address = raw_email_address.toLowerCase()
 
       // get account from DB
       const account = (await withDBConnection(async (db) =>
-        db.queryObject<Tables['account']>`SELECT * FROM account WHERE LOWER(email_address) = LOWER(${email_address})`)).rows[0]
+        db.queryObject<Tables['account']>`SELECT * FROM account WHERE email_address = ${email_address}`)).rows[0]
       if (account == null) {
         return [{ jwt: null }, Status.Unauthorized]
       }
@@ -48,7 +49,8 @@ export default function register(router: Router) {
   defineRoute(router, {
     endpoint: '/signup',
     method: 'post',
-    handler: rateLimited(500, async ({ body: { email_address, password } }) => {
+    handler: rateLimited(500, async ({ body: { email_address: raw_email_address, password } }) => {
+      const email_address = raw_email_address.toLowerCase()
 
       // extract email/password from request
       if (getEmailValidationError(email_address) || getPasswordValidationError(password)) {
@@ -61,7 +63,7 @@ export default function register(router: Router) {
       )
 
       const account = await withDBConnection(async (db) => {
-        const existingAccount = (await db.queryObject<Tables['account']>`SELECT * FROM account WHERE LOWER(email_address) = LOWER(${email_address})`).rows[0]
+        const existingAccount = (await db.queryObject<Tables['account']>`SELECT * FROM account WHERE email_address = ${email_address}`).rows[0]
 
         if (existingAccount != null && existingAccount.password_hash == null && existingAccount.password_salt == null) {
           return (await db.updateTable('account', {
