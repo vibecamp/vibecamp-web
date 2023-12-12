@@ -22,13 +22,13 @@
     "noUncheckedIndexedAccess": true
   },
   "include": [
-    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "next-sitemap.config.js"
+    "next-sitemap.config.js",
+    "build.js",
+    "src/sw.js"
   ],
   "exclude": [
-    "node_modules",
-    "src/sw.ts"
+    "node_modules"
   ]
 }

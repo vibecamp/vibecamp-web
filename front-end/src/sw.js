@@ -1,14 +1,7 @@
 /* eslint-env serviceworker */
 
-// @ts-check
-/// <reference no-default-lib="true"/>
-/// <reference lib="webworker" />
-
-// Default type of `self` is `WorkerGlobalScope & typeof globalThis`
-// https://github.com/microsoft/TypeScript/issues/14877
-const swSelf = self as unknown as ServiceWorkerGlobalScope
-
-// @ts-expect-error BUNDLE_HASH is injected via build.js
+//  BUNDLE_HASH is injected via build.js
+// eslint-disable-next-line no-undef
 const VERSION = BUNDLE_HASH // ensures that if anything in app.js changes, we get a new sw.js
 const CACHE_NAME = `my_vibecamp_${VERSION}`
 
@@ -31,7 +24,7 @@ const APP_STATIC_RESOURCES = [
     '/roboto-700.woff2'
 ]
 
-swSelf.addEventListener('install', e => {
+self.addEventListener('install', e => {
     e.waitUntil(
         (async () => {
             const cache = await caches.open(CACHE_NAME)
@@ -40,7 +33,7 @@ swSelf.addEventListener('install', e => {
     )
 })
 
-swSelf.addEventListener('fetch', async e => {
+self.addEventListener('fetch', async e => {
     e.respondWith((async () => {
         if (
             e.request.destination === 'script' ||
@@ -56,7 +49,7 @@ swSelf.addEventListener('fetch', async e => {
     })())
 })
 
-swSelf.addEventListener('activate', e => {
+self.addEventListener('activate', e => {
     e.waitUntil(
         (async () => {
             const keys = await caches.keys()
