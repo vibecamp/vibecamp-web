@@ -25,8 +25,8 @@ export default observer(({ label, placeholder, type, disabled, value, onChange, 
         onBlur,
         disabled,
         placeholder,
-        'aria-invalid': error != null,
-        'aria-errormessage': error
+        'aria-invalid': typeof error === 'string',
+        'aria-errormessage': typeof error === 'string' ? error : undefined
     }
 
     return (

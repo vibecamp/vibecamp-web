@@ -7,18 +7,19 @@ type Props = Omit<CommonFieldProps<boolean>, 'label'> & {
     children: React.ReactNode
 }
 
-export default observer(({ value, onChange, error, onBlur, children}: Props) => {
+export default observer(({ value, onChange, error, onBlur, disabled, children }: Props) => {
     const handleChange = useCallback(() => onChange(!value), [value, onChange])
 
     return (
-        <label className='checkbox'>
+        <label className={'checkbox' + ' ' + (disabled ? 'disabled' : '')}>
             <input
                 type='checkbox'
                 checked={value}
                 onChange={handleChange}
                 onBlur={onBlur}
-                aria-invalid={error != null}
-                aria-errormessage={error} />
+                disabled={disabled}
+                aria-invalid={typeof error === 'string'}
+                aria-errormessage={typeof error === 'string' ? error : undefined} />
 
             {children}
 

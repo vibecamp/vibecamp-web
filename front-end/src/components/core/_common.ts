@@ -7,7 +7,7 @@ export type CommonFieldProps<T> = {
 
     onChange: (val: T) => void,
 
-    error?: string | undefined,
+    error?: string | undefined | false,
 
     onBlur?: () => void,
 
