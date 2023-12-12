@@ -142,7 +142,7 @@ export default observer(() => {
                                         {application_status === 'pending'
                                             ? 'Your application is under review!'
                                             : application_status === 'rejected'
-                                                ? 'Application denied :('
+                                                ? 'Your application has been denied :('
                                                 : `Apply to ${Store.festival.state.result?.festival_name}`}
                                     </Button>
 
