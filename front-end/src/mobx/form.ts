@@ -1,109 +1,111 @@
-import { action, makeAutoObservable, reaction } from 'mobx'
+import { makeAutoObservable, reaction } from 'mobx'
 import { CommonFieldProps } from '../components/core/_common'
 import { IDisposer } from 'mobx-utils'
-import { objectValues } from '../../../back-end/utils/misc'
+import { objectEntries, objectFromEntries, objectValues } from '../../../back-end/utils/misc'
 import { setter } from './misc'
+import { RequestObservable, RequestState, request } from './request'
+import { DEFAULT_FORM_ERROR } from '../utils'
 
-export type FormOptions<T extends Record<string, unknown>> = {
-    initialValues: T,
-    validators: FormValidators<T>,
+export type FormOptions<TValues extends Record<string, unknown>, TSubmitterName extends string> = {
+    initialValues: TValues,
+    validators: FormValidators<TValues>,
+    submitters?: Record<TSubmitterName, (values: TValues) => Promise<void> | void>
 }
 
 export type FormValidators<T extends Record<string, unknown>> = Partial<{ [key in keyof T]: (val: T[key]) => string | undefined }>
 
-export class Form<TValues extends Record<string, unknown>> {
-    constructor(
-        private readonly opts: FormOptions<TValues>
-    ) {
-        {
-            const fields = {} as {
-                [key in keyof TValues]: Field<TValues[key]>
+export type Form<TValues extends Record<string, unknown>, TSubmitterName extends string = never> = ReturnType<typeof form<TValues, TSubmitterName>>
+export const form = <TValues extends Record<string, unknown>, TSubmitterName extends string = never>({ initialValues, validators, submitters }: FormOptions<TValues, TSubmitterName>) => {
+
+    const submitterRequests: Record<TSubmitterName, RequestObservable<void>> = (
+        submitters == null
+            ? {} as Record<TSubmitterName, RequestObservable<void>>
+            : objectFromEntries(
+                objectEntries(submitters).map(([ name, submitFn ]) => [
+                    name,
+                    request(async () => {
+                        form.activateAllValidation()
+
+                        if (!form.isValid) {
+                            throw DEFAULT_FORM_ERROR
+                        }
+
+                        await submitFn(form.fieldValues)
+                    }, { lazy: true })
+                ])
+            )
+    )
+
+    const form = makeAutoObservable({
+        fields: objectFromEntries(objectEntries(initialValues).map(([name, value]) => [
+            name,
+            field({ value, validator: validators[name] })
+        ])) as { [key in keyof TValues]: Field<TValues[key]> },
+
+        get fieldValues(): TValues {
+            return objectFromEntries(objectEntries(this.fields).map(([name, field]) => [name, field.value])) as TValues
+        },
+        get isValid(): boolean {
+            return objectValues(this.fields).every(field => field.isValid)
+        },
+        get submissionState(): Record<TSubmitterName, RequestState<void>> {
+            return objectFromEntries(objectEntries(submitterRequests).map(([name, request]) => [name, request.state]))
+        },
+
+        dispose: () => {
+            for (const field of objectValues(form.fields)) {
+                field.dispose()
             }
-            for (const key in opts.initialValues) {
-                fields[key] = new Field(opts.initialValues[key], opts.validators[key])
+            for (const request of objectValues(submitterRequests)) {
+                request.dispose()
             }
-            this.fields = fields
-        }
-
-        makeAutoObservable(this)
-    }
-
-    readonly dispose = () => {
-        for (const field of objectValues(this.fields)) {
-            field.dispose()
-        }
-    }
-
-    fields: {
-        readonly [key in keyof TValues]: Field<TValues[key]>
-    }
-
-    get fieldValues(): {
-        readonly [key in keyof TValues]: TValues[key]
-        } {
-        const vals = {} as {
-            [key in keyof TValues]: TValues[key]
-        }
-
-        for (const key in this.fields) {
-            vals[key] = this.fields[key].value
-        }
-        return vals
-    }
-
-    get isValid(): boolean {
-        return objectValues(this.fields).every(field => field.isValid)
-    }
-
-    readonly clear = action(() => {
-        for (const key in this.fields) {
-            this.fields[key].value = this.opts.initialValues[key]
-        }
+        },
+        clear: () => {
+            for (const key in form.fields) {
+                form.fields[key].value = initialValues[key]
+            }
+        },
+        activateAllValidation: () => {
+            for (const key in form.fields) {
+                form.fields[key].activateValidation()
+            }
+        },
+        submitters: objectFromEntries(objectEntries(submitterRequests).map(([name, request]) => [name, request.load]))
     })
 
-    readonly activateAllValidation = action(() => {
-        for (const key in this.fields) {
-            this.fields[key].activateValidation()
-        }
-    })
+    return form
 }
 
-class Field<T> {
-    constructor(
-        public value: T,
-        private readonly validator: undefined | ((val: T) => string | undefined)
-    ) {
-        makeAutoObservable(this)
+export type Field<T> = ReturnType<typeof field<T>>
+const field = <T>({ value, validator }: { value: T, validator: undefined | ((val: T) => string | undefined) }) => {
+    const field = makeAutoObservable({
+        value,
+        validationActive: false,
+        dispose: null as unknown as IDisposer, // initialized later
 
-        this.validationActiveReaction = reaction(
-            () => this.value,
-            () => this.validationActive = false
-        )
-    }
+        get error(): string | undefined {
+            return validator?.(this.value)
+        },
+        get isValid() {
+            return this.error == null
+        },
+        get displayError(): string | undefined {
+            if (this.validationActive) {
+                return this.error
+            }
+        },
 
-    private validationActiveReaction: IDisposer
-
-    readonly dispose = () => {
-        this.validationActiveReaction()
-    }
-
-    get error(): string | undefined {
-        return this.validator?.(this.value)
-    }
-    get isValid() {
-        return this.error == null
-    }
-    get displayError(): string | undefined {
-        if (this.validationActive) {
-            return this.error
+        activateValidation: (): void => {
+            field.validationActive = true
         }
-    }
+    })
 
-    private validationActive = false
+    field.dispose = reaction(
+        () => field.value,
+        () => field.validationActive = false
+    )
 
-    readonly activateValidation = (): void => {
-        this.validationActive = true
-    }
+    return field
 }
 
 export function fieldToProps<T>(field: Field<T>): Pick<CommonFieldProps<T>, 'value' | 'onChange' | 'error' | 'onBlur'> {

@@ -9,7 +9,7 @@ type Props<T> = Omit<CommonFieldProps<T>, 'value'> & {
     options: readonly { value: T, label: string }[]
 }
 
-function RadioGroup<T>({label, value, onChange, disabled, error, onBlur, options}: Props<T>) {
+function RadioGroup<T>({ label, value, onChange, disabled, error, onBlur, options }: Props<T>) {
 
     const changeHandlers = useStable(() => (value: T | typeof NULL) => () =>
         // @ts-expect-error null requires a workaround
@@ -29,8 +29,8 @@ function RadioGroup<T>({label, value, onChange, disabled, error, onBlur, options
                         onBlur={onBlur}
                         disabled={disabled}
                         checked={value === option.value}
-                        aria-invalid={error != null}
-                        aria-errormessage={error}
+                        aria-invalid={typeof error === 'string'}
+                        aria-errormessage={typeof error === 'string' ? error : undefined}
                     />
 
                     {option.label}

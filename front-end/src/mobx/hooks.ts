@@ -1,4 +1,4 @@
-import { autorun, computed, observable } from 'mobx'
+import { autorun, computed, makeAutoObservable } from 'mobx'
 import { useEffect, useState } from 'react'
 import { RequestObservable, request } from './request'
 
@@ -31,16 +31,33 @@ export function useRequestWithDependencies<T>(fn: () => Promise<T>, deps?: unkno
 }
 
 export function useObservableState<T extends Record<string, unknown>>(init: T): T {
-    return useStable(() => observable(init))
+    return useStable(() => makeAutoObservable(init))
+}
+
+export function useObservableClass<T extends object>(clazz: new () => T): T {
+    const instance = useStable(() => makeAutoObservable(new clazz()))
+
+    useEffect(() => {
+        return () => {
+            for (const key in instance) {
+                const dispose = (instance[key] as any).dispose
+                if (typeof dispose === 'function') {
+                    dispose()
+                }
+            }
+        }
+    }, [instance])
+
+    return instance
 }
 
 export function useStable<T>(init: () => T): T {
     const [val] = useState(init)
 
     useEffect(() => {
-        const disposer = (val as any).dispose
-        if (typeof disposer === 'function') {
-            return disposer
+        const dispose = (val as any).dispose
+        if (typeof dispose === 'function') {
+            return dispose
         }
     }, [val])
 

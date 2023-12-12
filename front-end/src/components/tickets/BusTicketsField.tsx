@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { observer } from 'mobx-react-lite'
 import { CommonFieldProps } from '../core/_common'
 import InfoBlurb from '../core/InfoBlurb'
@@ -6,17 +6,26 @@ import RadioGroup from '../core/RadioGroup'
 import Spacer from '../core/Spacer'
 import { PURCHASE_TYPES_BY_TYPE } from '../../../../back-end/types/misc'
 
-type Props = Pick<CommonFieldProps<typeof BUS_TICKET_OPTIONS[number]['value'] | undefined>, 'value' | 'onChange' | 'error'> & {
-    showMessage?: boolean
+type Props = Pick<CommonFieldProps<(typeof BUS_TICKET_PURCHASE_TYPES)[number]['purchase_type_id'] | null | undefined>, 'value' | 'onChange' | 'error'> & {
+    showMessage?: boolean,
+    attendeeCount: number,
 }
 
-export default observer(({ value, onChange, error, showMessage }: Props) => {
+export default observer(({ value, onChange, error, showMessage, attendeeCount }: Props) => {
+    const busTicketOptions = useMemo(() => [
+        ...BUS_TICKET_PURCHASE_TYPES.map(r => ({
+            value: r.purchase_type_id,
+            label: `$${(r.price_in_cents / 100).toFixed(2)} per attendee - ${r.description}`
+        })),
+        { value: null, label: `No Cost - ${attendeeCount === 1 ? 'I\'ll' : 'we\'ll'} get ${attendeeCount === 1 ? 'myself' : 'ourselves'} to camp, thanks!` },
+    ], [attendeeCount])
+
     return (
         <>
             <RadioGroup
                 value={value}
                 onChange={onChange}
-                options={BUS_TICKET_OPTIONS}
+                options={busTicketOptions}
                 error={error}
             />
 
@@ -42,15 +51,9 @@ export default observer(({ value, onChange, error, showMessage }: Props) => {
     )
 })
 
-const BUS_TICKET_OPTIONS = [
-    ...[
-        PURCHASE_TYPES_BY_TYPE.BUS_330PM_VIBECLIPSE_2024,
-        PURCHASE_TYPES_BY_TYPE.BUS_430PM_VIBECLIPSE_2024,
-        PURCHASE_TYPES_BY_TYPE.BUS_730PM_VIBECLIPSE_2024,
-        PURCHASE_TYPES_BY_TYPE.BUS_830PM_VIBECLIPSE_2024
-    ].map(r => ({
-        value: r.purchase_type_id,
-        label: `$${(r.price_in_cents / 100).toFixed(2)} per attendee - ${r.description}`
-    })),
-    { value: null, label: 'No Cost - I\'ll get myself to camp, thanks!' },
-]
+const BUS_TICKET_PURCHASE_TYPES = [
+    PURCHASE_TYPES_BY_TYPE.BUS_330PM_VIBECLIPSE_2024,
+    PURCHASE_TYPES_BY_TYPE.BUS_430PM_VIBECLIPSE_2024,
+    PURCHASE_TYPES_BY_TYPE.BUS_730PM_VIBECLIPSE_2024,
+    PURCHASE_TYPES_BY_TYPE.BUS_830PM_VIBECLIPSE_2024
+] as const

@@ -7,33 +7,37 @@ import Checkbox from '../core/Checkbox'
 import InfoBlurb from '../core/InfoBlurb'
 import RadioGroup from '../core/RadioGroup'
 import Store from '../../Store'
-import { Form, fieldToProps } from '../../mobx/form'
 import { AttendeeInfo } from '../../../../back-end/types/misc'
 import { prettyDate } from '../../utils'
 import NumberInput from '../core/NumberInput'
+import { setter } from '../../mobx/misc'
 
 type Props = {
-    attendeeInfo: Form<AttendeeInfo>,
+    attendeeInfo: AttendeeInfo,
+    attendeeErrors: Partial<Record<keyof AttendeeInfo, string>>,
     isAccountHolder: boolean,
-    isChild: boolean
+    isChild: boolean,
+    showingErrors: boolean
 }
 
 const INFO_BLURB_SPACE = 12
 const FIELD_SPACE = 24
 
-export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
+export default observer(({ attendeeInfo, attendeeErrors, isAccountHolder, isChild, showingErrors }: Props) => {
 
     return (
         <>
-            {attendeeInfo.fields.name.value &&
+            {attendeeInfo.name &&
                 <div className='attendee-info-form-sticky-header'>
-                    {`${attendeeInfo.fields.name.value}'s info`}
+                    {`${attendeeInfo.name}'s info`}
                 </div>}
 
             <Input
                 label='Attendee name'
                 placeholder='Brooke'
-                {...fieldToProps(attendeeInfo.fields.name)}
+                value={attendeeInfo.name}
+                onChange={setter(attendeeInfo, 'name')}
+                error={showingErrors && attendeeErrors.name}
             />
 
             <Spacer size={INFO_BLURB_SPACE} />
@@ -49,8 +53,9 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
             <Input
                 label='Discord handle (optional)'
                 placeholder='gptbrooke'
-                {...fieldToProps(attendeeInfo.fields.discord_handle)}
-                value={attendeeInfo.fields.discord_handle.value ?? ''}
+                value={attendeeInfo.discord_handle ?? ''}
+                onChange={setter(attendeeInfo, 'discord_handle')}
+                error={showingErrors && attendeeErrors.discord_handle}
             />
 
             <Spacer size={INFO_BLURB_SPACE} />
@@ -66,8 +71,9 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
             <Input
                 label='Twitter handle (optional)'
                 placeholder='@gptbrooke'
-                {...fieldToProps(attendeeInfo.fields.twitter_handle)}
-                value={attendeeInfo.fields.twitter_handle.value ?? ''}
+                value={attendeeInfo.twitter_handle ?? ''}
+                onChange={setter(attendeeInfo, 'twitter_handle')}
+                error={showingErrors && attendeeErrors.twitter_handle}
             />
 
             <Spacer size={INFO_BLURB_SPACE} />
@@ -81,10 +87,12 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
             <NumberInput
                 label={isAccountHolder ? 'I am...' : 'This person is...'}
                 placeholder='(years old)'
-                {...fieldToProps(attendeeInfo.fields.age)}
+                value={attendeeInfo.age}
+                onChange={setter(attendeeInfo, 'age')}
+                error={showingErrors && attendeeErrors.age}
             />
 
-            {attendeeInfo.fields.age.value != null && attendeeInfo.fields.age.value < 2 &&
+            {attendeeInfo.age != null && attendeeInfo.age < 2 &&
                 <>
                     <Spacer size={INFO_BLURB_SPACE} />
 
@@ -108,7 +116,9 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
                     <RadioGroup
                         label={`${isAccountHolder ? 'I\'m' : 'They\'re'} interested in volunteering as a...`}
                         options={VOLUNTEER_OPTIONS}
-                        {...fieldToProps(attendeeInfo.fields.interested_in_volunteering_as)}
+                        value={attendeeInfo.interested_in_volunteering_as}
+                        onChange={setter(attendeeInfo, 'interested_in_volunteering_as')}
+                        error={showingErrors && attendeeErrors.interested_in_volunteering_as}
                     />
 
                     <Spacer size={INFO_BLURB_SPACE} />
@@ -128,7 +138,11 @@ export default observer(({ attendeeInfo, isAccountHolder, isChild }: Props) => {
 
                     <Spacer size={FIELD_SPACE} />
 
-                    <Checkbox {...fieldToProps(attendeeInfo.fields.interested_in_pre_call)}>
+                    <Checkbox
+                        value={attendeeInfo.interested_in_pre_call}
+                        onChange={setter(attendeeInfo, 'interested_in_pre_call')}
+                        error={showingErrors && attendeeErrors.interested_in_pre_call}
+                    >
                         {`${isAccountHolder ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
                         video call before the event`}
                     </Checkbox>

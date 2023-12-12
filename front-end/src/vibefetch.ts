@@ -17,7 +17,7 @@ export async function vibefetch<TEndpoint extends keyof Routes>(jwt: string | nu
     const json = await res.json() as (Routes[TEndpoint]['response']) | null
 
     return {
-        response: json,
+        body: json,
         status: res.status
     }
 }

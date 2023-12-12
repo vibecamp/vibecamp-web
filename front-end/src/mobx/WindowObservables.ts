@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable } from 'mobx'
+import { makeAutoObservable } from 'mobx'
 import { jsonParse } from '../utils'
 
 class _WindowObservables {
@@ -57,7 +57,8 @@ class _WindowObservables {
 
 type HashState = Readonly<Record<string, string | number | boolean | null>> & {
     currentView?: string | number | boolean | null,
-    purchaseModalState?: string | number | boolean | null
+    ticketPurchaseModalState?: string | number | boolean | null,
+    applicationModalOpen?: string | number | boolean | null,
 }
 
 const WindowObservables = new _WindowObservables()

@@ -16,7 +16,7 @@ export function setTo<T, K extends keyof T>(obj: T, key: K, val: T[K]) {
 
 const setToInner = createTransformer(<T, K extends keyof T>(obj: T) =>
     createTransformer((key: K) =>
-        createTransformer((val: T[K]) =>
+        (val: T[K]) =>
             () => {
                 obj[key] = val
-            })))
+            }))

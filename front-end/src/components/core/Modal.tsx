@@ -7,7 +7,7 @@ type Props = {
     onClose?: () => void,
     title?: string,
     side?: 'left' | 'right',
-    children: () => React.ReactNode
+    children: React.ReactNode
 }
 
 export default observer(({ isOpen, onClose, title, side = 'right', children }: Props) => {
@@ -58,7 +58,7 @@ export default observer(({ isOpen, onClose, title, side = 'right', children }: P
                     </div>}
 
                 <div className="content">
-                    {children()}
+                    {children}
                 </div>
 
             </dialog>

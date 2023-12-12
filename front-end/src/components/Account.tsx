@@ -6,88 +6,89 @@ import Store from '../Store'
 import Col from './core/Col'
 import Input from './core/Input'
 import LoadingDots from './core/LoadingDots'
-import { useRequest, useStable } from '../mobx/hooks'
-import { Form, fieldToProps } from '../mobx/form'
+import { useObservableClass } from '../mobx/hooks'
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/utils/validation'
-import { doNothing, preventingDefault } from '../utils'
+import { DEFAULT_FORM_ERROR, doNothing, preventingDefault } from '../utils'
 import Modal from './core/Modal'
 import { vibefetch } from '../vibefetch'
-import { action } from 'mobx'
+import { request } from '../mobx/request'
+import { setter } from '../mobx/misc'
 
 export default observer(() => {
     const loading = Store.accountInfo.state.kind === 'loading'
     const loadingOrError = loading || Store.accountInfo.state.kind === 'error'
 
-    const updatedAccountInfo = useStable(() => new Form({
-        initialValues: {
-            emailAddress: null as string | null,
-            password: null as string | null,
-            passwordConfirmation: null as string | null
-        },
-        validators: {
-            emailAddress: getEmailValidationError,
-            password: getPasswordValidationError,
-            passwordConfirmation: val => {
-                if (val !== updatedAccountInfo.fields.password.value) {
-                    return 'Passwords don\'t match'
-                }
+    const emailAddressForm = useObservableClass(class {
+        emailAddress: string | null = null
+
+        get emailAddressError() {
+            return getEmailValidationError(this.emailAddress)
+        }
+
+        readonly beginChangingEmail = () => {
+            this.emailAddress = Store.accountInfo.state.result?.email_address ?? null
+        }
+        readonly stopChangingEmail = () => {
+            this.emailAddress = null
+        }
+
+        readonly updateEmail = request(async () => {
+            if (this.emailAddressError) {
+                return { fieldError: true }
+            }
+
+            const { status } = await vibefetch(Store.jwt, '/account/update-email', 'put', {
+                email_address: this.emailAddress!
+            })
+
+            if (status !== 200) {
+                return { submissionError: DEFAULT_FORM_ERROR }
+            }
+
+            await Store.accountInfo.load()
+            this.stopChangingEmail()
+        }, { lazy: true })
+    })
+
+    const passwordForm = useObservableClass(class {
+        password: string | null = null
+        passwordConfirmation: string | null = null
+
+        get passwordError() {
+            return getPasswordValidationError(this.password)
+        }
+        get passwordConfirmationError() {
+            if (this.password !== this.passwordConfirmation) {
+                return 'Passwords don\'t match'
             }
         }
-    }))
 
+        readonly beginChangingPassword = () => {
+            this.password = ''
+            this.passwordConfirmation = ''
+        }
+        readonly stopChangingPassword = () => {
+            this.password = null
+            this.passwordConfirmation = null
+        }
 
-    const beginChangingEmail = useStable(() => () => {
-        updatedAccountInfo.fields.emailAddress.value = Store.accountInfo.state.result?.email_address ?? null
+        readonly updatePassword = request(async () => {
+            if (this.passwordError || this.passwordConfirmationError) {
+                return { fieldError: true }
+            }
+
+            const { status } = await vibefetch(Store.jwt, '/account/update-password', 'put', {
+                password: this.password!
+            })
+
+            if (status !== 200) {
+                return { submissionError: DEFAULT_FORM_ERROR }
+            }
+
+            await Store.accountInfo.load()
+            this.stopChangingPassword()
+        }, { lazy: true })
     })
-
-    const stopChangingEmail = useStable(() => () => {
-        updatedAccountInfo.fields.emailAddress.value = null
-    })
-
-    const submitNewEmail = useRequest(async () => {
-        if (!updatedAccountInfo.fields.emailAddress.isValid) {
-            return null
-        }
-
-        const { status } = await vibefetch(Store.jwt, '/account/update-email', 'put', {
-            email_address: updatedAccountInfo.fields.emailAddress.value!
-        })
-
-        if (status === 200) {
-            Store.accountInfo.load()
-            stopChangingEmail()
-        } else {
-            throw Error()
-        }
-    }, { lazy: true })
-
-
-    const beginChangingPassword = useStable(() => action(() => {
-        updatedAccountInfo.fields.password.value = ''
-        updatedAccountInfo.fields.passwordConfirmation.value = ''
-    }))
-
-    const stopChangingPassword = useStable(() => action(() => {
-        updatedAccountInfo.fields.password.value = null
-        updatedAccountInfo.fields.passwordConfirmation.value = null
-    }))
-
-    const submitNewPassword = useRequest(async () => {
-        if (!updatedAccountInfo.fields.password.isValid || !updatedAccountInfo.fields.passwordConfirmation.isValid) {
-            return null
-        }
-
-        const { status } = await vibefetch(Store.jwt, '/account/update-password', 'put', {
-            password: updatedAccountInfo.fields.password.value!
-        })
-
-        if (status === 200) {
-            stopChangingPassword()
-        } else {
-            throw Error()
-        }
-    }, { lazy: true })
-
 
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
@@ -98,12 +99,12 @@ export default observer(() => {
 
             <Spacer size={loadingOrError ? 300 : 24} />
 
-            {loading ?
-                <LoadingDots size={100} color='var(--color-accent-1)' />
-                : Store.accountInfo.state.kind === 'error' || Store.accountInfo.state.result == null ?
-                    'Failed to load'
-                    : Store.accountInfo.state.kind === 'result' ?
-                        <>
+            {loading
+                ? <LoadingDots size={100} color='var(--color-accent-1)' />
+                : Store.accountInfo.state.kind === 'error' || Store.accountInfo.state.result == null
+                    ? 'Failed to load'
+                    : Store.accountInfo.state.kind === 'result'
+                        ? <>
                             <Input
                                 label='Email address'
                                 value={Store.accountInfo.state.result?.email_address}
@@ -113,7 +114,7 @@ export default observer(() => {
 
                             <Spacer size={8} />
 
-                            <Button onClick={beginChangingEmail}>
+                            <Button onClick={emailAddressForm.beginChangingEmail}>
                                 Change email
                             </Button>
 
@@ -128,7 +129,7 @@ export default observer(() => {
 
                             <Spacer size={8} />
 
-                            <Button onClick={beginChangingPassword}>
+                            <Button onClick={passwordForm.beginChangingPassword}>
                                 Change password
                             </Button>
 
@@ -140,52 +141,53 @@ export default observer(() => {
                         </>
                         : null}
 
-            <Modal isOpen={updatedAccountInfo.fields.emailAddress.value != null} onClose={stopChangingEmail}>
-                {() =>
-                    <form onSubmit={preventingDefault(submitNewEmail.load)}>
-                        <Col padding={20} pageLevel>
-                            <Input
-                                label='New email address'
-                                {...fieldToProps(updatedAccountInfo.fields.emailAddress)}
-                                value={updatedAccountInfo.fields.emailAddress.value ?? ''}
-                            />
+            <Modal isOpen={emailAddressForm.emailAddress != null} onClose={emailAddressForm.stopChangingEmail}>
+                <form onSubmit={preventingDefault(emailAddressForm.updateEmail.load)} noValidate>
+                    <Col padding={20} pageLevel>
+                        <Input
+                            label='New email address'
+                            value={emailAddressForm.emailAddress ?? ''}
+                            onChange={setter(emailAddressForm, 'emailAddress')}
+                            error={emailAddressForm.updateEmail.state.result?.fieldError ? emailAddressForm.emailAddressError : undefined}
+                        />
 
-                            <Spacer size={24} />
+                        <Spacer size={24} />
 
-                            <Button isSubmit isPrimary isLoading={submitNewEmail.state.kind === 'loading'} disabled={updatedAccountInfo.fields.emailAddress.value === Store.accountInfo.state.result?.email_address}>
-                                Submit
-                            </Button>
-                        </Col>
-                    </form>}
+                        <Button isSubmit isPrimary isLoading={emailAddressForm.updateEmail.state.kind === 'loading'} disabled={emailAddressForm.emailAddress === Store.accountInfo.state.result?.email_address}>
+                            Submit
+                        </Button>
+                    </Col>
+                </form>
             </Modal>
 
-            <Modal isOpen={updatedAccountInfo.fields.password.value != null} onClose={stopChangingPassword}>
-                {() =>
-                    <form onSubmit={preventingDefault(submitNewPassword.load)}>
-                        <Col padding={20} pageLevel>
-                            <Input
-                                label='New password'
-                                type='password'
-                                {...fieldToProps(updatedAccountInfo.fields.password)}
-                                value={updatedAccountInfo.fields.password.value ?? ''}
-                            />
+            <Modal isOpen={passwordForm.password != null} onClose={passwordForm.stopChangingPassword}>
+                <form onSubmit={preventingDefault(passwordForm.updatePassword.load)} noValidate>
+                    <Col padding={20} pageLevel>
+                        <Input
+                            label='New password'
+                            type='password'
+                            value={passwordForm.password ?? ''}
+                            onChange={setter(passwordForm, 'password')}
+                            error={passwordForm.updatePassword.state.result?.fieldError ? passwordForm.passwordError : undefined}
+                        />
 
-                            <Spacer size={16} />
+                        <Spacer size={16} />
 
-                            <Input
-                                label='Confirm password'
-                                type='password'
-                                {...fieldToProps(updatedAccountInfo.fields.passwordConfirmation)}
-                                value={updatedAccountInfo.fields.passwordConfirmation.value ?? ''}
-                            />
+                        <Input
+                            label='Confirm password'
+                            type='password'
+                            value={passwordForm.passwordConfirmation ?? ''}
+                            onChange={setter(passwordForm, 'passwordConfirmation')}
+                            error={passwordForm.updatePassword.state.result?.fieldError ? passwordForm.passwordConfirmationError : undefined}
+                        />
 
-                            <Spacer size={24} />
+                        <Spacer size={24} />
 
-                            <Button isSubmit isPrimary isLoading={submitNewPassword.state.kind === 'loading'}>
-                                Submit
-                            </Button>
-                        </Col>
-                    </form>}
+                        <Button isSubmit isPrimary isLoading={passwordForm.updatePassword.state.kind === 'loading'}>
+                            Submit
+                        </Button>
+                    </Col>
+                </form>
             </Modal>
         </Col>
     )

@@ -3,6 +3,7 @@
 @import './components/core/Button.scss';
 @import './components/core/Checkbox.scss';
 @import './components/core/Col.scss';
+@import './components/core/DateField.scss';
 @import './components/core/ErrorMessage.scss';
 @import './components/core/InfoBlurb.scss';
 @import './components/core/Input.scss';
@@ -14,6 +15,7 @@
 @import './components/core/Row.scss';
 @import './components/core/RowSelect.scss';
 @import './components/core/Stripes.scss';
+@import './components/Events.scss';
 
 *, ::before, ::after {
     transition: all 0.1s ease-out;
@@ -97,41 +99,6 @@ hr {
         height: min(50vw, 200px, 20vh);
         opacity: 0.9;
         align-self: center;
-    }
-}
-
-.eventCard {
-    margin-top: 10px;
-
-    >.eventName {
-        font-size: 20px;
-        min-height: 36px;
-        font-weight: 500;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    >.info {
-        display: flex;
-        justify-content: stretch;
-        align-items: flex-start;
-
-        >span {
-            flex-grow: 0;
-            flex-shrink: 0;
-            font-size: 18px;
-            color: var(--color-secondary);
-            margin-right: 4px;
-        }
-    }
-
-    &.official {
-        border: 1px solid rgb(255, 215, 0);
-
-        .eventCreator {
-            font-weight: 500;
-        }
     }
 }
 

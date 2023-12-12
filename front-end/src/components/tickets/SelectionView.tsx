@@ -1,9 +1,8 @@
 import { observer } from 'mobx-react-lite'
 import { createTransformer } from 'mobx-utils'
 import React from 'react'
-import { fieldToProps } from '../../mobx/form'
 import { useStable } from '../../mobx/hooks'
-import { setter } from '../../mobx/misc'
+import { setTo, setter } from '../../mobx/misc'
 import { preventingDefault } from '../../utils'
 import Button from '../core/Button'
 import Col from '../core/Col'
@@ -15,6 +14,7 @@ import BeddingField from './BeddingField'
 import BusTicketsField from './BusTicketsField'
 import PriceBreakdown from './PriceBreakdown'
 import { PurchaseFormState } from '../Tickets'
+import Icon from '../core/Icon'
 
 type Props = {
     purchaseFormState: PurchaseFormState,
@@ -23,39 +23,51 @@ type Props = {
 
 export default observer(({ purchaseFormState, goToNext }: Props) => {
     const removeAttendee = useStable(() => createTransformer((index: number) => () => {
-        purchaseFormState.additionalAttendees.splice(index, 1)
+        if (index > 0) {
+            purchaseFormState.attendees.splice(index, 1)
+        }
     }))
 
     return (
-        <form onSubmit={preventingDefault(goToNext)}>
+        <form onSubmit={preventingDefault(goToNext)} noValidate>
             <Col padding={20} pageLevel>
 
-                <AttendeeInfoForm attendeeInfo={purchaseFormState.primaryAttendee} isChild={false} isAccountHolder={true} />
-
-                <Spacer size={32} />
-                <hr />
-                <Spacer size={32} />
-
-                {purchaseFormState.additionalAttendees.map((attendee, index) =>
+                {purchaseFormState.attendees.map((attendee, index) =>
                     <React.Fragment key={index}>
-                        <AttendeeInfoForm attendeeInfo={attendee} isChild={true} isAccountHolder={false} />
 
-                        <Spacer size={24} />
+                        {index > 0 && <>
+                            <Spacer size={32} />
+                            <hr />
+                            <Spacer size={32} />
+                        </>}
 
-                        <Button isDanger onClick={removeAttendee(index)}>
-                            Remove {attendee.fields.name.value || 'attendee'}
-                        </Button>
+                        <AttendeeInfoForm
+                            attendeeInfo={attendee}
+                            attendeeErrors={purchaseFormState.attendeeErrors[index]!}
+                            isChild={attendee.age != null && attendee.age < 18}
+                            isAccountHolder={index === 0}
+                            showingErrors={purchaseFormState.showingErrors}
+                        />
+
+                        {index > 0 &&
+                            <>
+                                <Spacer size={24} />
+
+                                <Button isDanger onClick={removeAttendee(index)}>
+                                    Remove {attendee.name || 'attendee'}
+                                </Button>
+                            </>}
 
                         <Spacer size={32} />
                     </React.Fragment>)}
 
-                <Button onClick={purchaseFormState.addAttendee} disabled={purchaseFormState.allAttendeeForms.length === 6}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 'inherit' }}>add</span>
+                <Button onClick={purchaseFormState.addAttendee} disabled={purchaseFormState.attendees.length === 6}>
+                    <Icon name='add' style={{ fontSize: 'inherit' }} />
                     <Spacer size={4} />
                     Bring another attendee
                 </Button>
 
-                {purchaseFormState.allAttendeeForms.length === 6 &&
+                {purchaseFormState.attendees.length === 6 &&
                     <>
                         <Spacer size={12} />
 
@@ -83,17 +95,22 @@ export default observer(({ purchaseFormState, goToNext }: Props) => {
                 <Spacer size={32} />
 
                 <BeddingField
-                    {...fieldToProps(purchaseFormState.extraPurchasesForm.fields.needsSleepingBags)}
-                    needsPillow={purchaseFormState.extraPurchasesForm.fields.needsPillow.value}
-                    onNeedsPillowChange={setter(purchaseFormState.extraPurchasesForm.fields.needsPillow, 'value')}
-                    attendeeCount={purchaseFormState.allAttendeeForms.length}
+                    value={purchaseFormState.needsSleepingBags}
+                    onChange={setter(purchaseFormState, 'needsSleepingBags')}
+                    error={purchaseFormState.showingErrors && purchaseFormState.needsSleepingBagsError}
+                    needsPillow={purchaseFormState.needsPillow}
+                    onNeedsPillowChange={setter(purchaseFormState, 'needsPillow')}
+                    attendeeCount={purchaseFormState.attendees.length}
                     showMessage
                 />
 
                 <Spacer size={24} />
 
                 <BusTicketsField
-                    {...fieldToProps(purchaseFormState.extraPurchasesForm.fields.needsBusTickets)}
+                    value={purchaseFormState.needsBusTickets}
+                    onChange={setter(purchaseFormState, 'needsBusTickets')}
+                    error={purchaseFormState.showingErrors && purchaseFormState.needsBusTicketsError}
+                    attendeeCount={purchaseFormState.attendees.length}
                     showMessage
                 />
 
@@ -104,14 +121,14 @@ export default observer(({ purchaseFormState, goToNext }: Props) => {
                     href='https://admin.gazeboevents.com/forms/706B540F-AF67-4D4B-9C42-A402E51C2039'
                     target='_blank'
                     rel="noreferrer"
-                    onMouseDown={purchaseFormState.handleWaiverClick} // Must be MouseDown and not Click to handle long-press on mobile
+                    onMouseDown={setTo(purchaseFormState, 'hasClickedWaiver', true)} // Must be MouseDown and not Click to handle long-press on mobile
                 >
                     Campsite forms &nbsp; <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
                 </a>
 
                 <Spacer size={4} />
 
-                <ErrorMessage error={purchaseFormState.primaryAttendee.fields.has_clicked_waiver.displayError} />
+                <ErrorMessage error={purchaseFormState.showingErrors && purchaseFormState.hasClickedWaiverError} />
 
                 <Spacer size={8} />
 
@@ -134,13 +151,7 @@ export default observer(({ purchaseFormState, goToNext }: Props) => {
 
                 <Spacer size={8} />
 
-                <ErrorMessage error={
-                    purchaseFormState.adultAttendees.length > 2
-                        ? 'Can only purchase two adult tickets per account'
-                        : purchaseFormState.childAttendees.length > 5
-                            ? 'Can only purchase five child tickets per account'
-                            : undefined
-                } />
+                <ErrorMessage error={purchaseFormState.numberOfAttendeesError} />
 
                 <Spacer size={16} />
 

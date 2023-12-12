@@ -1,0 +1,35 @@
+
+.eventCard {
+    margin-top: 10px;
+
+    >.eventName {
+        font-size: 20px;
+        min-height: 36px;
+        font-weight: 500;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    >.info {
+        display: flex;
+        justify-content: stretch;
+        align-items: flex-start;
+
+        >span {
+            flex-grow: 0;
+            flex-shrink: 0;
+            font-size: 18px;
+            color: var(--color-secondary);
+            margin-right: 4px;
+        }
+    }
+
+    &.official {
+        border: 1px solid rgb(255, 215, 0);
+
+        .eventCreator {
+            font-weight: 500;
+        }
+    }
+}

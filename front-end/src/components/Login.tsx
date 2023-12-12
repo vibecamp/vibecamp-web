@@ -8,65 +8,80 @@ import { getEmailValidationError, getPasswordValidationError } from '../../../ba
 import Stripes from './core/Stripes'
 import { vibefetch } from '../vibefetch'
 import { DEFAULT_FORM_ERROR, preventingDefault } from '../utils'
-import { useObservableState, useRequest, useStable } from '../mobx/hooks'
-import { Form, fieldToProps } from '../mobx/form'
+import { useObservableClass } from '../mobx/hooks'
 import Col from './core/Col'
 import ErrorMessage from './core/ErrorMessage'
+import { request } from '../mobx/request'
+import { setter } from '../mobx/misc'
 
 export default observer(() => {
-    const state = useObservableState({
-        mode: 'login' as 'login' | 'signup'
-    })
+    const state = useObservableClass(class {
+        mode: 'login' | 'signup' = 'login'
 
-    const toggleState = useStable(() => () => {
-        state.mode = (state.mode === 'login' ? 'signup' : 'login')
-    })
+        emailAddress = ''
+        password = ''
+        passwordConfirmation = ''
 
-    const loginForm = useStable(() => new Form({
-        initialValues: {
-            emailAddress: '',
-            password: '',
-            passwordConfirmation: ''
-        },
-        validators: {
-            emailAddress: val => state.mode === 'login' ? getEmailValidationError(val) : undefined,
-            password: val => state.mode === 'signup' ? getPasswordValidationError(val) : undefined,
-            passwordConfirmation: val => {
-                if (state.mode === 'signup' && val !== loginForm.fields.password.value) {
-                    return 'Passwords don\'t match'
-                }
+        get emailAddressError() {
+            return getEmailValidationError(this.emailAddress)
+        }
+
+        get passwordError() {
+            return getPasswordValidationError(this.password)
+        }
+
+        get passwordConfirmationError() {
+            if (this.mode === 'signup' && this.password !== this.passwordConfirmation) {
+                return 'Passwords don\'t match'
             }
         }
-    }))
 
-    const loginOrSignup = useRequest(async () => {
-        loginForm.activateAllValidation()
-
-        if (!loginForm.isValid) {
-            return
+        readonly toggleState = () => {
+            this.mode = (this.mode === 'login' ? 'signup' : 'login')
         }
 
-        const { response, status } = await vibefetch(null, `/${state.mode}`, 'post', {
-            email_address: loginForm.fields.emailAddress.value,
-            password: loginForm.fields.password.value
-        })
-        const { jwt } = response ?? {}
+        readonly loginOrSignup = request(async () => {
+            const validationError = (
+                this.emailAddressError ||
+                this.passwordError ||
+                this.passwordConfirmationError
+            )
 
-        if (state.mode === 'login' && status === 401) {
-            throw 'Incorrect email or password'
-        }
+            if (validationError) {
+                return { fieldError: true }
+            }
 
-        if (jwt == null) {
-            throw Error()
-        }
+            const { body, status } = await vibefetch(null, `/${state.mode}`, 'post', {
+                email_address: this.emailAddress,
+                password: this.password
+            })
+            const { jwt } = body ?? {}
 
-        Store.jwt = jwt
+            if (state.mode === 'login' && status === 401) {
+                return { submissionError: 'Incorrect email or password' }
+            }
 
-        loginForm.clear()
-    }, { lazy: true })
+            if (jwt == null) {
+                return { submissionError: DEFAULT_FORM_ERROR }
+            }
+
+            Store.jwt = jwt
+            this.emailAddress = this.password = this.passwordConfirmation = ''
+        }, { lazy: true })
+    })
+
+    const submissionState = state.loginOrSignup.state
+    const loading = submissionState.kind === 'loading'
+    const submissionError = (
+        submissionState.kind === 'error'
+            ? DEFAULT_FORM_ERROR
+            : submissionState.result?.submissionError
+    )
+
+    console.log({ ...submissionState })
 
     return (
-        <form className='login' onSubmit={preventingDefault(loginOrSignup.load)}>
+        <form className='login' onSubmit={preventingDefault(state.loginOrSignup.load)} noValidate>
             <Col padding={20}>
                 <Stripes position='top-left' />
 
@@ -77,9 +92,11 @@ export default observer(() => {
                 <Input
                     label='Email address'
                     type='email'
-                    disabled={loginOrSignup.state.kind === 'loading'}
+                    disabled={loading}
                     autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
-                    {...fieldToProps(loginForm.fields.emailAddress)}
+                    value={state.emailAddress}
+                    onChange={setter(state, 'emailAddress')}
+                    error={submissionState.result?.fieldError ? state.emailAddressError : undefined}
                 />
 
                 <Spacer size={16} />
@@ -87,9 +104,11 @@ export default observer(() => {
                 <Input
                     label='Password'
                     type='password'
-                    disabled={loginOrSignup.state.kind === 'loading'}
+                    disabled={loading}
                     autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
-                    {...fieldToProps(loginForm.fields.password)}
+                    value={state.password}
+                    onChange={setter(state, 'password')}
+                    error={submissionState.result?.fieldError ? state.passwordError : undefined}
                 />
 
                 {state.mode === 'signup' &&
@@ -99,24 +118,21 @@ export default observer(() => {
                         <Input
                             label='Confirm password'
                             type='password'
-                            disabled={loginOrSignup.state.kind === 'loading'}
-                            {...fieldToProps(loginForm.fields.passwordConfirmation)}
+                            disabled={loading}
+                            value={state.passwordConfirmation}
+                            onChange={setter(state, 'passwordConfirmation')}
+                            error={submissionState.result?.fieldError ? state.passwordConfirmationError : undefined}
                         />
                     </>}
 
                 <Spacer size={8} />
 
-                <ErrorMessage
-                    error={
-                        loginOrSignup.state.kind !== 'error' ? undefined :
-                            typeof loginOrSignup.state.error === 'string' ? loginOrSignup.state.error :
-                                DEFAULT_FORM_ERROR
-                    } />
+                <ErrorMessage error={submissionError} />
 
                 <Spacer size={24} />
 
 
-                <Button isSubmit isPrimary isLoading={loginOrSignup.state.kind === 'loading'}>
+                <Button isSubmit isPrimary isLoading={loading}>
                     {state.mode === 'login'
                         ? 'Log in'
                         : 'Sign up'}
@@ -124,7 +140,7 @@ export default observer(() => {
 
                 <Spacer size={8} />
 
-                <Button onClick={toggleState}>
+                <Button onClick={state.toggleState}>
                     {state.mode === 'login'
                         ? 'Create an account'
                         : 'I already have an account'}

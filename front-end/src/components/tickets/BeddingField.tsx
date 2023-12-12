@@ -1,7 +1,6 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { observer } from 'mobx-react-lite'
 import { CommonFieldProps } from '../core/_common'
-import { useComputed } from '../../mobx/hooks'
 import { PURCHASE_TYPES_BY_TYPE } from '../../../../back-end/types/misc'
 import Checkbox from '../core/Checkbox'
 import InfoBlurb from '../core/InfoBlurb'
@@ -11,12 +10,13 @@ import Spacer from '../core/Spacer'
 type Props = Pick<CommonFieldProps<boolean | undefined>, 'value' | 'onChange' | 'error'> & {
     needsPillow: boolean,
     onNeedsPillowChange: CommonFieldProps<boolean>['onChange'],
-    attendeeCount: number
+    attendeeCount: number,
     showMessage?: boolean,
 }
 
 export default observer(({ value, onChange, error, showMessage, needsPillow, onNeedsPillowChange, attendeeCount }: Props) => {
-    const options = useComputed(() => [
+    console.log({ attendeeCount })
+    const options = useMemo(() => [
         {
             value: true,
             label: `Yes, I would like to purchase ${attendeeCount === 1 ? 'a sleeping bag' : `${attendeeCount} sleeping bags`} ($${PURCHASE_TYPES_BY_TYPE.SLEEPING_BAG_VIBECLIPSE_2024.price_in_cents / 100} each)`
@@ -25,7 +25,7 @@ export default observer(({ value, onChange, error, showMessage, needsPillow, onN
             value: false,
             label: `No, ${attendeeCount === 1 ? 'I' : 'we'} will be bringing ${attendeeCount === 1 ? 'my' : 'our'} own bedding`
         },
-    ])
+    ], [attendeeCount])
 
     return (
         <>

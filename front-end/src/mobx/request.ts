@@ -2,7 +2,7 @@ import { IReactionDisposer, observable, autorun } from 'mobx'
 
 export type RequestObservable<T> = {
     state: RequestState<T>
-    load: () => void
+    load: () => Promise<void>
     dispose: () => void
 }
 
@@ -12,6 +12,15 @@ export type RequestState<T> =
     | { readonly kind: 'result', readonly result: T }
     | { readonly kind: 'error', readonly result: undefined, readonly error: unknown }
 
+/**
+ * Observable MobX abstraction around an async function (usually but not
+ * necessarily an API request). Exposes loading/error/response state,
+ * and allows triggering a re-fetch.
+ *
+ * By default it will trigger the request automatically when created, and
+ * re-run it if any observed values change. If `{ lazy: true }` is passed,
+ * it will only be triggered when `load()` is called.
+ */
 export function request<T>(fn: () => Promise<T> | T, { lazy }: { lazy?: boolean } = {}): RequestObservable<T> {
     let latestRequestId: string | undefined
     async function load() {

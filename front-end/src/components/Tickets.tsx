@@ -1,4 +1,3 @@
-/* eslint-disable indent */
 import React, { } from 'react'
 import { observer } from 'mobx-react-lite'
 import Store from '../Store'
@@ -7,49 +6,40 @@ import Ticket from './tickets/Ticket'
 import Spacer from './core/Spacer'
 import Button from './core/Button'
 import Col from './core/Col'
-import { AttendeeInfo, PurchaseType } from '../../../back-end/types/misc'
+import { AttendeeInfo, Maybe, PurchaseType } from '../../../back-end/types/misc'
 import MultiView from './core/MultiView'
 import { vibefetch } from '../vibefetch'
 
 import StripePaymentForm from './core/StripePaymentForm'
-import { useAutorun, useRequest, useStable } from '../mobx/hooks'
+import { useAutorun, useObservableClass, useRequest, useStable } from '../mobx/hooks'
 import LoadingDots from './core/LoadingDots'
-import { makeAutoObservable } from 'mobx'
-import { Form, FormValidators } from '../mobx/form'
 import { request } from '../mobx/request'
 import { Purchases } from '../../../back-end/types/route-types'
 import WindowObservables from '../mobx/WindowObservables'
 import SelectionView from './tickets/SelectionView'
 import InviteCodes from './tickets/InviteCodes'
 import InviteCodeEntryForm from './tickets/InviteCodeEntryForm'
-
+import { objectValues } from '../../../back-end/utils/misc'
+import Application from './Application'
 
 export default observer(() => {
-    const closePurchaseModal = useStable(() => () => {
-        WindowObservables.assignHashState({ purchaseModalState: 'none' })
-    })
+    const goToTicketPayment = useStable(() => () => {
+        ticketPurchaseFormState.showingErrors = true
 
-    const openPurchaseModal = useStable(() => () => {
-        WindowObservables.assignHashState({ purchaseModalState: 'selection' })
-    })
-
-    const goToPayment = useStable(() => () => {
-        purchaseFormState.activateAllValidation()
-
-        if (purchaseFormState.isValid) {
-            WindowObservables.assignHashState({ purchaseModalState: 'payment' })
+        if (ticketPurchaseFormState.isValid) {
+            WindowObservables.assignHashState({ ticketPurchaseModalState: 'payment' })
         }
     })
 
-    const purchaseFormState = useStable(() => new PurchaseFormState())
+    const ticketPurchaseFormState = useObservableClass(PurchaseFormState)
 
     const stripeOptions = useRequest(async () => {
-        if (Store.loggedIn && purchaseFormState.isValid && Object.values(purchaseFormState.purchases).some(count => count > 0)) {
-            const { response } = await vibefetch(
+        if (Store.loggedIn && ticketPurchaseFormState.isValid && Object.values(ticketPurchaseFormState.purchases).some(count => count > 0)) {
+            const { body: response } = await vibefetch(
                 Store.jwt,
                 '/purchase/create-intent',
                 'post',
-                purchaseFormState.purchases
+                ticketPurchaseFormState.purchases
             )
             const { stripe_client_secret } = response ?? {}
 
@@ -68,14 +58,26 @@ export default observer(() => {
         }
     })
 
+
+    const handlePurchaseCompletion = useStable(() => async () => {
+        WindowObservables.assignHashState({ currentView: 'Tickets', ticketPurchaseModalState: 'none', busPurchaseModalState: 'none', beddingPurchaseModalState: 'none' })
+
+        // HACK: When the purchase flow completes, the webhook will take an
+        // indeterminate amount of time to record the purchases. So, we wait a couple
+        // seconds before refreshing the list, which should usually be enough
+        setTimeout(Store.accountInfo.load, 2000)
+    })
+
     const loading = Store.accountInfo.state.kind === 'loading'
     const loadingOrError = loading || Store.accountInfo.state.kind === 'error'
 
     useAutorun(() => {
-        if (WindowObservables.hashState?.purchaseModalState === 'payment' && stripeOptions.state.kind === 'result' && stripeOptions.state.result == null) {
-            WindowObservables.assignHashState({ purchaseModalState: 'selection' })
+        if (WindowObservables.hashState?.ticketPurchaseModalState === 'payment' && stripeOptions.state.kind === 'result' && stripeOptions.state.result == null) {
+            WindowObservables.assignHashState({ ticketPurchaseModalState: 'selection' })
         }
     })
+
+    const alreadyApplied = Store.accountInfo.state.result?.has_submitted_application
 
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
@@ -102,33 +104,54 @@ export default observer(() => {
                                             <Spacer size={32} />
                                         </>}
 
-                                    {Store.purchasedTickets.map((t, index) => {
+                                    {Store.purchasedTickets.map(t => {
                                         return (
                                             <React.Fragment key={t.purchase_id}>
-                                                {index > 0 &&
-                                                    <Spacer size={24} />}
-                                                <Ticket name={t.attendeeInfo?.name} ticketType={t.attendeeInfo == null ? undefined : t.attendeeInfo?.age != null && t.attendeeInfo.age >= 16 ? 'adult' : 'child'} />
+                                                <Ticket name={t.attendeeInfo?.name} ticketType={t.attendeeInfo == null ? undefined : needsAdultTicket(t.attendeeInfo?.age) ? 'adult' : 'child'} />
+                                                <Spacer size={24} />
                                             </React.Fragment>
                                         )
                                     })}
 
-                                    {Store.purchasedTickets.length === 0
-                                        ? <Button isPrimary onClick={openPurchaseModal}>
-                                              Buy tickets
-                                          </Button>
-                                        : <Button isPrimary onClick={openPurchaseModal}>
-                                              Buy bus tickets or bedding
-                                          </Button>}
+                                    <Button isPrimary onClick={openTicketPurchaseModal}>
+                                        {Store.purchasedTickets.length === 0
+                                            ? 'Buy tickets'
+                                            : 'Buy more tickets or bus/bedding'}
+                                    </Button>
 
                                     <Spacer size={32} />
 
                                     <InviteCodes />
                                 </>
-                                : <InviteCodeEntryForm />}
+                                : <>
+                                    <InviteCodeEntryForm />
+
+                                    <Spacer size={48} />
+
+                                    <div>
+                                        {`Alternately, you can apply for
+                                        admission to the event. The team will
+                                        review your submission and may invite
+                                        you directly.`}
+                                    </div>
+
+                                    <Spacer size={24} />
+
+
+                                    <Button isPrimary disabled={alreadyApplied} onClick={openApplicationModal}>
+                                        {alreadyApplied
+                                            ? 'Your application is under review!'
+                                            : `Apply to ${Store.festival.state.result?.festival_name}`}
+                                    </Button>
+
+                                </>}
 
                             {Store.festival.state.result?.info_url &&
                                 <>
-                                    <Spacer size={24} />
+
+                                    <Spacer size={32} />
+                                    <hr />
+                                    <Spacer size={32} />
 
                                     <a
                                         className='button primary'
@@ -142,31 +165,64 @@ export default observer(() => {
                         </>
                         : null}
 
-            <Modal title='Ticket purchase' isOpen={WindowObservables.hashState?.purchaseModalState === 'selection' || WindowObservables.hashState?.purchaseModalState === 'payment'} onClose={closePurchaseModal}>
-                {() =>
-                    <MultiView
-                        views={[
-                            { name: 'selection', content: <SelectionView purchaseFormState={purchaseFormState} goToNext={goToPayment} /> },
-                            { name: 'payment', content: <StripePaymentForm stripeOptions={stripeOptions.state.result} purchases={purchaseFormState.purchases} onPrePurchase={purchaseFormState.createAttendees.load} onCompletePurchase={showTickets} /> }
-                        ]}
-                        currentView={WindowObservables.hashState?.purchaseModalState}
-                    />}
+            <Modal
+                title='Ticket purchase'
+                isOpen={WindowObservables.hashState?.ticketPurchaseModalState === 'selection' || WindowObservables.hashState?.ticketPurchaseModalState === 'payment'}
+                onClose={closeTicketPurchaseModal}
+            >
+                <MultiView
+                    views={[
+                        {
+                            name: 'selection', content:
+                                <SelectionView
+                                    purchaseFormState={ticketPurchaseFormState}
+                                    goToNext={goToTicketPayment}
+                                />
+                        },
+                        {
+                            name: 'payment', content:
+                                <StripePaymentForm
+                                    stripeOptions={stripeOptions.state.result}
+                                    purchases={ticketPurchaseFormState.purchases}
+                                    onPrePurchase={ticketPurchaseFormState.createAttendees.load}
+                                    onCompletePurchase={handlePurchaseCompletion}
+                                />
+                        }
+                    ]}
+                    currentView={WindowObservables.hashState?.ticketPurchaseModalState}
+                />
+            </Modal>
+
+            <Modal
+                title={`Apply to ${Store.festival.state.result?.festival_name}`}
+                isOpen={WindowObservables.hashState?.applicationModalOpen === true}
+                onClose={closeApplicationModal}
+            >
+                <Application onSuccess={handleApplicationSubmissionSuccess} />
             </Modal>
         </Col>
     )
 })
 
-const showTickets = () => {
-    Store.accountInfo.load()
-    WindowObservables.assignHashState({ currentView: 'Tickets', purchaseModalState: 'none' })
+const closeTicketPurchaseModal = () => {
+    WindowObservables.assignHashState({ ticketPurchaseModalState: 'none' })
+}
 
-    // HACK: When the purchase flow completes, the webhook will take an
-    // indeterminate amount of time to record the purchases. So, we wait a couple
-    // seconds before refreshing the list, which should usually be enough
-    setTimeout(() => {
-        Store.accountInfo.load()
-    }, 2000)
+const openTicketPurchaseModal = () => {
+    WindowObservables.assignHashState({ ticketPurchaseModalState: 'selection' })
+}
 
+const closeApplicationModal = () => {
+    WindowObservables.assignHashState({ applicationModalOpen: false })
+}
+
+const handleApplicationSubmissionSuccess = () => {
+    closeApplicationModal()
+    void Store.accountInfo.load()
+}
+
+const openApplicationModal = () => {
+    WindowObservables.assignHashState({ applicationModalOpen: true })
 }
 
 const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
@@ -190,87 +246,85 @@ const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
 }
 
 export class PurchaseFormState {
-    constructor() {
-        makeAutoObservable(this)
-    }
+    attendees: AttendeeInfo[] = [
+        { ...BLANK_ATTENDEE, is_primary_for_account: true }
+    ]
 
-    readonly primaryAttendee = new Form({
-        initialValues: {
-            ...BLANK_ATTENDEE,
-            is_primary_for_account: true,
-            has_clicked_waiver: false
-        },
-        validators: ATTENDEE_VALIDATORS
-    })
+    needsSleepingBags: boolean | undefined = undefined
+    needsPillow = false
+    needsBusTickets: Maybe<PurchaseType> = undefined
+    hasClickedWaiver = false
 
-    readonly additionalAttendees: Form<AttendeeInfo & { has_clicked_waiver?: boolean }>[] = []
-
-    readonly extraPurchasesForm = createExtraPurchasesForm()
-
-    get allAttendeeForms() {
-        return [
-            this.primaryAttendee,
-            ...this.additionalAttendees
-        ]
-    }
-
-    readonly handleWaiverClick = () => {
-        this.primaryAttendee.fields.has_clicked_waiver.value = true
-    }
-
-    readonly addAttendee = () => {
-        this.additionalAttendees.push(new Form({
-            initialValues: { ...BLANK_ATTENDEE, is_primary_for_account: false as boolean },
-            validators: ATTENDEE_VALIDATORS
-        }))
-    }
-
-    readonly activateAllValidation = () => {
-        this.allAttendeeForms.forEach(f => f.activateAllValidation())
-        this.extraPurchasesForm.activateAllValidation()
-    }
+    showingErrors = false
 
     get adultAttendees() {
-        return this.allAttendeeForms.filter(a => a.fields.age.value == null || a.fields.age.value >= 16)
+        return this.attendees.filter(a => needsAdultTicket(a.age))
+    }
+    get childAttendees() {
+        return this.attendees.filter(a => doesntNeedAdultTicket(a.age))
+    }
+    get numberOfAttendeesError() {
+        if (this.adultAttendees.length > 2) {
+            return 'Can only purchase two adult tickets per account'
+        }
+        if (this.childAttendees.length > 5) {
+            return 'Can only purchase five child tickets per account'
+        }
     }
 
-    get childAttendees() {
-        return this.allAttendeeForms.filter(a => a.fields.age.value != null && a.fields.age.value < 16)
+    get attendeeErrors() {
+        return this.attendees.map(getAttendeeErrors)
+    }
+    get needsSleepingBagsError() {
+        if (this.needsSleepingBags == null) {
+            return 'Please make a selection'
+        }
+    }
+    get needsBusTicketsError() {
+        if (this.needsBusTickets === undefined) {
+            return 'Please make a selection'
+        }
+    }
+    get hasClickedWaiverError() {
+        if (!this.hasClickedWaiver) {
+            return 'Campsite waivers must be filled out'
+        }
     }
 
     get isValid() {
-        return this.allAttendeeForms.every(a => a.isValid)
-            && this.extraPurchasesForm.isValid
-            && this.primaryAttendee.fields.has_clicked_waiver.value === true
-            && this.adultAttendees.length <= 2
-            && this.childAttendees.length <= 5
+        return this.attendeeErrors.every(errors => objectValues(errors).every(err => err == null))
+            && this.numberOfAttendeesError == null
+            && this.needsSleepingBagsError == null
+            && this.needsBusTicketsError == null
+            && this.hasClickedWaiverError == null
     }
-
-    get purchases() {
+    get purchases(): Purchases {
         const purchases: Purchases = {}
 
-        for (const attendee of this.allAttendeeForms) {
-            const ticketType = purchaseTypeFromAge(attendee.fields.age.value)
+        for (const attendee of this.attendees) {
+            const ticketType = purchaseTypeFromAge(attendee.age)
             if (ticketType) {
                 purchases[ticketType] = (purchases[ticketType] ?? 0) + 1
             }
         }
 
-        const {needsSleepingBags, needsPillow, needsBusTickets} = this.extraPurchasesForm.fieldValues
-
-        if (needsSleepingBags) {
-            purchases.SLEEPING_BAG_VIBECLIPSE_2024 = this.allAttendeeForms.length
+        if (this.needsSleepingBags) {
+            purchases.SLEEPING_BAG_VIBECLIPSE_2024 = this.attendees.length
         }
 
-        if (needsPillow) {
-            purchases.PILLOW_WITH_CASE_VIBECLIPSE_2024 = this.allAttendeeForms.length
+        if (this.needsPillow) {
+            purchases.PILLOW_WITH_CASE_VIBECLIPSE_2024 = this.attendees.length
         }
 
-        if (needsBusTickets) {
-            purchases[needsBusTickets] = this.allAttendeeForms.length
+        if (this.needsBusTickets) {
+            purchases[this.needsBusTickets] = this.attendees.length
         }
 
         return purchases
+    }
+
+    readonly addAttendee = () => {
+        this.attendees.push({ ...BLANK_ATTENDEE, is_primary_for_account: false })
     }
 
     readonly createAttendees = request(async () => {
@@ -278,81 +332,49 @@ export class PurchaseFormState {
             return
         }
 
-        await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', this.allAttendeeForms.map(f => {
-            const { has_clicked_waiver, ...values } = f.fieldValues
-            return values
-        }))
+        await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', this.attendees)
     }, { lazy: true })
 }
 
-const createExtraPurchasesForm = () => new Form({
-    initialValues: {
-        needsSleepingBags: undefined as boolean | undefined,
-        needsPillow: false,
-        needsBusTickets: undefined as PurchaseType | null | undefined
-    },
-    validators: {
-        needsSleepingBags: val => {
-            if (val == null) {
-                return 'Please make a selection'
-            }
-        },
-        needsBusTickets: val => {
-            if (val === undefined) {
-                return 'Please make a selection'
-            }
-        }
-    }
-})
+function getAttendeeErrors(attendee: AttendeeInfo): Partial<Record<keyof AttendeeInfo, string>> {
+    const errors: Partial<Record<keyof AttendeeInfo, string>> = {}
 
-const purchaseTypeFromAge = (age: number | null): PurchaseType | undefined => {
-    if (age == null) {
-        return 'ATTENDANCE_VIBECLIPSE_2024_OVER_16'
+    if (attendee.name === '') {
+        errors.name = 'Please enter a name'
     }
 
-    if (age < 2) {
-        return undefined
-    }
-    if (age < 5) {
-        return 'ATTENDANCE_VIBECLIPSE_2024_2_TO_5'
-    }
-    if (age < 10) {
-        return 'ATTENDANCE_VIBECLIPSE_2024_5_TO_10'
-    }
-    if (age < 16) {
-        return 'ATTENDANCE_VIBECLIPSE_2024_10_TO_16'
+    if (attendee.twitter_handle?.startsWith('@')) {
+        errors.twitter_handle = 'No @ needed, just the rest of the handle'
     }
 
-    return 'ATTENDANCE_VIBECLIPSE_2024_OVER_16'
+    if (attendee.age == null) {
+        errors.age = 'Please enter an age in years'
+    } else if (attendee.age < 0 || attendee.age > 150 || Math.floor(attendee.age) !== attendee.age) {
+        errors.age = 'Please enter a valid age in years'
+    } else if (attendee.age < 2) {
+        errors.age = 'Children under two get in free!'
+    }
+
+    return errors
 }
 
-const ATTENDEE_VALIDATORS: FormValidators<AttendeeInfo & { has_clicked_waiver?: boolean }> = {
-    name: val => {
-        if (val === '') {
-            return 'Please enter a name'
-        }
-    },
-    twitter_handle: val => {
-        if (val?.startsWith('@')) {
-            return 'No @ needed, just the rest of the handle'
-        }
-    },
-    age: val => {
-        if (val == null) {
-            return 'Please enter an age in years'
-        }
+const needsAdultTicket = (age: number | null) => age == null || age >= 16
+const doesntNeedAdultTicket = (age: number | null) => !needsAdultTicket(age)
 
-        if (val < 0 || val > 150 || Math.floor(val) !== val) {
-            return 'Please enter a valid age in years'
-        }
-
-        if (val < 2) {
-            return 'Children under two get in free!'
-        }
-    },
-    has_clicked_waiver: val => {
-        if (val != null && val === false) {
-            return 'Campsite waivers must be filled out'
-        }
+const purchaseTypeFromAge = (age: number | null): PurchaseType | undefined => {
+    if (needsAdultTicket(age)) {
+        return 'ATTENDANCE_VIBECLIPSE_2024_OVER_16'
+    }
+    if (age! < 2) {
+        return undefined
+    }
+    if (age! < 5) {
+        return 'ATTENDANCE_VIBECLIPSE_2024_2_TO_5'
+    }
+    if (age! < 10) {
+        return 'ATTENDANCE_VIBECLIPSE_2024_5_TO_10'
+    }
+    if (age! < 16) {
+        return 'ATTENDANCE_VIBECLIPSE_2024_10_TO_16'
     }
 }

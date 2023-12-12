@@ -7,47 +7,46 @@ import Col from '../core/Col'
 import ErrorMessage from '../core/ErrorMessage'
 import Input from '../core/Input'
 import Spacer from '../core/Spacer'
-import { useRequest, useStable } from '../../mobx/hooks'
-import { Form, fieldToProps } from '../../mobx/form'
+import { useObservableClass } from '../../mobx/hooks'
 import { getUuidValidationError } from '../../../../back-end/utils/validation'
 import Store from '../../Store'
 import { vibefetch } from '../../vibefetch'
+import { request } from '../../mobx/request'
 
 
 export default observer(() => {
-    const state = useStable(() => new Form({
-        initialValues: {
-            code: ''
-        },
-        validators: {
-            code: getUuidValidationError
-        }
-    }))
+    const state = useObservableClass(class {
+        code = ''
 
-    const submitInviteCode = useRequest(async () => {
-        if (!state.isValid) {
-            throw 'Invalid invite code'
+        get codeError() {
+            return getUuidValidationError(this.code)
         }
 
-        const { status } = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: state.fields.code.value })
+        readonly submitInviteCode = request(async () => {
+            if (this.codeError) {
+                return { fieldError: true }
+            }
 
-        if (status === 404) {
-            throw 'Invalid invite code'
-        }
+            const { status } = await vibefetch(Store.jwt, '/account/submit-invite-code', 'post', { invite_code: this.code })
 
-        if (status === 403) {
-            throw 'This invite code has already been used'
-        }
+            if (status === 404) {
+                return { submissionError: 'Invalid invite code' }
+            }
 
-        if (status !== 200) {
-            throw DEFAULT_FORM_ERROR
-        }
+            if (status === 403) {
+                return { submissionError: 'This invite code has already been used' }
+            }
 
-        await Store.accountInfo.load()
-    }, { lazy: true })
+            if (status !== 200) {
+                return { submissionError: DEFAULT_FORM_ERROR }
+            }
+
+            await Store.accountInfo.load()
+        }, { lazy: true })
+    })
 
     return (
-        <form onSubmit={preventingDefault(submitInviteCode.load)}>
+        <form onSubmit={preventingDefault(state.submitInviteCode.load)} noValidate>
             <Col>
                 <h2>
                     Welcome!
@@ -66,20 +65,20 @@ export default observer(() => {
                 <Input
                     label='Invite code'
                     placeholder='11111111-1111-1111-1111-111111111111'
-                    {...fieldToProps(state.fields.code)}
+                    value={state.code}
+                    onChange={setter(state, 'code')}
+                    error={state.submitInviteCode.state.result?.fieldError ? state.codeError : undefined}
                 />
 
-                <ErrorMessage
-                    error={submitInviteCode.state.kind === 'error' ? (
-                        typeof submitInviteCode.state.error === 'string'
-                            ? submitInviteCode.state.error
-                            : DEFAULT_FORM_ERROR
-                    ) : undefined}
-                />
+                <ErrorMessage error={
+                    state.submitInviteCode.state.kind === 'error'
+                        ? DEFAULT_FORM_ERROR
+                        : state.submitInviteCode.state.result?.submissionError
+                } />
 
                 <Spacer size={8} />
 
-                <Button isSubmit isPrimary isLoading={submitInviteCode.state.kind === 'loading'}>
+                <Button isSubmit isPrimary isLoading={state.submitInviteCode.state.kind === 'loading'}>
                     Use invite code
                 </Button>
             </Col>

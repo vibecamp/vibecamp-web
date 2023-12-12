@@ -71,7 +71,7 @@ const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ purchases
     return (
         !stripe || !elements
             ? <LoadingDots size={60} color='var(--color-accent-1)' />
-            : <form id="payment-form" onSubmit={preventingDefault(confirmPayment.load)}>
+            : <form id="payment-form" onSubmit={preventingDefault(confirmPayment.load)} noValidate>
                 <Col padding={20} pageLevel>
                     <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
 
