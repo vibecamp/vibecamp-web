@@ -184,7 +184,7 @@ const ACTIVE_TRANSACTION_NAMES = new Set<string>()
  * invite codes they should be given to pass out
  */
 export async function accountReferralStatus(
-  db: Pick<Transaction, 'queryObject'>,
+  db: DBClient,
   account_id: Tables['account']['account_id'],
   festival_id: Maybe<Tables['festival']['festival_id']>
 ): Promise<{ allowedToRefer: number, allowedToPurchase: boolean }> {
@@ -194,6 +194,27 @@ export async function accountReferralStatus(
     return none
   }
 
+  const account = (await db.queryTable('account', { where: ['account_id', '=', account_id] }))[0]
+
+  if (account == null) {
+    return none
+  }
+
+  if (account.is_seed_account) {
+    return {
+      allowedToRefer: REFERRAL_MAXES[0],
+      allowedToPurchase: true
+    }
+  }
+
+  if (account.is_authorized_to_buy_tickets) {
+    return {
+      allowedToRefer: 0,
+      allowedToPurchase: true
+    }
+  }
+
+  // invite code chain
   const chain = (await db.queryObject<
     & Pick<Tables['account'], 'account_id' | 'is_seed_account'>
     & Pick<Tables['invite_code'], 'created_by_account_id'>
