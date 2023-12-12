@@ -16,6 +16,7 @@ export type VibeJWTPayload = {
 export type FullAccountInfo =
     & Pick<Tables['account'], 'account_id' | 'email_address'>
     & {
+        application_status: 'unsubmitted' | 'pending' | 'accepted' | 'rejected',
         allowed_to_purchase: boolean,
         attendees: Array<Tables['attendee']>,
         purchases: Array<Tables['purchase']>,

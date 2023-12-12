@@ -1,6 +1,6 @@
 import { Router, Status } from 'oak'
 import { defineRoute, rateLimited } from './_common.ts'
-import { DBClient, accountReferralStatus, withDBConnection, withDBTransaction } from '../../utils/db.ts'
+import { DBClient, accountReferralStatus, withDBConnection, withDBTransaction, getApplicationStatus } from '../../utils/db.ts'
 import { Tables } from "../../types/db-types.ts"
 import { allPromises } from "../../utils/misc.ts"
 import { ONE_SECOND_MS } from '../../utils/constants.ts'
@@ -73,10 +73,13 @@ export default function register(router: Router) {
           inviteCodes = await withDBConnection(db => queryInviteCodes(db))
         }
 
+        const applicationStatus = await getApplicationStatus(account)
+
         return [
           {
             account_id: account.account_id,
             email_address: account.email_address,
+            application_status: applicationStatus,
             allowed_to_purchase: allowedToPurchase,
             attendees,
             purchases,

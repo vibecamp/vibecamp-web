@@ -7,6 +7,7 @@ import { TableName, Tables } from '../types/db-types.ts'
 import { Maybe } from "../types/misc.ts"
 import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
 import { WhereClause, queryTableQuery, insertTableQuery, updateTableQuery, deleteTableQuery } from './db-inner.ts'
+import { Routes } from '../types/route-types.ts'
 
 const url = new URL(env.DB_URL)
 
@@ -194,25 +195,7 @@ export async function accountReferralStatus(
     return none
   }
 
-  const account = (await db.queryTable('account', { where: ['account_id', '=', account_id] }))[0]
-
-  if (account == null) {
-    return none
-  }
-
-  if (account.is_seed_account) {
-    return {
-      allowedToRefer: REFERRAL_MAXES[0],
-      allowedToPurchase: true
-    }
-  }
-
-  if (account.is_authorized_to_buy_tickets) {
-    return {
-      allowedToRefer: 0,
-      allowedToPurchase: true
-    }
-  }
+  const account = (await db.queryTable('account', { where: ['account_id', '=', account_id] }))[0]!
 
   // invite code chain
   const chain = (await db.queryObject<
@@ -227,14 +210,35 @@ export async function accountReferralStatus(
     return none
   }
 
-  // nobody in the referral chain is a seed account
-  if (!chain.some((account) => account.is_seed_account)) {
-    return none
+  // somebody in the referral chain is a seed account
+  if (chain.some(account => account.is_seed_account)) {
+    const referralDistance = chain.length - 1
+    return {
+      allowedToRefer: REFERRAL_MAXES[referralDistance] ?? 0,
+      allowedToPurchase: true,
+    }
   }
 
-  const referralDistance = chain.length - 1
   return {
-    allowedToRefer: REFERRAL_MAXES[referralDistance] ?? 0,
-    allowedToPurchase: true,
+    allowedToRefer: 0,
+    allowedToPurchase:
+      account.is_authorized_to_buy_tickets ||
+      (await getApplicationStatus(account) === 'accepted')
   }
+}
+
+export async function getApplicationStatus(account: Tables['account']) {
+  const { application_id } = account
+
+  if (application_id != null) {
+    const application = (await withDBConnection(db => db.queryTable('application', { where: ['application_id', '=', application_id] })))[0]!
+
+    switch (application.is_accepted) {
+      case true: return 'accepted'
+      case false: return 'rejected'
+      case null: return 'pending'
+    }
+  }
+
+  return 'unsubmitted'
 }
