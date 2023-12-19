@@ -37,7 +37,7 @@ void (async function() {
     }
 
     const serviceWorkerOptions = {
-        entryPoints: ['src/sw.ts'],
+        entryPoints: ['src/sw.js'],
         outfile: 'out/sw.js',
         bundle: true,
         minify
