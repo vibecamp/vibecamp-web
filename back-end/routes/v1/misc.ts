@@ -10,7 +10,7 @@ export default function register(router: Router) {
         endpoint: '/festival-info',
         method: 'get',
         requireAuth: true,
-        handler: cached(3 * ONE_MINUTE_MS, async () => {
+        handler: async () => {
             const festival = await withDBConnection(async db =>
                 (await db.queryTable('next_festival'))[0] as Tables['festival'] | undefined)
 
@@ -23,6 +23,6 @@ export default function register(router: Router) {
                 start_date: festival.start_date.toISOString(),
                 end_date: festival.end_date.toISOString(),
             }, Status.OK]
-        })
+        }
     })
 }
