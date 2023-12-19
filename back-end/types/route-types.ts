@@ -63,14 +63,14 @@ export type Routes = {
     },
     '/event/save': {
         method: 'post',
-        body: { event: Omit<EventJson, 'created_by' | 'event_id'> & { event_id: Tables['event']['event_id'] | null } },
+        body: { event: Omit<EventJson, 'created_by_account_id' | 'event_id'> & { event_id: Tables['event']['event_id'] | null } },
         response: { event: EventJson }
     },
-    // '/event/delete': {
-    //     method: 'post',
-    //     body: unknown,
-    //     response: null
-    // },
+    '/event/delete': {
+        method: 'post',
+        body: { event_id: Tables['event']['event_id'] },
+        response: null
+    },
     '/event/bookmarks': {
         method: 'get',
         body: undefined,

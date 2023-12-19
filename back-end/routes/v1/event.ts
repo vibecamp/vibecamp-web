@@ -33,7 +33,7 @@ export default function register(router: Router) {
         return await withDBConnection(async db => {
           const existingEvent = (await db.queryTable('event', { where: ['event_id', '=', event_id] }))[0]
 
-          if (existingEvent?.created_by !== account_id) {
+          if (existingEvent?.created_by_account_id !== account_id) {
             return [null, Status.Unauthorized]
           }
 
@@ -44,7 +44,7 @@ export default function register(router: Router) {
       } else {
         const createdEvent = await withDBConnection(db => db.insertTable('event', {
           ...event,
-          created_by: account_id
+          created_by_account_id: account_id
         }))
 
         return [{ event: eventToJson(createdEvent!) }, Status.OK]
@@ -52,23 +52,25 @@ export default function register(router: Router) {
     },
   })
 
-  // defineRoute(router, {
-  //   endpoint: '/event/delete',
-  //   method: 'post',
-  //   requireAuth: true,
-  //   handler: async ({ ctx, jwt }) => {
-  //     // extract event ID from request
-  //     const { event_id } = await ctx.request.body({ type: 'json' }).value as {
-  //       event_id?: number
-  //     }
+  defineRoute(router, {
+    endpoint: '/event/delete',
+    method: 'post',
+    requireAuth: true,
+    handler: async ({ jwt: { account_id }, body: { event_id } }) => {
+      await withDBConnection(async db => {
+        const existingEvent = (await db.queryTable('event', { where: ['event_id', '=', event_id] }))[0]
 
-  //     // TODO: check that jwt user owns this event
+        if (existingEvent == null || existingEvent.created_by_account_id !== account_id) {
+          return [null, Status.Unauthorized]
+        }
 
-  //     // TODO: delete the event from the DB
+        await db.deleteTable('event_bookmark', [['event_id', '=', event_id]])
+        await db.deleteTable('event', [['event_id', '=', event_id]])
+      })
 
-  //     return [{}, Status.OK]
-  //   },
-  // })
+      return [null, Status.OK]
+    },
+  })
 
   defineRoute(router, {
     endpoint: '/event/bookmarks',

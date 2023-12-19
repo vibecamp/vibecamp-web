@@ -59,7 +59,7 @@ export type Tables = {
   },
   diet: (typeof TABLE_ROWS)['diet'][number]
   event: {
-    created_by: string | null,
+    created_by_account_id: Tables['account']['account_id'],
     description: string,
     end_datetime: Date | null,
     event_id: string,
