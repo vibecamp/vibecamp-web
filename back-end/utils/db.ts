@@ -7,7 +7,6 @@ import { TableName, Tables } from '../types/db-types.ts'
 import { Maybe } from "../types/misc.ts"
 import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
 import { WhereClause, queryTableQuery, insertTableQuery, updateTableQuery, deleteTableQuery } from './db-inner.ts'
-import { Routes } from '../types/route-types.ts'
 
 const url = new URL(env.DB_URL)
 
@@ -35,6 +34,8 @@ function handleShutdown() {
   } catch {
     console.log('connections had already been released')
   }
+
+  Deno.exit()
 }
 
 Deno.addSignalListener('SIGINT', handleShutdown)
