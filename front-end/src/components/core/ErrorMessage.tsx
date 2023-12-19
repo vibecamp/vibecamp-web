@@ -1,14 +1,15 @@
 import React from 'react'
-import { observer } from 'mobx-react-lite'
+
+import { observer } from '../../mobx/misc'
 
 type Props = {
     error: string | false | undefined
 }
 
-export default observer(({ error }: Props) => {
+export default observer((props: Props) => {
     return (
-        <div className={`error-message ${error ? 'visible' : ''}`}>
-            {error}
+        <div className={`error-message ${props.error ? 'visible' : ''}`}>
+            {props.error}
         </div>
     )
 })

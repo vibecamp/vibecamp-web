@@ -1,20 +1,22 @@
+import { useLocalObservable } from 'mobx-react-lite'
 import React, { FC } from 'react'
-import { observer } from 'mobx-react-lite'
-import Store from '../Store'
-import { preventingDefault } from '../utils'
-import Button from './core/Button'
-import Input from './core/Input'
-import Modal from './core/Modal'
-import Spacer from './core/Spacer'
-import Icon from './core/Icon'
+
 import { Tables } from '../../../back-end/types/db-types'
-import DateField from './core/DateField'
-import { useObservableState, useRequest, useStable } from '../mobx/hooks'
-import { Form, FormValidators, form, fieldToProps } from '../mobx/form'
-import LoadingDots from './core/LoadingDots'
-import Col from './core/Col'
-import Row from './core/Row'
+import { fieldToProps,Form, form, FormValidators } from '../mobx/form'
+import { useRequest, useStable } from '../mobx/hooks'
+import { observer } from '../mobx/misc'
+import Store from '../stores/Store'
+import { preventingDefault } from '../utils'
 import { vibefetch } from '../vibefetch'
+import Button from './core/Button'
+import Col from './core/Col'
+import DateField from './core/DateField'
+import Icon from './core/Icon'
+import Input from './core/Input'
+import LoadingDots from './core/LoadingDots'
+import Modal from './core/Modal'
+import Row from './core/Row'
+import Spacer from './core/Spacer'
 
 type InProgressEvent = {
     event_id: string | null,
@@ -26,9 +28,9 @@ type InProgressEvent = {
 }
 
 export default observer(() => {
-    const state = useObservableState({
+    const state = useLocalObservable(() => ({
         eventBeingEdited: null as Form<InProgressEvent> | null
-    })
+    }))
 
     const eventValidators: FormValidators<InProgressEvent> = {
         name: val => {
@@ -129,90 +131,90 @@ export default observer(() => {
                     <Event event={e} editEvent={editEvent} key={e.event_id} />)}
 
                 <Modal isOpen={state.eventBeingEdited != null} onClose={stopEditingEvent}>
-                    {state.eventBeingEdited && (
-                        <form onSubmit={preventingDefault(saveEvent.load)} noValidate>
-                            <Col padding={20} pageLevel>
-                                <Input
-                                    label='Event name'
-                                    disabled={saveEvent.state.kind === 'loading'}
-                                    {...fieldToProps(state.eventBeingEdited.fields.name)}
-                                />
+                    {() =>
+                        state.eventBeingEdited != null &&
+                            <form onSubmit={preventingDefault(saveEvent.load)} noValidate>
+                                <Col padding={20} pageLevel>
+                                    <Input
+                                        label='Event name'
+                                        disabled={saveEvent.state.kind === 'loading'}
+                                        {...fieldToProps(state.eventBeingEdited.fields.name)}
+                                    />
 
-                                <Spacer size={16} />
+                                    <Spacer size={16} />
 
-                                <Input
-                                    label='Event description'
-                                    disabled={saveEvent.state.kind === 'loading'}
-                                    multiline
-                                    {...fieldToProps(state.eventBeingEdited.fields.description)}
-                                />
+                                    <Input
+                                        label='Event description'
+                                        disabled={saveEvent.state.kind === 'loading'}
+                                        multiline
+                                        {...fieldToProps(state.eventBeingEdited.fields.description)}
+                                    />
 
-                                <Spacer size={16} />
+                                    <Spacer size={16} />
 
-                                <DateField
-                                    label='Start'
-                                    disabled={saveEvent.state.kind === 'loading'}
-                                    {...fieldToProps(state.eventBeingEdited.fields.start_datetime)}
-                                />
+                                    <DateField
+                                        label='Start'
+                                        disabled={saveEvent.state.kind === 'loading'}
+                                        {...fieldToProps(state.eventBeingEdited.fields.start_datetime)}
+                                    />
 
-                                <Spacer size={16} />
+                                    <Spacer size={16} />
 
-                                <DateField
-                                    label='End'
-                                    disabled={saveEvent.state.kind === 'loading'}
-                                    {...fieldToProps(state.eventBeingEdited.fields.end_datetime)}
-                                />
+                                    <DateField
+                                        label='End'
+                                        disabled={saveEvent.state.kind === 'loading'}
+                                        {...fieldToProps(state.eventBeingEdited.fields.end_datetime)}
+                                    />
 
-                                <Spacer size={16} />
+                                    <Spacer size={16} />
 
-                                <Input
-                                    label='Location'
-                                    disabled={saveEvent.state.kind === 'loading'}
-                                    {...fieldToProps(state.eventBeingEdited.fields.location)}
-                                    value={state.eventBeingEdited.fields.location.value ?? ''}
-                                />
+                                    <Input
+                                        label='Location'
+                                        disabled={saveEvent.state.kind === 'loading'}
+                                        {...fieldToProps(state.eventBeingEdited.fields.location)}
+                                        value={state.eventBeingEdited.fields.location.value ?? ''}
+                                    />
 
-                                <Spacer size={16} />
+                                    <Spacer size={16} />
 
-                                <Button isSubmit isPrimary isLoading={saveEvent.state.kind === 'loading'}>
-                                    {state.eventBeingEdited.fields.event_id.value == null
-                                        ? 'Create event'
-                                        : 'Save event'}
-                                </Button>
+                                    <Button isSubmit isPrimary isLoading={saveEvent.state.kind === 'loading'}>
+                                        {state.eventBeingEdited.fields.event_id.value == null
+                                            ? 'Create event'
+                                            : 'Save event'}
+                                    </Button>
 
-                                <Spacer size={8} />
+                                    <Spacer size={8} />
 
-                                <Button onClick={stopEditingEvent} disabled={saveEvent.state.kind === 'loading'}>
-                                Cancel
-                                </Button>
-                            </Col>
-                        </form>
-                    )}
+                                    <Button onClick={stopEditingEvent} disabled={saveEvent.state.kind === 'loading'}>
+                                        Cancel
+                                    </Button>
+                                </Col>
+                            </form>}
                 </Modal>
             </Col>
     )
 })
 
-const Event: FC<{ event: Tables['event'], editEvent: (eventId: string) => void }> = observer(({ event, editEvent }) => {
-    const bookmarked = Store.bookmarks.state.result?.event_ids.includes(event.event_id)
+const Event: FC<{ event: Tables['event'], editEvent: (eventId: string) => void }> = observer((props) => {
+    const bookmarked = Store.bookmarks.state.result?.event_ids.includes(props.event.event_id)
 
     const unbookmarkEvent = useRequest(async () => {
-        await vibefetch(Store.jwt, '/event/unbookmark', 'post', { event_id: event.event_id })
+        await vibefetch(Store.jwt, '/event/unbookmark', 'post', { event_id: props.event.event_id })
         await Store.bookmarks.load()
     }, { lazy: true })
 
     const bookmarkEvent = useRequest(async () => {
-        await vibefetch(Store.jwt, '/event/bookmark', 'post', { event_id: event.event_id })
+        await vibefetch(Store.jwt, '/event/bookmark', 'post', { event_id: props.event.event_id })
         await Store.bookmarks.load()
     }, { lazy: true })
 
     return (
-        <div className={'card' + ' ' + 'eventCard' + ' ' + (event.created_by === '-1' ? 'official' : '')}>
+        <div className={'card' + ' ' + 'eventCard' + ' ' + (props.event.created_by_account_id === '-1' ? 'official' : '')}>
             <div className='eventName'>
-                <div>{event.name}</div>
+                <div>{props.event.name}</div>
 
-                {event.created_by === Store.accountInfo.state.result?.account_id &&
-                    <Button onClick={() => editEvent(event.event_id)} style={{ width: 'auto' }}>
+                {props.event.created_by_account_id === Store.accountInfo.state.result?.account_id &&
+                    <Button onClick={() => props.editEvent(props.event.event_id)} style={{ width: 'auto' }}>
                         Edit
 
                         <Spacer size={8} />
@@ -232,14 +234,14 @@ const Event: FC<{ event: Tables['event'], editEvent: (eventId: string) => void }
 
             <div className='info'>
                 <Icon name='schedule' />
-                {event.start_datetime.toTimeString() + (event.end_datetime ? ` - ${event.end_datetime.toTimeString()}` : '')}
+                {props.event.start_datetime.toTimeString() + (props.event.end_datetime ? ` - ${props.event.end_datetime.toTimeString()}` : '')}
             </div>
 
             <Spacer size={4} />
 
             <div className='info'>
                 <Icon name='location_on' />
-                {event.location}
+                {props.event.location}
             </div>
 
             <Spacer size={4} />
@@ -247,14 +249,14 @@ const Event: FC<{ event: Tables['event'], editEvent: (eventId: string) => void }
             <div className='info'>
                 <Icon name='person' />
                 <span className='eventCreator'>
-                    {event.created_by}
+                    {props.event.created_by_account_id}
                 </span>
             </div>
 
             <Spacer size={8} />
 
             <pre>
-                {event.description}
+                {props.event.description}
             </pre>
         </div>
     )

@@ -1,17 +1,19 @@
-import React, { FC } from 'react'
 import { configure as configureMobx } from 'mobx'
-import { observer } from 'mobx-react-lite'
-import Login from './Login'
-import Store from '../Store'
-import Spacer from './core/Spacer'
-import Modal from './core/Modal'
-import { VIEWS_ARRAY } from '../views'
-import MultiView from './core/MultiView'
-import Stripes from './core/Stripes'
-import WindowObservables from '../mobx/WindowObservables'
-import { useAutorun } from '../mobx/hooks'
-import Icon from './core/Icon'
+import React, { FC } from 'react'
 
+import { useAutorun } from '../mobx/hooks'
+import { observer } from '../mobx/misc'
+import WindowObservables from '../mobx/WindowObservables'
+import Store from '../stores/Store'
+import { VIEWS_ARRAY } from '../views'
+import Icon from './core/Icon'
+import Modal from './core/Modal'
+import MultiView from './core/MultiView'
+import Spacer from './core/Spacer'
+import Stripes from './core/Stripes'
+import Login from './Login'
+
+// eslint-disable-next-line no-console
 console.log(Store)
 
 configureMobx({
@@ -43,7 +45,7 @@ export default observer(() => {
             <Nav />
 
             <Modal isOpen={!Store.loggedIn} side='left'>
-                <Login />
+                {() => <Login />}
             </Modal>
         </>
     )

@@ -1,7 +1,8 @@
 import React from 'react'
-import { observer } from 'mobx-react-lite'
-import { CommonFieldProps } from './_common'
+
 import { useStable } from '../../mobx/hooks'
+import { observer } from '../../mobx/misc'
+import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 
 type Props<T> = Omit<CommonFieldProps<T>, 'value'> & {
@@ -9,34 +10,34 @@ type Props<T> = Omit<CommonFieldProps<T>, 'value'> & {
     options: readonly { value: T, label: string }[]
 }
 
-function RadioGroup<T>({ label, value, onChange, disabled, error, onBlur, options }: Props<T>) {
+function RadioGroup<T>(props: Props<T>) {
 
     const changeHandlers = useStable(() => (value: T | typeof NULL) => () =>
         // @ts-expect-error null requires a workaround
-        onChange(value === NULL ? null : value))
+        props.onChange(value === NULL ? null : value))
 
     return (
-        <fieldset className={`radio-group ${disabled ? 'disabled' : ''}`}>
-            <legend>{label}</legend>
+        <fieldset className={`radio-group ${props.disabled ? 'disabled' : ''}`}>
+            <legend>{props.label}</legend>
 
-            {options.map((option, index) =>
+            {props.options.map((option, index) =>
                 <label key={index}>
                     <input
                         type="radio"
-                        name={label}
+                        name={props.label}
                         value={String(option.value)}
                         onChange={changeHandlers(option.value ?? NULL)}
-                        onBlur={onBlur}
-                        disabled={disabled}
-                        checked={value === option.value}
-                        aria-invalid={typeof error === 'string'}
-                        aria-errormessage={typeof error === 'string' ? error : undefined}
+                        onBlur={props.onBlur}
+                        disabled={props.disabled}
+                        checked={props.value === option.value}
+                        aria-invalid={typeof props.error === 'string'}
+                        aria-errormessage={typeof props.error === 'string' ? props.error : undefined}
                     />
 
                     {option.label}
                 </label>)}
 
-            <ErrorMessage error={error} />
+            <ErrorMessage error={props.error} />
         </fieldset>
     )
 }

@@ -1,7 +1,12 @@
 import React from 'react'
-import { observer } from 'mobx-react-lite'
 
-export default observer(({ size }: { size: number }) => {
+import { observer } from '../../mobx/misc'
 
-    return <div style={{ width: size, height: size, flexGrow: 0, flexShrink: 0 }} />
+type Props = {
+    size: number
+}
+
+export default observer((props: Props) => {
+
+    return <div style={{ width: props.size, height: props.size, flexGrow: 0, flexShrink: 0 }} />
 })

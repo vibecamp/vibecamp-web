@@ -13,15 +13,15 @@ export async function allPromises<
   ) as { [key in keyof TPromises]: Awaited<TPromises[key]> }
 }
 
-export function objectKeys<TObject extends Record<string | number | symbol, unknown>>(obj: TObject): Array<keyof TObject> {
-  return Object.keys(obj)
+export function objectKeys<TObject extends object>(obj: TObject): Array<keyof TObject> {
+  return Object.keys(obj) as Array<keyof TObject>
 }
 
-export function objectValues<TObject extends Record<string | number | symbol, unknown>>(obj: TObject): Array<TObject[keyof TObject]> {
+export function objectValues<TObject extends object>(obj: TObject): Array<TObject[keyof TObject]> {
   return Object.values(obj) as Array<TObject[keyof TObject]>
 }
 
-export function objectEntries<TObject extends Record<string | number | symbol, unknown>>(obj: TObject): Array<[keyof TObject, TObject[keyof TObject]]> {
+export function objectEntries<TObject extends object>(obj: TObject): Array<[keyof TObject, TObject[keyof TObject]]> {
   return Object.entries(obj) as Array<[keyof TObject, TObject[keyof TObject]]>
 }
 

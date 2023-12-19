@@ -1,6 +1,8 @@
-import React, { useState, useCallback } from 'react'
-import { observer } from 'mobx-react-lite'
+import React from 'react'
+
 import { Maybe } from '../../../../back-end/types/misc'
+import { useObservableClass } from '../../mobx/hooks'
+import { observer } from '../../mobx/misc'
 import Icon from '../core/Icon'
 
 type Props = {
@@ -8,31 +10,32 @@ type Props = {
     usedBy: Maybe<string>
 }
 
-export default observer(({ code, usedBy }: Props) => {
-    const [copied, setCopied] = useState(false)
+export default observer((props: Props) => {
+    const state = useObservableClass(class {
+        copied = false
 
-    const copy = useCallback(async () => {
-        await navigator.clipboard.writeText(code)
-        setCopied(true)
-    }, [code])
+        readonly copy = async () => {
+            await navigator.clipboard.writeText(props.code)
+            this.copied = true
+        }
+    })
 
     return (
-        <div className={'invite-code' + ' ' + (usedBy != null ? 'used' : '')}>
+        <div className={'invite-code' + ' ' + (props.usedBy != null ? 'used' : '')}>
             <div className='code-widget'>
                 <div className='code'>
-                    {code}
+                    {props.code}
                 </div>
 
-                <button onClick={copy}>
-                    {copied
+                <button onClick={state.copy}>
+                    {state.copied
                         ? <Icon name='check' />
                         : <Icon name='content_copy' />}
                 </button>
             </div>
 
-
             <div className='used-by'>
-                {usedBy != null && `Used by ${usedBy}`}
+                {props.usedBy != null && `Used by ${props.usedBy}`}
             </div>
         </div>
     )

@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import React, { ChangeEvent } from 'react'
-import { observer } from 'mobx-react-lite'
-import { CommonFieldProps } from './_common'
+
 import { useStable } from '../../mobx/hooks'
+import { observer } from '../../mobx/misc'
+import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 
 type Props = CommonFieldProps<Date | null>
 
-export default observer(({ label, value, onChange, error, onBlur, disabled }: Props) => {
+export default observer((props: Props) => {
     const handleChange = useStable(() => (e: ChangeEvent<HTMLInputElement>) => {
         try {
             const date = new Date(e.target.value)
 
             if (!isNaN(date as any)) {
-                onChange(date)
+                props.onChange(date)
             }
         } catch {
         }
@@ -21,18 +22,18 @@ export default observer(({ label, value, onChange, error, onBlur, disabled }: Pr
 
     return (
 
-        <label className={'date-field' + ' ' + (disabled ? 'disabled' : '')}>
-            <div className='label'>{label}</div>
+        <label className={'date-field' + ' ' + (props.disabled ? 'disabled' : '')}>
+            <div className='label'>{props.label}</div>
 
             <input
                 type='datetime-local'
-                defaultValue={value?.toISOString() ?? ''}
+                defaultValue={props.value?.toISOString() ?? ''}
                 onChange={handleChange}
-                disabled={disabled}
-                onBlur={onBlur}
+                disabled={props.disabled}
+                onBlur={props.onBlur}
             />
 
-            <ErrorMessage error={error} />
+            <ErrorMessage error={props.error} />
         </label>
     )
 })

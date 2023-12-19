@@ -1,18 +1,18 @@
 import React from 'react'
-import { observer } from 'mobx-react-lite'
-import Spacer from './core/Spacer'
-import Input from './core/Input'
-import Button from './core/Button'
-import Store from '../Store'
+
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/utils/validation'
-import Stripes from './core/Stripes'
-import { vibefetch } from '../vibefetch'
-import { DEFAULT_FORM_ERROR, preventingDefault } from '../utils'
 import { useObservableClass } from '../mobx/hooks'
+import { observer, setter } from '../mobx/misc'
+import { request } from '../mobx/request'
+import Store from '../stores/Store'
+import { DEFAULT_FORM_ERROR, preventingDefault } from '../utils'
+import { vibefetch } from '../vibefetch'
+import Button from './core/Button'
 import Col from './core/Col'
 import ErrorMessage from './core/ErrorMessage'
-import { request } from '../mobx/request'
-import { setter } from '../mobx/misc'
+import Input from './core/Input'
+import Spacer from './core/Spacer'
+import Stripes from './core/Stripes'
 
 export default observer(() => {
     const state = useObservableClass(class {
@@ -78,8 +78,6 @@ export default observer(() => {
             : submissionState.result?.submissionError
     )
 
-    console.log({ ...submissionState })
-
     return (
         <form className='login' onSubmit={preventingDefault(state.loginOrSignup.load)} noValidate>
             <Col padding={20}>
@@ -130,7 +128,6 @@ export default observer(() => {
                 <ErrorMessage error={submissionError} />
 
                 <Spacer size={24} />
-
 
                 <Button isSubmit isPrimary isLoading={loading}>
                     {state.mode === 'login'

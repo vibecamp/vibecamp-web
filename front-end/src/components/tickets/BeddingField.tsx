@@ -1,48 +1,47 @@
-import React, { useMemo } from 'react'
-import { observer } from 'mobx-react-lite'
-import { CommonFieldProps } from '../core/_common'
+import React from 'react'
+
 import { PURCHASE_TYPES_BY_TYPE } from '../../../../back-end/types/misc'
+import { useObservableClass } from '../../mobx/hooks'
+import { observer, setter } from '../../mobx/misc'
+import { PurchaseForm } from '../../stores/PurchaseForm'
+import Store from '../../stores/Store'
 import Checkbox from '../core/Checkbox'
 import InfoBlurb from '../core/InfoBlurb'
 import RadioGroup from '../core/RadioGroup'
 import Spacer from '../core/Spacer'
 
-type Props = Pick<CommonFieldProps<boolean | undefined>, 'value' | 'onChange' | 'error'> & {
-    needsPillow: boolean,
-    onNeedsPillowChange: CommonFieldProps<boolean>['onChange'],
-    attendeeCount: number,
-    showMessage?: boolean,
-}
-
-export default observer(({ value, onChange, error, showMessage, needsPillow, onNeedsPillowChange, attendeeCount }: Props) => {
-    console.log({ attendeeCount })
-    const options = useMemo(() => [
-        {
-            value: true,
-            label: `Yes, I would like to purchase ${attendeeCount === 1 ? 'a sleeping bag' : `${attendeeCount} sleeping bags`} ($${PURCHASE_TYPES_BY_TYPE.SLEEPING_BAG_VIBECLIPSE_2024.price_in_cents / 100} each)`
-        },
-        {
-            value: false,
-            label: `No, ${attendeeCount === 1 ? 'I' : 'we'} will be bringing ${attendeeCount === 1 ? 'my' : 'our'} own bedding`
-        },
-    ], [attendeeCount])
+export default observer((props: { purchaseForm: PurchaseForm }) => {
+    const state = useObservableClass(class {
+        get options() {
+            return [
+                {
+                    value: true,
+                    label: `Yes, I would like to purchase ${props.purchaseForm.sleepingBagsToBuy === 1 ? 'a sleeping bag' : `${props.purchaseForm.sleepingBagsToBuy} sleeping bags`} ($${PURCHASE_TYPES_BY_TYPE.SLEEPING_BAG_VIBECLIPSE_2024.price_in_cents / 100} each)`
+                },
+                {
+                    value: false,
+                    label: `No, ${props.purchaseForm.attendees.length === 1 ? 'I' : 'we'} will be bringing ${props.purchaseForm.attendees.length === 1 ? 'my' : 'our'} own bedding`
+                },
+            ]
+        }
+    })
 
     return (
         <>
             <RadioGroup
-                value={value}
-                onChange={onChange}
-                options={options}
-                error={error}
+                value={props.purchaseForm.needsSleepingBags}
+                onChange={setter(props.purchaseForm, 'needsSleepingBags')}
+                options={state.options}
+                error={props.purchaseForm.showingErrors && props.purchaseForm.needsSleepingBagsError}
             />
 
             <Spacer size={16} />
 
-            <Checkbox value={needsPillow} onChange={onNeedsPillowChange}>
-                    I would like {attendeeCount === 1 ? 'a pillow' : `${attendeeCount} pillows`} (${PURCHASE_TYPES_BY_TYPE.PILLOW_WITH_CASE_VIBECLIPSE_2024.price_in_cents / 100} each)
+            <Checkbox value={props.purchaseForm.needsPillow} onChange={setter(props.purchaseForm, 'needsPillow')}>
+                I would like {props.purchaseForm.pillowsToBuy === 1 ? 'a pillow' : `${props.purchaseForm.pillowsToBuy} pillows`} (${PURCHASE_TYPES_BY_TYPE.PILLOW_WITH_CASE_VIBECLIPSE_2024.price_in_cents / 100} each)
             </Checkbox>
 
-            {showMessage &&
+            {Store.purchasedTickets.length === 0 &&
                 <>
                     <Spacer size={16} />
 

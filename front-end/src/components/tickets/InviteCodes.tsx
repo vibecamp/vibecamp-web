@@ -1,6 +1,7 @@
 import React from 'react'
-import { observer } from 'mobx-react-lite'
-import Store from '../../Store'
+
+import { observer } from '../../mobx/misc'
+import Store from '../../stores/Store'
 import InfoBlurb from '../core/InfoBlurb'
 import Spacer from '../core/Spacer'
 import InviteCode from './InviteCode'

@@ -1,10 +1,11 @@
-import { autorun, makeAutoObservable } from 'mobx'
 import jwtDecode from 'jwt-decode'
+import { autorun, makeAutoObservable } from 'mobx'
 
-import { VibeJWTPayload } from '../../back-end/types/misc'
-import { given, jsonParse } from './utils'
-import { vibefetch } from './vibefetch'
-import { request } from './mobx/request'
+import { VibeJWTPayload } from '../../../back-end/types/misc'
+import { BUS_TICKET_PURCHASE_TYPES } from '../components/tickets/BusTicketsField'
+import { request } from '../mobx/request'
+import { given, jsonParse } from '../utils'
+import { vibefetch } from '../vibefetch'
 
 const JWT_KEY = 'jwt'
 
@@ -88,6 +89,18 @@ class Store {
         } else {
             return []
         }
+    }
+
+    get purchasedBusTickets() {
+        return this.accountInfo.state.result?.purchases.filter(p => BUS_TICKET_PURCHASE_TYPES.includes(p.purchase_type_id as any))
+    }
+
+    get purchasedSleepingBags() {
+        return this.accountInfo.state.result?.purchases.filter(p => p.purchase_type_id === 'SLEEPING_BAG_VIBECLIPSE_2024')
+    }
+
+    get purchasedPillows() {
+        return this.accountInfo.state.result?.purchases.filter(p => p.purchase_type_id === 'PILLOW_WITH_CASE_VIBECLIPSE_2024')
     }
 
     /// Events

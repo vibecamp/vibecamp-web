@@ -1,5 +1,6 @@
 import React, { CSSProperties, ReactNode } from 'react'
-import { observer } from 'mobx-react-lite'
+
+import { observer } from '../../mobx/misc'
 
 type Props<TView> = {
     views: readonly { readonly name: TView, readonly content: ReactNode }[],

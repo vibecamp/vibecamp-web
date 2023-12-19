@@ -1,24 +1,24 @@
 import React from 'react'
-import { observer } from 'mobx-react-lite'
+
 import { useObservableClass } from '../mobx/hooks'
-import Col from './core/Col'
-import { DEFAULT_FORM_ERROR, preventingDefault } from '../utils'
+import { observer, setter } from '../mobx/misc'
 import { request } from '../mobx/request'
-import { setter } from '../mobx/misc'
-import Input from './core/Input'
+import Store from '../stores/Store'
+import { DEFAULT_FORM_ERROR, preventingDefault } from '../utils'
 import { vibefetch } from '../vibefetch'
-import Store from '../Store'
 import Button from './core/Button'
-import ErrorMessage from './core/ErrorMessage'
-import Spacer from './core/Spacer'
-import RadioGroup from './core/RadioGroup'
 import Checkbox from './core/Checkbox'
+import Col from './core/Col'
+import ErrorMessage from './core/ErrorMessage'
+import Input from './core/Input'
+import RadioGroup from './core/RadioGroup'
+import Spacer from './core/Spacer'
 
 type Props = {
     onSuccess: () => void
 }
 
-export default observer(({ onSuccess }: Props) => {
+export default observer((props: Props) => {
     const state = useObservableClass(class {
 
         showingErrors = false
@@ -119,7 +119,7 @@ export default observer(({ onSuccess }: Props) => {
             })
 
             if (status === 200) {
-                onSuccess()
+                props.onSuccess()
             }
         }, { lazy: true })
     })
@@ -272,30 +272,29 @@ export default observer(({ onSuccess }: Props) => {
     )
 })
 
-const CheckboxSet = observer(({ label, set, options, maxItems }: { label: string, set: Set<string>, options: readonly string[], maxItems?: number }) => {
-
+const CheckboxSet = observer((props: { label: string, set: Set<string>, options: readonly string[], maxItems?: number }) => {
     return (
         <>
             <div>
-                {label}
+                {props.label}
             </div>
 
-            {options.map(option =>
+            {props.options.map(option =>
                 <React.Fragment key={option}>
                     <Spacer size={8} />
                     <Checkbox
-                        value={set.has(option)}
+                        value={props.set.has(option)}
                         onChange={checked => {
                             if (checked) {
-                                set.add(option)
+                                props.set.add(option)
                             } else {
-                                set.delete(option)
+                                props.set.delete(option)
                             }
                         }}
                         disabled={
-                            !set.has(option) &&
-                            maxItems != null &&
-                            set.size >= maxItems
+                            !props.set.has(option) &&
+                            props.maxItems != null &&
+                            props.set.size >= props.maxItems
                         }
                     >
                         {option}

@@ -1,5 +1,6 @@
 import React, { CSSProperties } from 'react'
-import { observer } from 'mobx-react-lite'
+
+import { observer } from '../../mobx/misc'
 
 type Props = {
     name: MaterialIconName,
@@ -30,12 +31,12 @@ type MaterialIconName =
     | 'star'
     | 'star_filled'
 
-export default observer(({ name: _name, style }: Props) => {
-    const name = _name.endsWith('_filled') ? _name.substring(0, _name.length - '_filled'.length) : _name
-    const groupStyle = _name.endsWith('_filled') ? FILLED_STYLE : undefined
+export default observer((props: Props) => {
+    const name = props.name.endsWith('_filled') ? props.name.substring(0, props.name.length - '_filled'.length) : props.name
+    const groupStyle = props.name.endsWith('_filled') ? FILLED_STYLE : undefined
 
     return (
-        <span className="material-symbols-outlined" style={{ ...groupStyle, ...style }}>
+        <span className="material-symbols-outlined" style={{ ...groupStyle, ...props.style }}>
             {name}
         </span>
     )

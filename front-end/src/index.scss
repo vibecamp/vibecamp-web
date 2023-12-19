@@ -224,4 +224,12 @@ iframe {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
+
+    > * {
+        overflow: hidden;
+    }
+
+    > :nth-child(2) {
+        flex-shrink: 0;
+    }
 }

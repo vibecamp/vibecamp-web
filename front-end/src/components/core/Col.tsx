@@ -1,5 +1,6 @@
 import React, { CSSProperties } from 'react'
-import { observer } from 'mobx-react-lite'
+
+import { observer } from '../../mobx/misc'
 
 type Props = {
     align?: 'start' | 'center' | 'end' | 'stretch',
@@ -9,10 +10,13 @@ type Props = {
     children: React.ReactNode
 }
 
-export default observer<Props>(({ align, justify, padding, pageLevel, children }) => {
+export default observer((props: Props) => {
     return (
-        <div className={`col ${pageLevel ? 'page-level' : ''}`} style={{ alignItems: align, justifyContent: justify, padding }}>
-            {children}
+        <div
+            className={`col ${props.pageLevel ? 'page-level' : ''}`}
+            style={{ alignItems: props.align, justifyContent: props.justify, padding: props.padding }}
+        >
+            {props.children}
         </div>
     )
 })

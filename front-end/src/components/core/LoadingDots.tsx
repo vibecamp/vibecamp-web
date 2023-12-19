@@ -1,14 +1,15 @@
 import React, { CSSProperties } from 'react'
-import { observer } from 'mobx-react-lite'
+
+import { observer } from '../../mobx/misc'
 
 type Props = {
     size: number,
     color: string
 }
 
-export default observer(({ size, color }: Props) => {
+export default observer((props: Props) => {
     return (
-        <div className="loading-dots" style={{ '--size': size + 'px', '--dot-color': color } as CSSProperties}>
+        <div className="loading-dots" style={{ '--size': props.size + 'px', '--dot-color': props.color } as CSSProperties}>
             <div className='spinner'>
                 <div></div>
                 <div></div>

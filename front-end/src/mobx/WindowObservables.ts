@@ -1,4 +1,5 @@
 import { makeAutoObservable } from 'mobx'
+
 import { jsonParse } from '../utils'
 
 class _WindowObservables {
@@ -9,7 +10,6 @@ class _WindowObservables {
             this._width = window.innerWidth
             this._height = window.innerHeight
         })
-
 
         window.addEventListener('hashchange', () => {
             this._hash = window.location.hash
@@ -55,11 +55,11 @@ class _WindowObservables {
     }
 }
 
-type HashState = Readonly<Record<string, string | number | boolean | null>> & {
+type HashState = Readonly<{
     currentView?: string | number | boolean | null,
     ticketPurchaseModalState?: string | number | boolean | null,
     applicationModalOpen?: string | number | boolean | null,
-}
+}>
 
 const WindowObservables = new _WindowObservables()
 export default WindowObservables

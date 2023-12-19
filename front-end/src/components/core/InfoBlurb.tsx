@@ -1,14 +1,15 @@
 import React from 'react'
-import { observer } from 'mobx-react-lite'
+
+import { observer } from '../../mobx/misc'
 
 type Props = {
     children: React.ReactNode
 }
 
-export default observer(({ children }: Props) => {
+export default observer((props: Props) => {
     return (
         <div className="info-blurb">
-            {children}
+            {props.children}
         </div>
     )
 })

@@ -1,4 +1,4 @@
-import { IReactionDisposer, observable, autorun } from 'mobx'
+import { autorun, IReactionDisposer, observable } from 'mobx'
 
 export type RequestObservable<T> = {
     state: RequestState<T>

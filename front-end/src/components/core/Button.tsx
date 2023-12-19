@@ -1,7 +1,8 @@
 import React, { CSSProperties } from 'react'
-import { observer } from 'mobx-react-lite'
-import LoadingDots from './LoadingDots'
+
+import { observer } from '../../mobx/misc'
 import { CommonFieldProps } from './_common'
+import LoadingDots from './LoadingDots'
 
 type Props = Pick<CommonFieldProps<never>, 'disabled'> & {
     onClick?: () => void,
@@ -13,19 +14,19 @@ type Props = Pick<CommonFieldProps<never>, 'disabled'> & {
     style?: CSSProperties
 }
 
-export default observer(({ onClick, isSubmit, isPrimary, isDanger, disabled, isLoading, children, style }: Props) => {
+export default observer((props: Props) => {
 
     return (
         <button
-            className={'button' + ' ' + (isPrimary ? 'primary' : '') + ' ' + (isDanger ? 'danger' : '')}
-            style={style}
-            type={isSubmit ? 'submit' : 'button'}
-            disabled={disabled || isLoading}
-            onClick={onClick}
+            className={'button' + ' ' + (props.isPrimary ? 'primary' : '') + ' ' + (props.isDanger ? 'danger' : '')}
+            style={props.style}
+            type={props.isSubmit ? 'submit' : 'button'}
+            disabled={props.disabled || props.isLoading}
+            onClick={props.onClick}
         >
-            {isLoading
-                ? <LoadingDots size={18} color={isPrimary || isDanger ? 'rgb(255, 255, 255)' : 'var(--color-primary)'} />
-                : children}
+            {props.isLoading
+                ? <LoadingDots size={18} color={props.isPrimary || props.isDanger ? 'rgb(255, 255, 255)' : 'var(--color-primary)'} />
+                : props.children}
 
         </button>
     )

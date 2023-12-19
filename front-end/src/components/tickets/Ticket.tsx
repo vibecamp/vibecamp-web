@@ -1,6 +1,6 @@
 import React from 'react'
-import { observer } from 'mobx-react-lite'
-import { QRCodeSVG } from 'qrcode.react'
+
+import { observer } from '../../mobx/misc'
 
 type Props = {
     name: string | undefined,
@@ -18,7 +18,7 @@ const TYPE_FONT_SIZE = 18
 
 const FOREGROUND_OPACITY = 1.0
 
-export default observer(({ name, ticketType }: Props) => {
+export default observer((props: Props) => {
 
     return (
         <div style={{ width: '100%', position: 'relative', overflow: 'hidden' }}>
@@ -53,7 +53,7 @@ export default observer(({ name, ticketType }: Props) => {
 
                     <pattern id="swirlpattern" x="0" y="0" width="1" height="1"
                         viewBox="0 0 1024 576" preserveAspectRatio="xMidYMid slice">
-                        <image width="1024" height="576" xlinkHref={ticketType === 'adult' || ticketType == null ? '/swirl1.png' : '/swirl2.png'} />
+                        <image width="1024" height="576" xlinkHref={props.ticketType === 'adult' || props.ticketType == null ? '/swirl1.png' : '/swirl2.png'} />
                     </pattern>
                 </defs>
 
@@ -64,10 +64,10 @@ export default observer(({ name, ticketType }: Props) => {
 
                 <g transform={`translate(${TICKET_WIDTH * 0.1}, ${TICKET_HEIGHT * 0.5})`} filter="url(#glow)">
                     <text x={0} y={0} style={{ fontWeight: 'bold', fontSize: NAME_FONT_SIZE }} opacity={FOREGROUND_OPACITY}>
-                        {name}
+                        {props.name}
                     </text>
                     <text x={0} y={NAME_FONT_SIZE} style={{ fontSize: TYPE_FONT_SIZE }} opacity={FOREGROUND_OPACITY}>
-                        {ticketType == null ? '' : ticketType === 'adult' ? 'adult ticket' : 'child ticket'}
+                        {props.ticketType == null ? '' : props.ticketType === 'adult' ? 'adult ticket' : 'child ticket'}
                     </text>
                 </g>
             </svg>

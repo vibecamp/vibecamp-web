@@ -1,17 +1,18 @@
-import { useStripe, useElements, PaymentElement, Elements } from '@stripe/react-stripe-js'
-import { observer } from 'mobx-react-lite'
+import { Elements,PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
+import { loadStripe,StripeElementsOptions } from '@stripe/stripe-js'
 import React, { FC } from 'react'
-import Button from './Button'
-import Col from './Col'
-import LoadingDots from './LoadingDots'
-import Spacer from './Spacer'
-import { StripeElementsOptions, loadStripe } from '@stripe/stripe-js'
+
+import { Purchases } from '../../../../back-end/types/route-types'
 import env from '../../env'
-import { useRequestWithDependencies } from '../../mobx/hooks'
+import { useRequest, useValuesObservable } from '../../mobx/hooks'
+import { observer } from '../../mobx/misc'
 import { preventingDefault } from '../../utils'
 import PriceBreakdown from '../tickets/PriceBreakdown'
-import { Purchases } from '../../../../back-end/types/route-types'
+import Button from './Button'
+import Col from './Col'
 import ErrorMessage from './ErrorMessage'
+import LoadingDots from './LoadingDots'
+import Spacer from './Spacer'
 
 const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 
@@ -19,7 +20,7 @@ type Props = {
     stripeOptions: StripeElementsOptions | undefined,
     purchases?: Purchases,
     onPrePurchase?: () => Promise<void> | void,
-    onCompletePurchase?: () => void,
+    onCompletePurchase?: () => Promise<void> | void,
 }
 
 export default observer(({ stripeOptions, ...otherProps }: Props) => {
@@ -34,20 +35,22 @@ export default observer(({ stripeOptions, ...otherProps }: Props) => {
     )
 })
 
-const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ purchases, onPrePurchase, onCompletePurchase }) => {
-    const stripe = useStripe()
-    const elements = useElements()
+const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(props => {
+    const stripeStuff = useValuesObservable({
+        stripe: useStripe(),
+        elements: useElements()
+    })
 
-    const confirmPayment = useRequestWithDependencies(async () => {
-        if (!stripe || !elements) {
+    const confirmPayment = useRequest(async () => {
+        if (!stripeStuff.stripe || !stripeStuff.elements) {
             console.error('Stripe not initialized yet')
             return
         }
 
-        await onPrePurchase?.()
+        await props.onPrePurchase?.()
 
-        const { error } = await stripe.confirmPayment({
-            elements,
+        const { error } = await stripeStuff.stripe.confirmPayment({
+            elements: stripeStuff.elements,
             confirmParams: {
                 return_url: location.origin,
             },
@@ -64,22 +67,22 @@ const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(({ purchases
         } else if (error != null) {
             return 'An unexpected error occurred.'
         } else {
-            onCompletePurchase?.()
+            await props.onCompletePurchase?.()
         }
-    }, [stripe, elements, onPrePurchase, onCompletePurchase], { lazy: true })
+    }, { lazy: true })
 
     return (
-        !stripe || !elements
+        !stripeStuff.stripe || !stripeStuff.elements
             ? <LoadingDots size={60} color='var(--color-accent-1)' />
             : <form id="payment-form" onSubmit={preventingDefault(confirmPayment.load)} noValidate>
                 <Col padding={20} pageLevel>
                     <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
 
-                    {purchases &&
+                    {props.purchases &&
                         <>
                             <Spacer size={16} />
 
-                            <PriceBreakdown purchases={purchases} />
+                            <PriceBreakdown purchases={props.purchases} />
                         </>}
 
                     <Spacer size={16} />

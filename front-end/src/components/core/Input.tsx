@@ -1,5 +1,7 @@
-import React, { ChangeEvent, HTMLInputTypeAttribute, useCallback, useRef } from 'react'
-import { observer } from 'mobx-react-lite'
+import React, { ChangeEvent, HTMLInputTypeAttribute, useRef } from 'react'
+
+import { useStable } from '../../mobx/hooks'
+import { observer } from '../../mobx/misc'
 import { given } from '../../utils'
 import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
@@ -11,29 +13,29 @@ type Props = CommonFieldProps<string> & {
     autocomplete?: 'new-password' | 'current-password'
 }
 
-export default observer(({ label, placeholder, type, disabled, value, onChange, onBlur, error, multiline, autocomplete }: Props) => {
-    const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        onChange(e.target.value)
-    }, [onChange])
+export default observer((props: Props) => {
+    const handleChange = useStable(() => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        props.onChange(e.target.value)
+    })
 
     const textarea = useRef<HTMLTextAreaElement | null>(null)
     const textareaHeight = given(textarea.current?.scrollHeight, scrollHeight => scrollHeight + 2) ?? undefined
 
     const sharedProps = {
-        value,
+        value: props.value,
         onChange: handleChange,
-        onBlur,
-        disabled,
-        placeholder,
-        'aria-invalid': typeof error === 'string',
-        'aria-errormessage': typeof error === 'string' ? error : undefined
+        onBlur: props.onBlur,
+        disabled: props.disabled,
+        placeholder: props.placeholder,
+        'aria-invalid': typeof props.error === 'string',
+        'aria-errormessage': typeof props.error === 'string' ? props.error : undefined
     }
 
     return (
-        <label className={'input' + ' ' + (disabled ? 'disabled' : '')}>
-            <div className='label'>{label}</div>
+        <label className={'input' + ' ' + (props.disabled ? 'disabled' : '')}>
+            <div className='label'>{props.label}</div>
 
-            {multiline
+            {props.multiline
                 ? <textarea
                     {...sharedProps}
                     style={{ height: textareaHeight }}
@@ -41,11 +43,11 @@ export default observer(({ label, placeholder, type, disabled, value, onChange, 
                 />
                 : <input
                     {...sharedProps}
-                    type={type}
-                    autoComplete={autocomplete}
+                    type={props.type}
+                    autoComplete={props.autocomplete}
                 />}
 
-            <ErrorMessage error={error} />
+            <ErrorMessage error={props.error} />
         </label>
     )
 })

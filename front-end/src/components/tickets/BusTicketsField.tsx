@@ -1,35 +1,37 @@
-import React, { useMemo } from 'react'
-import { observer } from 'mobx-react-lite'
-import { CommonFieldProps } from '../core/_common'
+import React from 'react'
+
+import { PURCHASE_TYPES_BY_TYPE } from '../../../../back-end/types/misc'
+import { useObservableClass } from '../../mobx/hooks'
+import { observer, setter } from '../../mobx/misc'
+import { PurchaseForm } from '../../stores/PurchaseForm'
+import Store from '../../stores/Store'
 import InfoBlurb from '../core/InfoBlurb'
 import RadioGroup from '../core/RadioGroup'
 import Spacer from '../core/Spacer'
-import { PURCHASE_TYPES_BY_TYPE } from '../../../../back-end/types/misc'
 
-type Props = Pick<CommonFieldProps<(typeof BUS_TICKET_PURCHASE_TYPES)[number]['purchase_type_id'] | null | undefined>, 'value' | 'onChange' | 'error'> & {
-    showMessage?: boolean,
-    attendeeCount: number,
-}
-
-export default observer(({ value, onChange, error, showMessage, attendeeCount }: Props) => {
-    const busTicketOptions = useMemo(() => [
-        ...BUS_TICKET_PURCHASE_TYPES.map(r => ({
-            value: r.purchase_type_id,
-            label: `$${(r.price_in_cents / 100).toFixed(2)} per attendee - ${r.description}`
-        })),
-        { value: null, label: `No Cost - ${attendeeCount === 1 ? 'I\'ll' : 'we\'ll'} get ${attendeeCount === 1 ? 'myself' : 'ourselves'} to camp, thanks!` },
-    ], [attendeeCount])
+export default observer((props: { purchaseForm: PurchaseForm }) => {
+    const state = useObservableClass(class {
+        get busTicketOptions() {
+            return [
+                ...BUS_TICKET_PURCHASE_TYPES.map(r => ({
+                    value: r.purchase_type_id,
+                    label: `$${(r.price_in_cents / 100).toFixed(2)} per attendee - ${r.description}`
+                })),
+                { value: null, label: `No Cost - ${props.purchaseForm.attendees.length === 1 ? 'I\'ll' : 'we\'ll'} get ${props.purchaseForm.attendees.length === 1 ? 'myself' : 'ourselves'} to camp, thanks!` },
+            ]
+        }
+    })
 
     return (
         <>
             <RadioGroup
-                value={value}
-                onChange={onChange}
-                options={busTicketOptions}
-                error={error}
+                value={props.purchaseForm.needsBusTickets}
+                onChange={setter(props.purchaseForm, 'needsBusTickets')}
+                options={state.busTicketOptions}
+                error={props.purchaseForm.showingErrors && props.purchaseForm.needsBusTicketsError}
             />
 
-            {showMessage &&
+            {Store.purchasedTickets.length === 0 &&
                 <>
                     <Spacer size={8} />
 
@@ -51,7 +53,7 @@ export default observer(({ value, onChange, error, showMessage, attendeeCount }:
     )
 })
 
-const BUS_TICKET_PURCHASE_TYPES = [
+export const BUS_TICKET_PURCHASE_TYPES = [
     PURCHASE_TYPES_BY_TYPE.BUS_330PM_VIBECLIPSE_2024,
     PURCHASE_TYPES_BY_TYPE.BUS_430PM_VIBECLIPSE_2024,
     PURCHASE_TYPES_BY_TYPE.BUS_730PM_VIBECLIPSE_2024,

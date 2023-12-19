@@ -1,16 +1,16 @@
 import React from 'react'
-import { observer } from 'mobx-react-lite'
+
 import { TABLE_ROWS } from '../../../../back-end/types/db-types'
-import Input from '../core/Input'
-import Spacer from '../core/Spacer'
+import { AttendeeInfo } from '../../../../back-end/types/misc'
+import { observer, setter } from '../../mobx/misc'
+import Store from '../../stores/Store'
+import { prettyDate } from '../../utils'
 import Checkbox from '../core/Checkbox'
 import InfoBlurb from '../core/InfoBlurb'
-import RadioGroup from '../core/RadioGroup'
-import Store from '../../Store'
-import { AttendeeInfo } from '../../../../back-end/types/misc'
-import { prettyDate } from '../../utils'
+import Input from '../core/Input'
 import NumberInput from '../core/NumberInput'
-import { setter } from '../../mobx/misc'
+import RadioGroup from '../core/RadioGroup'
+import Spacer from '../core/Spacer'
 
 type Props = {
     attendeeInfo: AttendeeInfo,
@@ -23,29 +23,29 @@ type Props = {
 const INFO_BLURB_SPACE = 12
 const FIELD_SPACE = 24
 
-export default observer(({ attendeeInfo, attendeeErrors, isAccountHolder, isChild, showingErrors }: Props) => {
+export default observer((props: Props) => {
 
     return (
         <>
-            {attendeeInfo.name &&
+            {props.attendeeInfo.name &&
                 <div className='attendee-info-form-sticky-header'>
-                    {`${attendeeInfo.name}'s info`}
+                    {`${props.attendeeInfo.name}'s info`}
                 </div>}
 
             <Input
                 label='Attendee name'
                 placeholder='Brooke'
-                value={attendeeInfo.name}
-                onChange={setter(attendeeInfo, 'name')}
-                error={showingErrors && attendeeErrors.name}
+                value={props.attendeeInfo.name}
+                onChange={setter(props.attendeeInfo, 'name')}
+                error={props.showingErrors && props.attendeeErrors.name}
             />
 
             <Spacer size={INFO_BLURB_SPACE} />
 
             <InfoBlurb>
-                {`Whatever name ${isAccountHolder ? 'you\'d' : 'this person would'} like to go by (in comms, etc). Can be
+                {`Whatever name ${props.isAccountHolder ? 'you\'d' : 'this person would'} like to go by (in comms, etc). Can be
                 real or twitter display name or whatever. Does not need to be
-                ${isAccountHolder ? 'your' : 'their'} legal name!`}
+                ${props.isAccountHolder ? 'your' : 'their'} legal name!`}
             </InfoBlurb>
 
             <Spacer size={FIELD_SPACE} />
@@ -53,16 +53,16 @@ export default observer(({ attendeeInfo, attendeeErrors, isAccountHolder, isChil
             <Input
                 label='Discord handle (optional)'
                 placeholder='gptbrooke'
-                value={attendeeInfo.discord_handle ?? ''}
-                onChange={setter(attendeeInfo, 'discord_handle')}
-                error={showingErrors && attendeeErrors.discord_handle}
+                value={props.attendeeInfo.discord_handle ?? ''}
+                onChange={setter(props.attendeeInfo, 'discord_handle')}
+                error={props.showingErrors && props.attendeeErrors.discord_handle}
             />
 
             <Spacer size={INFO_BLURB_SPACE} />
 
             <InfoBlurb>
-                {`If ${isAccountHolder ? 'you' : 'they'} provide ${isAccountHolder ? 'your' : 'their'} Discord handle, we can give ${isAccountHolder ? 'you' : 'them'} attendee 
-                status on the Vibecamp server and add ${isAccountHolder ? 'you' : 'them'} to attendee-specific
+                {`If ${props.isAccountHolder ? 'you' : 'they'} provide ${props.isAccountHolder ? 'your' : 'their'} Discord handle, we can give ${props.isAccountHolder ? 'you' : 'them'} attendee 
+                status on the Vibecamp server and add ${props.isAccountHolder ? 'you' : 'them'} to attendee-specific
                 channels`}
             </InfoBlurb>
 
@@ -71,9 +71,9 @@ export default observer(({ attendeeInfo, attendeeErrors, isAccountHolder, isChil
             <Input
                 label='Twitter handle (optional)'
                 placeholder='@gptbrooke'
-                value={attendeeInfo.twitter_handle ?? ''}
-                onChange={setter(attendeeInfo, 'twitter_handle')}
-                error={showingErrors && attendeeErrors.twitter_handle}
+                value={props.attendeeInfo.twitter_handle ?? ''}
+                onChange={setter(props.attendeeInfo, 'twitter_handle')}
+                error={props.showingErrors && props.attendeeErrors.twitter_handle}
             />
 
             <Spacer size={INFO_BLURB_SPACE} />
@@ -85,14 +85,14 @@ export default observer(({ attendeeInfo, attendeeErrors, isAccountHolder, isChil
             <Spacer size={FIELD_SPACE} />
 
             <NumberInput
-                label={isAccountHolder ? 'I am...' : 'This person is...'}
+                label={props.isAccountHolder ? 'I am...' : 'This person is...'}
                 placeholder='(years old)'
-                value={attendeeInfo.age}
-                onChange={setter(attendeeInfo, 'age')}
-                error={showingErrors && attendeeErrors.age}
+                value={props.attendeeInfo.age}
+                onChange={setter(props.attendeeInfo, 'age')}
+                error={props.showingErrors && props.attendeeErrors.age}
             />
 
-            {attendeeInfo.age != null && attendeeInfo.age < 2 &&
+            {props.attendeeInfo.age != null && props.attendeeInfo.age < 2 &&
                 <>
                     <Spacer size={INFO_BLURB_SPACE} />
 
@@ -109,16 +109,16 @@ export default observer(({ attendeeInfo, attendeeErrors, isAccountHolder, isChil
                     : 'This age should be at the time of the festival'}
             </InfoBlurb>
 
-            {!isChild &&
+            {!props.isChild &&
                 <>
                     <Spacer size={FIELD_SPACE} />
 
                     <RadioGroup
-                        label={`${isAccountHolder ? 'I\'m' : 'They\'re'} interested in volunteering as a...`}
+                        label={`${props.isAccountHolder ? 'I\'m' : 'They\'re'} interested in volunteering as a...`}
                         options={VOLUNTEER_OPTIONS}
-                        value={attendeeInfo.interested_in_volunteering_as}
-                        onChange={setter(attendeeInfo, 'interested_in_volunteering_as')}
-                        error={showingErrors && attendeeErrors.interested_in_volunteering_as}
+                        value={props.attendeeInfo.interested_in_volunteering_as}
+                        onChange={setter(props.attendeeInfo, 'interested_in_volunteering_as')}
+                        error={props.showingErrors && props.attendeeErrors.interested_in_volunteering_as}
                     />
 
                     <Spacer size={INFO_BLURB_SPACE} />
@@ -130,7 +130,7 @@ export default observer(({ attendeeInfo, attendeeErrors, isAccountHolder, isChil
                         <Spacer size={6} />
                         General volunteers are our muscle. They will be tasked with setup, breakdown, and general physical tasks.
                         <Spacer size={6} />
-                        {isAccountHolder
+                        {props.isAccountHolder
                             ? 'If you indicate you are willing to volunteer we will reach out to you with more details via email.'
                             : 'If this person indicates they are willing to volunteer we will reach out to you with more details via email.'}
 
@@ -139,11 +139,11 @@ export default observer(({ attendeeInfo, attendeeErrors, isAccountHolder, isChil
                     <Spacer size={FIELD_SPACE} />
 
                     <Checkbox
-                        value={attendeeInfo.interested_in_pre_call}
-                        onChange={setter(attendeeInfo, 'interested_in_pre_call')}
-                        error={showingErrors && attendeeErrors.interested_in_pre_call}
+                        value={props.attendeeInfo.interested_in_pre_call}
+                        onChange={setter(props.attendeeInfo, 'interested_in_pre_call')}
+                        error={props.showingErrors && props.attendeeErrors.interested_in_pre_call}
                     >
-                        {`${isAccountHolder ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
+                        {`${props.isAccountHolder ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
                         video call before the event`}
                     </Checkbox>
 
@@ -153,7 +153,7 @@ export default observer(({ attendeeInfo, attendeeErrors, isAccountHolder, isChil
                         {`We'd like to introduce people to some of their fellow
                         attendees so they can lay the foundations of
                         connection before arriving at ${Store.festival.state.result?.festival_name}.
-                        If ${isAccountHolder ? 'you' : 'this person'} would like
+                        If ${props.isAccountHolder ? 'you' : 'this person'} would like
                         to be invited to online hangouts please check the box
                         below.`}&nbsp;
                         <b>If you check this box, your email address

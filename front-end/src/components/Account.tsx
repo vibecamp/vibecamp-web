@@ -1,18 +1,18 @@
 import React from 'react'
-import { observer } from 'mobx-react-lite'
-import Spacer from './core/Spacer'
+
+import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/utils/validation'
+import { useObservableClass } from '../mobx/hooks'
+import { observer, setter } from '../mobx/misc'
+import { request } from '../mobx/request'
+import Store from '../stores/Store'
+import { DEFAULT_FORM_ERROR, doNothing, preventingDefault } from '../utils'
+import { vibefetch } from '../vibefetch'
 import Button from './core/Button'
-import Store from '../Store'
 import Col from './core/Col'
 import Input from './core/Input'
 import LoadingDots from './core/LoadingDots'
-import { useObservableClass } from '../mobx/hooks'
-import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/utils/validation'
-import { DEFAULT_FORM_ERROR, doNothing, preventingDefault } from '../utils'
 import Modal from './core/Modal'
-import { vibefetch } from '../vibefetch'
-import { request } from '../mobx/request'
-import { setter } from '../mobx/misc'
+import Spacer from './core/Spacer'
 
 export default observer(() => {
     const loading = Store.accountInfo.state.kind === 'loading'
@@ -142,52 +142,54 @@ export default observer(() => {
                         : null}
 
             <Modal isOpen={emailAddressForm.emailAddress != null} onClose={emailAddressForm.stopChangingEmail}>
-                <form onSubmit={preventingDefault(emailAddressForm.updateEmail.load)} noValidate>
-                    <Col padding={20} pageLevel>
-                        <Input
-                            label='New email address'
-                            value={emailAddressForm.emailAddress ?? ''}
-                            onChange={setter(emailAddressForm, 'emailAddress')}
-                            error={emailAddressForm.updateEmail.state.result?.fieldError ? emailAddressForm.emailAddressError : undefined}
-                        />
+                {() =>
+                    <form onSubmit={preventingDefault(emailAddressForm.updateEmail.load)} noValidate>
+                        <Col padding={20} pageLevel>
+                            <Input
+                                label='New email address'
+                                value={emailAddressForm.emailAddress ?? ''}
+                                onChange={setter(emailAddressForm, 'emailAddress')}
+                                error={emailAddressForm.updateEmail.state.result?.fieldError ? emailAddressForm.emailAddressError : undefined}
+                            />
 
-                        <Spacer size={24} />
+                            <Spacer size={24} />
 
-                        <Button isSubmit isPrimary isLoading={emailAddressForm.updateEmail.state.kind === 'loading'} disabled={emailAddressForm.emailAddress === Store.accountInfo.state.result?.email_address}>
+                            <Button isSubmit isPrimary isLoading={emailAddressForm.updateEmail.state.kind === 'loading'} disabled={emailAddressForm.emailAddress === Store.accountInfo.state.result?.email_address}>
                             Submit
-                        </Button>
-                    </Col>
-                </form>
+                            </Button>
+                        </Col>
+                    </form>}
             </Modal>
 
             <Modal isOpen={passwordForm.password != null} onClose={passwordForm.stopChangingPassword}>
-                <form onSubmit={preventingDefault(passwordForm.updatePassword.load)} noValidate>
-                    <Col padding={20} pageLevel>
-                        <Input
-                            label='New password'
-                            type='password'
-                            value={passwordForm.password ?? ''}
-                            onChange={setter(passwordForm, 'password')}
-                            error={passwordForm.updatePassword.state.result?.fieldError ? passwordForm.passwordError : undefined}
-                        />
+                {() =>
+                    <form onSubmit={preventingDefault(passwordForm.updatePassword.load)} noValidate>
+                        <Col padding={20} pageLevel>
+                            <Input
+                                label='New password'
+                                type='password'
+                                value={passwordForm.password ?? ''}
+                                onChange={setter(passwordForm, 'password')}
+                                error={passwordForm.updatePassword.state.result?.fieldError ? passwordForm.passwordError : undefined}
+                            />
 
-                        <Spacer size={16} />
+                            <Spacer size={16} />
 
-                        <Input
-                            label='Confirm password'
-                            type='password'
-                            value={passwordForm.passwordConfirmation ?? ''}
-                            onChange={setter(passwordForm, 'passwordConfirmation')}
-                            error={passwordForm.updatePassword.state.result?.fieldError ? passwordForm.passwordConfirmationError : undefined}
-                        />
+                            <Input
+                                label='Confirm password'
+                                type='password'
+                                value={passwordForm.passwordConfirmation ?? ''}
+                                onChange={setter(passwordForm, 'passwordConfirmation')}
+                                error={passwordForm.updatePassword.state.result?.fieldError ? passwordForm.passwordConfirmationError : undefined}
+                            />
 
-                        <Spacer size={24} />
+                            <Spacer size={24} />
 
-                        <Button isSubmit isPrimary isLoading={passwordForm.updatePassword.state.kind === 'loading'}>
+                            <Button isSubmit isPrimary isLoading={passwordForm.updatePassword.state.kind === 'loading'}>
                             Submit
-                        </Button>
-                    </Col>
-                </form>
+                            </Button>
+                        </Col>
+                    </form>}
             </Modal>
         </Col>
     )

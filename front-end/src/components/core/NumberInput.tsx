@@ -1,51 +1,55 @@
+import { autorun } from 'mobx'
 import React from 'react'
-import { observer } from 'mobx-react-lite'
+import { ChangeEvent } from 'react'
+
+import { useObservableClass } from '../../mobx/hooks'
+import { observer } from '../../mobx/misc'
 import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
-import { ChangeEvent, useCallback, useEffect, useState } from 'react'
 
 type Props = CommonFieldProps<number | null> & {
     placeholder?: string
 }
 
-export default observer(({ label, value, onChange, disabled, error, onBlur, placeholder }: Props) => {
-    const [strValue, setStrValue] = useState(String(value))
+export default observer((props: Props) => {
+    const state = useObservableClass(class {
+        strValue = String(props.value)
 
-    useEffect(() => {
-        setStrValue(String(value))
-    }, [value])
+        readonly strUpdater = autorun(() => {
+            this.strValue = String(props.value)
+        })
 
-    const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value
+        readonly handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+            const value = e.target.value
 
-        setStrValue(value)
+            this.strValue = value
 
-        if (value !== '' && !isNaN(Number(value))) {
-            onChange(Number(value))
+            if (value !== '' && !isNaN(Number(value))) {
+                props.onChange(Number(value))
+            }
         }
-    }, [onChange])
+    })
 
     return (
         <label className='number-input'>
-            <div className='label'>{label}</div>
+            <div className='label'>{props.label}</div>
 
             <input
                 type='number'
                 inputMode='numeric'
-                placeholder={placeholder}
+                placeholder={props.placeholder}
                 step={1}
-                value={strValue}
-                onChange={handleChange}
+                value={state.strValue}
+                onChange={state.handleChange}
                 ref={disableWheel}
-                onBlur={onBlur}
-                disabled={disabled}
+                onBlur={props.onBlur}
+                disabled={props.disabled}
             />
 
-            <ErrorMessage error={error} />
+            <ErrorMessage error={props.error} />
         </label>
     )
 })
-
 
 const LISTENER_ADDED = 'listenerAdded'
 type WithListenerAddedFlag = { [LISTENER_ADDED]?: boolean }
