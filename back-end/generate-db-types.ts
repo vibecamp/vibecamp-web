@@ -35,7 +35,10 @@ const TABLES_TO_DUMP: readonly string[] = [
     'purchase_type',
     'volunteer_type',
     'diet',
-    'next_festival'
+    'next_festival',
+    'festival',
+    'festival_site',
+    'event_site'
 ]
 
 await withDBConnection(async db => {

@@ -71,19 +71,9 @@ export type Tables = {
     account_id: Tables['account']['account_id'],
     event_id: Tables['event']['event_id'],
   },
-  festival: {
-    end_date: Date,
-    festival_id: string,
-    festival_name: string,
-    festival_site_id: Tables['festival_site']['festival_site_id'],
-    info_url: string | null,
-    start_date: Date,
-  },
-  festival_site: {
-    festival_site_id: string,
-    festival_site_name: string,
-    location: unknown,
-  },
+  event_site: (typeof TABLE_ROWS)['event_site'][number]
+  festival: (typeof TABLE_ROWS)['festival'][number]
+  festival_site: (typeof TABLE_ROWS)['festival_site'][number]
   invite_code: {
     code: string,
     created_by_account_id: Tables['account']['account_id'],
@@ -127,5 +117,29 @@ export const TABLE_ROWS = {
   ],
   next_festival: [
     {"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6","festival_name":"Vibeclipse 2024","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","start_date":"2024-04-05T05:00:00.000Z","end_date":"2024-04-08T05:00:00.000Z","info_url":"https://vibe.camp/vibeclipse_home/"},
+  ],
+  festival: [
+    {"festival_name":"Vibecamp 2024","start_date":"2024-06-15T05:00:00.000Z","end_date":"2024-06-18T05:00:00.000Z","festival_id":"4821bd6a-9e16-4944-b9a1-afe3256ff18d","festival_site_id":"8983e8b4-b3f8-4420-ba65-2f7fa757ec1a","info_url":null},
+    {"festival_name":"Vibeclipse 2024","start_date":"2024-04-05T05:00:00.000Z","end_date":"2024-04-08T05:00:00.000Z","festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","info_url":"https://vibe.camp/vibeclipse_home/"},
+  ],
+  festival_site: [
+    {"festival_site_name":"Camp Ramblewood","location":{"x":"39.645899","y":"-76.172219"},"festival_site_id":"8983e8b4-b3f8-4420-ba65-2f7fa757ec1a"},
+    {"festival_site_name":"Camp Champions","location":{"x":"30.608632","y":"-98.401571"},"festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864"},
+  ],
+  event_site: [
+    {"event_site_id":"08672e71-9126-4518-9b83-b0c68f5396ac","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6087","y":"-98.4023"},"name":"Sports Field","description":"Behind the Fillin' Station, North of Boys Cabins","can_host_multiple_events":true,"theme":"play","equipment":null,"people_cap":null,"structure_type":"open sky"},
+    {"event_site_id":"b18c9dad-56f8-41ea-83d3-a83f8253278b","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":null,"name":"Cabin","description":null,"can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":null,"structure_type":"indoors"},
+    {"event_site_id":"c1f181c8-d846-43f1-9de3-dc98ef05c207","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6066","y":"-98.4008"},"name":"Forum","description":"Cement Forum Between Girls Cabins and Hearth","can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":null,"structure_type":"open sky"},
+    {"event_site_id":"794508ae-acb6-4f0d-9a71-2a726fcd54dc","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6069","y":"-98.4022"},"name":"Coliseum","description":"Cement Forum Near boys cabins","can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":null,"structure_type":"open sky"},
+    {"event_site_id":"d2a6f4b1-90d5-49a3-bf41-d8f4e54fd462","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6072","y":"-98.4023"},"name":"Parthenon","description":"Roof court with bleachers near boys cabins","can_host_multiple_events":false,"theme":null,"equipment":"Mic stand, mic, and speaker (supports voice amplification)","people_cap":null,"structure_type":"roofed, exposed sides"},
+    {"event_site_id":"82724b87-3587-493c-9d2f-533721990fef","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.071","y":"-98.401"},"name":"Hearthtop","description":"Top of the hearth","can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":null,"structure_type":"open sky"},
+    {"event_site_id":"84a9f891-ed0f-4e07-a657-a005d5755922","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6072","y":"-98.4011"},"name":"Hearth 2","description":null,"can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":20,"structure_type":"indoors"},
+    {"event_site_id":"842b1e43-cf89-4678-a211-c6f640952cc6","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6069","y":"-98.4009"},"name":"Greene Hall","description":null,"can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":100,"structure_type":"indoors"},
+    {"event_site_id":"b7c2aa4f-77d4-41b2-b215-fa4b0c18e589","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6074","y":"-98.4012"},"name":"Hearth 1","description":null,"can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":20,"structure_type":"indoors"},
+    {"event_site_id":"9da0c56a-fd43-4eb8-9975-5aabd11c90b1","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6065","y":"-98.4002"},"name":"Town Hall","description":"Building East edge of camp just north of girls cabins","can_host_multiple_events":false,"theme":"movement","equipment":"Mic stand, mic, and speaker (supports voice amplification)","people_cap":175,"structure_type":"indoors"},
+    {"event_site_id":"484c6d27-9d53-4ade-8006-d7ff1c468ae3","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.607","y":"-98.4001"},"name":"Hearth 4","description":null,"can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":20,"structure_type":"indoors"},
+    {"event_site_id":"5ae504f9-8c10-4f11-9fb0-172156ef552e","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6068","y":"-98.3999"},"name":"Olympia","description":"Roofed area at east edge of camp, near tennis courts","can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":null,"structure_type":"roofed, exposed sides"},
+    {"event_site_id":"07d0bf18-92fd-438d-a8bb-ae16caeb8b43","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6071","y":"-98.4001"},"name":"Hearth 3","description":null,"can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":20,"structure_type":"indoors"},
+    {"event_site_id":"9c14f150-23d5-46ca-872b-9ba0f4eef78b","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","location":{"x":"30.6064","y":"-98.4002"},"name":"Cabin 7-11","description":"Just South of Town Hall","can_host_multiple_events":false,"theme":null,"equipment":null,"people_cap":null,"structure_type":"indoors"},
   ],
 } as const
