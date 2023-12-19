@@ -63,7 +63,7 @@ export type Routes = {
     },
     '/event/save': {
         method: 'post',
-        body: { event: Omit<EventJson, 'created_by_account_id' | 'event_id'> & { event_id: Tables['event']['event_id'] | null } },
+        body: { event: Omit<EventJson, 'created_by_account_id' | 'event_id'> & { event_id: Tables['event']['event_id'] | undefined } },
         response: { event: EventJson }
     },
     '/event/delete': {

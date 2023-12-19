@@ -1,10 +1,10 @@
-import { useLocalObservable } from 'mobx-react-lite'
 import React, { FC } from 'react'
 
 import { Tables } from '../../../back-end/types/db-types'
-import { fieldToProps,Form, form, FormValidators } from '../mobx/form'
-import { useRequest, useStable } from '../mobx/hooks'
+import { fieldToProps, Form, form, FormValidators } from '../mobx/form'
+import { useObservableClass, useRequest } from '../mobx/hooks'
 import { observer } from '../mobx/misc'
+import { request } from '../mobx/request'
 import Store from '../stores/Store'
 import { preventingDefault } from '../utils'
 import { vibefetch } from '../vibefetch'
@@ -19,7 +19,6 @@ import Row from './core/Row'
 import Spacer from './core/Spacer'
 
 type InProgressEvent = {
-    event_id: string | null,
     name: string,
     description: string,
     start_datetime: Date | null,
@@ -28,85 +27,88 @@ type InProgressEvent = {
 }
 
 export default observer(() => {
-    const state = useLocalObservable(() => ({
-        eventBeingEdited: null as Form<InProgressEvent> | null
-    }))
+    const state = useObservableClass(class {
+        eventIdBeingEdited: string | null = null
+        eventBeingEdited: Form<InProgressEvent> | null = null
 
-    const eventValidators: FormValidators<InProgressEvent> = {
-        name: val => {
-            if (val === '') {
-                return 'Please enter a name for the event'
-            }
-        },
-        start_datetime: val => {
-            if (val == null) {
-                return 'Please select a start date/time'
-            }
-        },
-        end_datetime: val => {
-            const start = state.eventBeingEdited?.fields.start_datetime.value
-            if (start != null && val != null && start >= val) {
-                return 'End date/time is before start date/time'
+        get eventValidators(): FormValidators<InProgressEvent> {
+            return {
+                name: val => {
+                    if (val === '') {
+                        return 'Please enter a name for the event'
+                    }
+                },
+                start_datetime: val => {
+                    if (val == null) {
+                        return 'Please select a start date/time'
+                    }
+                },
+                end_datetime: val => {
+                    const start = this.eventBeingEdited?.fields.start_datetime.value
+                    if (start != null && val != null && start >= val) {
+                        return 'End date/time is before start date/time'
+                    }
+                }
             }
         }
-    }
 
-    const createNewEvent = useStable(() => () => {
-        state.eventBeingEdited = form<InProgressEvent>({
-            initialValues: {
-                event_id: null,
-                name: '',
-                description: '',
-                start_datetime: null,
-                end_datetime: null,
-                location: null
-            },
-            validators: eventValidators
-        })
-    })
-
-    const editEvent = useStable(() => (eventId: string) => {
-        const existing = Store.allEvents.state.result?.find(e => e.event_id === eventId)
-
-        if (existing) {
-            state.eventBeingEdited = form<InProgressEvent>({
+        readonly createNewEvent = () => {
+            this.eventBeingEdited = form<InProgressEvent>({
                 initialValues: {
-                    event_id: existing.event_id,
-                    name: existing.name,
-                    description: existing.description,
-                    start_datetime: existing.start_datetime,
-                    end_datetime: existing.end_datetime,
-                    location: existing.location
+                    name: '',
+                    description: '',
+                    start_datetime: null,
+                    end_datetime: null,
+                    location: null
                 },
-                validators: eventValidators
+                validators: this.eventValidators
             })
         }
-    })
 
-    const saveEvent = useRequest(async () => {
-        if (state.eventBeingEdited == null || !state.eventBeingEdited.isValid) {
-            state.eventBeingEdited?.activateAllValidation()
-            return
+        readonly editEvent = (eventId: string) => {
+            const existing = Store.allEvents.state.result?.find(e => e.event_id === eventId)
+
+            if (existing) {
+                this.eventIdBeingEdited = existing.event_id
+                this.eventBeingEdited = form<InProgressEvent>({
+                    initialValues: {
+                        name: existing.name,
+                        description: existing.description,
+                        start_datetime: existing.start_datetime,
+                        end_datetime: existing.end_datetime,
+                        location: existing.location
+                    },
+                    validators: this.eventValidators
+                })
+            }
         }
 
-        const { event_id, name, description, start_datetime, end_datetime, location } = state.eventBeingEdited.fieldValues
-
-        await vibefetch(Store.jwt, '/event/save', 'post', {
-            event: {
-                event_id,
-                name,
-                description,
-                start_datetime: start_datetime!.toISOString(),
-                end_datetime: end_datetime?.toISOString() ?? null,
-                location
+        readonly saveEvent = request(async () => {
+            if (this.eventBeingEdited == null || !this.eventBeingEdited.isValid) {
+                this.eventBeingEdited?.activateAllValidation()
+                return
             }
-        })
-        await Store.allEvents.load()
-        stopEditingEvent()
-    }, { lazy: true })
 
-    const stopEditingEvent = useStable(() => () => {
-        state.eventBeingEdited = null
+            const { name, description, start_datetime, end_datetime, location } = this.eventBeingEdited.fieldValues
+
+            await vibefetch(Store.jwt, '/event/save', 'post', {
+                event: {
+                    event_id: this.eventIdBeingEdited ?? undefined,
+                    name,
+                    description,
+                    start_datetime: start_datetime!.toISOString(),
+                    end_datetime: end_datetime?.toISOString() ?? null,
+                    location
+                }
+            })
+            await Store.allEvents.load()
+            this.stopEditingEvent()
+        }, { lazy: true })
+
+        readonly stopEditingEvent = () => {
+            this.eventIdBeingEdited = null
+            this.eventBeingEdited = null
+        }
     })
 
     return (
@@ -118,7 +120,7 @@ export default observer(() => {
                         Events
                     </h1>
 
-                    <Button onClick={createNewEvent} style={{ width: 'auto' }}>
+                    <Button onClick={state.createNewEvent} style={{ width: 'auto' }}>
                         Create event
 
                         <Spacer size={8} />
@@ -128,68 +130,68 @@ export default observer(() => {
                 </Row>
 
                 {Store.allEvents.state.result?.map(e =>
-                    <Event event={e} editEvent={editEvent} key={e.event_id} />)}
+                    <Event event={e} editEvent={state.editEvent} key={e.event_id} />)}
 
-                <Modal isOpen={state.eventBeingEdited != null} onClose={stopEditingEvent}>
+                <Modal isOpen={state.eventBeingEdited != null} onClose={state.stopEditingEvent}>
                     {() =>
                         state.eventBeingEdited != null &&
-                            <form onSubmit={preventingDefault(saveEvent.load)} noValidate>
-                                <Col padding={20} pageLevel>
-                                    <Input
-                                        label='Event name'
-                                        disabled={saveEvent.state.kind === 'loading'}
-                                        {...fieldToProps(state.eventBeingEdited.fields.name)}
-                                    />
+                        <form onSubmit={preventingDefault(state.saveEvent.load)} noValidate>
+                            <Col padding={20} pageLevel>
+                                <Input
+                                    label='Event name'
+                                    disabled={state.saveEvent.state.kind === 'loading'}
+                                    {...fieldToProps(state.eventBeingEdited.fields.name)}
+                                />
 
-                                    <Spacer size={16} />
+                                <Spacer size={16} />
 
-                                    <Input
-                                        label='Event description'
-                                        disabled={saveEvent.state.kind === 'loading'}
-                                        multiline
-                                        {...fieldToProps(state.eventBeingEdited.fields.description)}
-                                    />
+                                <Input
+                                    label='Event description'
+                                    disabled={state.saveEvent.state.kind === 'loading'}
+                                    multiline
+                                    {...fieldToProps(state.eventBeingEdited.fields.description)}
+                                />
 
-                                    <Spacer size={16} />
+                                <Spacer size={16} />
 
-                                    <DateField
-                                        label='Start'
-                                        disabled={saveEvent.state.kind === 'loading'}
-                                        {...fieldToProps(state.eventBeingEdited.fields.start_datetime)}
-                                    />
+                                <DateField
+                                    label='Start'
+                                    disabled={state.saveEvent.state.kind === 'loading'}
+                                    {...fieldToProps(state.eventBeingEdited.fields.start_datetime)}
+                                />
 
-                                    <Spacer size={16} />
+                                <Spacer size={16} />
 
-                                    <DateField
-                                        label='End'
-                                        disabled={saveEvent.state.kind === 'loading'}
-                                        {...fieldToProps(state.eventBeingEdited.fields.end_datetime)}
-                                    />
+                                <DateField
+                                    label='End'
+                                    disabled={state.saveEvent.state.kind === 'loading'}
+                                    {...fieldToProps(state.eventBeingEdited.fields.end_datetime)}
+                                />
 
-                                    <Spacer size={16} />
+                                <Spacer size={16} />
 
-                                    <Input
-                                        label='Location'
-                                        disabled={saveEvent.state.kind === 'loading'}
-                                        {...fieldToProps(state.eventBeingEdited.fields.location)}
-                                        value={state.eventBeingEdited.fields.location.value ?? ''}
-                                    />
+                                <Input
+                                    label='Location'
+                                    disabled={state.saveEvent.state.kind === 'loading'}
+                                    {...fieldToProps(state.eventBeingEdited.fields.location)}
+                                    value={state.eventBeingEdited.fields.location.value ?? ''}
+                                />
 
-                                    <Spacer size={16} />
+                                <Spacer size={16} />
 
-                                    <Button isSubmit isPrimary isLoading={saveEvent.state.kind === 'loading'}>
-                                        {state.eventBeingEdited.fields.event_id.value == null
-                                            ? 'Create event'
-                                            : 'Save event'}
-                                    </Button>
+                                <Button isSubmit isPrimary isLoading={state.saveEvent.state.kind === 'loading'}>
+                                    {state.eventIdBeingEdited == null
+                                        ? 'Create event'
+                                        : 'Save event'}
+                                </Button>
 
-                                    <Spacer size={8} />
+                                <Spacer size={8} />
 
-                                    <Button onClick={stopEditingEvent} disabled={saveEvent.state.kind === 'loading'}>
-                                        Cancel
-                                    </Button>
-                                </Col>
-                            </form>}
+                                <Button onClick={state.stopEditingEvent} disabled={state.saveEvent.state.kind === 'loading'}>
+                                    Cancel
+                                </Button>
+                            </Col>
+                        </form>}
                 </Modal>
             </Col>
     )
@@ -222,7 +224,6 @@ const Event: FC<{ event: Tables['event'], editEvent: (eventId: string) => void }
                         <Icon name='edit_calendar' />
                     </Button>}
 
-                {/* onClick={() => Store.currentUser.calendarEvents.push(event.id)} */}
                 <Button style={{ width: 'auto' }} onClick={bookmarked ? unbookmarkEvent.load : bookmarkEvent.load}>
                     {bookmarked
                         ? <Icon name='check' />
