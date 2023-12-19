@@ -1,7 +1,7 @@
 import { Router, Status } from 'oak'
 import { defineRoute, rateLimited } from './_common.ts'
 import { DBClient, accountReferralStatus, withDBConnection, withDBTransaction, getApplicationStatus } from '../../utils/db.ts'
-import { Tables } from "../../types/db-types.ts"
+import { TABLE_ROWS, Tables } from "../../types/db-types.ts"
 import { allPromises } from "../../utils/misc.ts"
 import { ONE_SECOND_MS } from '../../utils/constants.ts'
 import { hashAndSaltPassword } from './auth.ts'
@@ -27,29 +27,23 @@ export default function register(router: Router) {
       }))
 
       const {
-        nextFestival,
         referralStatus: { allowedToPurchase, allowedToRefer },
         accounts,
         attendees,
         purchases,
         currentInviteCodes,
       } = await withDBTransaction(async (db) => {
-        const nextFestival: Tables['next_festival'] | undefined = (await db.queryTable('next_festival'))[0]
 
-        return {
-          nextFestival,
-
-          ...await allPromises({
-            referralStatus: accountReferralStatus(db,
-              account_id,
-              nextFestival?.festival_id
-            ),
-            accounts: db.queryTable('account', { where: ['account_id', '=', account_id] }),
-            attendees: db.queryTable('attendee', { where: ['associated_account_id', '=', account_id] }),
-            purchases: db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] }),
-            currentInviteCodes: queryInviteCodes(db)
-          })
-        }
+        return allPromises({
+          referralStatus: accountReferralStatus(db,
+            account_id,
+            TABLE_ROWS.next_festival[0].festival_id
+          ),
+          accounts: db.queryTable('account', { where: ['account_id', '=', account_id] }),
+          attendees: db.queryTable('attendee', { where: ['associated_account_id', '=', account_id] }),
+          purchases: db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] }),
+          currentInviteCodes: queryInviteCodes(db)
+        })
       })
 
       const account = accounts[0]
@@ -61,13 +55,11 @@ export default function register(router: Router) {
         const uncreatedInviteCodes = allowedToRefer - currentInviteCodes.length
         if (uncreatedInviteCodes > 0) {
           await withDBTransaction(async (db) => {
-            if (nextFestival?.festival_id != null) {
-              for (let i = 0; i < uncreatedInviteCodes; i++) {
-                await db.insertTable('invite_code', {
-                  created_by_account_id: account.account_id,
-                  festival_id: nextFestival.festival_id
-                })
-              }
+            for (let i = 0; i < uncreatedInviteCodes; i++) {
+              await db.insertTable('invite_code', {
+                created_by_account_id: account.account_id,
+                festival_id: TABLE_ROWS.next_festival[0].festival_id
+              })
             }
           })
           inviteCodes = await withDBConnection(db => queryInviteCodes(db))

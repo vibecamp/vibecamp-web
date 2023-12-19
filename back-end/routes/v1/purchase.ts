@@ -20,13 +20,11 @@ export default function register(router: Router) {
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: attendees }) => {
       await withDBTransaction(async db => {
-        const festival_id = (await db.queryTable('next_festival'))[0]?.festival_id!
-
         for (const attendee of attendees) {
           await db.insertTable('attendee', {
             ...attendee,
             associated_account_id: account_id,
-            festival_id
+            festival_id: TABLE_ROWS.next_festival[0].festival_id
           })
         }
       })
@@ -40,14 +38,7 @@ export default function register(router: Router) {
     method: 'post',
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: purchases }) => {
-      const nextFestival = await withDBConnection(async db =>
-        (await db.queryTable('next_festival'))[0])
-
-      if (nextFestival == null) {
-        throw Error('Failed to find next_festival in the database')
-      }
-
-      const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id, nextFestival.festival_id))
+      const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id, TABLE_ROWS.next_festival[0].festival_id))
       if (!allowedToPurchase) {
         return [null, Status.Unauthorized]
       }
@@ -72,7 +63,7 @@ export default function register(router: Router) {
 
         const { festival_id, max_available, max_per_account } = purchaseType
 
-        if (festival_id !== nextFestival.festival_id) {
+        if (festival_id !== TABLE_ROWS.next_festival[0].festival_id) {
           return [null, Status.Unauthorized]
         }
 

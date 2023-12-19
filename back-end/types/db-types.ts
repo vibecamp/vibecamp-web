@@ -90,14 +90,7 @@ export type Tables = {
     festival_id: Tables['attendee']['festival_id'],
     used_by_account_id: Tables['account']['account_id'] | null,
   },
-  next_festival: {
-    end_date: Date | null,
-    festival_id: string | null,
-    festival_name: string | null,
-    festival_site_id: string | null,
-    info_url: string | null,
-    start_date: Date | null,
-  },
+  next_festival: (typeof TABLE_ROWS)['next_festival'][number]
   purchase: {
     owned_by_account_id: Tables['account']['account_id'] | null,
     purchase_id: string,
@@ -131,5 +124,8 @@ export const TABLE_ROWS = {
     {"diet_id":"VEGETARIAN","description":"Vegetarian"},
     {"diet_id":"VEGAN","description":"Vegan"},
     {"diet_id":"NO_RESTRICTIONS","description":"No restrictions"},
+  ],
+  next_festival: [
+    {"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6","festival_name":"Vibeclipse 2024","festival_site_id":"14f673c9-53d2-44f8-86f6-38ca26386864","start_date":"2024-04-05T05:00:00.000Z","end_date":"2024-04-08T05:00:00.000Z","info_url":"https://vibe.camp/vibeclipse_home/"},
   ],
 } as const
