@@ -12,11 +12,12 @@
     }
 
     >.info {
-        display: flex;
-        justify-content: stretch;
-        align-items: flex-start;
 
-        >span {
+        > * {
+            vertical-align: middle;
+        }
+
+        >.icon {
             flex-grow: 0;
             flex-shrink: 0;
             font-size: 18px;

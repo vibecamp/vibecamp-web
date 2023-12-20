@@ -12,7 +12,7 @@ type Props = {
  *
  * Find more here: https://fonts.google.com/icons
  */
-type MaterialIconName =
+export type MaterialIconName =
     | 'calendar_add_on'
     | 'edit_calendar'
     | 'rsvp'
@@ -36,7 +36,7 @@ export default observer((props: Props) => {
     const groupStyle = props.name.endsWith('_filled') ? FILLED_STYLE : undefined
 
     return (
-        <span className="material-symbols-outlined" style={{ ...groupStyle, ...props.style }}>
+        <span className="icon material-symbols-outlined" style={{ ...groupStyle, ...props.style }}>
             {name}
         </span>
     )

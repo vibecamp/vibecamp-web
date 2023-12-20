@@ -1,4 +1,4 @@
-import { autorun, computed, makeAutoObservable, makeObservable, observable,Reaction } from 'mobx'
+import { autorun, computed, makeAutoObservable, makeObservable, observable,Reaction, runInAction } from 'mobx'
 import { useEffect, useState } from 'react'
 
 import { Maybe } from '../../../back-end/types/misc'
@@ -52,9 +52,11 @@ export function useValuesObservable<T extends object>(init: T): T {
     })
 
     useEffect(() => {
-        for (const [key, value] of objectEntries(init)) {
-            obs[key] = value
-        }
+        runInAction(() => {
+            for (const [key, value] of objectEntries(init)) {
+                obs[key] = value
+            }
+        })
     }, [init, obs])
 
     return obs

@@ -10,6 +10,7 @@ type Props = Pick<CommonFieldProps<never>, 'disabled'> & {
     isPrimary?: boolean,
     isDanger?: boolean,
     isLoading?: boolean,
+    isCompact?: boolean,
     children: React.ReactNode,
     style?: CSSProperties
 }
@@ -18,7 +19,7 @@ export default observer((props: Props) => {
 
     return (
         <button
-            className={'button' + ' ' + (props.isPrimary ? 'primary' : '') + ' ' + (props.isDanger ? 'danger' : '')}
+            className={'button' + ' ' + (props.isPrimary ? 'primary' : '') + ' ' + (props.isDanger ? 'danger' : '') + ' ' + (props.isCompact ? 'compact' : '')}
             style={props.style}
             type={props.isSubmit ? 'submit' : 'button'}
             disabled={props.disabled || props.isLoading}

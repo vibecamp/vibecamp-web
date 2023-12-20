@@ -3,7 +3,6 @@
 
     > .label {
         font-size: 14px;
-        color: rgba(0, 0, 0, 0.7);
         margin-bottom: 2px;
     }
 
@@ -14,11 +13,11 @@
         border: none;
         
         position: relative;
-        border-radius: 5px;
+        border-radius: 8px;
         display: flex;
         justify-content: stretch;
         align-items: stretch;
-        background: rgba(0, 0, 0, 0.1);
+        border: var(--controls-border);
         overflow: hidden;
     
         > label {
@@ -29,7 +28,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 12px 6px;
+            padding: 8px;
             z-index: 1;
             cursor: pointer;
             overflow: hidden;
@@ -53,6 +52,7 @@
             top: 0;
             left: calc(100% / var(--selection-options) * var(--selection-index));
             background: var(--color-accent-1);
+            transition: left 0.1s ease-out;
         }
     }
 }
