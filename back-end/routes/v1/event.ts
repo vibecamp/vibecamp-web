@@ -1,7 +1,7 @@
 import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
-import { withDBConnection } from '../../utils/db.ts'
-import { Tables } from '../../types/db-types.ts'
+import { accountReferralStatus, withDBConnection } from '../../utils/db.ts'
+import { TABLE_ROWS, Tables } from '../../types/db-types.ts'
 import { EventJson } from '../../types/route-types.ts'
 
 const eventToJson = (event: Tables['event']): EventJson => ({
@@ -16,9 +16,55 @@ export default function register(router: Router) {
     endpoint: '/events',
     method: 'get',
     requireAuth: true,
-    handler: async () => {
-      const events = await withDBConnection(db => db.queryTable('event'))
-      return [{ events: events.map(eventToJson) }, Status.OK]
+    handler: async ({ jwt: { account_id } }) => {
+      return await withDBConnection(async db => {
+
+        // only referred accounts can view events schedule
+        const { allowedToPurchase } = await accountReferralStatus(db, account_id, TABLE_ROWS.next_festival[0].festival_id)
+        if (!allowedToPurchase) {
+          return [null, Status.Unauthorized]
+        }
+
+        const events = await db.queryObject<Tables['event'] & { creator_email_address: Tables['account']['email_address'], creator_name: Tables['attendee']['name'], bookmarks: bigint }>`
+          SELECT
+            event.name,
+            event.description,
+            event.start_datetime,
+            event.end_datetime,
+            event.location,
+            event.event_id,
+            event.created_by_account_id,
+            account.email_address as creator_email_address,
+            attendee.name as creator_name,
+            COUNT(event_bookmark.account_id) as bookmarks
+          FROM event
+          LEFT JOIN account ON event.created_by_account_id = account.account_id
+          LEFT JOIN attendee ON account.account_id = attendee.associated_account_id
+          LEFT JOIN event_bookmark ON event_bookmark.event_id = event.event_id
+          WHERE attendee.is_primary_for_account = true
+          GROUP BY
+            event.name,
+            event.description,
+            event.start_datetime,
+            event.end_datetime,
+            event.location,
+            event.event_id,
+            event.created_by_account_id,
+            account.email_address,
+            attendee.name
+        `
+
+        return [
+          {
+            events: events.rows.map(e => ({
+              ...eventToJson(e),
+              created_by: e.creator_name || e.creator_email_address,
+              bookmarks: Number(e.bookmarks)
+            }))
+          },
+          Status.OK
+        ]
+      })
     },
   })
 
@@ -29,10 +75,11 @@ export default function register(router: Router) {
     handler: async ({ jwt: { account_id }, body: { event } }) => {
       const { event_id } = event
 
-      if (event_id) {
-        return await withDBConnection(async db => {
-          const existingEvent = (await db.queryTable('event', { where: ['event_id', '=', event_id] }))[0]
+      return await withDBConnection(async db => {
+        if (event_id) {
 
+          // check that this account owns this event
+          const existingEvent = (await db.queryTable('event', { where: ['event_id', '=', event_id] }))[0]
           if (existingEvent?.created_by_account_id !== account_id) {
             return [null, Status.Unauthorized]
           }
@@ -40,15 +87,22 @@ export default function register(router: Router) {
           const updatedEvent = (await db.updateTable('event', event, [['event_id', '=', event_id]]))[0]
 
           return [{ event: eventToJson(updatedEvent!) }, Status.OK]
-        })
-      } else {
-        const createdEvent = await withDBConnection(db => db.insertTable('event', {
-          ...event,
-          created_by_account_id: account_id
-        }))
+        } else {
 
-        return [{ event: eventToJson(createdEvent!) }, Status.OK]
-      }
+          // only ticketholders can create events
+          const accountPurchases = await db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] })
+          if (!accountPurchases.some(p => p.purchase_type_id.startsWith('ATTENDANCE_'))) {
+            return [null, Status.Unauthorized]
+          }
+
+          const createdEvent = await db.insertTable('event', {
+            ...event,
+            created_by_account_id: account_id
+          })
+
+          return [{ event: eventToJson(createdEvent!) }, Status.OK]
+        }
+      })
     },
   })
 
@@ -58,8 +112,9 @@ export default function register(router: Router) {
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: { event_id } }) => {
       await withDBConnection(async db => {
-        const existingEvent = (await db.queryTable('event', { where: ['event_id', '=', event_id] }))[0]
 
+        // check that this account owns this event
+        const existingEvent = (await db.queryTable('event', { where: ['event_id', '=', event_id] }))[0]
         if (existingEvent == null || existingEvent.created_by_account_id !== account_id) {
           return [null, Status.Unauthorized]
         }

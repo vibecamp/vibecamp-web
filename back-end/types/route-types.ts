@@ -59,7 +59,9 @@ export type Routes = {
     '/events': {
         method: 'get',
         body: undefined,
-        response: { events: EventJson[] }
+        response: {
+            events: (EventJson & { created_by: string, bookmarks: number })[]
+        }
     },
     '/event/save': {
         method: 'post',
