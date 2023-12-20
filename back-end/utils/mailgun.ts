@@ -32,7 +32,7 @@ export async function sendMail(email: Email) {
     )
 
     if (!res.ok) {
-        const { html, ...rest } = email
+        const { html: _, ...rest } = email
         throw Error(`Failed to send mailgun email: ${JSON.stringify(rest)}`)
     }
 }
@@ -42,8 +42,7 @@ export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 
     const purchaseRows = objectEntries(purchases)
         .map(([key, count]) =>
             `<tr>
-                <td>${PURCHASE_TYPES_BY_TYPE[key].description}</td>
-                <td>x${count}</td>
+                <td>${PURCHASE_TYPES_BY_TYPE[key].description} x${count}</td>
                 <td>$${(PURCHASE_TYPES_BY_TYPE[key].price_in_cents * count! / 100).toFixed(2)}</td>
             </tr>`)
         .join('\n')
@@ -81,12 +80,16 @@ export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 
                     margin: 0 auto;
                     max-width: 400px;
                 }
+                
+                table {
+                    width: 100%;
+                }
 
                 td {
                     vertical-align: baseline;
                 }
 
-                td:nth-child(3) {
+                td:nth-child(2) {
                     text-align: right;
                 }
 
@@ -123,7 +126,6 @@ export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 
                     
                     <tr>
                         <td>Total:</td>
-                        <td></td>
                         <td>$${totalCost}</td>
                     </tr>
                 </table>
