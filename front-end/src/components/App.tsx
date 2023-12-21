@@ -12,6 +12,7 @@ import Modal from './core/Modal'
 import MultiView from './core/MultiView'
 import Spacer from './core/Spacer'
 import Stripes from './core/Stripes'
+import Events from './Events'
 import Login from './Login'
 import Tickets from './Tickets'
 
@@ -42,12 +43,22 @@ export default observer(() => {
                     component: Tickets
                 },
                 // Store.accountInfo.state.result?.allowed_to_purchase
-                //     ? {
-                //         name: 'Events',
-                //         icon: 'calendar_today' as const,
-                //         component: Events
-                //     }
-                //     : null,
+                [
+                    'dcd441a2-0b4b-4e52-961c-b7860fa9977c',
+                    '44f222b3-928e-41f1-93a7-c35e7fae29bc',
+                    '2b8103ae-468a-4750-a07a-47125aef2cb0',
+                    '82eafa98-3089-40e8-9d2b-0ee267844621',
+                    'bd6c3734-91d9-486a-9924-c0acefb77c21',
+                    'cf64358e-2b97-4472-a503-5e2aca1ba117',
+                    '1d8e8b2d-c5a4-47d1-a30c-83f453dd84c5',
+                    '6f65ca22-3cc1-4d41-9c69-7788ece76a7e'
+                ].includes(Store.jwtPayload?.account_id ?? '')
+                    ? {
+                        name: 'Events',
+                        icon: 'calendar_today' as const,
+                        component: Events
+                    }
+                    : null,
                 // Map: {
                 //     icon: 'map',
                 //     component: Map
