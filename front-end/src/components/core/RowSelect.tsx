@@ -5,7 +5,7 @@ import { useStable } from '../../mobx/hooks'
 import { observer } from '../../mobx/misc'
 
 type Props<TOption extends string|number> = {
-    label: string,
+    label?: string,
     disabled?: boolean,
     value: TOption,
     onChange: (val: TOption) => void,
@@ -17,9 +17,10 @@ function RowSelect<TOption extends string|number>(props: Props<TOption>) {
 
     return (
         <div className='row-select' style={{ '--selection-index': props.options.indexOf(props.value), '--selection-options': props.options.length } as CSSProperties}>
-            <div className='label'>
-                {props.label}
-            </div>
+            {props.label &&
+                <div className='label'>
+                    {props.label}
+                </div>}
 
             <div className='options'>
                 {props.options.map((option, index) =>
