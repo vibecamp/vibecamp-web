@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import jwtDecode from 'jwt-decode'
 import { autorun, makeAutoObservable } from 'mobx'
 
@@ -56,8 +57,8 @@ class Store {
 
             return {
                 ...festival,
-                start_date: new Date(festival.start_date),
-                end_date: new Date(festival.end_date),
+                start_date: dayjs(festival.start_date),
+                end_date: dayjs(festival.end_date),
             } as const
         } else {
             return null
@@ -109,8 +110,8 @@ class Store {
             return (await vibefetch(this.jwt, '/events', 'get', undefined)).body?.events
                 .map(e => ({
                     ...e,
-                    start_datetime: new Date(e.start_datetime),
-                    end_datetime: e.end_datetime ? new Date(e.end_datetime) : null
+                    start_datetime: dayjs(e.start_datetime),
+                    end_datetime: e.end_datetime ? dayjs(e.end_datetime) : null
                 }))
         } else {
             return null

@@ -4,7 +4,6 @@ import { TABLE_ROWS } from '../../../../back-end/types/db-types'
 import { AttendeeInfo } from '../../../../back-end/types/misc'
 import { observer, setter } from '../../mobx/misc'
 import Store from '../../stores/Store'
-import { prettyDate } from '../../utils'
 import Checkbox from '../core/Checkbox'
 import InfoBlurb from '../core/InfoBlurb'
 import Input from '../core/Input'
@@ -105,7 +104,7 @@ export default observer((props: Props) => {
 
             <InfoBlurb>
                 {Store.festival.state.result != null
-                    ? `This age should be at the time of ${Store.festival.state.result.festival_name} (${prettyDate(Store.festival.state.result.start_date)} - ${prettyDate(Store.festival.state.result.end_date)})`
+                    ? `This age should be at the time of ${Store.festival.state.result.festival_name} (${Store.festival.state.result.start_date.format('DD/MM/YYYY')} - ${Store.festival.state.result.end_date.format('DD/MM/YYYY')})`
                     : 'This age should be at the time of the festival'}
             </InfoBlurb>
 
