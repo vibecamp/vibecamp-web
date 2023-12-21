@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import jwtDecode from 'jwt-decode'
 import { autorun, makeAutoObservable } from 'mobx'
 
+import { TABLE_ROWS } from '../../../back-end/types/db-types'
 import { VibeJWTPayload } from '../../../back-end/types/misc'
 import { BUS_TICKET_PURCHASE_TYPES } from '../components/tickets/BusTicketsField'
 import { request } from '../mobx/request'
@@ -113,6 +114,14 @@ class Store {
                     start_datetime: dayjs(e.start_datetime),
                     end_datetime: e.end_datetime ? dayjs(e.end_datetime) : null
                 }))
+        } else {
+            return null
+        }
+    })
+
+    readonly allEventSites = request(async () => {
+        if (this.jwt != null) {
+            return (await vibefetch(this.jwt, '/event-sites', 'post', { festival_id: TABLE_ROWS.next_festival[0].festival_id })).body?.eventSites
         } else {
             return null
         }

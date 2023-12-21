@@ -1,7 +1,8 @@
+import dayjs, { Dayjs } from 'dayjs'
 import React, { FC } from 'react'
 
 import { Tables } from '../../../back-end/types/db-types'
-import { fieldToProps, Form, form, FormValidators } from '../mobx/form'
+import { FormValidators } from '../mobx/form'
 import { useObservableClass } from '../mobx/hooks'
 import { observer, setter } from '../mobx/misc'
 import { request } from '../mobx/request'
@@ -15,22 +16,23 @@ import Icon from './core/Icon'
 import Input from './core/Input'
 import LoadingDots from './core/LoadingDots'
 import Modal from './core/Modal'
+import RadioGroup from './core/RadioGroup'
 import Row from './core/Row'
 import RowSelect from './core/RowSelect'
 import Spacer from './core/Spacer'
 
 type InProgressEvent = {
+    event_id: string | undefined,
     name: string,
     description: string,
-    start_datetime: Date | null,
-    end_datetime: Date | null,
+    start_datetime: Dayjs | null,
+    end_datetime: Dayjs | null,
     location: string | null
 }
 
 export default observer(() => {
     const state = useObservableClass(class {
-        eventIdBeingEdited: string | null = null
-        eventBeingEdited: Form<InProgressEvent> | null = null
+        eventBeingEdited: InProgressEvent | null = null
 
         filter: 'All' | 'Bookmarked' | 'Mine' = 'All'
 
@@ -57,7 +59,7 @@ export default observer(() => {
                     }
                 },
                 end_datetime: val => {
-                    const start = this.eventBeingEdited?.fields.start_datetime.value
+                    const start = this.eventBeingEdited?.start_datetime
                     if (start != null && val != null && start >= val) {
                         return 'End date/time is before start date/time'
                     }
@@ -66,52 +68,36 @@ export default observer(() => {
         }
 
         readonly createNewEvent = () => {
-            this.eventBeingEdited = form<InProgressEvent>({
-                initialValues: {
-                    name: '',
-                    description: '',
-                    start_datetime: null,
-                    end_datetime: null,
-                    location: null
-                },
-                validators: this.eventValidators
-            })
+            this.eventBeingEdited = {
+                event_id: undefined,
+                name: '',
+                description: '',
+                start_datetime: null,
+                end_datetime: null,
+                location: null
+            }
         }
 
         readonly editEvent = (eventId: string) => {
             const existing = Store.allEvents.state.result?.find(e => e.event_id === eventId)
 
             if (existing) {
-                this.eventIdBeingEdited = existing.event_id
-                this.eventBeingEdited = form<InProgressEvent>({
-                    initialValues: {
-                        name: existing.name,
-                        description: existing.description,
-                        start_datetime: existing.start_datetime,
-                        end_datetime: existing.end_datetime,
-                        location: existing.location
-                    },
-                    validators: this.eventValidators
-                })
+                this.eventBeingEdited = { ...existing }
             }
         }
 
         readonly saveEvent = request(async () => {
-            if (this.eventBeingEdited == null || !this.eventBeingEdited.isValid) {
-                this.eventBeingEdited?.activateAllValidation()
+            if (this.eventBeingEdited == null) {
                 return
             }
 
-            const { name, description, start_datetime, end_datetime, location } = this.eventBeingEdited.fieldValues
+            const { start_datetime, end_datetime } = this.eventBeingEdited
 
             await vibefetch(Store.jwt, '/event/save', 'post', {
                 event: {
-                    event_id: this.eventIdBeingEdited ?? undefined,
-                    name,
-                    description,
+                    ...this.eventBeingEdited,
                     start_datetime: start_datetime!.toISOString(),
-                    end_datetime: end_datetime?.toISOString() ?? null,
-                    location
+                    end_datetime: end_datetime?.toISOString() ?? null
                 }
             })
             await Store.allEvents.load()
@@ -119,113 +105,83 @@ export default observer(() => {
         }, { lazy: true })
 
         readonly stopEditingEvent = () => {
-            this.eventIdBeingEdited = null
             this.eventBeingEdited = null
         }
     })
 
+    const loading = Store.accountInfo.state.kind === 'loading' || Store.allEvents.state.kind === 'loading' || Store.bookmarks.state.kind === 'loading'
+    const loadingOrError = loading || Store.accountInfo.state.kind === 'error'
+
     return (
-        Store.allEvents.state.kind === 'loading' || Store.bookmarks.state.kind === 'loading'
-            ? <LoadingDots size={60} color='var(--color-accent-1)' />
-            : <Col padding={20} pageLevel>
-                <Row justify='space-between'>
-                    <h1 style={{ fontSize: 24 }}>
-                        Events
-                    </h1>
+        <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
+            {loading
+                ? <LoadingDots size={100} color='var(--color-accent-1)' />
+                : <>
+                    <Row justify='space-between'>
+                        <h1 style={{ fontSize: 24 }}>
+                            Events
+                        </h1>
 
-                    {Store.purchasedTickets.length > 0 &&
-                        <Button onClick={state.createNewEvent} isCompact style={{ width: 'auto' }}>
-                            Create event
-
-                            <Spacer size={8} />
-
-                            <Icon name='calendar_add_on' />
-                        </Button>}
-                </Row>
-
-                <Spacer size={8} />
-
-                <RowSelect
-                    label='Filter'
-                    options={['All', 'Bookmarked', 'Mine']}
-                    value={state.filter}
-                    onChange={setter(state, 'filter')}
-                />
-
-                <Spacer size={8} />
-
-                {state.visibleEvents?.map(e =>
-                    <Event event={e} editEvent={state.editEvent} key={e.event_id} />)}
-
-                <Modal isOpen={state.eventBeingEdited != null} onClose={state.stopEditingEvent}>
-                    {() =>
-                        state.eventBeingEdited != null &&
-                        <form onSubmit={preventingDefault(state.saveEvent.load)} noValidate>
-                            <Col padding={20} pageLevel>
-                                <Input
-                                    label='Event name'
-                                    disabled={state.saveEvent.state.kind === 'loading'}
-                                    {...fieldToProps(state.eventBeingEdited.fields.name)}
-                                />
-
-                                <Spacer size={16} />
-
-                                <Input
-                                    label='Event description'
-                                    disabled={state.saveEvent.state.kind === 'loading'}
-                                    multiline
-                                    {...fieldToProps(state.eventBeingEdited.fields.description)}
-                                />
-
-                                <Spacer size={16} />
-
-                                <DateField
-                                    label='Start'
-                                    disabled={state.saveEvent.state.kind === 'loading'}
-                                    {...fieldToProps(state.eventBeingEdited.fields.start_datetime)}
-                                />
-
-                                <Spacer size={16} />
-
-                                <DateField
-                                    label='End'
-                                    disabled={state.saveEvent.state.kind === 'loading'}
-                                    {...fieldToProps(state.eventBeingEdited.fields.end_datetime)}
-                                />
-
-                                <Spacer size={16} />
-
-                                <Input
-                                    label='Location'
-                                    disabled={state.saveEvent.state.kind === 'loading'}
-                                    {...fieldToProps(state.eventBeingEdited.fields.location)}
-                                    value={state.eventBeingEdited.fields.location.value ?? ''}
-                                />
-
-                                <Spacer size={16} />
-
-                                <Button isSubmit isPrimary isLoading={state.saveEvent.state.kind === 'loading'}>
-                                    {state.eventIdBeingEdited == null
-                                        ? 'Create event'
-                                        : 'Save event'}
-                                </Button>
+                        {Store.purchasedTickets.length > 0 &&
+                            <Button onClick={state.createNewEvent} isCompact style={{ width: 'auto' }}>
+                                Create event
 
                                 <Spacer size={8} />
 
-                                <Button onClick={state.stopEditingEvent} disabled={state.saveEvent.state.kind === 'loading'}>
-                                    Cancel
-                                </Button>
-                            </Col>
-                        </form>}
-                </Modal>
-            </Col>
+                                <Icon name='calendar_add_on' />
+                            </Button>}
+                    </Row>
+
+                    <Spacer size={8} />
+
+                    <RowSelect
+                        options={['All', 'Bookmarked', 'Mine']}
+                        value={state.filter}
+                        onChange={setter(state, 'filter')}
+                    />
+
+                    <Spacer size={8} />
+
+                    {state.visibleEvents?.map(e =>
+                        <Event event={e} editEvent={state.editEvent} key={e.event_id} />)}
+
+                    <Modal isOpen={state.eventBeingEdited != null} onClose={state.stopEditingEvent}>
+                        {() =>
+                            state.eventBeingEdited != null &&
+                                <EventEditor
+                                    saveEvent={state.saveEvent.load}
+                                    cancel={state.stopEditingEvent}
+                                    isSaving={state.saveEvent.state.kind === 'loading'}
+                                    eventBeingEdited={state.eventBeingEdited}
+                                />}
+                    </Modal>
+                </>}
+        </Col>
     )
 })
 
-const Event: FC<{ event: Tables['event'] & { created_by: string, bookmarks: number }, editEvent: (eventId: string) => void }> = observer((props) => {
+const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & { start_datetime: Dayjs, end_datetime: Dayjs | null, created_by: string, bookmarks: number }, editEvent: (eventId: string) => void }> = observer((props) => {
     const state = useObservableClass(class {
         get bookmarked() {
             return Store.bookmarks.state.result?.event_ids.includes(props.event.event_id)
+        }
+
+        get when() {
+            const now = dayjs()
+            const timeOnly = 'h:mma'
+            const dateAndTime = (d: Dayjs) => (
+                now.isSame(d, 'year')
+                    ? 'ddd, M/D [at] ' + timeOnly
+                    : 'ddd, M/D/YYYY [at] ' + timeOnly
+            )
+
+            if (props.event.end_datetime == null) {
+                return props.event.start_datetime.format(dateAndTime(props.event.start_datetime))
+            } else if (props.event.end_datetime.isSame(props.event.start_datetime, 'day')) {
+                return props.event.start_datetime.format(dateAndTime(props.event.start_datetime)) + ' - ' + props.event.end_datetime.format(timeOnly)
+            } else {
+                return props.event.start_datetime.format(dateAndTime(props.event.start_datetime)) + ' - ' + props.event.end_datetime.format(dateAndTime(props.event.end_datetime))
+            }
         }
 
         readonly unbookmarkEvent = request(async () => {
@@ -279,7 +235,7 @@ const Event: FC<{ event: Tables['event'] & { created_by: string, bookmarks: numb
             <div className='info'>
                 <Icon name='schedule' />
                 <span>
-                    {props.event.start_datetime.toTimeString() + (props.event.end_datetime ? ` - ${props.event.end_datetime.toTimeString()}` : '')}
+                    {state.when}
                 </span>
             </div>
 
@@ -316,5 +272,94 @@ const Event: FC<{ event: Tables['event'] & { created_by: string, bookmarks: numb
                 {props.event.description}
             </pre>
         </div>
+    )
+})
+
+const EventEditor = observer((props: { saveEvent: () => void, cancel: () => void, isSaving: boolean, eventBeingEdited: InProgressEvent }) => {
+    const state = useObservableClass(class {
+        locationType: 'Site' | 'Custom' = 'Site'
+    })
+
+    return (
+        <form onSubmit={preventingDefault(props.saveEvent)} noValidate>
+            <Col padding={20} pageLevel>
+                <Input
+                    label='Event name'
+                    disabled={props.isSaving}
+                    value={props.eventBeingEdited.name}
+                    onChange={setter(props.eventBeingEdited, 'name')}
+                />
+
+                <Spacer size={16} />
+
+                <Input
+                    label='Event description'
+                    disabled={props.isSaving}
+                    multiline
+                    value={props.eventBeingEdited.description}
+                    onChange={setter(props.eventBeingEdited, 'description')}
+                />
+
+                <Spacer size={16} />
+
+                <DateField
+                    label='Start'
+                    disabled={props.isSaving}
+                    value={props.eventBeingEdited.start_datetime}
+                    onChange={setter(props.eventBeingEdited, 'start_datetime')}
+                />
+
+                <Spacer size={16} />
+
+                <DateField
+                    label='End'
+                    disabled={props.isSaving}
+                    value={props.eventBeingEdited.end_datetime}
+                    onChange={setter(props.eventBeingEdited, 'end_datetime')}
+                />
+
+                <Spacer size={16} />
+
+                <RowSelect
+                    options={['Site', 'Custom']}
+                    value={state.locationType}
+                    onChange={setter(state, 'locationType')}
+                />
+
+                <Spacer size={16} />
+
+                {state.locationType === 'Site'
+                    ? <>
+                        <RadioGroup
+                            options={Store.allEventSites.state.result?.map(s => ({
+                                value: s.name,
+                                label: s.name
+                            })) ?? []}
+                            value={props.eventBeingEdited.location ?? ''}
+                            onChange={setter(props.eventBeingEdited, 'location')}
+                        />
+                    </>
+                    : <Input
+                        label='Location'
+                        disabled={props.isSaving}
+                        value={props.eventBeingEdited.location ?? ''}
+                        onChange={setter(props.eventBeingEdited, 'location')}
+                    />}
+
+                <Spacer size={16} />
+
+                <Button isSubmit isPrimary isLoading={props.isSaving}>
+                    {props.eventBeingEdited.event_id == null
+                        ? 'Create event'
+                        : 'Save event'}
+                </Button>
+
+                <Spacer size={8} />
+
+                <Button onClick={props.cancel} disabled={props.isSaving}>
+                    Cancel
+                </Button>
+            </Col>
+        </form>
     )
 })
