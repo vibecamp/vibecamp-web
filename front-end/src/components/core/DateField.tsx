@@ -1,34 +1,36 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import dayjs, { Dayjs } from 'dayjs'
 import React, { ChangeEvent } from 'react'
 
-import { useStable } from '../../mobx/hooks'
+import { useObservableClass } from '../../mobx/hooks'
 import { observer } from '../../mobx/misc'
 import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 
-type Props = CommonFieldProps<Date | null>
+type Props = CommonFieldProps<Dayjs | null>
 
 export default observer((props: Props) => {
-    const handleChange = useStable(() => (e: ChangeEvent<HTMLInputElement>) => {
-        try {
-            const date = new Date(e.target.value)
+    const state = useObservableClass(class {
+        get valueString() {
+            return props.value?.format().replace(/:[0-9]+-[0-9]+:[0-9]+$/, '') ?? ''
+        }
 
-            if (!isNaN(date as any)) {
+        readonly handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+            const date = dayjs(e.target.value)
+            if (date.isValid()) {
                 props.onChange(date)
             }
-        } catch {
         }
     })
 
     return (
-
         <label className={'date-field' + ' ' + (props.disabled ? 'disabled' : '')}>
             <div className='label'>{props.label}</div>
 
             <input
                 type='datetime-local'
-                defaultValue={props.value?.toISOString() ?? ''}
-                onChange={handleChange}
+                value={state.valueString}
+                onChange={state.handleChange}
                 disabled={props.disabled}
                 onBlur={props.onBlur}
             />
