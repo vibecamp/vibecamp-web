@@ -23,19 +23,18 @@ export default observer(() => {
 
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
-            {Store.accountInfo.state.kind === 'result' &&
-                <h1 style={{ fontSize: 24, alignSelf: 'flex-start' }}>
-                    My tickets
-                </h1>}
-
-            <Spacer size={loadingOrError ? 300 : 24} />
-
             {loading ?
                 <LoadingDots size={100} color='var(--color-accent-1)' />
                 : Store.accountInfo.state.kind === 'error' || Store.accountInfo.state.result == null ?
                     'Failed to load'
                     : Store.accountInfo.state.kind === 'result' ?
                         <>
+                            <h1 style={{ fontSize: 24, alignSelf: 'flex-start' }}>
+                                My tickets
+                            </h1>
+
+                            <Spacer size={24} />
+
                             {Store.accountInfo.state.result.allowed_to_purchase
                                 ? <>
                                     {Store.purchasedTickets.length === 0 &&
