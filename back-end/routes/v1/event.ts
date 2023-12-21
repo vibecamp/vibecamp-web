@@ -52,6 +52,8 @@ export default function register(router: Router) {
             event.created_by_account_id,
             account.email_address,
             attendee.name
+          ORDER BY
+            event.start_datetime
         `
 
         return [
@@ -67,6 +69,26 @@ export default function register(router: Router) {
       })
     },
   })
+
+  defineRoute(router, {
+    endpoint: '/event-sites',
+    method: 'post',
+    requireAuth: true,
+    handler: async ({ jwt: { account_id }, body: { festival_id } }) => {
+      return await withDBConnection(async db => {
+
+        // only referred accounts can view events schedule
+        const { allowedToPurchase } = await accountReferralStatus(db, account_id, TABLE_ROWS.next_festival[0].festival_id)
+        if (!allowedToPurchase) {
+          return [null, Status.Unauthorized]
+        }
+
+        const festival = TABLE_ROWS.festival.find(f => f.festival_id === festival_id)
+        return [{ eventSites: TABLE_ROWS.event_site.filter(s => s.festival_site_id === festival?.festival_site_id).toSorted((a, b) => a.name.localeCompare(b.name)) }, Status.OK]
+      })
+    }
+  })
+
 
   defineRoute(router, {
     endpoint: '/event/save',

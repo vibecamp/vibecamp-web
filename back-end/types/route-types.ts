@@ -63,6 +63,13 @@ export type Routes = {
             events: (EventJson & { created_by: string, bookmarks: number })[]
         }
     },
+    '/event-sites': {
+        method: 'post',
+        body: { festival_id: Tables['festival']['festival_id'] },
+        response: {
+            eventSites: Tables['event_site'][]
+        }
+    },
     '/event/save': {
         method: 'post',
         body: { event: Omit<EventJson, 'created_by_account_id' | 'event_id'> & { event_id: Tables['event']['event_id'] | undefined } },
