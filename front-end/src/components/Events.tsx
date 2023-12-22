@@ -37,13 +37,21 @@ class EventsScreenState {
 
     filter: 'All' | 'Bookmarked' | 'Mine' = 'All'
 
+    get bookmarkedEvents() {
+        return Store.allEvents.state.result?.filter(e => Store.bookmarks.state.result?.event_ids.includes(e.event_id))
+    }
+
+    get myEvents() {
+        return Store.allEvents.state.result?.filter(e => e.created_by_account_id === Store.jwtPayload?.account_id)
+    }
+
     get visibleEvents() {
         if (this.filter === 'All') {
             return Store.allEvents.state.result
         } else if (this.filter === 'Bookmarked') {
-            return Store.allEvents.state.result?.filter(e => Store.bookmarks.state.result?.event_ids.includes(e.event_id))
+            return this.bookmarkedEvents
         } else if (this.filter === 'Mine') {
-            return Store.allEvents.state.result?.filter(e => e.created_by_account_id === Store.jwtPayload?.account_id)
+            return this.myEvents
         }
     }
 
@@ -287,6 +295,16 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
         get isSaving() {
             return props.eventsScreenState.saveEvent.state.kind === 'loading'
         }
+
+        readonly setLocationType = (t: typeof this['locationType']) => {
+            this.locationType = t
+
+            if (this.locationType === 'At Vibeclipse') {
+                props.eventsScreenState.eventBeingEdited!.plaintext_location = null
+            } else {
+                props.eventsScreenState.eventBeingEdited!.event_site_location = null
+            }
+        }
     })
 
     if (props.eventsScreenState.eventBeingEdited == null) {
@@ -366,7 +384,7 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
                     label='My event will be...'
                     options={['At Vibeclipse', 'Offsite']}
                     value={state.locationType}
-                    onChange={setter(state, 'locationType')}
+                    onChange={state.setLocationType}
                 />
 
                 <Spacer size={16} />
@@ -374,6 +392,7 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
                 {state.locationType === 'At Vibeclipse'
                     ? <>
                         <RadioGroup
+                            label='Campsite locations:'
                             options={Store.allEventSites.state.result?.map(s => ({
                                 value: s.event_site_id,
                                 label: s.name
@@ -405,7 +424,7 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
                 {selectedSite &&
                     <EventSiteInfo eventSite={selectedSite} />}
 
-                <Spacer size={8} />
+                <Spacer size={16} />
 
                 <Button isSubmit isPrimary isLoading={state.isSaving}>
                     {props.eventsScreenState.eventBeingEdited.event_id == null
@@ -427,7 +446,41 @@ const EventSiteInfo = observer((props: { eventSite: Tables['event_site'] }) => {
 
     return (
         <div>
-            {props.eventSite.description}
+            <div style={{ fontWeight: 'bold' }}>
+                Location info
+            </div>
+
+            {props.eventSite.description &&
+            <>
+                <Spacer size={4} />
+
+                <div>
+                    {props.eventSite.description}
+                </div>
+            </>}
+
+            <Spacer size={4} />
+
+            <div>
+                Type: {props.eventSite.structure_type}
+            </div>
+
+            {props.eventSite.people_cap &&
+                <>
+                    <Spacer size={4} />
+
+                    <div>
+                        Max capacity: {props.eventSite.people_cap}
+                    </div>
+                </>}
+            {props.eventSite.equipment &&
+                <>
+                    <Spacer size={4} />
+
+                    <div>
+                        Available equipment: {props.eventSite.equipment}
+                    </div>
+                </>}
         </div>
     )
 })
