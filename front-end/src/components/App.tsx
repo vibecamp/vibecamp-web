@@ -51,7 +51,8 @@ export default observer(() => {
                     'bd6c3734-91d9-486a-9924-c0acefb77c21',
                     'cf64358e-2b97-4472-a503-5e2aca1ba117',
                     '1d8e8b2d-c5a4-47d1-a30c-83f453dd84c5',
-                    '6f65ca22-3cc1-4d41-9c69-7788ece76a7e'
+                    '6f65ca22-3cc1-4d41-9c69-7788ece76a7e',
+                    'ec37e330-a4c2-4fd2-8de7-11971fe073bc'
                 ].includes(Store.jwtPayload?.account_id ?? '')
                     ? {
                         name: 'Events',
