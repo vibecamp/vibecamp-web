@@ -61,12 +61,12 @@ export type Tables = {
   event: {
     created_by_account_id: Tables['account']['account_id'],
     description: string,
-    end_datetime: undefined | null,
+    end_datetime: Date | null,
     event_id: string,
     event_site_location: Tables['event_site']['event_site_id'] | null,
     name: string,
     plaintext_location: string | null,
-    start_datetime: undefined,
+    start_datetime: Date,
   },
   event_bookmark: {
     account_id: Tables['account']['account_id'],

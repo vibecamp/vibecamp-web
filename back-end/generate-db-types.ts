@@ -1,30 +1,26 @@
 
 import { withDBConnection } from "./utils/db.ts";
 
-/**
- * Possible postgres column type names
- */
-type PostgresColumnType =
-    | 'boolean'
-    | 'text'
-    | 'integer'
-    | 'timestamp with time zone'
-    | 'date'
-    | 'point'
-    | 'uuid'
 
 /**
  * Postgres column type -> TypeScript type
  */
-const TYPE_MAP: Record<PostgresColumnType, string> = {
+const TYPE_MAP = {
     'boolean': 'boolean',
     'text': 'string',
     'uuid': 'string',
     'integer': 'number',
     'point': 'unknown',
     'date': 'Date',
+    'timestamp': 'Date',
+    'timestamp without time zone': 'Date',
     'timestamp with time zone': 'Date'
-}
+} as const
+
+/**
+ * Possible postgres column type names
+ */
+type PostgresColumnType = keyof typeof TYPE_MAP
 
 /**
  * The **entire contents** of these tables will be downloaded and written into
@@ -120,7 +116,7 @@ ${rows.map(row => `    ${JSON.stringify(row)},`).join('\n')}
             type: (
                 isForeignKeyTo ? `Tables['${isForeignKeyTo.table_name}']['${isForeignKeyTo.column_name}']` :
                     // isPrimaryKey ? `(${TYPE_MAP[data_type]} & { [${key}]: null })` :
-                    TYPE_MAP[data_type]
+                    TYPE_MAP[data_type] ?? 'unknown'
             ) + (is_nullable === 'YES' ? ' | null' : '')
         })
     }
