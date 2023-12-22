@@ -1,4 +1,4 @@
-import { autorun, IReactionDisposer, observable } from 'mobx'
+import { autorun, IReactionDisposer, observable, runInAction } from 'mobx'
 
 export type RequestObservable<T> = {
     state: RequestState<T>
@@ -6,11 +6,13 @@ export type RequestObservable<T> = {
     dispose: () => void
 }
 
-export type RequestState<T> =
-    | { readonly kind: 'idle', readonly result: undefined }
-    | { readonly kind: 'loading', readonly result: undefined }
-    | { readonly kind: 'result', readonly result: T }
-    | { readonly kind: 'error', readonly result: undefined, readonly error: unknown }
+type MutableRequestState<T> =
+    | { kind: 'idle', result: Readonly<T> | undefined, error: undefined }
+    | { kind: 'loading', result: Readonly<T> | undefined, error: undefined}
+    | { kind: 'result', result: Readonly<T>, error: undefined }
+    | { kind: 'error', result: Readonly<T> | undefined, error: unknown }
+
+export type RequestState<T> = Readonly<MutableRequestState<T>>
 
 /**
  * Observable MobX abstraction around an async function (usually but not
@@ -21,30 +23,44 @@ export type RequestState<T> =
  * re-run it if any observed values change. If `{ lazy: true }` is passed,
  * it will only be triggered when `load()` is called.
  */
-export function request<T>(fn: () => Promise<T> | T, { lazy }: { lazy?: boolean } = {}): RequestObservable<T> {
+export function request<T>(fn: () => Promise<T> | T, { lazy, keepLatest }: { lazy?: boolean, keepLatest?: boolean } = {}): RequestObservable<T> {
     let latestRequestId: string | undefined
     async function load() {
         const thisRequestId = latestRequestId = String(Math.random())
 
-        res.state = { kind: 'loading', result: undefined }
+        runInAction(() => {
+            res.state.kind = 'loading'
+            if (!keepLatest) {
+                res.state.result = undefined
+            }
+        })
 
         try {
             const result = await fn()
 
             if (thisRequestId === latestRequestId) {
-                res.state = { kind: 'result', result }
+                runInAction(() => {
+                    res.state.kind = 'result'
+                    res.state.result = result
+                })
             }
         } catch (error: unknown) {
             if (thisRequestId === latestRequestId) {
-                res.state = { kind: 'error', error, result: undefined }
+                runInAction(() => {
+                    res.state.kind = 'error'
+                    res.state.error = error
+                    if (!keepLatest) {
+                        res.state.result = undefined
+                    }
+                })
                 console.error(error)
             }
         }
     }
 
     let autorunDisposer: IReactionDisposer | undefined
-    const res: RequestObservable<T> = observable({
-        state: { kind: 'idle', result: undefined },
+    const res = observable({
+        state: { kind: 'idle', result: undefined, error: undefined } as MutableRequestState<T>,
         load,
         dispose: () => {
             autorunDisposer?.()
