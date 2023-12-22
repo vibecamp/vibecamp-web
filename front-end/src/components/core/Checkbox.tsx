@@ -21,7 +21,8 @@ export default observer((props: Props) => {
                 onBlur={props.onBlur}
                 disabled={props.disabled}
                 aria-invalid={typeof props.error === 'string'}
-                aria-errormessage={typeof props.error === 'string' ? props.error : undefined} />
+                aria-errormessage={typeof props.error === 'string' ? props.error : undefined}
+            />
 
             {props.children}
 

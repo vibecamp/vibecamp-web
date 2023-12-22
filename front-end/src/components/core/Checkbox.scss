@@ -19,15 +19,29 @@
         height: var(--checkbox-size);
         border: var(--controls-border);
         border-radius: 4px;
-        margin-right: 8px;
+        margin-right: 6px;
 
         flex-grow: 0;
         flex-shrink: 0;
 
         &::before {
-            @extend .material-symbols-outlined;
-
             content: 'check';
+
+            // copied from .material-symbols-outlined
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+
             color: rgba(255, 255, 255, 0.9);
             opacity: 0;
             font-size:14px;

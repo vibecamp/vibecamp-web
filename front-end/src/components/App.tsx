@@ -105,18 +105,22 @@ export default observer(() => {
 const Nav = observer((props: { views: readonly View[] }) => {
     return (
         <div className='nav'>
-            {props.views.map(({ name, icon }, index) => (
-                <button
-                    className={name === WindowObservables.hashState?.currentView ? 'active' : undefined}
-                    onClick={() => WindowObservables.assignHashState({ currentView: name })}
-                    title={name}
-                    key={index}
-                >
-                    <Icon name={icon} />
-                    <Spacer size={4} />
-                    <span style={{ fontSize: 8 }}>{name}</span>
-                </button>
-            ))}
+            {props.views.map(({ name, icon }, index) => {
+                const active = name === WindowObservables.hashState?.currentView
+
+                return (
+                    <a
+                        className={active ? 'active' : undefined}
+                        href={`#${encodeURIComponent(JSON.stringify({ currentView: name }))}`}
+                        title={name}
+                        key={index}
+                    >
+                        <Icon name={icon} fill={active ? 1 : 0} />
+                        <Spacer size={4} />
+                        <span style={{ fontSize: 8 }}>{name}</span>
+                    </a>
+                )
+            })}
         </div>
     )
 })

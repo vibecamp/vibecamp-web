@@ -3,6 +3,8 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  flex-wrap: wrap;
+  gap: 8px;
 
   &:disabled {
     opacity: 0.6;
@@ -12,8 +14,15 @@
     }
   }
 
+  &.column {
+    flex-direction: column;
+  }
+
+  &.row {
+    flex-direction: row;
+  }
+
   >label {
-    margin-top: 8px;
     display: flex;
     align-items:center;
     cursor: pointer;
@@ -22,7 +31,7 @@
       appearance: none;
       margin: 0;
       position: relative;
-      margin-right: 8px;
+      margin-right: 6px;
       cursor: inherit;
 
       &::before {

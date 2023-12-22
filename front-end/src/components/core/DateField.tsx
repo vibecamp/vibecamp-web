@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import dayjs, { Dayjs } from 'dayjs'
+import { autorun } from 'mobx'
 import React, { ChangeEvent } from 'react'
 
 import { useObservableClass } from '../../mobx/hooks'
@@ -11,14 +12,24 @@ type Props = CommonFieldProps<Dayjs | null>
 
 export default observer((props: Props) => {
     const state = useObservableClass(class {
-        get valueString() {
-            return props.value?.format().replace(/:[0-9]+-[0-9]+:[0-9]+$/, '') ?? ''
-        }
+        strValue = props.value == null ? '' : formatNoTimezone(props.value)
+
+        readonly strUpdater = autorun(() => {
+            if (props.value != null) {
+                this.strValue = formatNoTimezone(props.value)
+            }
+        })
 
         readonly handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-            const date = dayjs(e.target.value)
+            const value = e.target.value
+
+            this.strValue = value
+
+            const date = dayjs(value)
             if (date.isValid()) {
                 props.onChange(date)
+            } else {
+                props.onChange(null)
             }
         }
     })
@@ -29,7 +40,7 @@ export default observer((props: Props) => {
 
             <input
                 type='datetime-local'
-                value={state.valueString}
+                value={state.strValue ?? ''}
                 onChange={state.handleChange}
                 disabled={props.disabled}
                 onBlur={props.onBlur}
@@ -39,3 +50,5 @@ export default observer((props: Props) => {
         </label>
     )
 })
+
+export const formatNoTimezone = (d: Dayjs) => d.format().replace(/:[0-9]+-[0-9]+:[0-9]+$/, '')

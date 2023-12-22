@@ -7,7 +7,8 @@ import ErrorMessage from './ErrorMessage'
 
 type Props<T> = Omit<CommonFieldProps<T>, 'value'> & {
     value: T | undefined,
-    options: readonly { value: T, label: string }[]
+    options: readonly { value: T, label: string }[],
+    directon?: 'column' | 'row'
 }
 
 function RadioGroup<T>(props: Props<T>) {
@@ -17,8 +18,8 @@ function RadioGroup<T>(props: Props<T>) {
         props.onChange(value === NULL ? null : value))
 
     return (
-        <fieldset className={`radio-group ${props.disabled ? 'disabled' : ''}`}>
-            <legend>{props.label}</legend>
+        <fieldset className={`radio-group ${props.disabled ? 'disabled' : ''} ${props.directon}`}>
+            {props.label && <legend>{props.label}</legend>}
 
             {props.options.map((option, index) =>
                 <label key={index}>
