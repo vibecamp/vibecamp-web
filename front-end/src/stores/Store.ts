@@ -133,7 +133,7 @@ class Store {
         } else {
             return null
         }
-    })
+    }, { keepLatest: true })
 }
 
 export default new Store()
