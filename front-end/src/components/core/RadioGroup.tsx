@@ -19,7 +19,8 @@ function RadioGroup<T>(props: Props<T>) {
 
     return (
         <fieldset className={`radio-group ${props.disabled ? 'disabled' : ''} ${props.directon}`}>
-            {props.label && <legend>{props.label}</legend>}
+            {props.label &&
+                <legend>{props.label}</legend>}
 
             {props.options.map((option, index) =>
                 <label key={index}>
