@@ -4,6 +4,7 @@ import { observer } from '../../mobx/misc'
 
 type Props = {
     name: MaterialIconName,
+    fill?: number,
     style?: CSSProperties
 }
 
@@ -29,19 +30,17 @@ export type MaterialIconName =
     | 'map'
     | 'info'
     | 'star'
-    | 'star_filled'
 
 export default observer((props: Props) => {
-    const name = props.name.endsWith('_filled') ? props.name.substring(0, props.name.length - '_filled'.length) : props.name
-    const groupStyle = props.name.endsWith('_filled') ? FILLED_STYLE : undefined
+    const style = {
+        fontVariationSettings: `'FILL' ${props.fill}, 'wght' 400, 'GRAD' 0, 'opsz' 24`,
+        transition: 'font-variation-settings 0.1s ease-out',
+        ...props.style
+    }
 
     return (
-        <span className="icon material-symbols-outlined" style={{ ...groupStyle, ...props.style }}>
-            {name}
+        <span className="icon material-symbols-outlined" style={style}>
+            {props.name}
         </span>
     )
 })
-
-const FILLED_STYLE: CSSProperties = {
-    fontVariationSettings: '\'FILL\': 1'
-}
