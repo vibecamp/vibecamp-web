@@ -6,7 +6,7 @@ import { EventJson } from '../../types/route-types.ts'
 
 const eventToJson = (event: Tables['event']): EventJson => ({
   ...event,
-  start_datetime: event.start_datetime.toISOString(),
+  start_datetime: event.start_datetime?.toISOString(),
   end_datetime: event.end_datetime?.toISOString() ?? null
 })
 
@@ -31,7 +31,8 @@ export default function register(router: Router) {
             event.description,
             event.start_datetime,
             event.end_datetime,
-            event.location,
+            event.plaintext_location,
+            event.event_site_location,
             event.event_id,
             event.created_by_account_id,
             account.email_address as creator_email_address,
@@ -47,7 +48,8 @@ export default function register(router: Router) {
             event.description,
             event.start_datetime,
             event.end_datetime,
-            event.location,
+            event.plaintext_location,
+            event.event_site_location,
             event.event_id,
             event.created_by_account_id,
             account.email_address,
