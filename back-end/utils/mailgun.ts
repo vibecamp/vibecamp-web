@@ -7,6 +7,7 @@ import { PURCHASE_TYPES_BY_TYPE } from '../types/misc.ts'
 
 const MAILGUN_DOMAIN = 'mail.vibe.camp'
 const FROM = `Vibecamp <support@${MAILGUN_DOMAIN}>`
+const REPLY_TO = 'support@vibe.camp'
 
 export type Email = {
     readonly to: string,
@@ -15,9 +16,15 @@ export type Email = {
 }
 
 export async function sendMail(email: Email) {
+    const allFields = [
+        ...objectEntries(email),
+        ['from', FROM],
+        ['h:Reply-To', REPLY_TO]
+    ] as const
+
     const opts = {
         method: 'post',
-        body: `from=${FROM}&` + objectEntries(email)
+        body: allFields
             .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
             .join('&'),
         headers: {
