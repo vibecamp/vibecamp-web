@@ -35,9 +35,11 @@ export default observer((props: Props) => {
                     <Spacer size={8} />
                 </React.Fragment>)}
 
-            <hr />
-
-            <Spacer size={8} />
+            {state.entries.length > 0 &&
+                <>
+                    <hr />
+                    <Spacer size={8} />
+                </>}
 
             <div className='price-line-item'>
                 <div>
