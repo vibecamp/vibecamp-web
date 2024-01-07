@@ -7,10 +7,9 @@ import { Tables } from '../../types/db-types.ts'
 import { withDBConnection } from '../../utils/db.ts'
 import { getEmailValidationError, getPasswordValidationError } from '../../utils/validation.ts'
 
-const encoder = new TextEncoder()
 const JWT_SECRET_KEY = await crypto.subtle.importKey(
   'raw',
-  encoder.encode('JWT_SECRET_KEY'),
+  new TextEncoder().encode('JWT_SECRET_KEY'),
   { name: 'HMAC', hash: 'SHA-256' },
   true,
   ['sign', 'verify'],

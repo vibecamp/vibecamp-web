@@ -54,14 +54,13 @@ export async function withDBConnection<TResult>(
   cb: (db: DBClient & Pick<PoolClient, 'createTransaction'>) => Promise<TResult>,
 ): Promise<TResult> {
   const client = await db.connect() as unknown as DBClient & Pick<PoolClient, 'createTransaction' | 'release'>
-  try {
-    client.queryTable = queryTable(client)
-    client.insertTable = insertTable(client)
-    client.updateTable = updateTable(client)
-    client.deleteTable = deleteTable(client)
+  client.queryTable = queryTable(client)
+  client.insertTable = insertTable(client)
+  client.updateTable = updateTable(client)
+  client.deleteTable = deleteTable(client)
 
-    // deno-lint-ignore no-explicit-any
-    const result = await cb(client as any)
+  try {
+    const result = await cb(client)
     return result
   } finally {
     client.release()
@@ -91,8 +90,7 @@ export async function withDBTransaction<TResult>(
       transaction.updateTable = updateTable(transaction)
       transaction.deleteTable = deleteTable(transaction)
 
-      // deno-lint-ignore no-explicit-any
-      const result = await cb(transaction as any)
+      const result = await cb(transaction)
 
       await transaction.commit()
       releaseTransactionName(transactionName)
