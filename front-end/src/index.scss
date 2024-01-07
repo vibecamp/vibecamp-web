@@ -74,6 +74,11 @@ hr {
     margin: 0;
 }
 
+a {
+    color: var(--color-accent-1);
+    text-decoration: none;
+}
+
 .card {
     border-radius: 8px;
     padding: 10px 20px;

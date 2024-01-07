@@ -104,6 +104,13 @@ export default observer(() => {
                                         Info about {Store.festival.state.result.festival_name} &nbsp; <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
                                     </a>
                                 </>}
+
+                            <Spacer size={16} />
+
+                            <div style={{ textAlign: 'center' }}>
+                                Questions or issues?&nbsp;
+                                <a href='mailto:support@vibe.camp'>Email us</a>
+                            </div>
                         </>
                         : null}
 
