@@ -74,15 +74,15 @@ export function defineRoute<TEndpoint extends keyof Routes>(
       const jwt: Maybe<VibeJWTPayload> = await getJwtPayload(ctx)
 
       if (jwt == null || jwt.exp == null || getNumericDate(new Date()) > jwt.exp) {
-        return [null, Status.Unauthorized]
+        constructResponse(ctx, [null, Status.Unauthorized])
+      } else {
+        const response = await Promise.race([
+          config.handler({ ctx, body: parsedBody, jwt }),
+          timeout(),
+        ])
+
+        constructResponse(ctx, response)
       }
-
-      const response = await Promise.race([
-        config.handler({ ctx, body: parsedBody, jwt }),
-        timeout(),
-      ])
-
-      constructResponse(ctx, response)
 
       return next()
     } else {

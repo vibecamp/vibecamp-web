@@ -116,7 +116,6 @@ export async function getJwtPayload(
     try {
       const result = await verify(token, JWT_SECRET_KEY)
       return result as VibeJWTPayload
-      // deno-lint-ignore no-empty
     } catch {
     }
   }
