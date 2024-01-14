@@ -3,7 +3,7 @@ import React, { FC } from 'react'
 
 import { TABLE_ROWS, Tables } from '../../../back-end/types/db-types'
 import { useObservableClass } from '../mobx/hooks'
-import { observer, setter } from '../mobx/misc'
+import { observer, setter,setTo } from '../mobx/misc'
 import { request } from '../mobx/request'
 import Store from '../stores/Store'
 import { fieldProps,preventingDefault, someValue, validate } from '../utils'
@@ -117,6 +117,15 @@ class EventsScreenState {
         })
         await Store.allEvents.load()
         this.stopEditingEvent()
+    }, { lazy: true })
+
+    readonly deleteEvent = request(async () => {
+        const event_id = this.eventBeingEdited?.event_id
+        if (event_id != null) {
+            await vibefetch(Store.jwt, '/event/delete', 'post', { event_id })
+            await Store.allEvents.load()
+            this.eventBeingEdited = null
+        }
     }, { lazy: true })
 
     readonly stopEditingEvent = () => {
@@ -291,6 +300,7 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
 const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) => {
     const state = useObservableClass(class {
         locationType: 'At Vibeclipse' | 'Offsite' = 'At Vibeclipse'
+        confirmingDeletion = false
 
         get isSaving() {
             return props.eventsScreenState.saveEvent.state.kind === 'loading'
@@ -431,6 +441,34 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
                         ? 'Create event'
                         : 'Save event'}
                 </Button>
+
+                <Spacer size={8} />
+
+                <Button isDanger onClick={setTo(state, 'confirmingDeletion', true)}>
+                    Delete event
+                </Button>
+
+                <Modal isOpen={state.confirmingDeletion}>
+                    {() => (
+                        <Col align='center' justify='center' padding={20} pageLevel>
+                            <div style={{ fontSize: 22, textAlign: 'center' }}>
+                                Are you sure you want to delete {props.eventsScreenState.eventBeingEdited?.name}?
+                            </div>
+
+                            <Spacer size={16} />
+
+                            <Button isDanger isPrimary onClick={props.eventsScreenState.deleteEvent.load} isLoading={props.eventsScreenState.deleteEvent.state.kind === 'loading'}>
+                                Yes, delete the event
+                            </Button>
+
+                            <Spacer size={8} />
+
+                            <Button onClick={setTo(state, 'confirmingDeletion', false)} disabled={props.eventsScreenState.deleteEvent.state.kind === 'loading'}>
+                                Cancel
+                            </Button>
+                        </Col>
+                    )}
+                </Modal>
 
                 <Spacer size={8} />
 
