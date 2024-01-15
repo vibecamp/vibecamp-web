@@ -68,7 +68,14 @@ class Store {
 
     readonly accountInfo = request(async () => {
         if (this.jwt != null) {
-            return (await vibefetch(this.jwt, '/account', 'get', undefined)).body
+            const res = await vibefetch(this.jwt, '/account', 'get', undefined)
+
+            // if JWT token doesn't work, clear it and kick user back to the login screen
+            if (res.status === 401) {
+                this.jwt = null
+            }
+
+            return res.body
         } else {
             return null
         }
