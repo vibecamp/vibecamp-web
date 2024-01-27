@@ -58,8 +58,8 @@ class Store {
 
             return {
                 ...festival,
-                start_date: dayjs(festival.start_date),
-                end_date: dayjs(festival.end_date),
+                start_date: dayjs.utc(festival.start_date),
+                end_date: dayjs.utc(festival.end_date),
             } as const
         } else {
             return null
@@ -118,8 +118,8 @@ class Store {
             return (await vibefetch(this.jwt, '/events', 'get', undefined)).body?.events
                 .map(e => ({
                     ...e,
-                    start_datetime: dayjs(e.start_datetime),
-                    end_datetime: e.end_datetime ? dayjs(e.end_datetime) : null
+                    start_datetime: dayjs.utc(e.start_datetime),
+                    end_datetime: e.end_datetime ? dayjs.utc(e.end_datetime) : null
                 }))
         } else {
             return null
