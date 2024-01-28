@@ -33,4 +33,12 @@
             font-weight: 500;
         }
     }
+
+    &.TEAM_OFFICIAL {
+        border-color: var(--color-accent-1);
+    }
+
+    &.CAMPSITE_OFFICIAL {
+        border-color: var(--color-accent-2);
+    }
 }

@@ -233,7 +233,7 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
     })
 
     return (
-        <div className={'card' + ' ' + 'eventCard' + ' ' + (props.event.created_by_account_id === '-1' ? 'official' : '')}>
+        <div className={'card' + ' ' + 'eventCard' + ' ' + (props.event.created_by_account_id === '-1' ? 'official' : '') + props.event.event_type}>
             <div className='eventName'>
                 <div>{props.event.name}</div>
 
