@@ -2,11 +2,12 @@ import dayjs, { Dayjs } from 'dayjs'
 import React, { FC } from 'react'
 
 import { TABLE_ROWS, Tables } from '../../../back-end/types/db-types'
+import { objectEntries, objectFromEntries } from '../../../back-end/utils/misc'
 import { useObservableClass } from '../mobx/hooks'
 import { observer, setter,setTo } from '../mobx/misc'
 import { request } from '../mobx/request'
 import Store from '../stores/Store'
-import { fieldProps,preventingDefault, someValue, validate } from '../utils'
+import { fieldProps,given,preventingDefault, someValue, validate } from '../utils'
 import { vibefetch } from '../vibefetch'
 import Button from './core/Button'
 import Col from './core/Col'
@@ -28,7 +29,8 @@ type InProgressEvent = {
     start_datetime: Dayjs | null,
     end_datetime: Dayjs | null,
     plaintext_location: string | null,
-    event_site_location: Tables['event_site']['event_site_id'] | null
+    event_site_location: Tables['event_site']['event_site_id'] | null,
+    event_type: Tables['event']['event_type'] | undefined
 }
 
 class EventsScreenState {
@@ -88,7 +90,8 @@ class EventsScreenState {
             start_datetime: null,
             end_datetime: null,
             plaintext_location: null,
-            event_site_location: null
+            event_site_location: null,
+            event_type: undefined
         }
     }
 
@@ -436,6 +439,22 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
 
                 <Spacer size={16} />
 
+                {Store.accountInfo.state.result?.is_team_member &&
+                    <RowSelect
+                        label='Is this an official event?'
+                        options={TABLE_ROWS.event_type.map(({ event_type_id }) => EVENT_TYPE_LABELS[event_type_id])}
+                        {...fieldProps(
+                            props.eventsScreenState.eventBeingEdited,
+                            'event_type',
+                            props.eventsScreenState.eventErrors,
+                            props.eventsScreenState.showingEventErrors,
+                        )}
+                        value={given(props.eventsScreenState.eventBeingEdited?.event_type, t => EVENT_TYPE_LABELS[t]) ?? undefined}
+                        onChange={t => props.eventsScreenState.eventBeingEdited!.event_type = EVENT_TYPE_LABEL_IDS[t]}
+                    />}
+
+                <Spacer size={16} />
+
                 <Button isSubmit isPrimary isLoading={state.isSaving}>
                     {props.eventsScreenState.eventBeingEdited.event_id == null
                         ? 'Create event'
@@ -479,6 +498,16 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
         </form>
     )
 })
+
+const EVENT_TYPE_LABELS = objectFromEntries(
+    TABLE_ROWS.event_type
+        .map(({ event_type_id }) =>
+            [event_type_id, event_type_id[0] + event_type_id.replace('_OFFICIAL', '').substring(1).toLocaleLowerCase()] as const)
+)
+
+const EVENT_TYPE_LABEL_IDS = objectFromEntries(
+    objectEntries(EVENT_TYPE_LABELS).map(([k, v]) => [v, k] as const)
+)
 
 const EventSiteInfo = observer((props: { eventSite: Tables['event_site'] }) => {
 

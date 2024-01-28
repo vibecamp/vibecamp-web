@@ -7,7 +7,7 @@ import { observer } from '../../mobx/misc'
 type Props<TOption extends string|number> = {
     label?: string,
     disabled?: boolean,
-    value: TOption,
+    value: TOption | undefined,
     onChange: (val: TOption) => void,
     options: readonly TOption[],
 }
@@ -16,7 +16,7 @@ function RowSelect<TOption extends string|number>(props: Props<TOption>) {
     const handleChange = useStable(() => createTransformer((option: TOption) => () => props.onChange(option)))
 
     return (
-        <div className='row-select' style={{ '--selection-index': props.options.indexOf(props.value), '--selection-options': props.options.length } as CSSProperties}>
+        <div className='row-select' style={{ '--selection-index': props.value != null ? props.options.indexOf(props.value) : -1, '--selection-options': props.options.length } as CSSProperties}>
             {props.label &&
                 <div className='label'>
                     {props.label}

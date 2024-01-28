@@ -19,6 +19,7 @@
         align-items: stretch;
         border: var(--controls-border);
         overflow: hidden;
+        cursor: pointer;
     
         > label {
             flex-basis: 0;

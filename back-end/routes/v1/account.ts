@@ -73,6 +73,7 @@ export default function register(router: Router) {
             email_address: account.email_address,
             application_status: applicationStatus,
             allowed_to_purchase: allowedToPurchase,
+            is_team_member: account.is_team_member,
             attendees,
             purchases,
             inviteCodes

@@ -119,6 +119,15 @@ export default function register(router: Router) {
             return [null, Status.Unauthorized]
           }
 
+          // only team members can create official events
+          if (event.event_type != null && event.event_type !== 'UNOFFICIAL') {
+            const account = await db.queryTable('account', { where: ['account_id', '=', account_id] })
+
+            if (!account[0]?.is_team_member) {
+              return [null, Status.Unauthorized]
+            }
+          }
+
           const createdEvent = await db.insertTable('event', {
             ...event,
             created_by_account_id: account_id
