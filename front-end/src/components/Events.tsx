@@ -275,16 +275,16 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
 
             <Spacer size={4} />
 
-            <div className='info'>
+            <div className='info' title='Host'>
                 <Icon name='person' />
                 <span className='eventCreator'>
-                    {props.event.created_by}
+                    {props.event.event_type === 'TEAM_OFFICIAL' ? 'Vibecamp team' : props.event.event_type === 'CAMPSITE_OFFICIAL' ? 'Campsite' : props.event.created_by}
                 </span>
             </div>
 
             <Spacer size={4} />
 
-            <div className='info'>
+            <div className='info' title='Bookmarked by'>
                 <Icon name='star'/>
                 <span>
                     {props.event.bookmarks}
