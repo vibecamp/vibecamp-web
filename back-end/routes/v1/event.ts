@@ -35,6 +35,7 @@ export default function register(router: Router) {
             event.event_site_location,
             event.event_id,
             event.created_by_account_id,
+            event.event_type,
             account.email_address as creator_email_address,
             attendee.name as creator_name,
             COUNT(event_bookmark.account_id) as bookmarks
