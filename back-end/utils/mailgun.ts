@@ -45,6 +45,8 @@ export async function sendMail(email: Email) {
 }
 
 export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 'account_id'>, purchases: Purchases): Email => {
+    const purchaseTypes = objectEntries(purchases).filter(([type, count]) => count != null && count > 0).map(([type]) => PURCHASE_TYPES_BY_TYPE[type])
+    const festival = TABLE_ROWS.festival.find(f => f.festival_id === purchaseTypes[0]?.festival_id)
     const now = new Date()
     const purchaseRows = objectEntries(purchases)
         .map(([key, count]) =>
@@ -119,7 +121,7 @@ export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 
             <img src="${VIBECLIPSE_BANNER_PNG}">
 
             <div class="container">
-                <h1>You're going to ${TABLE_ROWS.next_festival[0].festival_name}!</h1>
+                <h1>You're going to ${festival?.festival_name}!</h1>
                 <p>
                     This email is your receipt for your purchases. You can visit 
                     <a href="https://my.vibe.camp">my.vibe.camp</a> to view your
