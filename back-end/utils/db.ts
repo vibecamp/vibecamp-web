@@ -186,14 +186,8 @@ const ACTIVE_TRANSACTION_NAMES = new Set<string>()
 export async function accountReferralStatus(
   db: DBClient,
   account_id: Tables['account']['account_id'],
-  festival_id: Maybe<Tables['festival']['festival_id']>
 ): Promise<{ allowedToRefer: number, allowedToPurchase: boolean }> {
   const none = { allowedToRefer: 0, allowedToPurchase: false }
-
-  if (festival_id == null) {
-    return none
-  }
-
   const account = (await db.queryTable('account', { where: ['account_id', '=', account_id] }))[0]!
 
   // invite code chain
@@ -201,7 +195,7 @@ export async function accountReferralStatus(
     & Pick<Tables['account'], 'account_id' | 'is_seed_account'>
     & Pick<Tables['invite_code'], 'created_by_account_id'>
   >`
-    SELECT * FROM account_referral_chain(${account_id}, ${festival_id})
+    SELECT * FROM account_referral_chain(${account_id})
   `).rows
 
   // account doesn't exist
