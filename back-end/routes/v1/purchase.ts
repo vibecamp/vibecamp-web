@@ -38,7 +38,7 @@ export default function register(router: Router) {
     method: 'post',
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: purchases }) => {
-      const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id, TABLE_ROWS.next_festival[0].festival_id))
+      const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id))
       if (!allowedToPurchase) {
         return [null, Status.Unauthorized]
       }

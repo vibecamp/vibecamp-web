@@ -20,7 +20,7 @@ export default function register(router: Router) {
       return await withDBConnection(async db => {
 
         // only referred accounts can view events schedule
-        const { allowedToPurchase } = await accountReferralStatus(db, account_id, TABLE_ROWS.next_festival[0].festival_id)
+        const { allowedToPurchase } = await accountReferralStatus(db, account_id)
         if (!allowedToPurchase) {
           return [null, Status.Unauthorized]
         }

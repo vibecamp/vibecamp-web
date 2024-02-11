@@ -35,10 +35,7 @@ export default function register(router: Router) {
       } = await withDBTransaction(async (db) => {
 
         return allPromises({
-          referralStatus: accountReferralStatus(db,
-            account_id,
-            TABLE_ROWS.next_festival[0].festival_id
-          ),
+          referralStatus: accountReferralStatus(db, account_id),
           accounts: db.queryTable('account', { where: ['account_id', '=', account_id] }),
           attendees: db.queryTable('attendee', { where: ['associated_account_id', '=', account_id] }),
           purchases: db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] }),
