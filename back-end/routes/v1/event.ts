@@ -61,9 +61,9 @@ export default function register(router: Router) {
 
         return [
           {
-            events: events.rows.map(e => ({
+            events: events.rows.map(({ creator_name, creator_email_address, ...e }) => ({
               ...eventToJson(e),
-              created_by: e.creator_name || e.creator_email_address,
+              created_by: creator_name || creator_email_address,
               bookmarks: Number(e.bookmarks)
             }))
           },
