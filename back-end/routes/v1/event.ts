@@ -3,6 +3,7 @@ import { defineRoute } from './_common.ts'
 import { accountReferralStatus, withDBConnection } from '../../utils/db.ts'
 import { TABLE_ROWS, Tables } from '../../types/db-types.ts'
 import { EventJson } from '../../types/route-types.ts'
+import { PURCHASE_TYPES_BY_TYPE } from '../../types/misc.ts'
 
 const eventToJson = (event: Tables['event']): EventJson => ({
   ...event,
@@ -115,8 +116,10 @@ export default function register(router: Router) {
         } else {
 
           // only ticketholders can create events
+          // TODO: only allow on-site event creation for users with a ticket to
+          // that specific festival, as opposed to just any festival
           const accountPurchases = await db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] })
-          if (!accountPurchases.some(p => p.purchase_type_id.startsWith('ATTENDANCE_'))) {
+          if (!accountPurchases.some(p => PURCHASE_TYPES_BY_TYPE[p.purchase_type_id].is_attendance_ticket)) {
             return [null, Status.Unauthorized]
           }
 

@@ -3,7 +3,7 @@ import jwtDecode from 'jwt-decode'
 import { autorun, makeAutoObservable } from 'mobx'
 
 import { TABLE_ROWS } from '../../../back-end/types/db-types'
-import { VibeJWTPayload } from '../../../back-end/types/misc'
+import { PURCHASE_TYPES_BY_TYPE, VibeJWTPayload } from '../../../back-end/types/misc'
 import { BUS_TICKET_PURCHASE_TYPES } from '../components/tickets/BusTicketsField'
 import { request } from '../mobx/request'
 import { given, jsonParse } from '../utils'
@@ -86,11 +86,7 @@ class Store {
 
         if (accountInfo != null) {
             const tickets = accountInfo.purchases
-                .filter(p =>
-                    p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024_OVER_16' ||
-                    p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024_10_TO_16' ||
-                    p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024_5_TO_10' ||
-                    p.purchase_type_id === 'ATTENDANCE_VIBECLIPSE_2024_2_TO_5')
+                .filter(p => PURCHASE_TYPES_BY_TYPE[p.purchase_type_id].is_attendance_ticket)
 
             const attendees = [...accountInfo.attendees]
 
