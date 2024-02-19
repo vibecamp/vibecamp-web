@@ -1,3 +1,6 @@
+import dayjs, { Dayjs } from 'dayjs'
+
+import { TABLE_ROWS } from '../../back-end/types/db-types'
 import { objectEntries, objectFromEntries } from '../../back-end/utils/misc'
 import { setter } from './mobx/misc'
 
@@ -65,3 +68,9 @@ export function fieldProps<TObj extends object, TField extends keyof TObj>(obj: 
         error: showingErrors && errors?.[field]
     }
 }
+
+export const festivalsHappeningAt = (date: Dayjs) =>
+    TABLE_ROWS.festival
+        .filter(e =>
+            date.isAfter(dayjs.utc(e.start_date)) &&
+            date.isBefore(dayjs.utc(e.end_date)))

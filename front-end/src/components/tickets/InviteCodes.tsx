@@ -15,10 +15,6 @@ export default observer(() => {
 
     return (
         <>
-            <hr />
-
-            <Spacer size={32} />
-
             <h2>
                     Your invite codes
             </h2>

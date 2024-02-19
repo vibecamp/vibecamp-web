@@ -7,7 +7,7 @@ import { useObservableClass } from '../mobx/hooks'
 import { observer, setter,setTo } from '../mobx/misc'
 import { request } from '../mobx/request'
 import Store from '../stores/Store'
-import { fieldProps,given,preventingDefault, someValue, validate } from '../utils'
+import { festivalsHappeningAt, fieldProps,given,preventingDefault, someValue, validate } from '../utils'
 import { vibefetch } from '../vibefetch'
 import Button from './core/Button'
 import Col from './core/Col'
@@ -302,7 +302,7 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
 
 const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) => {
     const state = useObservableClass(class {
-        locationType: 'At Vibeclipse' | 'Offsite' = 'At Vibeclipse'
+        locationType: 'Onsite' | 'Offsite' = 'Onsite'
         confirmingDeletion = false
 
         get isSaving() {
@@ -312,11 +312,24 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
         readonly setLocationType = (t: typeof this['locationType']) => {
             this.locationType = t
 
-            if (this.locationType === 'At Vibeclipse') {
+            if (this.locationType === 'Onsite') {
                 props.eventsScreenState.eventBeingEdited!.plaintext_location = null
             } else {
                 props.eventsScreenState.eventBeingEdited!.event_site_location = null
             }
+        }
+
+        get ongoingFestivals() {
+            const start = props.eventsScreenState.eventBeingEdited?.start_datetime
+            if (start != null) {
+                return festivalsHappeningAt(start)
+            } else {
+                return []
+            }
+        }
+
+        get ongoingFestivalsEventSites() {
+            return this.ongoingFestivals.map(f => TABLE_ROWS.event_site.filter(s => s.festival_site_id === f.festival_site_id)).flat()
         }
     })
 
@@ -325,6 +338,21 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
     }
 
     const selectedSite = TABLE_ROWS['event_site'].find(site => site.event_site_id === props.eventsScreenState.eventBeingEdited?.event_site_location)
+
+    const renderLocationInput = () =>
+        props.eventsScreenState.eventBeingEdited &&
+            <Input
+                label='Location'
+                disabled={state.isSaving}
+                multiline
+                {...fieldProps(
+                    props.eventsScreenState.eventBeingEdited,
+                    'plaintext_location',
+                    props.eventsScreenState.eventErrors,
+                    props.eventsScreenState.showingEventErrors,
+                )}
+                value={props.eventsScreenState.eventBeingEdited.plaintext_location ?? ''}
+            />
 
     return (
         <form onSubmit={preventingDefault(props.eventsScreenState.saveEvent.load)} noValidate>
@@ -382,55 +410,50 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
 
                 <Spacer size={16} />
 
-                <InfoBlurb>
-                    Your event can take place at Vibeclipse, or it can take
-                    place before/after.
-                    <br /><br />
-                    Vibeclipse camp site locations have limited capacity, and
-                    scheduling will be first-come-first-serve for a given place
-                    + time.
-                </InfoBlurb>
+                {state.ongoingFestivals?.length === 0
+                    ? renderLocationInput()
+                    : <>
+                        <InfoBlurb>
+                            Your event can take place at {state.ongoingFestivals[0]?.festival_name ?? 'the festival'}, or it can take
+                            place before/after.
+                            <br /><br />
+                            Campsite locations have limited capacity, and
+                            scheduling will be first-come-first-serve for a given place
+                            + time.
+                        </InfoBlurb>
 
-                <Spacer size={16} />
+                        <Spacer size={16} />
 
-                <RowSelect
-                    label='My event will be...'
-                    options={['At Vibeclipse', 'Offsite']}
-                    value={state.locationType}
-                    onChange={state.setLocationType}
-                />
-
-                <Spacer size={16} />
-
-                {state.locationType === 'At Vibeclipse'
-                    ? <>
-                        <RadioGroup
-                            label='Campsite locations:'
-                            options={Store.allEventSites.state.result?.map(s => ({
-                                value: s.event_site_id,
-                                label: s.name
-                            })) ?? []}
-                            directon='row'
-                            {...fieldProps(
-                                props.eventsScreenState.eventBeingEdited,
-                                'event_site_location',
-                                props.eventsScreenState.eventErrors,
-                                props.eventsScreenState.showingEventErrors,
-                            )}
+                        <RowSelect
+                            label='My event will be...'
+                            options={['Onsite', 'Offsite']}
+                            value={state.locationType}
+                            onChange={state.setLocationType}
                         />
-                    </>
-                    : <Input
-                        label='Location'
-                        disabled={state.isSaving}
-                        multiline
-                        {...fieldProps(
-                            props.eventsScreenState.eventBeingEdited,
-                            'plaintext_location',
-                            props.eventsScreenState.eventErrors,
-                            props.eventsScreenState.showingEventErrors,
-                        )}
-                        value={props.eventsScreenState.eventBeingEdited.plaintext_location ?? ''}
-                    />}
+
+                        <Spacer size={16} />
+
+                        {state.locationType === 'Onsite'
+                            ? <>
+                                <RadioGroup
+                                    label='Campsite locations:'
+                                    options={
+                                        state.ongoingFestivalsEventSites
+                                            ?.map(s => ({
+                                                value: s.event_site_id,
+                                                label: s.name
+                                            })) ?? []}
+                                    directon='row'
+                                    {...fieldProps(
+                                        props.eventsScreenState.eventBeingEdited,
+                                        'event_site_location',
+                                        props.eventsScreenState.eventErrors,
+                                        props.eventsScreenState.showingEventErrors,
+                                    )}
+                                />
+                            </>
+                            : renderLocationInput()}
+                    </>}
 
                 <Spacer size={8} />
 
@@ -463,33 +486,36 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
 
                 <Spacer size={8} />
 
-                <Button isDanger onClick={setTo(state, 'confirmingDeletion', true)}>
-                    Delete event
-                </Button>
+                {props.eventsScreenState.eventBeingEdited.event_id != null
+                    && <>
+                        <Button isDanger onClick={setTo(state, 'confirmingDeletion', true)}>
+                            Delete event
+                        </Button>
 
-                <Modal isOpen={state.confirmingDeletion}>
-                    {() => (
-                        <Col align='center' justify='center' padding={20} pageLevel>
-                            <div style={{ fontSize: 22, textAlign: 'center' }}>
+                        <Modal isOpen={state.confirmingDeletion}>
+                            {() => (
+                                <Col align='center' justify='center' padding={20} pageLevel>
+                                    <div style={{ fontSize: 22, textAlign: 'center' }}>
                                 Are you sure you want to delete {props.eventsScreenState.eventBeingEdited?.name}?
-                            </div>
+                                    </div>
 
-                            <Spacer size={16} />
+                                    <Spacer size={16} />
 
-                            <Button isDanger isPrimary onClick={props.eventsScreenState.deleteEvent.load} isLoading={props.eventsScreenState.deleteEvent.state.kind === 'loading'}>
+                                    <Button isDanger isPrimary onClick={props.eventsScreenState.deleteEvent.load} isLoading={props.eventsScreenState.deleteEvent.state.kind === 'loading'}>
                                 Yes, delete the event
-                            </Button>
+                                    </Button>
 
-                            <Spacer size={8} />
+                                    <Spacer size={8} />
 
-                            <Button onClick={setTo(state, 'confirmingDeletion', false)} disabled={props.eventsScreenState.deleteEvent.state.kind === 'loading'}>
+                                    <Button onClick={setTo(state, 'confirmingDeletion', false)} disabled={props.eventsScreenState.deleteEvent.state.kind === 'loading'}>
                                 Cancel
-                            </Button>
-                        </Col>
-                    )}
-                </Modal>
+                                    </Button>
+                                </Col>
+                            )}
+                        </Modal>
 
-                <Spacer size={8} />
+                        <Spacer size={8} />
+                    </>}
 
                 <Button onClick={props.eventsScreenState.stopEditingEvent} disabled={state.isSaving}>
                     Cancel

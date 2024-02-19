@@ -2,7 +2,6 @@ import dayjs from 'dayjs'
 import jwtDecode from 'jwt-decode'
 import { autorun, makeAutoObservable } from 'mobx'
 
-import { TABLE_ROWS } from '../../../back-end/types/db-types'
 import { PURCHASE_TYPES_BY_TYPE, VibeJWTPayload } from '../../../back-end/types/misc'
 import { BUS_TICKET_PURCHASE_TYPES } from '../components/tickets/BusTicketsField'
 import { request } from '../mobx/request'
@@ -47,24 +46,6 @@ class Store {
             }
         }
     }
-
-    readonly festival = request(async () => {
-        if (this.jwt != null) {
-            const festival = (await vibefetch(this.jwt, '/festival-info', 'get', undefined)).body
-
-            if (festival == null) {
-                return null
-            }
-
-            return {
-                ...festival,
-                start_date: dayjs.utc(festival.start_date),
-                end_date: dayjs.utc(festival.end_date),
-            } as const
-        } else {
-            return null
-        }
-    })
 
     readonly accountInfo = request(async () => {
         if (this.jwt != null) {
@@ -117,14 +98,6 @@ class Store {
                     start_datetime: dayjs.utc(e.start_datetime),
                     end_datetime: e.end_datetime ? dayjs.utc(e.end_datetime) : null
                 }))
-        } else {
-            return null
-        }
-    })
-
-    readonly allEventSites = request(async () => {
-        if (this.jwt != null) {
-            return (await vibefetch(this.jwt, '/event-sites', 'post', { festival_id: TABLE_ROWS.next_festival[0].festival_id })).body?.eventSites
         } else {
             return null
         }

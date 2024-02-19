@@ -1,5 +1,6 @@
 import { createTransformer } from 'mobx-utils'
 
+import { TABLE_ROWS } from '../../../back-end/types/db-types'
 import { AttendeeInfo, Maybe, PurchaseType } from '../../../back-end/types/misc'
 import { Purchases } from '../../../back-end/types/route-types'
 import { objectValues } from '../../../back-end/utils/misc'
@@ -137,11 +138,15 @@ export class PurchaseForm {
     })
 
     readonly createAttendees = request(async () => {
-        if (!this.isValid) {
+        const festival = TABLE_ROWS.festival.find(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)
+        if (!this.isValid || festival == null) {
             return
         }
 
-        await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', this.attendees)
+        await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', {
+            attendees: this.attendees,
+            festival_id: festival.festival_id
+        })
     }, { lazy: true })
 
     readonly stripeOptions = request(async () => {
@@ -176,12 +181,6 @@ export class PurchaseForm {
             WindowObservables.assignHashState({ ticketPurchaseModalState: 'payment' })
         }
     }
-
-    // readonly bouncePayment = autorun(() => {
-    //     if (WindowObservables.hashState?.ticketPurchaseModalState === 'payment' && this.stripeOptions.state.kind === 'result' && this.stripeOptions.state.result == null) {
-    //         WindowObservables.assignHashState({ ticketPurchaseModalState: 'selection' })
-    //     }
-    // })
 }
 
 function getAttendeeErrors(attendee: AttendeeInfo): Partial<Record<keyof AttendeeInfo, string>> {

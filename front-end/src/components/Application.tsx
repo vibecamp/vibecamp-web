@@ -146,7 +146,7 @@ export default observer((props: Props) => {
                 <Spacer size={24} />
 
                 <Input
-                    label='What are you hoping to get out of vibeclipse?'
+                    label='What are you hoping to get out of the festival?'
                     value={state.application.hoping_to_get_out_of_the_festival}
                     onChange={setter(state.application, 'hoping_to_get_out_of_the_festival')}
                     error={state.showingErrors && state.hopingToGetOutOfError}
@@ -156,7 +156,7 @@ export default observer((props: Props) => {
                 <Spacer size={24} />
 
                 <Input
-                    label={'What experiences are you hoping to share with others at vibeclipse? (We won\'t hold you to this!) This can include things like friendmaking/sociaskills/art workshops, being a good listening/conversation partner, anything eclipse/space/woo related...'}
+                    label={'What experiences are you hoping to share with others at vibecamp? (We won\'t hold you to this!) This can include things like friendmaking/sociaskills/art workshops, being a good listening/conversation partner, anything eclipse/space/woo related...'}
                     value={state.application.experiences_hoping_to_share}
                     onChange={setter(state.application, 'experiences_hoping_to_share')}
                     error={state.showingErrors && state.experiencesToShareError}
@@ -176,7 +176,7 @@ export default observer((props: Props) => {
                 <Spacer size={24} />
 
                 <CheckboxSet
-                    label='What type of conversations are you looking forward to at vibeclipse?'
+                    label='What type of conversations are you looking forward to at vibecamp?'
                     set={state.application.looking_forward_to_conversations}
                     options={CONVERSATION_SUBJECTS}
                 />
@@ -221,7 +221,7 @@ export default observer((props: Props) => {
                 <Spacer size={24} />
 
                 <RadioGroup
-                    label='Are you interested in volunteering at vibeclipse?'
+                    label='Are you interested in volunteering at the festival?'
                     options={YES_NO_OPTIONS}
                     value={state.application.interested_in_volunteering}
                     onChange={setter(state.application, 'interested_in_volunteering')}

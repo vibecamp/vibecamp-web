@@ -1,6 +1,7 @@
+import dayjs from 'dayjs'
 import React from 'react'
 
-import { TABLE_ROWS } from '../../../../back-end/types/db-types'
+import { TABLE_ROWS, Tables } from '../../../../back-end/types/db-types'
 import { AttendeeInfo } from '../../../../back-end/types/misc'
 import { observer, setter } from '../../mobx/misc'
 import Store from '../../stores/Store'
@@ -16,7 +17,8 @@ type Props = {
     attendeeErrors: Partial<Record<keyof AttendeeInfo, string>>,
     isAccountHolder: boolean,
     isChild: boolean,
-    showingErrors: boolean
+    showingErrors: boolean,
+    festival: Tables['festival']
 }
 
 const INFO_BLURB_SPACE = 12
@@ -103,9 +105,7 @@ export default observer((props: Props) => {
             <Spacer size={INFO_BLURB_SPACE} />
 
             <InfoBlurb>
-                {Store.festival.state.result != null
-                    ? `This age should be at the time of ${Store.festival.state.result.festival_name} (${Store.festival.state.result.start_date.format('DD/MM/YYYY')} - ${Store.festival.state.result.end_date.format('DD/MM/YYYY')})`
-                    : 'This age should be at the time of the festival'}
+                This age should be at the time of ${props.festival.festival_name} (${dayjs.utc(props.festival.start_date).format('DD/MM/YYYY')} - ${dayjs.utc(props.festival.end_date).format('DD/MM/YYYY')})
             </InfoBlurb>
 
             {!props.isChild &&
@@ -123,7 +123,7 @@ export default observer((props: Props) => {
                     <Spacer size={INFO_BLURB_SPACE} />
 
                     <InfoBlurb>
-                        Volunteers for vibeclipse fall into two major categories. Fae, and general volunteers.
+                        Volunteers fall into two major categories: fae, and general volunteers.
                         <Spacer size={6} />
                         Fae are part of our safety team, which is responsible for psychological, social, and physical safety during the event.
                         <Spacer size={6} />
@@ -151,7 +151,7 @@ export default observer((props: Props) => {
                     <InfoBlurb>
                         {`We'd like to introduce people to some of their fellow
                         attendees so they can lay the foundations of
-                        connection before arriving at ${Store.festival.state.result?.festival_name}.
+                        connection before arriving at ${props.festival.festival_name}.
                         If ${props.isAccountHolder ? 'you' : 'this person'} would like
                         to be invited to online hangouts please check the box
                         below.`}&nbsp;

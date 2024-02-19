@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx'
 import React from 'react'
 
+import { TABLE_ROWS } from '../../../../back-end/types/db-types'
 import { useStable } from '../../mobx/hooks'
 import { observer } from '../../mobx/misc'
 import WindowObservables from '../../mobx/WindowObservables'
@@ -24,6 +25,7 @@ export default observer(() => {
                         <SelectionView
                             purchaseForm={purchaseForm}
                             goToNext={purchaseForm.goToTicketPayment}
+                            festival={TABLE_ROWS.festival.find(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)}
                         />
                 },
                 {
@@ -36,7 +38,7 @@ export default observer(() => {
                         />
                 }
             ]}
-            currentView={WindowObservables.hashState?.ticketPurchaseModalState}
+            currentView={WindowObservables.hashState?.ticketPurchaseModalState === 'payment' ? 'payment' : 'selection'}
         />
     )
 })
@@ -47,7 +49,7 @@ const handlePurchaseCompletion = async () => {
     // seconds before refreshing the list, which should usually be enough
     await wait(2000)
 
-    WindowObservables.assignHashState({ currentView: 'Tickets', ticketPurchaseModalState: 'none' })
+    WindowObservables.assignHashState({ currentView: 'Tickets', ticketPurchaseModalState: null })
 
     await Store.accountInfo.load()
 }

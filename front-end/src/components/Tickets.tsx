@@ -1,5 +1,7 @@
 import React from 'react'
 
+import { PURCHASE_TYPES_BY_TYPE } from '../../../back-end/types/misc'
+import { FESTIVALS_WITH_SALES_OPEN } from '../../../back-end/utils/constants'
 import { observer } from '../mobx/misc'
 import WindowObservables from '../mobx/WindowObservables'
 import { needsAdultTicket } from '../stores/PurchaseForm'
@@ -37,30 +39,57 @@ export default observer(() => {
 
                             {Store.accountInfo.state.result.allowed_to_purchase
                                 ? <>
-                                    {Store.purchasedTickets.length === 0 &&
-                                        <>
-                                            <div style={{ textAlign: 'center' }}>
-                                                {'(after you purchase tickets they\'ll show up here)'}
-                                            </div>
-                                            <Spacer size={32} />
-                                        </>}
-
-                                    {Store.purchasedTickets.map(t => {
+                                    {FESTIVALS_WITH_SALES_OPEN.map(festival => {
+                                        const tickets = Store.purchasedTickets.filter(t => PURCHASE_TYPES_BY_TYPE[t.purchase_type_id].festival_id === festival.festival_id)
                                         return (
-                                            <React.Fragment key={t.purchase_id}>
-                                                <Ticket name={t.attendeeInfo?.name} ticketType={t.attendeeInfo == null ? undefined : needsAdultTicket(t.attendeeInfo?.age) ? 'adult' : 'child'} />
-                                                <Spacer size={24} />
-                                            </React.Fragment>
+                                            <>
+                                                <h2>
+                                                    {festival.festival_name}
+                                                </h2>
+
+                                                <Spacer size={16} />
+
+                                                {tickets.length === 0 &&
+                                                    <>
+                                                        <div style={{ textAlign: 'center' }}>
+                                                            {'(after you purchase tickets they\'ll show up here)'}
+                                                        </div>
+                                                        <Spacer size={32} />
+                                                    </>}
+
+                                                {tickets.map(t =>
+                                                    <React.Fragment key={t.purchase_id}>
+                                                        <Ticket name={t.attendeeInfo?.name} ticketType={t.attendeeInfo == null ? undefined : needsAdultTicket(t.attendeeInfo?.age) ? 'adult' : 'child'} />
+                                                        <Spacer size={24} />
+                                                    </React.Fragment>)}
+
+                                                <Button isPrimary onClick={openTicketPurchaseModal(festival.festival_id)}>
+                                                    {tickets.length === 0
+                                                        ? 'Buy tickets'
+                                                        : 'Buy more tickets or bus/bedding'}
+                                                </Button>
+
+                                                {festival.info_url &&
+                                                    <>
+
+                                                        <Spacer size={16} />
+
+                                                        <a
+                                                            className='button primary'
+                                                            href={festival.info_url}
+                                                            target='_blank'
+                                                            rel="noreferrer"
+                                                        >
+                                                            Info about {festival.festival_name} &nbsp; <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
+                                                        </a>
+                                                    </>}
+
+                                                <Spacer size={32} />
+                                                <hr />
+                                                <Spacer size={32} />
+                                            </>
                                         )
                                     })}
-
-                                    <Button isPrimary onClick={openTicketPurchaseModal}>
-                                        {Store.purchasedTickets.length === 0
-                                            ? 'Buy tickets'
-                                            : 'Buy more tickets or bus/bedding'}
-                                    </Button>
-
-                                    <Spacer size={32} />
 
                                     <InviteCodes />
                                 </>
@@ -83,26 +112,17 @@ export default observer(() => {
                                             ? 'Your application is under review!'
                                             : application_status === 'rejected'
                                                 ? 'Your application has been denied :('
-                                                : `Apply to ${Store.festival.state.result?.festival_name}`}
+                                                : 'Apply to Vibecamp'}
                                     </Button>
 
-                                </>}
-
-                            {Store.festival.state.result?.info_url &&
-                                <>
-
-                                    <Spacer size={32} />
-                                    <hr />
-                                    <Spacer size={32} />
-
-                                    <a
-                                        className='button primary'
-                                        href={Store.festival.state.result.info_url}
-                                        target='_blank'
-                                        rel="noreferrer"
+                                    <Modal
+                                        title='Apply to Vibecamp'
+                                        isOpen={WindowObservables.hashState?.applicationModalOpen === true}
+                                        onClose={closeApplicationModal}
                                     >
-                                        Info about {Store.festival.state.result.festival_name} &nbsp; <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
-                                    </a>
+                                        {() => <Application onSuccess={handleApplicationSubmissionSuccess} />}
+                                    </Modal>
+
                                 </>}
 
                             <Spacer size={16} />
@@ -116,29 +136,21 @@ export default observer(() => {
 
             <Modal
                 title='Ticket purchase'
-                isOpen={WindowObservables.hashState?.ticketPurchaseModalState === 'selection' || WindowObservables.hashState?.ticketPurchaseModalState === 'payment'}
+                isOpen={WindowObservables.hashState?.ticketPurchaseModalState != null}
                 onClose={closeTicketPurchaseModal}
             >
                 {() => Store.accountInfo.state.result && <PurchaseTicketsModal />}
-            </Modal>
-
-            <Modal
-                title={`Apply to ${Store.festival.state.result?.festival_name}`}
-                isOpen={WindowObservables.hashState?.applicationModalOpen === true}
-                onClose={closeApplicationModal}
-            >
-                {() => <Application onSuccess={handleApplicationSubmissionSuccess} />}
             </Modal>
         </Col>
     )
 })
 
 const closeTicketPurchaseModal = () => {
-    WindowObservables.assignHashState({ ticketPurchaseModalState: 'none' })
+    WindowObservables.assignHashState({ ticketPurchaseModalState: null })
 }
 
-const openTicketPurchaseModal = () => {
-    WindowObservables.assignHashState({ ticketPurchaseModalState: 'selection' })
+const openTicketPurchaseModal = (festival_id: string) => () => {
+    WindowObservables.assignHashState({ ticketPurchaseModalState: festival_id })
 }
 
 const closeApplicationModal = () => {

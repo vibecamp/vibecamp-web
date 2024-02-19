@@ -1,6 +1,7 @@
 
 import React from 'react'
 
+import { Tables } from '../../../../back-end/types/db-types'
 import { observer, setTo } from '../../mobx/misc'
 import { PurchaseForm } from '../../stores/PurchaseForm'
 import Store from '../../stores/Store'
@@ -19,9 +20,15 @@ import PriceBreakdown from './PriceBreakdown'
 type Props = {
     purchaseForm: PurchaseForm,
     goToNext: () => void,
+    festival: Tables['festival'] | undefined
 }
 
 export default observer((props: Props) => {
+    const { festival } = props
+    if (festival == null) {
+        return null
+    }
+
     return (
         <form onSubmit={preventingDefault(props.goToNext)} noValidate>
             <Col padding={20} pageLevel>
@@ -41,6 +48,7 @@ export default observer((props: Props) => {
                             isChild={attendee.age != null && attendee.age < 18}
                             isAccountHolder={index === 0}
                             showingErrors={props.purchaseForm.showingErrors}
+                            festival={festival}
                         />
 
                         {index > 0 &&
