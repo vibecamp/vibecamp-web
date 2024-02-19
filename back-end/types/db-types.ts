@@ -84,14 +84,6 @@ export type Tables = {
     festival_id: Tables['attendee']['festival_id'] | null,
     used_by_account_id: Tables['account']['account_id'] | null,
   },
-  next_festival: {
-    end_date: Date | null,
-    festival_id: string | null,
-    festival_name: string | null,
-    festival_site_id: string | null,
-    info_url: string | null,
-    start_date: Date | null,
-  },
   purchase: {
     owned_by_account_id: Tables['account']['account_id'] | null,
     purchase_id: string,
