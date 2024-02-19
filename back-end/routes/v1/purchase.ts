@@ -131,13 +131,19 @@ export default function register(router: Router) {
         const purchases: Purchases = objectFromEntries(objectEntries(purchasesRaw)
           .map(([key, value]) => [key, Number(value)])) // convert counts back to numbers
 
+        const stripe_payment_intent = (
+          typeof event.data.object.payment_intent === 'object'
+            ? event.data.object.payment_intent?.id
+            : event.data.object.payment_intent
+        )
+
         await withDBTransaction(async (db) => {
           for (const [purchaseType, count] of objectEntries(purchases)) {
             for (let i = 0; i < count!; i++) {
               await db.insertTable('purchase', {
                 owned_by_account_id: accountId ?? null,
                 purchase_type_id: purchaseType,
-                stripe_payment_intent: event.data.object.payment_intent
+                stripe_payment_intent
               })
             }
           }
