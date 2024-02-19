@@ -18,13 +18,13 @@ export default function register(router: Router) {
     endpoint: '/purchase/create-attendees',
     method: 'post',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: attendees }) => {
+    handler: async ({ jwt: { account_id }, body: { attendees, festival_id } }) => {
       await withDBTransaction(async db => {
         for (const attendee of attendees) {
           await db.insertTable('attendee', {
             ...attendee,
+            festival_id,
             associated_account_id: account_id,
-            festival_id: TABLE_ROWS.next_festival[0].festival_id
           })
         }
       })

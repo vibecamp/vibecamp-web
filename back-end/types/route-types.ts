@@ -103,21 +103,16 @@ export type Routes = {
     },
     '/purchase/create-attendees': {
         method: 'post',
-        body: AttendeeInfo[],
+        body: {
+            attendees: AttendeeInfo[],
+            festival_id: Tables['festival']['festival_id']
+        },
         response: null
     },
     '/purchase/create-intent': {
         method: 'post',
         body: Purchases,
         response: { stripe_client_secret: string }
-    },
-    '/festival-info': {
-        method: 'get',
-        body: unknown,
-        response: Omit<Tables['festival'], 'start_date' | 'end_date'> & {
-            start_date: string,
-            end_date: string
-        }
     }
 }
 
