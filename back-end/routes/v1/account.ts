@@ -54,8 +54,7 @@ export default function register(router: Router) {
           await withDBTransaction(async (db) => {
             for (let i = 0; i < uncreatedInviteCodes; i++) {
               await db.insertTable('invite_code', {
-                created_by_account_id: account.account_id,
-                festival_id: TABLE_ROWS.next_festival[0].festival_id
+                created_by_account_id: account.account_id
               })
             }
           })
