@@ -136,8 +136,8 @@ export default function register(router: Router) {
             for (let i = 0; i < count!; i++) {
               await db.insertTable('purchase', {
                 owned_by_account_id: accountId ?? null,
-                // assigned_to_attendee_id: 
-                purchase_type_id: purchaseType
+                purchase_type_id: purchaseType,
+                stripe_payment_intent: event.data.object.payment_intent
               })
             }
           }

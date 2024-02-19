@@ -89,6 +89,7 @@ export type Tables = {
     purchase_id: string,
     purchase_type_id: Tables['purchase_type']['purchase_type_id'],
     purchased_on: Date,
+    stripe_payment_intent: string | null,
   },
   purchase_type: (typeof TABLE_ROWS)['purchase_type'][number]
   volunteer_type: (typeof TABLE_ROWS)['volunteer_type'][number]
