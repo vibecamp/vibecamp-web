@@ -125,7 +125,7 @@ export default function register(router: Router) {
   })
 
   type PurchaseMetadata =
-    & { accountId: string, discount_ids: string }
+    & { accountId: string, discount_ids?: string }
     & Record<(typeof TABLE_ROWS)['purchase_type'][number]['purchase_type_id'], string> // stripe converts numbers to strings for some reason
 
   router.post('/purchase/record', async ctx => {
@@ -141,7 +141,7 @@ export default function register(router: Router) {
         console.info(`\tHandled Stripe event type ${event.type}`);
 
         const { accountId, discount_ids, ...purchasesRaw } = event.data.object.metadata as PurchaseMetadata
-        const discountsArray = discount_ids.split(',').map(id => TABLE_ROWS.discount.find(d => d.discount_id === id)).filter(exists)
+        const discountsArray = discount_ids?.split(',').map(id => TABLE_ROWS.discount.find(d => d.discount_id === id)).filter(exists) ?? []
 
         const purchases: Purchases = objectFromEntries(objectEntries(purchasesRaw)
           .map(([key, value]) => [key, Number(value)])) // convert counts back to numbers
