@@ -6,7 +6,7 @@ import {
   withDBConnection,
   withDBTransaction,
 } from '../../utils/db.ts'
-import { objectEntries, objectFromEntries, sum } from '../../utils/misc.ts'
+import { exists, objectEntries, objectFromEntries, product, sum } from '../../utils/misc.ts'
 import { TABLE_ROWS, Tables } from "../../types/db-types.ts"
 import { Purchases } from '../../types/route-types.ts'
 import { PURCHASE_TYPES_BY_TYPE } from '../../types/misc.ts'
@@ -37,7 +37,7 @@ export default function register(router: Router) {
     endpoint: '/purchase/create-intent',
     method: 'post',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: purchases }) => {
+    handler: async ({ jwt: { account_id }, body: { purchases, discount_codes } }) => {
       const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id))
       if (!allowedToPurchase) {
         return [null, Status.Unauthorized]
@@ -83,13 +83,22 @@ export default function register(router: Router) {
         }
       }
 
+      const discounts = Array.from(new Set(discount_codes)).map(code => TABLE_ROWS.discount.filter(d => d.discount_code === code)).flat()
+
       const amount = objectEntries(purchases)
-        .map(([purchaseType, count]) =>
-          PURCHASE_TYPES_BY_TYPE[purchaseType].price_in_cents * count!)
+        .map(([purchaseType, count]) => {
+          const discountMultiplier = discounts
+            .filter(d => d.purchase_type_id === purchaseType)
+            .map(d => Number(d.price_multiplier))
+            .reduce(product, 1)
+
+          return PURCHASE_TYPES_BY_TYPE[purchaseType].price_in_cents * discountMultiplier * count!
+        })
         .reduce(sum, 0)
 
       const metadata: PurchaseMetadata = {
         accountId: account_id,
+        discount_ids: discounts.map(d => d.discount_id).join(','),
         ...objectFromEntries(objectEntries(purchases).map(([key, value]) => [key, String(value)]))
       }
 
@@ -111,7 +120,7 @@ export default function register(router: Router) {
   })
 
   type PurchaseMetadata =
-    & { accountId: string }
+    & { accountId: string, discount_ids: string }
     & Record<(typeof TABLE_ROWS)['purchase_type'][number]['purchase_type_id'], string> // stripe converts numbers to strings for some reason
 
   router.post('/purchase/record', async ctx => {
@@ -126,7 +135,8 @@ export default function register(router: Router) {
       case 'charge.succeeded': {
         console.info(`\tHandled Stripe event type ${event.type}`);
 
-        const { accountId, ...purchasesRaw } = event.data.object.metadata as PurchaseMetadata
+        const { accountId, discount_ids, ...purchasesRaw } = event.data.object.metadata as PurchaseMetadata
+        const discountsArray = discount_ids.split(',').map(id => TABLE_ROWS.discount.find(d => d.discount_id === id)).filter(exists)
 
         const purchases: Purchases = objectFromEntries(objectEntries(purchasesRaw)
           .map(([key, value]) => [key, Number(value)])) // convert counts back to numbers

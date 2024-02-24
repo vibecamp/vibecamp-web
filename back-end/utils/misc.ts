@@ -41,6 +41,10 @@ export function sum(a: number, b: number) {
   return a + b
 }
 
+export function product(a: number, b: number) {
+  return a * b
+}
+
 // Overengineering this a little to reduce allocations...
 const spacesStrCache = new Map<number, string>()
 export const spaces = (length: number): string => {

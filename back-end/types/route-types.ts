@@ -111,7 +111,10 @@ export type Routes = {
     },
     '/purchase/create-intent': {
         method: 'post',
-        body: Purchases,
+        body: {
+            purchases: Purchases,
+            discount_codes: readonly string[]
+        },
         response: { stripe_client_secret: string }
     }
 }
