@@ -10,6 +10,7 @@ const TYPE_MAP = {
     'text': 'string',
     'uuid': 'string',
     'integer': 'number',
+    'double precision': 'string',
     'point': 'unknown',
     'date': 'Date',
     'timestamp': 'Date',
@@ -29,12 +30,14 @@ type PostgresColumnType = keyof typeof TYPE_MAP
  */
 const TABLES_TO_DUMP: readonly string[] = [
     'purchase_type',
+    'discount',
     'volunteer_type',
     'diet',
     'festival',
     'festival_site',
     'event_site',
-    'event_type'
+    'event_type',
+    'age_range'
 ]
 
 await withDBConnection(async db => {

@@ -15,6 +15,7 @@ export type Tables = {
     password_hash: string | null,
     password_salt: string | null,
   },
+  age_range: (typeof TABLE_ROWS)['age_range'][number]
   application: {
     anything_else: string,
     application_id: string,
@@ -36,6 +37,7 @@ export type Tables = {
   },
   attendee: {
     age: number | null,
+    age_range: Tables['age_range']['age_range'] | null,
     associated_account_id: Tables['account']['account_id'],
     attendee_id: string,
     diet: Tables['diet']['diet_id'] | null,
@@ -59,6 +61,7 @@ export type Tables = {
     twitter_handle: string | null,
   },
   diet: (typeof TABLE_ROWS)['diet'][number]
+  discount: (typeof TABLE_ROWS)['discount'][number]
   event: {
     created_by_account_id: Tables['account']['account_id'],
     description: string,
@@ -110,6 +113,14 @@ export const TABLE_ROWS = {
     {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_5_TO_10","price_in_cents":20000,"max_available":null,"description":"Ticket (ages 5 to 10)","max_per_account":5,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6","is_attendance_ticket":true},
     {"purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_2_TO_5","price_in_cents":10000,"max_available":null,"description":"Ticket (ages 2 to 5)","max_per_account":5,"festival_id":"a1fe0c91-5087-48d6-87b9-bdc1ef3716a6","is_attendance_ticket":true},
   ],
+  discount: [
+    {"discount_id":"08405402-9089-4b84-be11-f6e5676b614e","discount_code":"CABIN","purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_OVER_16","price_multiplier":"0.85"},
+    {"discount_id":"8b903634-7b4c-4508-9811-34d5142ee981","discount_code":"CABIN","purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_10_TO_16","price_multiplier":"0.85"},
+    {"discount_id":"eae4716a-fb3e-4832-9b5f-91572a818d48","discount_code":"CABIN","purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_5_TO_10","price_multiplier":"0.85"},
+    {"discount_id":"25f9622a-5994-4924-8109-0e6d2f49c63a","discount_code":"CABIN","purchase_type_id":"ATTENDANCE_VIBECLIPSE_2024_2_TO_5","price_multiplier":"0.85"},
+    {"discount_id":"56cab858-ee92-4d09-9d5b-a331c6aabce4","discount_code":"CABIN","purchase_type_id":"PILLOW_WITH_CASE_VIBECLIPSE_2024","price_multiplier":"0.85"},
+    {"discount_id":"fc0dff3a-faca-4bf0-b89a-10ec4f54487b","discount_code":"CABIN","purchase_type_id":"SLEEPING_BAG_VIBECLIPSE_2024","price_multiplier":"0.85"},
+  ],
   volunteer_type: [
     {"volunteer_type_id":"FAE","description":"Fae"},
     {"volunteer_type_id":"GENERAL","description":"General volunteer"},
@@ -145,5 +156,10 @@ export const TABLE_ROWS = {
     {"event_type_id":"UNOFFICIAL"},
     {"event_type_id":"TEAM_OFFICIAL"},
     {"event_type_id":"CAMPSITE_OFFICIAL"},
+  ],
+  age_range: [
+    {"age_range":"18_TO_21","description":"Between 18 and 21","start":18,"end":21},
+    {"age_range":"21_OR_OVER","description":"21 or over","start":21,"end":null},
+    {"age_range":"UNDER_18","description":"Under 18","start":0,"end":18},
   ],
 } as const
