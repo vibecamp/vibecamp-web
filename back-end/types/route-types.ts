@@ -65,19 +65,25 @@ export type Routes = {
     },
     '/event-sites': {
         method: 'post',
-        body: { festival_id: Tables['festival']['festival_id'] },
+        body: {
+            festival_id: Tables['festival']['festival_id']
+        },
         response: {
             eventSites: Tables['event_site'][]
         }
     },
     '/event/save': {
         method: 'post',
-        body: { event: Omit<EventJson, 'created_by_account_id' | 'event_id' | 'event_type'> & { event_id: Tables['event']['event_id'] | undefined, event_type: Tables['event']['event_type'] | undefined } },
+        body: {
+            event: Omit<EventJson, 'created_by_account_id' | 'event_id' | 'event_type'> & { event_id: Tables['event']['event_id'] | undefined, event_type: Tables['event']['event_type'] | undefined }
+        },
         response: { event: EventJson }
     },
     '/event/delete': {
         method: 'post',
-        body: { event_id: Tables['event']['event_id'] },
+        body: {
+            event_id: Tables['event']['event_id']
+        },
         response: null
     },
     '/event/bookmarks': {

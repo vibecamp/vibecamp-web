@@ -100,7 +100,7 @@ export class PurchaseForm {
         }
 
         await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', {
-            attendees: this.attendees,
+            attendees: this.attendees.map(({ ticket_type, ...attendee }) => attendee),
             festival_id: festival.festival_id
         })
     }, { lazy: true })

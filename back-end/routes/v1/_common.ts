@@ -62,7 +62,7 @@ export function defineRoute<TEndpoint extends keyof Routes>(
 ) {
   const endpoint = API_BASE + config.endpoint
   const handler: AnyRouterMiddleware = async (ctx, next) => {
-    let parsedBody: Record<string, unknown> = {}
+    let parsedBody = {} as Routes[TEndpoint]['body']
 
     if (config.method !== 'get') {
       parsedBody = await ctx.request.body({ type: 'json' }).value
