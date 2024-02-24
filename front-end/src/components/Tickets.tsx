@@ -1,10 +1,8 @@
 import React from 'react'
 
-import { PURCHASE_TYPES_BY_TYPE } from '../../../back-end/types/misc'
 import { FESTIVALS_WITH_SALES_OPEN } from '../../../back-end/utils/constants'
 import { observer } from '../mobx/misc'
 import WindowObservables from '../mobx/WindowObservables'
-import { needsAdultTicket } from '../stores/PurchaseForm'
 import Store from '../stores/Store'
 import Application from './Application'
 import Button from './core/Button'
@@ -40,9 +38,10 @@ export default observer(() => {
                             {Store.accountInfo.state.result.allowed_to_purchase
                                 ? <>
                                     {FESTIVALS_WITH_SALES_OPEN.map(festival => {
-                                        const tickets = Store.purchasedTickets.filter(t => PURCHASE_TYPES_BY_TYPE[t.purchase_type_id].festival_id === festival.festival_id)
+                                        const tickets = Store.purchasedTickets[festival.festival_id] ?? []
+
                                         return (
-                                            <>
+                                            <React.Fragment key={festival.festival_id}>
                                                 <h2>
                                                     {festival.festival_name}
                                                 </h2>
@@ -59,7 +58,7 @@ export default observer(() => {
 
                                                 {tickets.map(t =>
                                                     <React.Fragment key={t.purchase_id}>
-                                                        <Ticket name={t.attendeeInfo?.name} ticketType={t.attendeeInfo == null ? undefined : needsAdultTicket(t.attendeeInfo?.age) ? 'adult' : 'child'} />
+                                                        <Ticket name={undefined} ticketType='adult' />
                                                         <Spacer size={24} />
                                                     </React.Fragment>)}
 
@@ -87,7 +86,7 @@ export default observer(() => {
                                                 <Spacer size={32} />
                                                 <hr />
                                                 <Spacer size={32} />
-                                            </>
+                                            </React.Fragment>
                                         )
                                     })}
 

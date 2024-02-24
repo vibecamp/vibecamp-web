@@ -2,8 +2,8 @@ import dayjs from 'dayjs'
 import jwtDecode from 'jwt-decode'
 import { autorun, makeAutoObservable } from 'mobx'
 
+import { Tables } from '../../../back-end/types/db-types.ts'
 import { PURCHASE_TYPES_BY_TYPE, VibeJWTPayload } from '../../../back-end/types/misc'
-import { BUS_TICKET_PURCHASE_TYPES } from '../components/tickets/BusTicketsField'
 import { request } from '../mobx/request'
 import { given, jsonParse } from '../utils'
 import { vibefetch } from '../vibefetch'
@@ -63,30 +63,24 @@ class Store {
     })
 
     get purchasedTickets() {
+        const purchasedTickets: Partial<Record<Tables['festival']['festival_id'], Tables['purchase'][]>> = {}
+
         const accountInfo = this.accountInfo.state.result
 
         if (accountInfo != null) {
             const tickets = accountInfo.purchases
                 .filter(p => PURCHASE_TYPES_BY_TYPE[p.purchase_type_id].is_attendance_ticket)
 
-            const attendees = [...accountInfo.attendees]
+            for (const ticket of tickets) {
+                const festival_id = PURCHASE_TYPES_BY_TYPE[ticket.purchase_type_id].festival_id
+                const ticketsForFestival = purchasedTickets[festival_id] = purchasedTickets[festival_id] ?? []
+                ticketsForFestival.push(ticket)
+            }
 
-            return tickets.map((t, i) => ({ ...t, attendeeInfo: attendees[i] }))
+            return purchasedTickets
         } else {
-            return []
+            return {}
         }
-    }
-
-    get purchasedBusTickets() {
-        return this.accountInfo.state.result?.purchases.filter(p => BUS_TICKET_PURCHASE_TYPES.includes(p.purchase_type_id as any))
-    }
-
-    get purchasedSleepingBags() {
-        return this.accountInfo.state.result?.purchases.filter(p => p.purchase_type_id === 'SLEEPING_BAG_VIBECLIPSE_2024')
-    }
-
-    get purchasedPillows() {
-        return this.accountInfo.state.result?.purchases.filter(p => p.purchase_type_id === 'PILLOW_WITH_CASE_VIBECLIPSE_2024')
     }
 
     /// Events

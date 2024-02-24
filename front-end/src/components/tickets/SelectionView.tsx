@@ -1,20 +1,20 @@
-
 import React from 'react'
 
-import { Tables } from '../../../../back-end/types/db-types'
-import { observer, setTo } from '../../mobx/misc'
+import { TABLE_ROWS, Tables } from '../../../../back-end/types/db-types'
+import { useObservableClass } from '../../mobx/hooks'
+import { observer, setter, setTo } from '../../mobx/misc'
 import { PurchaseForm } from '../../stores/PurchaseForm'
 import Store from '../../stores/Store'
-import { preventingDefault } from '../../utils'
+import { preventingDefault, someValue } from '../../utils'
 import Button from '../core/Button'
 import Col from '../core/Col'
 import ErrorMessage from '../core/ErrorMessage'
 import Icon from '../core/Icon'
 import InfoBlurb from '../core/InfoBlurb'
+import NumberInput from '../core/NumberInput'
+import RadioGroup from '../core/RadioGroup'
 import Spacer from '../core/Spacer'
 import AttendeeInfoForm from './AttendeeInfoForm'
-import BeddingField from './BeddingField'
-import BusTicketsField from './BusTicketsField'
 import PriceBreakdown from './PriceBreakdown'
 
 type Props = {
@@ -24,6 +24,31 @@ type Props = {
 }
 
 export default observer((props: Props) => {
+    const state = useObservableClass(class {
+        get festivalPurchases() {
+            return TABLE_ROWS.purchase_type
+                .filter(t =>
+                    t.festival_id === props.festival?.festival_id)
+                .sort((a, b) => b.price_in_cents - a.price_in_cents)
+        }
+
+        get attendancePurchases() {
+            return this.festivalPurchases.filter(t => t.is_attendance_ticket)
+        }
+
+        get otherPurchases() {
+            return this.festivalPurchases.filter(t => !t.is_attendance_ticket)
+        }
+
+        get attendancePurchaseOptions() {
+            return this.attendancePurchases.map(p => ({ label: p.description, value: p.purchase_type_id }))
+        }
+
+        get emptySelection() {
+            return !someValue(props.purchaseForm.purchases, v => v != null && v > 0)
+        }
+    })
+
     const { festival } = props
     if (festival == null) {
         return null
@@ -46,10 +71,21 @@ export default observer((props: Props) => {
                             attendeeInfo={attendee}
                             attendeeErrors={props.purchaseForm.attendeeErrors[index]!}
                             isChild={attendee.age != null && attendee.age < 18}
-                            isAccountHolder={index === 0}
                             showingErrors={props.purchaseForm.showingErrors}
                             festival={festival}
                         />
+
+                        <Spacer size={24} />
+
+                        <RadioGroup
+                            label='Ticket type for this person'
+                            options={state.attendancePurchaseOptions}
+                            value={attendee.ticket_type}
+                            onChange={setter(attendee, 'ticket_type')}
+                            error={props.purchaseForm.showingErrors && props.purchaseForm.attendeeErrors[index]?.ticket_type}
+                        />
+
+                        <Spacer size={24} />
 
                         {index > 0 &&
                             <>
@@ -92,24 +128,41 @@ export default observer((props: Props) => {
                     old do not need a ticket.`}
                 </InfoBlurb>
 
-                <Spacer size={32} />
-                <hr />
-                <Spacer size={32} />
-
-                {(props.purchaseForm.sleepingBagsToBuy > 0 || props.purchaseForm.pillowsToBuy > 0) &&
+                {state.otherPurchases.length > 0 &&
                     <>
-                        <BeddingField purchaseForm={props.purchaseForm} />
+                        <Spacer size={32} />
+                        <hr />
+                        <Spacer size={32} />
+
+                        <h2>
+                            Other purchases
+                        </h2>
+
                         <Spacer size={24} />
+
+                        {state.otherPurchases.map(p =>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }} key={p.purchase_type_id}>
+                                <div>
+                                    {p.description}
+                                </div>
+
+                                <Spacer size={24} />
+
+                                <NumberInput
+                                    value={props.purchaseForm.otherPurchases[p.purchase_type_id] ?? 0}
+                                    onChange={val => props.purchaseForm.otherPurchases[p.purchase_type_id] = val ?? undefined}
+                                    style={{ width: 64 }}
+                                />
+                            </div>)}
+
                     </>}
 
-                {props.purchaseForm.busTicketsToBuy > 0 &&
+                {Store.purchasedTickets[festival.festival_id]?.length === 0 && festival.festival_name === 'Vibeclipse 2024' && // HACK
                     <>
-                        <BusTicketsField purchaseForm={props.purchaseForm} />
-                        <Spacer size={24} />
-                    </>}
+                        <Spacer size={32} />
+                        <hr />
+                        <Spacer size={32} />
 
-                {Store.purchasedTickets.length === 0 &&
-                    <>
                         <a
                             className='button primary'
                             href='https://admin.gazeboevents.com/forms/706B540F-AF67-4D4B-9C42-A402E51C2039'
@@ -127,7 +180,7 @@ export default observer((props: Props) => {
                         <Spacer size={8} />
 
                         <InfoBlurb>
-                            {`Please click the link above to sign the Camp Champions
+                            {`Please click the link above to sign the campsite
                         waiver. Every attendee must sign this waiver. IF YOU HAVE
                         ALLERGIES OR SPECIAL DIETARY NEEDS (EG: vegetarian) you `}
                             <i>must</i>
@@ -150,7 +203,7 @@ export default observer((props: Props) => {
 
                 <Spacer size={16} />
 
-                <Button isSubmit isPrimary>
+                <Button isSubmit isPrimary disabled={state.emptySelection}>
                     Proceed to payment
                 </Button>
             </Col>

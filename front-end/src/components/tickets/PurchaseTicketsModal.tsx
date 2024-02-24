@@ -12,9 +12,16 @@ import MultiView from '../core/MultiView'
 import StripePaymentForm from '../core/StripePaymentForm'
 import SelectionView from './SelectionView'
 
+const campChampionsID = TABLE_ROWS.festival_site.find(f => f.festival_site_name === 'Camp Champions')!.festival_site_id
+const festivalsAtCampChampions = TABLE_ROWS.festival.filter(f => f.festival_site_id === campChampionsID)
+
 export default observer(() => {
     const purchaseForm = useStable(() => {
-        return makeAutoObservable(new PurchaseForm(Store.purchasedTickets.length === 0))
+        const isAtCampChampions = festivalsAtCampChampions.some(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)
+        // @ts-expect-error ksdjfghlsdfg
+        const existingTickets = Store.purchasedTickets[WindowObservables.hashState?.ticketPurchaseModalState]
+        const hasTicketsForThisFestival = (existingTickets ?? []).length > 0
+        return makeAutoObservable(new PurchaseForm(!hasTicketsForThisFestival, isAtCampChampions && !hasTicketsForThisFestival))
     })
 
     return (

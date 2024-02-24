@@ -1,5 +1,5 @@
 import { autorun } from 'mobx'
-import React from 'react'
+import React, { CSSProperties } from 'react'
 import { ChangeEvent } from 'react'
 
 import { useObservableClass } from '../../mobx/hooks'
@@ -8,7 +8,8 @@ import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 
 type Props = CommonFieldProps<number | null> & {
-    placeholder?: string
+    placeholder?: string,
+    style?: CSSProperties // HACK
 }
 
 export default observer((props: Props) => {
@@ -31,7 +32,7 @@ export default observer((props: Props) => {
     })
 
     return (
-        <label className='number-input'>
+        <label className='number-input' style={props.style}>
             <div className='label'>{props.label}</div>
 
             <input

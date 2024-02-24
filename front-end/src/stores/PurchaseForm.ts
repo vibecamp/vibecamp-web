@@ -1,7 +1,7 @@
 import { createTransformer } from 'mobx-utils'
 
-import { TABLE_ROWS } from '../../../back-end/types/db-types'
-import { AttendeeInfo, Maybe, PurchaseType } from '../../../back-end/types/misc'
+import { TABLE_ROWS, Tables } from '../../../back-end/types/db-types'
+import { AttendeeInfo } from '../../../back-end/types/misc'
 import { Purchases } from '../../../back-end/types/route-types'
 import { objectValues } from '../../../back-end/utils/misc'
 import { request } from '../mobx/request'
@@ -9,7 +9,7 @@ import WindowObservables from '../mobx/WindowObservables'
 import { vibefetch } from '../vibefetch'
 import Store from './Store'
 
-const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
+const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'> & { ticket_type: Tables['purchase_type']['purchase_type_id'] | null }> = {
     name: '',
     discord_handle: null,
     twitter_handle: null,
@@ -17,6 +17,7 @@ const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
     interested_in_pre_call: false,
     planning_to_camp: false,
     age: null,
+    age_range: null,
     medical_training: null,
     diet: null,
     has_allergy_milk: null,
@@ -27,11 +28,12 @@ const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
     has_allergy_peanuts: null,
     has_allergy_wheat: null,
     has_allergy_soy: null,
+    ticket_type: null
 }
 
 export class PurchaseForm {
 
-    constructor(isInitialPurchase: boolean) {
+    constructor(isInitialPurchase: boolean, private readonly needsWaiverClicked: boolean) {
         this.attendees = (
             isInitialPurchase
                 ? [ { ...BLANK_ATTENDEE, is_primary_for_account: true } ]
@@ -39,45 +41,25 @@ export class PurchaseForm {
         )
     }
 
-    attendees: AttendeeInfo[]
+    attendees: Array<AttendeeInfo & { ticket_type: Tables['purchase_type']['purchase_type_id'] | null }>
 
-    needsSleepingBags: boolean | undefined = undefined
-    needsPillow = false
-    needsBusTickets: Maybe<PurchaseType> = undefined
+    otherPurchases: Purchases = {}
+
     hasClickedWaiver = false
 
     showingErrors = false
 
-    get adultAttendees() {
-        return this.attendees.filter(a => needsAdultTicket(a.age))
-    }
-    get childAttendees() {
-        return this.attendees.filter(a => doesntNeedAdultTicket(a.age))
-    }
     get numberOfAttendeesError() {
-        if (this.adultAttendees.length > 2) {
-            return 'Can only purchase two adult tickets per account'
-        }
-        if (this.childAttendees.length > 5) {
-            return 'Can only purchase five child tickets per account'
+        if (this.attendees.length > 7) {
+            return 'Can\'t purchase this many tickets on one account'
         }
     }
 
     get attendeeErrors() {
         return this.attendees.map(getAttendeeErrors)
     }
-    get needsSleepingBagsError() {
-        if (this.needsSleepingBags == null) {
-            return 'Please make a selection'
-        }
-    }
-    get needsBusTicketsError() {
-        if (this.needsBusTickets === undefined) {
-            return 'Please make a selection'
-        }
-    }
     get hasClickedWaiverError() {
-        if (Store.purchasedTickets.length === 0 && !this.hasClickedWaiver) {
+        if (this.needsWaiverClicked && !this.hasClickedWaiver) {
             return 'Campsite waivers must be filled out'
         }
     }
@@ -85,43 +67,17 @@ export class PurchaseForm {
     get isValid() {
         return this.attendeeErrors.every(errors => objectValues(errors).every(err => err == null))
             && this.numberOfAttendeesError == null
-            && this.needsSleepingBagsError == null
-            && this.needsBusTicketsError == null
             && this.hasClickedWaiverError == null
     }
 
-    get sleepingBagsToBuy() {
-        return this.attendees.length + (Store.purchasedTickets.length - (Store.purchasedSleepingBags?.length ?? 0))
-    }
-
-    get pillowsToBuy() {
-        return this.attendees.length + (Store.purchasedTickets.length - (Store.purchasedPillows?.length ?? 0))
-    }
-
-    get busTicketsToBuy() {
-        return this.attendees.length + (Store.purchasedTickets.length - (Store.purchasedBusTickets?.length ?? 0))
-    }
-
     get purchases(): Purchases {
-        const purchases: Purchases = {}
+        const purchases: Purchases = { ...this.otherPurchases }
 
         for (const attendee of this.attendees) {
-            const ticketType = purchaseTypeFromAge(attendee.age)
+            const ticketType = attendee.ticket_type
             if (ticketType) {
                 purchases[ticketType] = (purchases[ticketType] ?? 0) + 1
             }
-        }
-
-        if (this.needsSleepingBags) {
-            purchases.SLEEPING_BAG_VIBECLIPSE_2024 = this.sleepingBagsToBuy
-        }
-
-        if (this.needsPillow) {
-            purchases.PILLOW_WITH_CASE_VIBECLIPSE_2024 = this.pillowsToBuy
-        }
-
-        if (this.needsBusTickets) {
-            purchases[this.needsBusTickets] = this.busTicketsToBuy
         }
 
         return purchases
@@ -155,7 +111,10 @@ export class PurchaseForm {
                 Store.jwt,
                 '/purchase/create-intent',
                 'post',
-                this.purchases
+                {
+                    purchases: this.purchases,
+                    discount_codes: []
+                }
             )
             const { stripe_client_secret } = response ?? {}
 
@@ -183,8 +142,8 @@ export class PurchaseForm {
     }
 }
 
-function getAttendeeErrors(attendee: AttendeeInfo): Partial<Record<keyof AttendeeInfo, string>> {
-    const errors: Partial<Record<keyof AttendeeInfo, string>> = {}
+function getAttendeeErrors(attendee: AttendeeInfo & { ticket_type: Tables['purchase_type']['purchase_type_id'] | null }): Partial<Record<keyof AttendeeInfo, string> & { ticket_type: string }> {
+    const errors: Partial<Record<keyof AttendeeInfo, string> & { ticket_type: string }> = {}
 
     if (attendee.name === '') {
         errors.name = 'Please enter a name'
@@ -194,34 +153,13 @@ function getAttendeeErrors(attendee: AttendeeInfo): Partial<Record<keyof Attende
         errors.twitter_handle = 'No @ needed, just the rest of the handle'
     }
 
-    if (attendee.age == null) {
-        errors.age = 'Please enter an age in years'
-    } else if (attendee.age < 0 || attendee.age > 150 || Math.floor(attendee.age) !== attendee.age) {
-        errors.age = 'Please enter a valid age in years'
-    } else if (attendee.age < 2) {
-        errors.age = 'Children under two get in free!'
+    if (attendee.age_range == null) {
+        errors.age_range = 'Please select an age range'
+    }
+
+    if (attendee.ticket_type == null) {
+        errors.ticket_type = 'Please make a selection'
     }
 
     return errors
-}
-
-export const needsAdultTicket = (age: number | null) => purchaseTypeFromAge(age) === 'ATTENDANCE_VIBECLIPSE_2024_OVER_16'
-export const doesntNeedAdultTicket = (age: number | null) => purchaseTypeFromAge(age) !== 'ATTENDANCE_VIBECLIPSE_2024_OVER_16'
-
-const purchaseTypeFromAge = (age: number | null): PurchaseType | undefined => {
-    if (age == null || age >= 16) {
-        return 'ATTENDANCE_VIBECLIPSE_2024_OVER_16'
-    }
-    if (age < 2) {
-        return undefined
-    }
-    if (age < 5) {
-        return 'ATTENDANCE_VIBECLIPSE_2024_2_TO_5'
-    }
-    if (age < 10) {
-        return 'ATTENDANCE_VIBECLIPSE_2024_5_TO_10'
-    }
-    if (age < 16) {
-        return 'ATTENDANCE_VIBECLIPSE_2024_10_TO_16'
-    }
 }

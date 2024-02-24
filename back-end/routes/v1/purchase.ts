@@ -69,6 +69,11 @@ export default function register(router: Router) {
           return [null, Status.Unauthorized]
         }
 
+        // if festival hasn't started sales, don't allow purchases
+        if (!festival.sales_are_open) {
+          return [null, Status.Unauthorized]
+        }
+
         const allPurchased = await withDBConnection(async db => Number(
           (await db.queryObject<{ count: bigint }>`SELECT COUNT(*) FROM purchase WHERE purchase_type_id = ${purchaseTypeId}`).rows[0]!.count
         ))

@@ -62,14 +62,14 @@ export default observer((props: Props) => {
                     <rect x={TEAR_POINT} y="0" width={TICKET_WIDTH - TEAR_POINT} height={TICKET_HEIGHT} rx="1" ry="1" fill="url(#swirlpattern)" mask="url(#holes)" />
                 </g>
 
-                <g transform={`translate(${TICKET_WIDTH * 0.1}, ${TICKET_HEIGHT * 0.5})`} filter="url(#glow)">
+                {/* <g transform={`translate(${TICKET_WIDTH * 0.1}, ${TICKET_HEIGHT * 0.5})`} filter="url(#glow)">
                     <text x={0} y={0} style={{ fontWeight: 'bold', fontSize: NAME_FONT_SIZE }} opacity={FOREGROUND_OPACITY}>
                         {props.name}
                     </text>
                     <text x={0} y={NAME_FONT_SIZE} style={{ fontSize: TYPE_FONT_SIZE }} opacity={FOREGROUND_OPACITY}>
                         {props.ticketType == null ? '' : props.ticketType === 'adult' ? 'adult ticket' : 'child ticket'}
                     </text>
-                </g>
+                </g> */}
             </svg>
 
             {/* TODO: When QR code is tapped, open a big bright one for easier scanning */}

@@ -8,14 +8,12 @@ import Store from '../../stores/Store'
 import Checkbox from '../core/Checkbox'
 import InfoBlurb from '../core/InfoBlurb'
 import Input from '../core/Input'
-import NumberInput from '../core/NumberInput'
 import RadioGroup from '../core/RadioGroup'
 import Spacer from '../core/Spacer'
 
 type Props = {
     attendeeInfo: AttendeeInfo,
     attendeeErrors: Partial<Record<keyof AttendeeInfo, string>>,
-    isAccountHolder: boolean,
     isChild: boolean,
     showingErrors: boolean,
     festival: Tables['festival']
@@ -44,9 +42,9 @@ export default observer((props: Props) => {
             <Spacer size={INFO_BLURB_SPACE} />
 
             <InfoBlurb>
-                {`Whatever name ${props.isAccountHolder ? 'you\'d' : 'this person would'} like to go by (in comms, etc). Can be
+                {`Whatever name ${props.attendeeInfo.is_primary_for_account ? 'you\'d' : 'this person would'} like to go by (in comms, etc). Can be
                 real or twitter display name or whatever. Does not need to be
-                ${props.isAccountHolder ? 'your' : 'their'} legal name!`}
+                ${props.attendeeInfo.is_primary_for_account ? 'your' : 'their'} legal name!`}
             </InfoBlurb>
 
             <Spacer size={FIELD_SPACE} />
@@ -62,8 +60,8 @@ export default observer((props: Props) => {
             <Spacer size={INFO_BLURB_SPACE} />
 
             <InfoBlurb>
-                {`If ${props.isAccountHolder ? 'you' : 'they'} provide ${props.isAccountHolder ? 'your' : 'their'} Discord handle, we can give ${props.isAccountHolder ? 'you' : 'them'} attendee 
-                status on the Vibecamp server and add ${props.isAccountHolder ? 'you' : 'them'} to attendee-specific
+                {`If ${props.attendeeInfo.is_primary_for_account ? 'you' : 'they'} provide ${props.attendeeInfo.is_primary_for_account ? 'your' : 'their'} Discord handle, we can give ${props.attendeeInfo.is_primary_for_account ? 'you' : 'them'} attendee 
+                status on the Vibecamp server and add ${props.attendeeInfo.is_primary_for_account ? 'you' : 'them'} to attendee-specific
                 channels`}
             </InfoBlurb>
 
@@ -85,24 +83,15 @@ export default observer((props: Props) => {
 
             <Spacer size={FIELD_SPACE} />
 
-            <NumberInput
-                label={props.isAccountHolder ? 'I am...' : 'This person is...'}
-                placeholder='(years old)'
-                value={props.attendeeInfo.age}
-                onChange={setter(props.attendeeInfo, 'age')}
-                error={props.showingErrors && props.attendeeErrors.age}
+            <RadioGroup
+                label={props.attendeeInfo.is_primary_for_account ? 'I am...' : 'This person is...'}
+                options={TABLE_ROWS.age_range.slice().sort((a, b) => b.start - a.start).map(r => ({ label: r.description, value: r.age_range }))}
+                value={props.attendeeInfo.age_range}
+                onChange={setter(props.attendeeInfo, 'age_range')}
+                error={props.showingErrors && props.attendeeErrors.age_range}
             />
 
-            {props.attendeeInfo.age != null && props.attendeeInfo.age < 2 &&
-                <>
-                    <Spacer size={INFO_BLURB_SPACE} />
-
-                    <InfoBlurb>
-                        {'Children under two don\'t need a ticket!'}
-                    </InfoBlurb>
-                </>}
-
-            <Spacer size={INFO_BLURB_SPACE} />
+            {/* <Spacer size={INFO_BLURB_SPACE} /> */}
 
             <InfoBlurb>
                 This age should be at the time of ${props.festival.festival_name} (${dayjs.utc(props.festival.start_date).format('DD/MM/YYYY')} - ${dayjs.utc(props.festival.end_date).format('DD/MM/YYYY')})
@@ -113,7 +102,7 @@ export default observer((props: Props) => {
                     <Spacer size={FIELD_SPACE} />
 
                     <RadioGroup
-                        label={`${props.isAccountHolder ? 'I\'m' : 'They\'re'} interested in volunteering as a...`}
+                        label={`${props.attendeeInfo.is_primary_for_account ? 'I\'m' : 'They\'re'} interested in volunteering as a...`}
                         options={VOLUNTEER_OPTIONS}
                         value={props.attendeeInfo.interested_in_volunteering_as}
                         onChange={setter(props.attendeeInfo, 'interested_in_volunteering_as')}
@@ -129,7 +118,7 @@ export default observer((props: Props) => {
                         <Spacer size={6} />
                         General volunteers are our muscle. They will be tasked with setup, breakdown, and general physical tasks.
                         <Spacer size={6} />
-                        {props.isAccountHolder
+                        {props.attendeeInfo.is_primary_for_account
                             ? 'If you indicate you are willing to volunteer we will reach out to you with more details via email.'
                             : 'If this person indicates they are willing to volunteer we will reach out to you with more details via email.'}
 
@@ -142,7 +131,7 @@ export default observer((props: Props) => {
                         onChange={setter(props.attendeeInfo, 'interested_in_pre_call')}
                         error={props.showingErrors && props.attendeeErrors.interested_in_pre_call}
                     >
-                        {`${props.isAccountHolder ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
+                        {`${props.attendeeInfo.is_primary_for_account ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
                         video call before the event`}
                     </Checkbox>
 
@@ -152,7 +141,7 @@ export default observer((props: Props) => {
                         {`We'd like to introduce people to some of their fellow
                         attendees so they can lay the foundations of
                         connection before arriving at ${props.festival.festival_name}.
-                        If ${props.isAccountHolder ? 'you' : 'this person'} would like
+                        If ${props.attendeeInfo.is_primary_for_account ? 'you' : 'this person'} would like
                         to be invited to online hangouts please check the box
                         below.`}&nbsp;
                         <b>If you check this box, your email address
