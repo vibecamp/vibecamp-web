@@ -2,8 +2,9 @@ import dayjs from 'dayjs'
 import jwtDecode from 'jwt-decode'
 import { autorun, makeAutoObservable } from 'mobx'
 
-import { Tables } from '../../../back-end/types/db-types.ts'
+import { TABLE_ROWS, Tables } from '../../../back-end/types/db-types.ts'
 import { PURCHASE_TYPES_BY_TYPE, VibeJWTPayload } from '../../../back-end/types/misc'
+import { objectFromEntries } from '../../../back-end/utils/misc.ts'
 import { request } from '../mobx/request'
 import { given, jsonParse } from '../utils'
 import { vibefetch } from '../vibefetch'
@@ -63,7 +64,8 @@ class Store {
     })
 
     get purchasedTickets() {
-        const purchasedTickets: Partial<Record<Tables['festival']['festival_id'], Tables['purchase'][]>> = {}
+        const purchasedTickets = objectFromEntries(TABLE_ROWS.festival.map(f =>
+            [f.festival_id, []] as [typeof f.festival_id, Tables['purchase'][]]))
 
         const accountInfo = this.accountInfo.state.result
 
@@ -73,14 +75,11 @@ class Store {
 
             for (const ticket of tickets) {
                 const festival_id = PURCHASE_TYPES_BY_TYPE[ticket.purchase_type_id].festival_id
-                const ticketsForFestival = purchasedTickets[festival_id] = purchasedTickets[festival_id] ?? []
-                ticketsForFestival.push(ticket)
+                purchasedTickets[festival_id].push(ticket)
             }
-
-            return purchasedTickets
-        } else {
-            return {}
         }
+
+        return purchasedTickets
     }
 
     /// Events

@@ -38,7 +38,7 @@ export default observer(() => {
                             {Store.accountInfo.state.result.allowed_to_purchase
                                 ? <>
                                     {FESTIVALS_WITH_SALES_OPEN.map(festival => {
-                                        const tickets = Store.purchasedTickets[festival.festival_id] ?? []
+                                        const tickets = Store.purchasedTickets[festival.festival_id]
 
                                         return (
                                             <React.Fragment key={festival.festival_id}>

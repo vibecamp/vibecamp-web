@@ -157,7 +157,7 @@ export default observer((props: Props) => {
 
                     </>}
 
-                {Store.purchasedTickets[festival.festival_id]?.length === 0 && festival.festival_name === 'Vibeclipse 2024' && // HACK
+                {Store.purchasedTickets[festival.festival_id].length === 0 && festival.festival_name === 'Vibeclipse 2024' && // HACK
                     <>
                         <Spacer size={32} />
                         <hr />
