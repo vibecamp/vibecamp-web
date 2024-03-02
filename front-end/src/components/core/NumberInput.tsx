@@ -9,6 +9,8 @@ import ErrorMessage from './ErrorMessage'
 
 type Props = CommonFieldProps<number | null> & {
     placeholder?: string,
+    min?: number,
+    max?: number,
     style?: CSSProperties // HACK
 }
 
@@ -25,8 +27,10 @@ export default observer((props: Props) => {
 
             this.strValue = value
 
-            if (value !== '' && !isNaN(Number(value))) {
-                props.onChange(Number(value))
+            const parsed = Number(value)
+
+            if (value !== '' && !isNaN(parsed) && (props.min == null || parsed >= props.min) && (props.max == null || parsed <= props.max)) {
+                props.onChange(parsed)
             }
         }
     })
@@ -45,6 +49,8 @@ export default observer((props: Props) => {
                 ref={disableWheel}
                 onBlur={props.onBlur}
                 disabled={props.disabled}
+                min={props.min}
+                max={props.max}
             />
 
             <ErrorMessage error={props.error} />

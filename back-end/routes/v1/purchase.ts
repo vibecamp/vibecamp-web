@@ -90,21 +90,24 @@ export default function register(router: Router) {
 
       const discounts = Array.from(new Set(discount_codes)).map(code => TABLE_ROWS.discount.filter(d => d.discount_code === code)).flat()
 
-      const amount = objectEntries(purchases)
+      const sanitizedPurchases = objectFromEntries(objectEntries(purchases).map(
+        ([purchaseType, count]) => [purchaseType, Math.floor(Math.max(count ?? 0, 0))]))
+
+      const amount = objectEntries(sanitizedPurchases)
         .map(([purchaseType, count]) => {
           const discountMultiplier = discounts
             .filter(d => d.purchase_type_id === purchaseType)
             .map(d => Number(d.price_multiplier))
             .reduce(product, 1)
 
-          return PURCHASE_TYPES_BY_TYPE[purchaseType].price_in_cents * discountMultiplier * count!
+          return PURCHASE_TYPES_BY_TYPE[purchaseType].price_in_cents * discountMultiplier * count
         })
         .reduce(sum, 0)
 
       const metadata: PurchaseMetadata = {
         accountId: account_id,
         discount_ids: discounts.map(d => d.discount_id).join(','),
-        ...objectFromEntries(objectEntries(purchases).map(([key, value]) => [key, String(value)]))
+        ...objectFromEntries(objectEntries(sanitizedPurchases).map(([key, value]) => [key, String(value)]))
       }
 
       const { client_secret } = await stripe.paymentIntents.create({

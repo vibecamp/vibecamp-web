@@ -152,6 +152,8 @@ export default observer((props: Props) => {
                                     value={props.purchaseForm.otherPurchases[p.purchase_type_id] ?? 0}
                                     onChange={val => props.purchaseForm.otherPurchases[p.purchase_type_id] = val ?? undefined}
                                     style={{ width: 64 }}
+                                    min={0}
+                                    max={p.max_per_account ?? undefined}
                                 />
                             </div>)}
 
