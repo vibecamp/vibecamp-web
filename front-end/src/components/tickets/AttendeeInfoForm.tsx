@@ -94,7 +94,7 @@ export default observer((props: Props) => {
             {/* <Spacer size={INFO_BLURB_SPACE} /> */}
 
             <InfoBlurb>
-                This age should be at the time of ${props.festival.festival_name} (${dayjs.utc(props.festival.start_date).format('DD/MM/YYYY')} - ${dayjs.utc(props.festival.end_date).format('DD/MM/YYYY')})
+                This age should be at the time of {props.festival.festival_name} ({dayjs.utc(props.festival.start_date).format('MM/DD/YYYY')} - {dayjs.utc(props.festival.end_date).format('MM/DD/YYYY')})
             </InfoBlurb>
 
             {!props.isChild &&
