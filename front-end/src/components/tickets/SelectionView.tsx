@@ -41,7 +41,7 @@ export default observer((props: Props) => {
         }
 
         get attendancePurchaseOptions() {
-            return this.attendancePurchases.map(p => ({ label: p.description, value: p.purchase_type_id }))
+            return this.attendancePurchases.map(p => ({ label: `${p.description} ($${p.price_in_cents / 100})`, value: p.purchase_type_id }))
         }
 
         get emptySelection() {
@@ -143,7 +143,7 @@ export default observer((props: Props) => {
                         {state.otherPurchases.map(p =>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }} key={p.purchase_type_id}>
                                 <div>
-                                    {p.description}
+                                    {p.description} (${(p.price_in_cents / 100).toFixed(2)} each)
                                 </div>
 
                                 <Spacer size={24} />
