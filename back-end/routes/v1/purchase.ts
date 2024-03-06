@@ -88,7 +88,7 @@ export default function register(router: Router) {
         }
       }
 
-      const discounts = Array.from(new Set(discount_codes)).map(code => TABLE_ROWS.discount.filter(d => d.discount_code === code)).flat()
+      const discounts = Array.from(new Set(discount_codes.map(c => c.toLocaleUpperCase()))).map(code => TABLE_ROWS.discount.filter(d => d.discount_code.toLocaleUpperCase() === code)).flat()
 
       const sanitizedPurchases = objectFromEntries(objectEntries(purchases).map(
         ([purchaseType, count]) => {
