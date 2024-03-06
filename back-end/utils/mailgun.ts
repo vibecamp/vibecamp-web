@@ -2,7 +2,7 @@ import env from '../env.ts'
 import { encode } from 'std/encoding/base64.ts'
 import { Purchases } from '../types/route-types.ts'
 import { TABLE_ROWS, Tables } from '../types/db-types.ts'
-import { objectEntries, sum } from './misc.ts'
+import { objectEntries, purchaseBreakdown, sum } from './misc.ts'
 import { PURCHASE_TYPES_BY_TYPE } from '../types/misc.ts'
 
 const MAILGUN_DOMAIN = 'mail.vibe.camp'
@@ -44,19 +44,26 @@ export async function sendMail(email: Email) {
     }
 }
 
-export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 'account_id'>, purchases: Purchases): Email => {
+export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 'account_id'>, purchases: Purchases, discounts: readonly Tables['discount'][]): Email => {
     const purchaseTypes = objectEntries(purchases).filter(([type, count]) => count != null && count > 0).map(([type]) => PURCHASE_TYPES_BY_TYPE[type])
     const festival = TABLE_ROWS.festival.find(f => f.festival_id === purchaseTypes[0]?.festival_id)
     const now = new Date()
-    const purchaseRows = objectEntries(purchases)
-        .map(([key, count]) =>
-            `<tr>
-                <td>${PURCHASE_TYPES_BY_TYPE[key].description} x${count}</td>
-                <td>$${(PURCHASE_TYPES_BY_TYPE[key].price_in_cents * count! / 100).toFixed(2)}</td>
-            </tr>`)
+
+    const purchasesInfo = purchaseBreakdown(purchases, discounts)
+
+    const purchaseRows = purchasesInfo.map(({ purchaseType, count, basePrice, discountMultiplier, discountedPrice }) =>
+        `<tr>
+            <td>${PURCHASE_TYPES_BY_TYPE[purchaseType].description} x${count}</td>
+            <td>
+                ${discountMultiplier != null
+            ? `<s>$${basePrice.toFixed(2)}<s> $${discountedPrice.toFixed(2)}`
+            : `$${basePrice.toFixed(2)}`}
+            </td>
+        </tr>`)
         .join('\n')
-    const totalCost = objectEntries(purchases)
-        .map(([key, count]) => PURCHASE_TYPES_BY_TYPE[key].price_in_cents * count! / 100)
+
+    const totalCost = purchasesInfo
+        .map(({ discountedPrice }) => discountedPrice)
         .reduce(sum, 0)
         .toFixed(2)
 

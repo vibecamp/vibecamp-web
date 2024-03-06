@@ -7,11 +7,12 @@ import env from '../../env'
 import { useObservableClass, useValuesObservable } from '../../mobx/hooks'
 import { observer } from '../../mobx/misc'
 import { request } from '../../mobx/request'
-import { preventingDefault } from '../../utils'
+import { fieldProps,preventingDefault } from '../../utils'
 import PriceBreakdown from '../tickets/PriceBreakdown'
 import Button from './Button'
 import Col from './Col'
 import ErrorMessage from './ErrorMessage'
+import Input from './Input'
 import LoadingDots from './LoadingDots'
 import Spacer from './Spacer'
 
@@ -92,10 +93,10 @@ const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(props => {
 
                     <Spacer size={16} />
 
-                    {/* <Input
+                    <Input
                         label='Discount code (optional)'
                         {...fieldProps(state, 'discountCode')}
-                    /> */}
+                    />
 
                     <Spacer size={16} />
 

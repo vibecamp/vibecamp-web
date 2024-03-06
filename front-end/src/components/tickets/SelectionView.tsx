@@ -37,7 +37,7 @@ export default observer((props: Props) => {
         }
 
         get otherPurchases() {
-            return this.festivalPurchases.filter(t => !t.is_attendance_ticket)
+            return this.festivalPurchases.filter(t => !t.is_attendance_ticket).sort((a, b) => a.description.localeCompare(b.description))
         }
 
         get attendancePurchaseOptions() {

@@ -1,3 +1,6 @@
+import { Tables } from '../types/db-types.ts'
+import { PURCHASE_TYPES_BY_TYPE } from '../types/misc.ts'
+import { Purchases } from '../types/route-types.ts'
 
 export async function allPromises<
   TPromises extends Record<string, Promise<unknown>>,
@@ -66,3 +69,30 @@ export const pad = (str: string, length: number) => {
 
 export const indent = (str: string) =>
   str.split('\n').map(line => '\t' + line).join('\n')
+
+export const discountPerPurchase = (purchaseType: Tables['purchase_type']['purchase_type_id'], discounts: readonly Tables['discount'][]) => {
+  const relevantDiscounts = discounts.filter(d => d.purchase_type_id === purchaseType)
+
+  if (relevantDiscounts.length === 0) {
+    return undefined
+  } else {
+    return relevantDiscounts
+      .map(d => Number(d.price_multiplier))
+      .reduce(product, 1)
+  }
+}
+
+export const purchaseBreakdown = (purchases: Purchases, discounts: readonly Tables['discount'][]) =>
+  objectEntries(purchases)
+    .map(([purchaseType, count]) => {
+      const basePrice = PURCHASE_TYPES_BY_TYPE[purchaseType].price_in_cents * count! / 100
+      const discountMultiplier = discountPerPurchase(purchaseType, discounts)
+
+      return {
+        purchaseType,
+        count,
+        basePrice,
+        discountMultiplier,
+        discountedPrice: basePrice * (discountMultiplier ?? 1)
+      }
+    })

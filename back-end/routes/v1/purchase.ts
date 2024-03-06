@@ -6,7 +6,7 @@ import {
   withDBConnection,
   withDBTransaction,
 } from '../../utils/db.ts'
-import { exists, objectEntries, objectFromEntries, product, sum } from '../../utils/misc.ts'
+import { exists, objectEntries, objectFromEntries, purchaseBreakdown, sum } from '../../utils/misc.ts'
 import { TABLE_ROWS, Tables } from "../../types/db-types.ts"
 import { Purchases } from '../../types/route-types.ts'
 import { PURCHASE_TYPES_BY_TYPE } from '../../types/misc.ts'
@@ -91,17 +91,17 @@ export default function register(router: Router) {
       const discounts = Array.from(new Set(discount_codes)).map(code => TABLE_ROWS.discount.filter(d => d.discount_code === code)).flat()
 
       const sanitizedPurchases = objectFromEntries(objectEntries(purchases).map(
-        ([purchaseType, count]) => [purchaseType, Math.floor(Math.max(count ?? 0, 0))]))
+        ([purchaseType, count]) => {
+          const nonNullCount = count ?? 0
+          const nonNegativeCount = Math.max(nonNullCount, 0)
+          const integerCount = Math.floor(nonNegativeCount)
+          return [purchaseType, integerCount]
+        }))
 
-      const amount = objectEntries(sanitizedPurchases)
-        .map(([purchaseType, count]) => {
-          const discountMultiplier = discounts
-            .filter(d => d.purchase_type_id === purchaseType)
-            .map(d => Number(d.price_multiplier))
-            .reduce(product, 1)
+      const purchaseInfo = purchaseBreakdown(sanitizedPurchases, discounts)
 
-          return PURCHASE_TYPES_BY_TYPE[purchaseType].price_in_cents * discountMultiplier * count
-        })
+      const amount = purchaseInfo
+        .map(({ discountedPrice }) => discountedPrice)
         .reduce(sum, 0)
 
       const metadata: PurchaseMetadata = {
@@ -144,7 +144,6 @@ export default function register(router: Router) {
         console.info(`\tHandled Stripe event type ${event.type}`);
 
         const { accountId, discount_ids, ...purchasesRaw } = event.data.object.metadata as PurchaseMetadata
-        const discountsArray = discount_ids?.split(',').map(id => TABLE_ROWS.discount.find(d => d.discount_id === id)).filter(exists) ?? []
 
         const purchases: Purchases = objectFromEntries(objectEntries(purchasesRaw)
           .map(([key, value]) => [key, Number(value)])) // convert counts back to numbers
@@ -168,7 +167,8 @@ export default function register(router: Router) {
 
           const account = (await db.queryTable('account', { where: ['account_id', '=', accountId] }))[0]!
 
-          await sendMail(receiptEmail(account, purchases))
+          const discountsArray = discount_ids?.split(',').map(id => TABLE_ROWS.discount.find(d => d.discount_id === id)).filter(exists) ?? []
+          await sendMail(receiptEmail(account, purchases, discountsArray))
         })
 
         ctx.response.status = Status.OK
