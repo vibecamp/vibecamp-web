@@ -56,14 +56,14 @@ export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 
             <td>${PURCHASE_TYPES_BY_TYPE[purchaseType].description} x${count}</td>
             <td>
                 ${discountMultiplier != null
-            ? `<s>$${basePrice.toFixed(2)}<s> $${discountedPrice.toFixed(2)}`
-            : `$${basePrice.toFixed(2)}`}
+            ? `<s>$${(basePrice / 100).toFixed(2)}<s> $${(discountedPrice / 100).toFixed(2)}`
+            : `$${(basePrice / 100).toFixed(2)}`}
             </td>
         </tr>`)
         .join('\n')
 
     const totalCost = purchasesInfo
-        .map(({ discountedPrice }) => discountedPrice)
+        .map(({ discountedPrice }) => discountedPrice / 100)
         .reduce(sum, 0)
         .toFixed(2)
 
