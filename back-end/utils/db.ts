@@ -4,7 +4,6 @@ import {
   REFERRAL_MAXES,
 } from './constants.ts'
 import { TableName, Tables } from '../types/db-types.ts'
-import { Maybe } from "../types/misc.ts"
 import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
 import { WhereClause, queryTableQuery, insertTableQuery, updateTableQuery, deleteTableQuery } from './db-inner.ts'
 
@@ -53,7 +52,7 @@ export type DBClient = Pick<PoolClient, 'queryObject'> & CustomClientMethods
 export async function withDBConnection<TResult>(
   cb: (db: DBClient & Pick<PoolClient, 'createTransaction'>) => Promise<TResult>,
 ): Promise<TResult> {
-  const client = await db.connect() as unknown as DBClient & Pick<PoolClient, 'createTransaction' | 'release'>
+  const client = await db.connect() as PoolClient & DBClient
   client.queryTable = queryTable(client)
   client.insertTable = insertTable(client)
   client.updateTable = updateTable(client)
@@ -79,10 +78,11 @@ export async function withDBTransaction<TResult>(
 ): Promise<TResult> {
   return await withDBConnection(async (db) => {
     const transactionName = generateTransactionName()
+    const transaction = db.createTransaction(transactionName, {
+      isolation_level: 'serializable',
+    }) as Transaction & DBClient
+
     try {
-      const transaction = db.createTransaction(transactionName, {
-        isolation_level: 'serializable',
-      }) as unknown as DBClient & Pick<Transaction, 'begin' | 'commit'>
       await transaction.begin();
 
       transaction.queryTable = queryTable(transaction)
@@ -96,6 +96,9 @@ export async function withDBTransaction<TResult>(
       releaseTransactionName(transactionName)
 
       return result
+    } catch (e) {
+      await transaction.rollback()
+      throw e
     } finally {
       releaseTransactionName(transactionName)
     }
