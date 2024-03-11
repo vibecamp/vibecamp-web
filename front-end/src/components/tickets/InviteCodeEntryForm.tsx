@@ -47,20 +47,6 @@ export default observer(() => {
     return (
         <form onSubmit={preventingDefault(state.submitInviteCode.load)} noValidate>
             <Col>
-                <h2>
-                    Welcome!
-                </h2>
-
-                <Spacer size={8} />
-
-                <div>
-                    Someone else will need to refer you by giving
-                    you an invite code before you can buy tickets
-                    for the current event.
-                </div>
-
-                <Spacer size={24} />
-
                 <Input
                     label='Invite code'
                     placeholder='11111111-1111-1111-1111-111111111111'

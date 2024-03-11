@@ -93,18 +93,20 @@ export default observer(() => {
                                     <InviteCodes />
                                 </>
                                 : <>
-                                    <InviteCodeEntryForm />
+                                    <h2>
+                                        Welcome!
+                                    </h2>
 
-                                    <Spacer size={48} />
+                                    <Spacer size={8} />
 
                                     <div>
-                                        {`Alternately, you can apply for
-                                        admission to the event. The team will
-                                        review your submission and may invite
-                                        you directly.`}
+                                        You'll need to apply to Vibecamp before
+                                        you can buy tickets. The team will
+                                        review your submission and invite you
+                                        if approved.
                                     </div>
 
-                                    <Spacer size={24} />
+                                    <Spacer size={16} />
 
                                     <Button isPrimary disabled={application_status !== 'unsubmitted'} onClick={openApplicationModal}>
                                         {application_status === 'pending'
@@ -123,9 +125,20 @@ export default observer(() => {
                                         {() => <Application onSuccess={handleApplicationSubmissionSuccess} />}
                                     </Modal>
 
+                                    <Spacer size={48} />
+
+                                    <div>
+                                        {`Or, a friend who has invite codes can
+                                        give you one, which will allow you to
+                                        buy tickets.`}
+                                    </div>
+
+                                    <Spacer size={16} />
+
+                                    <InviteCodeEntryForm />
                                 </>}
 
-                            <Spacer size={16} />
+                            <Spacer size={24} />
 
                             <div style={{ textAlign: 'center' }}>
                                 Questions or issues?&nbsp;
