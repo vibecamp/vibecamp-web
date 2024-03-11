@@ -95,7 +95,7 @@ const ONE_MINUTE_S = 60
 const ONE_HOUR_S = 60 * ONE_MINUTE_S
 const ONE_DAY_S = 24 * ONE_HOUR_S
 
-async function createAccountJwt(account: Tables['account']): Promise<string> {
+export async function createAccountJwt(account: Tables['account']): Promise<string> {
   const payload: VibeJWTPayload = {
     iss: 'vibecamp',
     exp: getNumericDate(new Date()) + 30 * ONE_DAY_S,

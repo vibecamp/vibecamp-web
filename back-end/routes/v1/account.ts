@@ -1,11 +1,12 @@
 import { Router, Status } from 'oak'
 import { defineRoute, rateLimited } from './_common.ts'
 import { DBClient, accountReferralStatus, withDBConnection, withDBTransaction, getApplicationStatus } from '../../utils/db.ts'
-import { TABLE_ROWS, Tables } from "../../types/db-types.ts"
+import { Tables } from "../../types/db-types.ts"
 import { allPromises } from "../../utils/misc.ts"
 import { ONE_SECOND_MS } from '../../utils/constants.ts'
-import { hashAndSaltPassword } from './auth.ts'
+import { createAccountJwt, hashAndSaltPassword } from './auth.ts'
 import { getPasswordValidationError, getUuidValidationError } from '../../utils/validation.ts'
+import { passwordResetEmail, sendMail } from '../../utils/mailgun.ts'
 
 export default function register(router: Router) {
 
@@ -118,6 +119,59 @@ export default function register(router: Router) {
         ]))
 
       return [null, Status.OK]
+    }
+  })
+
+  const passwordResetSecrets = new Map<string, Tables['account']['account_id']>()
+
+  defineRoute(router, {
+    endpoint: '/account/send-password-reset-email',
+    method: 'post',
+    requireAuth: false,
+    handler: rateLimited(500, async ({ body: { email_address } }) => {
+      const accountRes = await withDBConnection(db => db.queryTable('account', { where: ['email_address', '=', email_address] }))
+      const account = accountRes[0]
+
+      if (account) {
+        const secret = crypto.randomUUID()
+        passwordResetSecrets.set(secret, account.account_id)
+        const email = passwordResetEmail(account, secret)
+        await sendMail(email)
+      }
+
+      return [null, Status.OK]
+    })
+  })
+
+  defineRoute(router, {
+    endpoint: '/account/reset-password',
+    method: 'put',
+    requireAuth: false,
+    handler: async ({ body: { password, secret } }) => {
+      const account_id = passwordResetSecrets.get(secret)
+
+      if (account_id) {
+        passwordResetSecrets.delete(secret)
+
+        if (getPasswordValidationError(password)) {
+          return [{ jwt: null }, Status.BadRequest]
+        }
+
+        const { password_hash, password_salt } = await hashAndSaltPassword(
+          password
+        )
+
+        const accountRes = await withDBConnection(db =>
+          db.updateTable('account', { password_hash, password_salt }, [
+            ['account_id', '=', account_id],
+          ]))
+
+        const account = accountRes[0]!
+
+        return [{ jwt: await createAccountJwt(account) }, Status.OK]
+      } else {
+        return [{ jwt: null }, Status.InternalServerError]
+      }
     }
   })
 

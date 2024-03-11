@@ -19,6 +19,23 @@ export type Routes = {
         },
         response: null
     },
+    '/account/send-password-reset-email': {
+        method: 'post',
+        body: {
+            email_address: string
+        },
+        response: null
+    },
+    '/account/reset-password': {
+        method: 'put',
+        body: {
+            password: string,
+            secret: string
+        },
+        response: {
+            jwt: string | null
+        }
+    },
     '/account/update-attendee': {
         method: 'put',
         body: Pick<Tables['attendee'], 'attendee_id'> & Partial<Omit<Tables['attendee'], 'associated_account_id' | 'notes'>>,

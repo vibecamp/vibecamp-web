@@ -4,6 +4,7 @@ import { Purchases } from '../types/route-types.ts'
 import { TABLE_ROWS, Tables } from '../types/db-types.ts'
 import { objectEntries, purchaseBreakdown, sum } from './misc.ts'
 import { PURCHASE_TYPES_BY_TYPE } from '../types/misc.ts'
+import { PASSWORD_RESET_SECRET_KEY } from './constants.ts'
 
 const MAILGUN_DOMAIN = 'mail.vibe.camp'
 const FROM = `Vibecamp <support@${MAILGUN_DOMAIN}>`
@@ -70,68 +71,14 @@ export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 
     return {
         to: account.email_address,
         subject: 'Vibecamp purchase receipt',
-        html: `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <style>
-                img {
-                    width: 100%;
-                }
-
-                a {
-                    color: rgba(255, 255, 255, 0.9);
-                }
-
-                body {
-                    margin: 0;
-                    /* background: rgb(7, 3, 24); */
-                    background: rgb(38, 37, 48);
-                    color: rgba(255, 255, 255, 0.9);
-                    font-family: sans-serif;
-                }
-
-                .container {
-                    padding: 20px;
-                    margin: 0 auto;
-                    max-width: 400px;
-                }
-                
-                table {
-                    width: 100%;
-                }
-
-                td {
-                    vertical-align: baseline;
-                }
-
-                td:nth-child(2) {
-                    text-align: right;
-                }
-
-                tr:last-of-type {
-                    font-weight: bold;
-                }
-
-                tr:last-of-type>td {
-                    padding-top: 10px;
-                }
-
-                .details {
-                    text-align: right;
-                    color: rgba(255, 255, 255, 0.7);
-                }
-            </style>
-        </head>
-
-        <body>
+        html: withContainer(`
             <img src="${festival?.email_banner_image}">
 
             <div class="container">
                 <h1>You're going to ${festival?.festival_name}!</h1>
                 <p>
                     This email is your receipt for your purchases. You can visit 
-                    <a href="https://my.vibe.camp">my.vibe.camp</a> to view your
+                    <a href="${env.FRONT_END_BASE_URL}">my.vibe.camp</a> to view your
                     tickets or purchase anything else you need. The app will also
                     be updated as the festival approaches with things like an event 
                     schedule, a site map, and more, so be sure to check back!
@@ -152,8 +99,92 @@ export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 
                     Account ID: ${account.account_id}
                 </p>
             </div>
-        </body>
-        </html>
-    `
+        `)
     }
 }
+
+export const passwordResetEmail = (account: Pick<Tables['account'], 'email_address' | 'account_id'>, secret: string): Email => {
+    const resetUrl = `${env.FRONT_END_BASE_URL}?${PASSWORD_RESET_SECRET_KEY}=${secret}`
+
+    return {
+        to: account.email_address,
+        subject: 'Vibecamp password reset',
+        html: withContainer(`
+            <div class="container">
+                <h1>Vibecamp password reset</h1>
+                <p>
+                    You've requested that your account password be reset. <b>
+                    Nothing has happened yet</b>, you can click the link below
+                    to set a new password on your my.vibe.camp account.
+                </p>
+                <p>
+                    <a href=${resetUrl}>
+                        ${resetUrl}
+                    </a>
+                </p>
+                <p class="details">
+                    Account ID: ${account.account_id}
+                </p>
+            </div>
+        `)
+    }
+}
+
+const withContainer = (content: string) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        img {
+            width: 100%;
+        }
+
+        a {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        body {
+            margin: 0;
+            /* background: rgb(7, 3, 24); */
+            background: rgb(38, 37, 48);
+            color: rgba(255, 255, 255, 0.9);
+            font-family: sans-serif;
+        }
+
+        .container {
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 400px;
+        }
+        
+        table {
+            width: 100%;
+        }
+
+        td {
+            vertical-align: baseline;
+        }
+
+        td:nth-child(2) {
+            text-align: right;
+        }
+
+        tr:last-of-type {
+            font-weight: bold;
+        }
+
+        tr:last-of-type>td {
+            padding-top: 10px;
+        }
+
+        .details {
+            text-align: right;
+            color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+    ${content}
+</body>
+</html>`
