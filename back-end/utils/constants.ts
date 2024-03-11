@@ -12,4 +12,4 @@ export const ONE_DAY_MS = 24 * ONE_HOUR_MS
 
 export const FESTIVALS_WITH_SALES_OPEN = TABLE_ROWS.festival.filter(f => f.sales_are_open)
 
-export const PASSWORD_RESET_SECRET_KEY = 'password_reset_secret'
+export const PASSWORD_RESET_SECRET_KEY = 'passwordResetSecret'

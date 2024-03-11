@@ -104,7 +104,7 @@ export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 
 }
 
 export const passwordResetEmail = (account: Pick<Tables['account'], 'email_address' | 'account_id'>, secret: string): Email => {
-    const resetUrl = `${env.FRONT_END_BASE_URL}?${PASSWORD_RESET_SECRET_KEY}=${secret}`
+    const resetUrl = `${env.FRONT_END_BASE_URL}#${encodeURIComponent(JSON.stringify({ [PASSWORD_RESET_SECRET_KEY]: secret }))}`
 
     return {
         to: account.email_address,
