@@ -4,6 +4,7 @@ import { getEmailValidationError, getPasswordValidationError } from '../../../ba
 import { useObservableClass } from '../mobx/hooks'
 import { observer, setter } from '../mobx/misc'
 import { request } from '../mobx/request'
+import WindowObservables from '../mobx/WindowObservables'
 import Store from '../stores/Store'
 import { DEFAULT_FORM_ERROR, preventingDefault } from '../utils'
 import { vibefetch } from '../vibefetch'
@@ -16,18 +17,28 @@ import Stripes from './core/Stripes'
 
 export default observer(() => {
     const state = useObservableClass(class {
-        mode: 'login' | 'signup' = 'login'
+        mode: 'login' | 'signup' | 'forgot-password' | 'new-password' = (
+            typeof WindowObservables.hashState?.passwordResetSecret === 'string'
+                ? 'new-password'
+                : 'login'
+        )
 
         emailAddress = ''
         password = ''
         passwordConfirmation = ''
 
+        passwordResetEmailSent = false
+
         get emailAddressError() {
-            return getEmailValidationError(this.emailAddress)
+            if (this.mode !== 'new-password') {
+                return getEmailValidationError(this.emailAddress)
+            }
         }
 
         get passwordError() {
-            return getPasswordValidationError(this.password)
+            if (this.mode !== 'forgot-password') {
+                return getPasswordValidationError(this.password)
+            }
         }
 
         get passwordConfirmationError() {
@@ -36,8 +47,16 @@ export default observer(() => {
             }
         }
 
-        readonly toggleState = () => {
-            this.mode = (this.mode === 'login' ? 'signup' : 'login')
+        readonly goToLogin = () => {
+            this.mode = 'login'
+        }
+
+        readonly goToSignup = () => {
+            this.mode = 'signup'
+        }
+
+        readonly goToForgotPassword = () => {
+            this.mode = 'forgot-password'
         }
 
         readonly loginOrSignup = request(async () => {
@@ -51,22 +70,47 @@ export default observer(() => {
                 return { fieldError: true }
             }
 
-            const { body, status } = await vibefetch(null, `/${state.mode}`, 'post', {
-                email_address: this.emailAddress,
-                password: this.password
-            })
-            const { jwt } = body ?? {}
+            if (state.mode === 'forgot-password') {
+                const { status } = await vibefetch(null, '/account/send-password-reset-email', 'post', {
+                    email_address: this.emailAddress
+                })
 
-            if (state.mode === 'login' && status === 401) {
-                return { submissionError: 'Incorrect email or password' }
+                if (status !== 200) {
+                    return { submissionError: DEFAULT_FORM_ERROR }
+                }
+
+                state.passwordResetEmailSent = true
+            } else if (state.mode === 'new-password') {
+                const { body } = await vibefetch(null, '/account/reset-password', 'put', {
+                    password: this.password,
+                    secret: WindowObservables.hashState?.passwordResetSecret as string
+                })
+                const { jwt } = body ?? {}
+
+                if (jwt == null) {
+                    return { submissionError: DEFAULT_FORM_ERROR }
+                }
+
+                Store.jwt = jwt
+                this.emailAddress = this.password = this.passwordConfirmation = ''
+            } else {
+                const { body, status } = await vibefetch(null, `/${state.mode}`, 'post', {
+                    email_address: this.emailAddress,
+                    password: this.password
+                })
+                const { jwt } = body ?? {}
+
+                if (state.mode === 'login' && status === 401) {
+                    return { submissionError: 'Incorrect email or password' }
+                }
+
+                if (jwt == null) {
+                    return { submissionError: DEFAULT_FORM_ERROR }
+                }
+
+                Store.jwt = jwt
+                this.emailAddress = this.password = this.passwordConfirmation = ''
             }
-
-            if (jwt == null) {
-                return { submissionError: DEFAULT_FORM_ERROR }
-            }
-
-            Store.jwt = jwt
-            this.emailAddress = this.password = this.passwordConfirmation = ''
         }, { lazy: true })
     })
 
@@ -87,61 +131,88 @@ export default observer(() => {
 
                 <Spacer size={24} />
 
-                <Input
-                    label='Email address'
-                    type='email'
-                    disabled={loading}
-                    autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
-                    value={state.emailAddress}
-                    onChange={setter(state, 'emailAddress')}
-                    error={submissionState.result?.fieldError ? state.emailAddressError : undefined}
-                />
+                {state.mode !== 'new-password' &&
+                    <Input
+                        label='Email address'
+                        type='email'
+                        disabled={loading}
+                        autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
+                        value={state.emailAddress}
+                        onChange={setter(state, 'emailAddress')}
+                        error={submissionState.result?.fieldError ? state.emailAddressError : undefined}
+                    />}
 
-                <Spacer size={16} />
-
-                <Input
-                    label='Password'
-                    type='password'
-                    disabled={loading}
-                    autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
-                    value={state.password}
-                    onChange={setter(state, 'password')}
-                    error={submissionState.result?.fieldError ? state.passwordError : undefined}
-                />
-
-                {state.mode === 'signup' &&
+                {state.mode !== 'forgot-password' &&
                     <>
                         <Spacer size={16} />
 
                         <Input
-                            label='Confirm password'
+                            label={state.mode === 'new-password' ? 'New password' : 'Password'}
                             type='password'
                             disabled={loading}
-                            value={state.passwordConfirmation}
-                            onChange={setter(state, 'passwordConfirmation')}
-                            error={submissionState.result?.fieldError ? state.passwordConfirmationError : undefined}
+                            autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
+                            value={state.password}
+                            onChange={setter(state, 'password')}
+                            error={submissionState.result?.fieldError ? state.passwordError : undefined}
                         />
+
+                        {state.mode === 'signup' || state.mode === 'new-password' &&
+                            <>
+                                <Spacer size={16} />
+
+                                <Input
+                                    label={state.mode === 'new-password' ? 'Confirm new password' : 'Confirm password'}
+                                    type='password'
+                                    disabled={loading}
+                                    value={state.passwordConfirmation}
+                                    onChange={setter(state, 'passwordConfirmation')}
+                                    error={submissionState.result?.fieldError ? state.passwordConfirmationError : undefined}
+                                />
+                            </>}
                     </>}
 
                 <Spacer size={8} />
 
                 <ErrorMessage error={submissionError} />
 
+                {state.passwordResetEmailSent &&
+                    <>
+                        <Spacer size={8} />
+
+                        <div style={{ textAlign: 'center' }}>
+                            Email sent!
+                        </div>
+                    </>}
+
                 <Spacer size={24} />
 
-                <Button isSubmit isPrimary isLoading={loading}>
-                    {state.mode === 'login'
-                        ? 'Log in'
-                        : 'Sign up'}
+                <Button isSubmit isPrimary isLoading={loading} disabled={state.passwordResetEmailSent}>
+                    {state.mode === 'login' ? 'Log in'
+                        : state.mode === 'signup' ? 'Sign up'
+                            : state.mode === 'forgot-password' ? 'Reset password'
+                                : 'Update password'}
                 </Button>
+
+                {state.mode === 'login'
+                    ? <>
+                        <Spacer size={8} />
+
+                        <Button onClick={state.goToSignup}>Create an account</Button>
+                    </>
+                    : state.mode === 'signup'
+                        ? <>
+                            <Spacer size={8} />
+
+                            <Button onClick={state.goToLogin}>I already have an account</Button>
+                        </>
+                        : null}
 
                 <Spacer size={8} />
 
-                <Button onClick={state.toggleState}>
-                    {state.mode === 'login'
-                        ? 'Create an account'
-                        : 'I already have an account'}
-                </Button>
+                {state.mode !== 'forgot-password' && state.mode !== 'new-password'
+                    ? <Button onClick={state.goToForgotPassword}>Forgot your password?</Button>
+                    : <Button onClick={state.goToLogin}>Back to login</Button>}
+
             </Col>
         </form>
     )

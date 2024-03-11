@@ -100,10 +100,10 @@ export default observer(() => {
                                     <Spacer size={8} />
 
                                     <div>
-                                        You'll need to apply to Vibecamp before
+                                        {`You'll need to apply to Vibecamp before
                                         you can buy tickets. The team will
                                         review your submission and invite you
-                                        if approved.
+                                        if approved.`}
                                     </div>
 
                                     <Spacer size={16} />

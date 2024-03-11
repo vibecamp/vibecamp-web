@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx'
 
+import { PASSWORD_RESET_SECRET_KEY } from '../../../back-end/utils/constants'
 import { jsonParse } from '../utils'
 
 class _WindowObservables {
@@ -59,6 +60,7 @@ type HashState = Readonly<{
     currentView?: string | number | boolean | null,
     ticketPurchaseModalState?: string | number | boolean | null,
     applicationModalOpen?: string | number | boolean | null,
+    [PASSWORD_RESET_SECRET_KEY]?: string | number | boolean | null
 }>
 
 const WindowObservables = new _WindowObservables()
