@@ -147,7 +147,7 @@ export default observer(() => {
                         <Spacer size={16} />
 
                         <Input
-                            label={state.mode === 'new-password' ? 'New password' : 'Password'}
+                            label={state.mode === 'login' ? 'Password' : 'New password'}
                             type='password'
                             disabled={loading}
                             autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
@@ -155,21 +155,23 @@ export default observer(() => {
                             onChange={setter(state, 'password')}
                             error={submissionState.result?.fieldError ? state.passwordError : undefined}
                         />
+                    </>
+                }
 
-                        {state.mode === 'signup' || state.mode === 'new-password' &&
-                            <>
-                                <Spacer size={16} />
+                {(state.mode === 'signup' || state.mode === 'new-password') &&
+                    <>
+                        <Spacer size={16} />
 
-                                <Input
-                                    label={state.mode === 'new-password' ? 'Confirm new password' : 'Confirm password'}
-                                    type='password'
-                                    disabled={loading}
-                                    value={state.passwordConfirmation}
-                                    onChange={setter(state, 'passwordConfirmation')}
-                                    error={submissionState.result?.fieldError ? state.passwordConfirmationError : undefined}
-                                />
-                            </>}
-                    </>}
+                        <Input
+                            label={state.mode === 'new-password' ? 'Confirm new password' : 'Confirm password'}
+                            type='password'
+                            disabled={loading}
+                            value={state.passwordConfirmation}
+                            onChange={setter(state, 'passwordConfirmation')}
+                            error={submissionState.result?.fieldError ? state.passwordConfirmationError : undefined}
+                        />
+                    </>
+                }
 
                 <Spacer size={8} />
 
