@@ -177,7 +177,7 @@ export default observer(() => {
                     {state.visibleEvents?.map(e =>
                         <Event event={e} editEvent={state.editEvent} key={e.event_id} />)}
 
-                    <Modal isOpen={state.eventBeingEdited != null} onClose={state.stopEditingEvent}>
+                    <Modal isOpen={state.eventBeingEdited != null} onClose={state.stopEditingEvent} side='right'>
                         {() =>
                             state.eventBeingEdited != null &&
                                 <EventEditor
@@ -494,7 +494,7 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
                             Delete event
                         </Button>
 
-                        <Modal isOpen={state.confirmingDeletion}>
+                        <Modal isOpen={state.confirmingDeletion} side='right'>
                             {() => (
                                 <Col align='center' justify='center' padding={20} pageLevel>
                                     <div style={{ fontSize: 22, textAlign: 'center' }}>

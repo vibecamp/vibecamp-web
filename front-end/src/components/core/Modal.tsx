@@ -9,7 +9,7 @@ type Props = {
     isOpen: boolean,
     onClose?: () => void,
     title?: string,
-    side?: 'left' | 'right',
+    side: 'left' | 'right',
     children: () => React.ReactNode
 }
 

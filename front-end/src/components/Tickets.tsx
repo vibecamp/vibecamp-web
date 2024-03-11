@@ -118,6 +118,7 @@ export default observer(() => {
                                         title='Apply to Vibecamp'
                                         isOpen={WindowObservables.hashState?.applicationModalOpen === true}
                                         onClose={closeApplicationModal}
+                                        side='right'
                                     >
                                         {() => <Application onSuccess={handleApplicationSubmissionSuccess} />}
                                     </Modal>
@@ -137,6 +138,7 @@ export default observer(() => {
                 title='Ticket purchase'
                 isOpen={WindowObservables.hashState?.ticketPurchaseModalState != null}
                 onClose={closeTicketPurchaseModal}
+                side='right'
             >
                 {() => Store.accountInfo.state.result && <PurchaseTicketsModal />}
             </Modal>

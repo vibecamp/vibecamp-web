@@ -141,7 +141,7 @@ export default observer(() => {
                         </>
                         : null}
 
-            <Modal isOpen={emailAddressForm.emailAddress != null} onClose={emailAddressForm.stopChangingEmail}>
+            <Modal isOpen={emailAddressForm.emailAddress != null} onClose={emailAddressForm.stopChangingEmail} side='right'>
                 {() =>
                     <form onSubmit={preventingDefault(emailAddressForm.updateEmail.load)} noValidate>
                         <Col padding={20} pageLevel>
@@ -161,7 +161,7 @@ export default observer(() => {
                     </form>}
             </Modal>
 
-            <Modal isOpen={passwordForm.password != null} onClose={passwordForm.stopChangingPassword}>
+            <Modal isOpen={passwordForm.password != null} onClose={passwordForm.stopChangingPassword} side='right'>
                 {() =>
                     <form onSubmit={preventingDefault(passwordForm.updatePassword.load)} noValidate>
                         <Col padding={20} pageLevel>
