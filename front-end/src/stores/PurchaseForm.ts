@@ -1,6 +1,6 @@
 import { createTransformer } from 'mobx-utils'
 
-import { TABLE_ROWS, Tables } from '../../../back-end/types/db-types'
+import { Tables } from '../../../back-end/types/db-types'
 import { AttendeeInfo } from '../../../back-end/types/misc'
 import { Purchases } from '../../../back-end/types/route-types'
 import { objectValues } from '../../../back-end/utils/misc'
@@ -93,18 +93,6 @@ export class PurchaseForm {
         }
     })
 
-    readonly createAttendees = request(async () => {
-        const festival = TABLE_ROWS.festival.find(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)
-        if (!this.isValid || festival == null) {
-            return
-        }
-
-        await vibefetch(Store.jwt, '/purchase/create-attendees', 'post', {
-            attendees: this.attendees.map(({ ticket_type, ...attendee }) => attendee),
-            festival_id: festival.festival_id
-        })
-    }, { lazy: true })
-
     readonly stripeOptions = request(async () => {
         if (Store.loggedIn && this.isValid && Object.values(this.purchases).some(count => count > 0)) {
             const { body: response } = await vibefetch(
@@ -113,7 +101,8 @@ export class PurchaseForm {
                 'post',
                 {
                     purchases: this.purchases,
-                    discount_codes: []
+                    discount_codes: [],
+                    attendees: this.attendees.map(({ ticket_type: _, ...attendee }) => attendee)
                 }
             )
             const { stripe_client_secret } = response ?? {}

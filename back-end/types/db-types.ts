@@ -90,7 +90,7 @@ export type Tables = {
   purchase: {
     owned_by_account_id: Tables['account']['account_id'] | null,
     purchase_id: string,
-    purchase_type_id: Tables['discount']['purchase_type_id'],
+    purchase_type_id: Tables['purchase_type']['purchase_type_id'],
     purchased_on: Date,
     stripe_payment_intent: string | null,
   },

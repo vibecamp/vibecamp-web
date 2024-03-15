@@ -124,19 +124,12 @@ export type Routes = {
         },
         response: null
     },
-    '/purchase/create-attendees': {
-        method: 'post',
-        body: {
-            attendees: AttendeeInfo[],
-            festival_id: Tables['festival']['festival_id']
-        },
-        response: null
-    },
     '/purchase/create-intent': {
         method: 'post',
         body: {
             purchases: Purchases,
-            discount_codes: readonly string[]
+            discount_codes: readonly string[],
+            attendees: AttendeeInfo[],
         },
         response: { stripe_client_secret: string }
     }

@@ -21,7 +21,6 @@ const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 type Props = {
     stripeOptions: StripeElementsOptions | undefined,
     purchases?: Purchases,
-    onPrePurchase?: () => Promise<void> | void,
     onCompletePurchase?: () => Promise<void> | void,
 }
 
@@ -51,8 +50,6 @@ const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(props => {
                 console.error('Stripe not initialized yet')
                 return
             }
-
-            await props.onPrePurchase?.()
 
             const { error } = await stripeStuff.stripe.confirmPayment({
                 elements: stripeStuff.elements,

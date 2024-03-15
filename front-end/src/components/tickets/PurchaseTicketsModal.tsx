@@ -40,7 +40,6 @@ export default observer(() => {
                         <StripePaymentForm
                             stripeOptions={purchaseForm.stripeOptions.state.result}
                             purchases={purchaseForm.purchases}
-                            onPrePurchase={purchaseForm.createAttendees.load}
                             onCompletePurchase={handlePurchaseCompletion}
                         />
                 }

@@ -1,4 +1,4 @@
-import { Router, Status } from 'oak'
+import { Route, Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
 import { stripe } from '../../utils/stripe.ts'
 import {
@@ -8,36 +8,18 @@ import {
 } from '../../utils/db.ts'
 import { exists, objectEntries, objectFromEntries, purchaseBreakdown, sum } from '../../utils/misc.ts'
 import { TABLE_ROWS, Tables } from "../../types/db-types.ts"
-import { Purchases } from '../../types/route-types.ts'
+import { Purchases, Routes } from '../../types/route-types.ts'
 import { PURCHASE_TYPES_BY_TYPE } from '../../types/misc.ts'
 import { sendMail, receiptEmail } from '../../utils/mailgun.ts'
 import env from '../../env.ts'
 
 export default function register(router: Router) {
-  defineRoute(router, {
-    endpoint: '/purchase/create-attendees',
-    method: 'post',
-    requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { attendees, festival_id } }) => {
-      await withDBTransaction(async db => {
-        for (const attendee of attendees) {
-          await db.insertTable('attendee', {
-            ...attendee,
-            festival_id,
-            associated_account_id: account_id,
-          })
-        }
-      })
-
-      return [null, Status.OK]
-    }
-  })
 
   defineRoute(router, {
     endpoint: '/purchase/create-intent',
     method: 'post',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { purchases, discount_codes } }) => {
+    handler: async ({ jwt: { account_id }, body: { purchases, discount_codes, attendees } }) => {
       const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id))
       if (!allowedToPurchase) {
         return [null, Status.Unauthorized]
@@ -119,6 +101,8 @@ export default function register(router: Router) {
         metadata
       })
 
+      attendeeInfoByAccount.set(account_id, attendees)
+
       if (client_secret == null) {
         return [null, Status.InternalServerError]
       }
@@ -126,6 +110,8 @@ export default function register(router: Router) {
       return [{ stripe_client_secret: client_secret }, Status.OK]
     },
   })
+
+  const attendeeInfoByAccount = new Map<Tables['account']['account_id'], Routes['/purchase/create-intent']['body']['attendees']>()
 
   type PurchaseMetadata =
     & { accountId: string, discount_ids?: string }
@@ -144,6 +130,12 @@ export default function register(router: Router) {
         console.info(`\tHandled Stripe event type ${event.type}`);
 
         const { accountId, discount_ids, ...purchasesRaw } = event.data.object.metadata as PurchaseMetadata
+        const attendees = attendeeInfoByAccount.get(accountId)
+        attendeeInfoByAccount.delete(accountId)
+
+        if (attendees == null) {
+          throw Error(`Attendees missing when recording purchase for account ${accountId}`)
+        }
 
         const purchases: Purchases = objectFromEntries(objectEntries(purchasesRaw)
           .map(([key, value]) => [key, Number(value)])) // convert counts back to numbers
@@ -155,14 +147,26 @@ export default function register(router: Router) {
         )
 
         await withDBTransaction(async (db) => {
+          let festival_id: Tables['festival']['festival_id']
+
           for (const [purchaseType, count] of objectEntries(purchases)) {
             for (let i = 0; i < count!; i++) {
+              festival_id = PURCHASE_TYPES_BY_TYPE[purchaseType].festival_id
+
               await db.insertTable('purchase', {
-                owned_by_account_id: accountId ?? null,
+                owned_by_account_id: accountId,
                 purchase_type_id: purchaseType,
                 stripe_payment_intent
               })
             }
+          }
+
+          for (const attendee of attendees) {
+            await db.insertTable('attendee', {
+              ...attendee,
+              festival_id: festival_id!,
+              associated_account_id: accountId,
+            })
           }
 
           const account = (await db.queryTable('account', { where: ['account_id', '=', accountId] }))[0]!
