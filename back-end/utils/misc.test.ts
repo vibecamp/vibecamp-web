@@ -12,7 +12,7 @@ Deno.test({
                 ATTENDANCE_VIBECLIPSE_2024_OVER_16: 3,
                 VIBECAMP_3_BASIC_TICKET: 2,
                 VIBECAMP_3_BUS_TO_BALTIMORE_1130AM: 1
-            }, TABLE_ROWS.discount),
+            }, TABLE_ROWS.discount.filter(r => r.discount_code === 'CABIN')),
             [
                 {
                     basePrice: PURCHASE_TYPES_BY_TYPE.ATTENDANCE_VIBECLIPSE_2024_OVER_16.price_in_cents * 3,
