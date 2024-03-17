@@ -77,7 +77,7 @@ export type Routes = {
         method: 'get',
         body: undefined,
         response: {
-            events: (EventJson & { created_by: string, bookmarks: number })[]
+            events: (EventJson & { creator_name: string | null, bookmarks: number })[]
         }
     },
     '/event-sites': {

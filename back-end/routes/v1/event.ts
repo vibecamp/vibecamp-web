@@ -26,7 +26,13 @@ export default function register(router: Router) {
           return [null, Status.Unauthorized]
         }
 
-        const events = await db.queryObject<Tables['event'] & { creator_email_address: Tables['account']['email_address'], creator_name: Tables['attendee']['name'], bookmarks: bigint }>`
+        const events = await db.queryObject<
+          Tables['event'] &
+          {
+            creator_name: Tables['attendee']['name'] | null,
+            bookmarks: bigint
+          }
+        >`
           SELECT
             event.name,
             event.description,
@@ -37,14 +43,15 @@ export default function register(router: Router) {
             event.event_id,
             event.created_by_account_id,
             event.event_type,
-            account.email_address as creator_email_address,
             attendee.name as creator_name,
             COUNT(event_bookmark.account_id) as bookmarks
           FROM event
           LEFT JOIN account ON event.created_by_account_id = account.account_id
           LEFT JOIN attendee ON account.account_id = attendee.associated_account_id
           LEFT JOIN event_bookmark ON event_bookmark.event_id = event.event_id
-          WHERE attendee.is_primary_for_account = true
+          WHERE
+            attendee.is_primary_for_account is null OR
+            attendee.is_primary_for_account = true
           GROUP BY
             event.name,
             event.description,
@@ -62,10 +69,10 @@ export default function register(router: Router) {
 
         return [
           {
-            events: events.rows.map(({ creator_name, creator_email_address, ...e }) => ({
+            events: events.rows.map(({ bookmarks, creator_name, ...e }) => ({
               ...eventToJson(e),
-              created_by: creator_name || creator_email_address,
-              bookmarks: Number(e.bookmarks)
+              creator_name,
+              bookmarks: Number(bookmarks)
             }))
           },
           Status.OK

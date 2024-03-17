@@ -189,7 +189,7 @@ export default observer(() => {
     )
 })
 
-const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & { start_datetime: Dayjs, end_datetime: Dayjs | null, created_by: string, bookmarks: number }, editEvent: (eventId: string) => void }> = observer((props) => {
+const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & { creator_name: string | null, start_datetime: Dayjs, end_datetime: Dayjs | null, bookmarks: number }, editEvent: (eventId: string) => void }> = observer((props) => {
     const state = useObservableClass(class {
         get bookmarked() {
             return Store.bookmarks.state.result?.event_ids.includes(props.event.event_id)
@@ -234,6 +234,12 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
         readonly editEvent = () => props.editEvent(props.event.event_id)
     })
 
+    const eventCreatorLabel = (
+        props.event.event_type === 'TEAM_OFFICIAL' ? 'Vibecamp team' :
+            props.event.event_type === 'CAMPSITE_OFFICIAL' ? 'Campsite' :
+                props.event.creator_name
+    )
+
     return (
         <div className={'card' + ' ' + 'eventCard' + ' ' + (props.event.created_by_account_id === '-1' ? 'official' : '') + props.event.event_type}>
             <div className='eventName'>
@@ -275,14 +281,17 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
                 </span>
             </div>
 
-            <Spacer size={4} />
+            {eventCreatorLabel &&
+                <>
+                    <Spacer size={4} />
 
-            <div className='info' title='Host'>
-                <Icon name='person' />
-                <span className='eventCreator'>
-                    {props.event.event_type === 'TEAM_OFFICIAL' ? 'Vibecamp team' : props.event.event_type === 'CAMPSITE_OFFICIAL' ? 'Campsite' : props.event.created_by}
-                </span>
-            </div>
+                    <div className='info' title='Host'>
+                        <Icon name='person' />
+                        <span className='eventCreator'>
+                            {eventCreatorLabel}
+                        </span>
+                    </div>
+                </>}
 
             <Spacer size={4} />
 
