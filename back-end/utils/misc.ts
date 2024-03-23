@@ -96,3 +96,13 @@ export const purchaseBreakdown = (purchases: Purchases, discounts: readonly Tabl
         discountedPrice: basePrice * (discountMultiplier ?? 1)
       }
     })
+
+export const purchaseTypeAvailableNow = (purchaseType: Tables['purchase_type']) => {
+  const { available_from, available_to } = purchaseType
+  const now = Date.now()
+
+  return (
+    (available_from == null || now >= new Date(available_from).valueOf()) &&
+    (available_to == null || now <= new Date(available_to).valueOf())
+  )
+}

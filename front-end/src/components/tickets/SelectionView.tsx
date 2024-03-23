@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { TABLE_ROWS, Tables } from '../../../../back-end/types/db-types'
+import { purchaseTypeAvailableNow } from '../../../../back-end/utils/misc'
 import { useObservableClass } from '../../mobx/hooks'
 import { observer, setter, setTo } from '../../mobx/misc'
 import { PurchaseForm } from '../../stores/PurchaseForm'
@@ -28,7 +29,8 @@ export default observer((props: Props) => {
         get festivalPurchases() {
             return TABLE_ROWS.purchase_type
                 .filter(t =>
-                    t.festival_id === props.festival?.festival_id)
+                    t.festival_id === props.festival?.festival_id &&
+                    purchaseTypeAvailableNow(t))
                 .sort((a, b) => b.price_in_cents - a.price_in_cents)
         }
 

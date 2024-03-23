@@ -1,4 +1,4 @@
-import { Route, Router, Status } from 'oak'
+import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
 import { stripe } from '../../utils/stripe.ts'
 import {
@@ -6,7 +6,7 @@ import {
   withDBConnection,
   withDBTransaction,
 } from '../../utils/db.ts'
-import { exists, objectEntries, objectFromEntries, purchaseBreakdown, sum } from '../../utils/misc.ts'
+import { exists, objectEntries, objectFromEntries, purchaseBreakdown, purchaseTypeAvailableNow, sum } from '../../utils/misc.ts'
 import { TABLE_ROWS, Tables } from "../../types/db-types.ts"
 import { Purchases, Routes } from '../../types/route-types.ts'
 import { PURCHASE_TYPES_BY_TYPE } from '../../types/misc.ts'
@@ -20,6 +20,8 @@ export default function register(router: Router) {
     method: 'post',
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: { purchases, discount_codes, attendees } }) => {
+
+      // verify that this user is allowed to purchase tickets
       const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id))
       if (!allowedToPurchase) {
         return [null, Status.Unauthorized]
@@ -53,6 +55,11 @@ export default function register(router: Router) {
 
         // if festival hasn't started sales, don't allow purchases
         if (!festival.sales_are_open) {
+          return [null, Status.Unauthorized]
+        }
+
+        // if purchase type isn't available yet, don't allow purchases
+        if (!purchaseTypeAvailableNow(purchaseType)) {
           return [null, Status.Unauthorized]
         }
 

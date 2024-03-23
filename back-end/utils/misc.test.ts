@@ -1,11 +1,13 @@
 
 import { assertEquals } from 'https://deno.land/std@0.152.0/testing/asserts.ts'
-import { TABLE_ROWS } from '../types/db-types.ts'
+import { stub } from "https://deno.land/std@0.220.0/testing/mock.ts"
+
+import { TABLE_ROWS, Tables } from '../types/db-types.ts'
 import { PURCHASE_TYPES_BY_TYPE } from '../types/misc.ts'
-import { purchaseBreakdown } from './misc.ts'
+import { purchaseBreakdown, purchaseTypeAvailableNow } from './misc.ts'
 
 Deno.test({
-    name: 'Purchase breakdown',
+    name: 'purchaseBreakdown()',
     fn() {
         assertEquals(
             purchaseBreakdown({
@@ -36,6 +38,91 @@ Deno.test({
                     purchaseType: "VIBECAMP_3_BUS_TO_BALTIMORE_1130AM",
                 },
             ]
+        )
+    }
+})
+
+Deno.test({
+    name: 'purchaseTypeAvailableNow()',
+    fn() {
+        const basePurchaseType = {
+            "purchase_type_id": "",
+            "price_in_cents": 100,
+            "max_available": 100,
+            "description": "",
+            "max_per_account": null,
+            "festival_id": "a1fe0c91-5087-48d6-87b9-bdc1ef3716a6",
+            "is_attendance_ticket": false
+        }
+
+        const now = '2024-06-01T00:00:00.000Z'
+
+        const beforeNow = '2024-05-01T00:00:00.000Z'
+        const afterNow = '2024-07-01T00:00:00.000Z'
+
+        stub(Date, 'now', () => new Date(now).valueOf())
+
+        assertEquals(
+            purchaseTypeAvailableNow({
+                ...basePurchaseType,
+                "available_from": null,
+                "available_to": null
+            } as unknown as Tables['purchase_type']),
+            true
+        )
+
+        assertEquals(
+            purchaseTypeAvailableNow({
+                ...basePurchaseType,
+                "available_from": new Date(beforeNow).valueOf(),
+                "available_to": null
+            } as unknown as Tables['purchase_type']),
+            true
+        )
+
+        assertEquals(
+            purchaseTypeAvailableNow({
+                ...basePurchaseType,
+                "available_from": null,
+                "available_to": new Date(afterNow).valueOf()
+            } as unknown as Tables['purchase_type']),
+            true
+        )
+
+        assertEquals(
+            purchaseTypeAvailableNow({
+                ...basePurchaseType,
+                "available_from": new Date(beforeNow).valueOf(),
+                "available_to": new Date(afterNow).valueOf()
+            } as unknown as Tables['purchase_type']),
+            true
+        )
+
+        assertEquals(
+            purchaseTypeAvailableNow({
+                ...basePurchaseType,
+                "available_from": new Date(afterNow).valueOf(),
+                "available_to": null
+            } as unknown as Tables['purchase_type']),
+            false
+        )
+
+        assertEquals(
+            purchaseTypeAvailableNow({
+                ...basePurchaseType,
+                "available_from": null,
+                "available_to": new Date(beforeNow).valueOf()
+            } as unknown as Tables['purchase_type']),
+            false
+        )
+
+        assertEquals(
+            purchaseTypeAvailableNow({
+                ...basePurchaseType,
+                "available_from": new Date(afterNow).valueOf(),
+                "available_to": new Date(beforeNow).valueOf()
+            } as unknown as Tables['purchase_type']),
+            false
         )
     }
 })
