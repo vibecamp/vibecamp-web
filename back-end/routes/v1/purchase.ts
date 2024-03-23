@@ -226,26 +226,30 @@ const messageHtml = (icon: 'success' | 'warning' | 'error', message: string) => 
 
   return (
     `
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <style>
-        body {
-          font-family: sans-serif;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          font-size: 32px;
-          text-align: center;
-          gap: 1em;
-          padding: 20px;
-        }
-      </style>
-      <div>
-        ${iconChar}
-      </div>
-      <div>
-        ${message}
-      </div>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body>
+        <style>
+          body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            text-align: center;
+            gap: 1em;
+            padding: 20px;
+          }
+        </style>
+        <div>
+          ${iconChar}
+        </div>
+        <div>
+          ${message}
+        </div>
+      </body>
     `
   )
 }
