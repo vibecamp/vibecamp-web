@@ -200,36 +200,6 @@ export default function register(router: Router) {
       try {
         const purchase = (await db.queryTable('purchase', { where: ['purchase_id', '=', purchase_id] }))[0]
 
-        const messageHtml = (icon: 'success' | 'warning' | 'error', message: string) => {
-          const iconChar = (
-            icon === 'success' ? '✅︎' : icon === 'warning' ? '⚠' : '❌'
-          )
-
-          return (
-            `
-              <style>
-                body {
-                  font-family: sans-serif;
-                  display: flex;
-                  flex-direction: column;
-                  align-items: center;
-                  justify-content: center;
-                  font-size: 32px;
-                  text-align: center;
-                  gap: 1em;
-                  padding: 20px;
-                }
-              </style>
-              <div>
-                ${iconChar}
-              </div>
-              <div>
-                ${message}
-              </div>
-            `
-          )
-        }
-
         if (purchase == null) {
           ctx.response.status = Status.BadRequest
           ctx.response.body = messageHtml('error', 'Invalid check-in link: this purchase ID doesn\'t exist!')
@@ -247,4 +217,34 @@ export default function register(router: Router) {
       }
     })
   })
+}
+
+const messageHtml = (icon: 'success' | 'warning' | 'error', message: string) => {
+  const iconChar = (
+    icon === 'success' ? '✅︎' : icon === 'warning' ? '⚠' : '❌'
+  )
+
+  return (
+    `
+      <style>
+        body {
+          font-family: sans-serif;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          font-size: 32px;
+          text-align: center;
+          gap: 1em;
+          padding: 20px;
+        }
+      </style>
+      <div>
+        ${iconChar}
+      </div>
+      <div>
+        ${message}
+      </div>
+    `
+  )
 }
