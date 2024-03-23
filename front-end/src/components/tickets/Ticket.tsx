@@ -1,10 +1,15 @@
+import { QRCodeSVG } from 'qrcode.react'
 import React from 'react'
 
+import { Tables } from '../../../../back-end/types/db-types'
+import env from '../../env'
+import { useObservableClass } from '../../mobx/hooks'
 import { observer } from '../../mobx/misc'
 
 type Props = {
     name: string | undefined,
-    ticketType: 'adult' | 'child' | undefined
+    ticketType: 'adult' | 'child' | undefined,
+    purchaseId: Tables['purchase']['purchase_id']
 }
 
 const TICKET_WIDTH = 750
@@ -16,9 +21,14 @@ const QR_HEIGHT = '50%'
 const NAME_FONT_SIZE = 30
 const TYPE_FONT_SIZE = 18
 
-const FOREGROUND_OPACITY = 1.0
-
 export default observer((props: Props) => {
+    const state = useObservableClass(class {
+        qrCodeZoom = false
+
+        readonly toggleQRCodeZoom = () => {
+            this.qrCodeZoom = !this.qrCodeZoom
+        }
+    })
 
     return (
         <div style={{ width: '100%', position: 'relative', overflow: 'hidden' }}>
@@ -72,8 +82,35 @@ export default observer((props: Props) => {
                 </g> */}
             </svg>
 
-            {/* TODO: When QR code is tapped, open a big bright one for easier scanning */}
-            {/* <QRCodeSVG value="https://vibe.camp" style={{ position: 'absolute', height: QR_HEIGHT, width: 'auto', top: `calc(50% - (${QR_HEIGHT} / 2))`, left: '50%', opacity: FOREGROUND_OPACITY }} /> */}
+            <div onClick={state.toggleQRCodeZoom} style={state.qrCodeZoom ? QR_CODE_CONTAINER_ZOOMED_STYLE : QR_CODE_CONTAINER_STYLE}>
+                <QRCodeSVG
+                    value={`${env.BACK_END_ORIGIN}/purchase/check-in/${props.purchaseId}`}
+                    style={{ width: '100%', height: '100%', maxWidth: '80vw', maxHeight: '80vh' }}
+                />
+            </div>
         </div>
     )
 })
+
+const QR_CODE_CONTAINER_STYLE = {
+    position: 'absolute',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: QR_HEIGHT,
+    width: 'auto',
+    top: `calc(50% - (${QR_HEIGHT} / 2))`,
+    left: '50%',
+    cursor: 'pointer'
+} as const
+
+const QR_CODE_CONTAINER_ZOOMED_STYLE = {
+    ...QR_CODE_CONTAINER_STYLE,
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    background: 'white',
+    zIndex: 1000
+} as const

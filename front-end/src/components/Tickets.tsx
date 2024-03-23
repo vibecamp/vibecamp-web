@@ -58,7 +58,7 @@ export default observer(() => {
 
                                                 {tickets.map(t =>
                                                     <React.Fragment key={t.purchase_id}>
-                                                        <Ticket name={undefined} ticketType='adult' />
+                                                        <Ticket name={undefined} ticketType='adult' purchaseId={t.purchase_id} />
                                                         <Spacer size={24} />
                                                     </React.Fragment>)}
 
