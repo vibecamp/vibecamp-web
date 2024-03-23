@@ -190,4 +190,61 @@ export default function register(router: Router) {
       }
     }
   })
+
+  router.get('/purchase/check-in/:purchase_id', async ctx => {
+    const { purchase_id } = ctx.params
+
+    ctx.response.type = 'html'
+
+    await withDBConnection(async db => {
+      try {
+        const purchase = (await db.queryTable('purchase', { where: ['purchase_id', '=', purchase_id] }))[0]
+
+        const messageHtml = (icon: 'success' | 'warning' | 'error', message: string) => {
+          const iconChar = (
+            icon === 'success' ? '✅︎' : icon === 'warning' ? '⚠' : '❌'
+          )
+
+          return (
+            `
+              <style>
+                body {
+                  font-family: sans-serif;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 32px;
+                  text-align: center;
+                  gap: 1em;
+                  padding: 20px;
+                }
+              </style>
+              <div>
+                ${iconChar}
+              </div>
+              <div>
+                ${message}
+              </div>
+            `
+          )
+        }
+
+        if (purchase == null) {
+          ctx.response.status = Status.BadRequest
+          ctx.response.body = messageHtml('error', 'Invalid check-in link: this purchase ID doesn\'t exist!')
+        } else if (purchase.checked_in) {
+          ctx.response.status = Status.BadRequest
+          ctx.response.body = messageHtml('warning', 'This purchase has been checked in already')
+        } else {
+          await db.updateTable('purchase', { checked_in: true }, [['purchase_id', '=', purchase_id]])
+          ctx.response.status = Status.OK
+          ctx.response.body = messageHtml('success', 'Checked in successfully!')
+        }
+      } catch {
+        ctx.response.status = Status.BadRequest
+        ctx.response.body = messageHtml('error', 'Invalid check-in link: broken URL')
+      }
+    })
+  })
 }

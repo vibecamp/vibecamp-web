@@ -88,6 +88,7 @@ export type Tables = {
     used_by_account_id: Tables['account']['account_id'] | null,
   },
   purchase: {
+    checked_in: boolean | null,
     owned_by_account_id: Tables['account']['account_id'] | null,
     purchase_id: string,
     purchase_type_id: Tables['purchase_type']['purchase_type_id'],
