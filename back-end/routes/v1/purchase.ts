@@ -226,6 +226,7 @@ const messageHtml = (icon: 'success' | 'warning' | 'error', message: string) => 
 
   return (
     `
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
       <style>
         body {
           font-family: sans-serif;
