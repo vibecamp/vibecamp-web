@@ -76,10 +76,16 @@ await withDBConnection(async db => {
 
     const dbRowsStr =
         `export const TABLE_ROWS = {
-${Object.entries(tableRows).map(([tableName, rows]) =>
-            `  ${tableName}: [
-${rows.map(row => `    ${JSON.stringify(row)},`).join('\n')}
-  ],`).join('\n')}
+${Object.entries(tableRows)
+            .map(([tableName, rows]) =>
+                `  ${tableName}: [
+${rows
+                    .map(row => `    ${JSON.stringify(row)},`)
+                    .toSorted()
+                    .join('\n')}
+  ],`)
+            .toSorted()
+            .join('\n')}
 } as const`
 
     // table schemas
