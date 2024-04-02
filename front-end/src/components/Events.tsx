@@ -51,7 +51,7 @@ class EventsScreenState {
 
     get visibleEvents() {
         if (this.filter === 'All') {
-            return Store.allEvents.state.result?.filter(e => e.start_datetime.isAfter(dayjs()))
+            return Store.allEvents.state.result?.filter(e => e.start_datetime.subtract(1, 'day').isAfter(dayjs()))
         } else if (this.filter === 'Bookmarked') {
             return this.bookmarkedEvents
         } else if (this.filter === 'Mine') {
