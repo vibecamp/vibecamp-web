@@ -2,14 +2,13 @@ import { QRCodeSVG } from 'qrcode.react'
 import React from 'react'
 
 import { Tables } from '../../../../back-end/types/db-types'
-import env from '../../env'
 import { useObservableClass } from '../../mobx/hooks'
 import { observer } from '../../mobx/misc'
 
 type Props = {
     name: string | undefined,
     ticketType: 'adult' | 'child' | undefined,
-    purchaseId: Tables['purchase']['purchase_id']
+    ownedByAccountId: Tables['purchase']['owned_by_account_id']
 }
 
 const TICKET_WIDTH = 750
@@ -84,7 +83,7 @@ export default observer((props: Props) => {
 
             <div onClick={state.toggleQRCodeZoom} style={state.qrCodeZoom ? QR_CODE_CONTAINER_ZOOMED_STYLE : QR_CODE_CONTAINER_STYLE}>
                 <QRCodeSVG
-                    value={`${env.BACK_END_ORIGIN}/purchase/check-in/${props.purchaseId}`}
+                    value={`${props.ownedByAccountId}`}
                     style={{ width: '100%', height: '100%', maxWidth: '80vw', maxHeight: '80vh' }}
                 />
             </div>
