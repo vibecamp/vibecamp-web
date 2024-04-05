@@ -48,11 +48,6 @@ export default function register(router: Router) {
         const { festival_id, max_available, max_per_account } = purchaseType
         const festival = TABLE_ROWS.festival.find(f => f.festival_id === festival_id)!
 
-        // if festival is in the past, don't allow purchases
-        if (new Date(festival.start_date).valueOf() < Date.now()) {
-          return [null, Status.Unauthorized]
-        }
-
         // if festival hasn't started sales, don't allow purchases
         if (!festival.sales_are_open) {
           return [null, Status.Unauthorized]
