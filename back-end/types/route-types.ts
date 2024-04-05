@@ -1,4 +1,4 @@
-import { TABLE_ROWS, Tables } from "./db-types.ts"
+import { Tables } from "./db-types.ts"
 import { AttendeeInfo, FullAccountInfo } from "./misc.ts"
 
 export type Routes = {
@@ -80,15 +80,6 @@ export type Routes = {
             events: (EventJson & { creator_name: string | null, bookmarks: number })[]
         }
     },
-    '/event-sites': {
-        method: 'post',
-        body: {
-            festival_id: Tables['festival']['festival_id']
-        },
-        response: {
-            eventSites: Tables['event_site'][]
-        }
-    },
     '/event/save': {
         method: 'post',
         body: {
@@ -133,7 +124,7 @@ export type Routes = {
         },
         response: { stripe_client_secret: string }
     }
-}
+} & PublicTablesRoutes
 
 export type NewApplication = Omit<Tables['application'], 'application_id' | 'submitted_on' | 'is_accepted'>
 
@@ -142,5 +133,26 @@ export type EventJson = Omit<Tables['event'], 'start_datetime' | 'end_datetime'>
     end_datetime: string | null
 }
 
-export type Purchases = Partial<Record<(typeof TABLE_ROWS)['purchase_type'][number]['purchase_type_id'], number>>
+export type Purchases = Partial<Record<Tables['purchase_type']['purchase_type_id'], number>>
 
+/**
+ * The **entire contents** of these tables will be **public** to all users.
+ * Don't include any that contain user-specific info!
+ */
+export const PUBLIC_TABLES = [
+    'purchase_type',
+    'discount',
+    'festival',
+    'festival_site',
+    'event_site'
+] as const satisfies Readonly<Array<keyof Tables>>
+
+type PublicTables = typeof PUBLIC_TABLES
+
+type PublicTablesRoutes = {
+    [Table in PublicTables[number]as `/tables/${Table}`]: {
+        method: 'get',
+        body: undefined,
+        response: Tables[Table][]
+    }
+}

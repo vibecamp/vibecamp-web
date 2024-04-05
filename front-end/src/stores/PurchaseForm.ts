@@ -94,7 +94,7 @@ export class PurchaseForm {
     })
 
     readonly stripeOptions = request(async () => {
-        if (Store.loggedIn && this.isValid && Object.values(this.purchases).some(count => count > 0)) {
+        if (Store.loggedIn && this.isValid && Object.values(this.purchases).some(count => count != null && count > 0)) {
             const { body: response } = await vibefetch(
                 Store.jwt,
                 '/purchase/create-intent',

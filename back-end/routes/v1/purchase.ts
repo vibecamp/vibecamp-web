@@ -7,9 +7,8 @@ import {
   withDBTransaction,
 } from '../../utils/db.ts'
 import { exists, objectEntries, objectFromEntries, purchaseBreakdown, purchaseTypeAvailableNow, sum } from '../../utils/misc.ts'
-import { TABLE_ROWS, Tables } from "../../types/db-types.ts"
+import { Tables } from "../../types/db-types.ts"
 import { Purchases, Routes } from '../../types/route-types.ts'
-import { PURCHASE_TYPES_BY_TYPE } from '../../types/misc.ts'
 import { sendMail, receiptEmail } from '../../utils/mailgun.ts'
 import env from '../../env.ts'
 
@@ -39,14 +38,17 @@ export default function register(router: Router) {
           count: Number(row.count)
         })))
 
+      const purchaseTypes = await withDBConnection(db => db.queryTable('purchase_type'))
+
       for (const [purchaseTypeId, toPurchaseCount] of objectEntries(purchases)) {
-        const purchaseType = PURCHASE_TYPES_BY_TYPE[purchaseTypeId]
+        const purchaseType = purchaseTypes.find(p => p.purchase_type_id === purchaseTypeId)!
         if (purchaseType == null) {
           throw Error(`Can't create purchase intent with invalid purchase type: ${purchaseTypeId}`)
         }
 
         const { festival_id, max_available, max_per_account } = purchaseType
-        const festival = TABLE_ROWS.festival.find(f => f.festival_id === festival_id)!
+        const festivals = await withDBConnection(db => db.queryTable('festival'))
+        const festival = festivals.find(f => f.festival_id === festival_id)!
 
         // if festival hasn't started sales, don't allow purchases
         if (!festival.sales_are_open) {
@@ -72,7 +74,9 @@ export default function register(router: Router) {
         }
       }
 
-      const discounts = Array.from(new Set(discount_codes.map(c => c.toLocaleUpperCase()))).map(code => TABLE_ROWS.discount.filter(d => d.discount_code.toLocaleUpperCase() === code)).flat()
+      const allDiscounts = await withDBConnection(db => db.queryTable('discount'))
+      const discounts = Array.from(new Set(discount_codes.map(c => c.toLocaleUpperCase()))).map(code =>
+        allDiscounts.filter(d => d.discount_code.toLocaleUpperCase() === code)).flat()
 
       const sanitizedPurchases = objectFromEntries(objectEntries(purchases).map(
         ([purchaseType, count]) => {
@@ -82,7 +86,7 @@ export default function register(router: Router) {
           return [purchaseType, integerCount]
         }))
 
-      const purchaseInfo = purchaseBreakdown(sanitizedPurchases, discounts)
+      const purchaseInfo = await purchaseBreakdown(sanitizedPurchases, discounts, purchaseTypes)
 
       const amount = purchaseInfo
         .map(({ discountedPrice }) => discountedPrice)
@@ -117,7 +121,7 @@ export default function register(router: Router) {
 
   type PurchaseMetadata =
     & { accountId: string, discount_ids?: string }
-    & Record<(typeof TABLE_ROWS)['purchase_type'][number]['purchase_type_id'], string> // stripe converts numbers to strings for some reason
+    & Record<Tables['purchase_type']['purchase_type_id'], string> // stripe converts numbers to strings for some reason
 
   router.post('/purchase/record', async ctx => {
     const rawBody = await ctx.request.body({ type: 'bytes' }).value
@@ -148,12 +152,14 @@ export default function register(router: Router) {
             : event.data.object.payment_intent
         )
 
-        await withDBTransaction(async (db) => {
+        await withDBTransaction(async db => {
           let festival_id: Tables['festival']['festival_id']
+
+          const purchaseTypes = await db.queryTable('purchase_type')
 
           for (const [purchaseType, count] of objectEntries(purchases)) {
             for (let i = 0; i < count!; i++) {
-              festival_id = PURCHASE_TYPES_BY_TYPE[purchaseType].festival_id
+              festival_id = purchaseTypes.find(p => p.purchase_type_id === purchaseType)!.festival_id
 
               await db.insertTable('purchase', {
                 owned_by_account_id: accountId,
@@ -173,8 +179,9 @@ export default function register(router: Router) {
 
           const account = (await db.queryTable('account', { where: ['account_id', '=', accountId] }))[0]!
 
-          const discountsArray = discount_ids?.split(',').map(id => TABLE_ROWS.discount.find(d => d.discount_id === id)).filter(exists) ?? []
-          await sendMail(receiptEmail(account, purchases, discountsArray))
+          const discounts = await db.queryTable('discount')
+          const discountsArray = discount_ids?.split(',').map(id => discounts.find(d => d.discount_id === id)).filter(exists) ?? []
+          await sendMail(await receiptEmail(account, purchases, discountsArray))
         })
 
         ctx.response.status = Status.OK

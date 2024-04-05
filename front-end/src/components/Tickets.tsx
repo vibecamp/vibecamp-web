@@ -1,6 +1,5 @@
 import React from 'react'
 
-import { FESTIVALS_WITH_SALES_OPEN } from '../../../back-end/utils/constants'
 import { observer } from '../mobx/misc'
 import WindowObservables from '../mobx/WindowObservables'
 import Store from '../stores/Store'
@@ -37,8 +36,8 @@ export default observer(() => {
 
                             {Store.accountInfo.state.result.allowed_to_purchase
                                 ? <>
-                                    {FESTIVALS_WITH_SALES_OPEN.map(festival => {
-                                        const tickets = Store.purchasedTickets[festival.festival_id]
+                                    {Store.festivals.state.result?.map(festival => {
+                                        const tickets = Store.purchasedTickets[festival.festival_id] ?? []
 
                                         return (
                                             <React.Fragment key={festival.festival_id}>
@@ -56,17 +55,23 @@ export default observer(() => {
                                                         <Spacer size={32} />
                                                     </>}
 
-                                                {tickets.map(t =>
-                                                    <React.Fragment key={t.purchase_id}>
-                                                        <Ticket name={undefined} ticketType='adult' ownedByAccountId={t.owned_by_account_id} />
-                                                        <Spacer size={24} />
+                                                {tickets.map((ticket, index) =>
+                                                    <React.Fragment key={ticket.purchase_id}>
+                                                        {index > 0 &&
+                                                            <Spacer size={24} />}
+                                                        <Ticket name={undefined} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
                                                     </React.Fragment>)}
 
-                                                <Button isPrimary onClick={openTicketPurchaseModal(festival.festival_id)}>
-                                                    {tickets.length === 0
-                                                        ? 'Buy tickets'
-                                                        : 'Buy more tickets or bus/bedding'}
-                                                </Button>
+                                                {festival.sales_are_open &&
+                                                    <>
+                                                        <Spacer size={24} />
+
+                                                        <Button isPrimary onClick={openTicketPurchaseModal(festival.festival_id)}>
+                                                            {tickets.length === 0
+                                                                ? 'Buy tickets'
+                                                                : 'Buy more tickets or bus/bedding'}
+                                                        </Button>
+                                                    </>}
 
                                                 {festival.info_url &&
                                                     <>

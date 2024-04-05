@@ -132,21 +132,17 @@ export const rateLimited = <TContext extends AnyRouteContext, TReturn extends [u
   }
 }
 
-export const cached = <TContext extends AnyRouteContext, TReturn>(ms: number, fn: (context: TContext) => Promise<TReturn>): (context: TContext) => Promise<TReturn> => {
-  const cache = new Map<string, { timestamp: number, value: TReturn }>()
+export const cached = <TReturn>(ms: number, fn: (context: AnyRouteContext) => Promise<TReturn>): (context: AnyRouteContext) => Promise<TReturn> => {
+  let cache: { timestamp: number, value: TReturn } | undefined
 
-  return async (context: TContext): Promise<TReturn> => {
-    const { ctx: _, ...contextWithoutCtx } = context
-    const cacheKey = JSON.stringify(contextWithoutCtx)
-
-    const cached = cache.get(cacheKey)
-    if (cached != null && Date.now() - cached.timestamp < ms) {
-      return cached.value
+  return async (context: AnyRouteContext): Promise<TReturn> => {
+    if (cache != null && Date.now() - cache.timestamp < ms) {
+      return cache.value
     }
 
     const value = await fn(context)
 
-    cache.set(cacheKey, { timestamp: Date.now(), value })
+    cache = { timestamp: Date.now(), value }
 
     return value
   }

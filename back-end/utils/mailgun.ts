@@ -1,10 +1,10 @@
 import env from '../env.ts'
 import { encode } from 'std/encoding/base64.ts'
 import { Purchases } from '../types/route-types.ts'
-import { TABLE_ROWS, Tables } from '../types/db-types.ts'
+import { Tables } from '../types/db-types.ts'
 import { objectEntries, purchaseBreakdown, sum } from './misc.ts'
-import { PURCHASE_TYPES_BY_TYPE } from '../types/misc.ts'
 import { PASSWORD_RESET_SECRET_KEY } from './constants.ts'
+import { withDBConnection } from './db.ts'
 
 const MAILGUN_DOMAIN = 'mail.vibe.camp'
 const FROM = `Vibecamp <support@${MAILGUN_DOMAIN}>`
@@ -45,16 +45,21 @@ export async function sendMail(email: Email) {
     }
 }
 
-export const receiptEmail = (account: Pick<Tables['account'], 'email_address' | 'account_id'>, purchases: Purchases, discounts: readonly Tables['discount'][]): Email => {
-    const purchaseTypes = objectEntries(purchases).filter(([type, count]) => count != null && count > 0).map(([type]) => PURCHASE_TYPES_BY_TYPE[type])
-    const festival = TABLE_ROWS.festival.find(f => f.festival_id === purchaseTypes[0]?.festival_id)
+export const receiptEmail = async (account: Pick<Tables['account'], 'email_address' | 'account_id'>, purchases: Purchases, discounts: readonly Tables['discount'][]): Promise<Email> => {
+    const allPurchaseTypes = await withDBConnection(db => db.queryTable('purchase_type'))
+    const allFestivals = await withDBConnection(db => db.queryTable('festival'))
+
+    const purchaseTypes = objectEntries(purchases)
+        .filter(([_, count]) => count != null && count > 0)
+        .map(([type, _]) => allPurchaseTypes.find(p => p.purchase_type_id === type))
+    const festival = allFestivals.find(f => f.festival_id === purchaseTypes[0]?.festival_id)
     const now = new Date()
 
-    const purchasesInfo = purchaseBreakdown(purchases, discounts)
+    const purchasesInfo = await purchaseBreakdown(purchases, discounts, allPurchaseTypes)
 
     const purchaseRows = purchasesInfo.map(({ purchaseType, count, basePrice, discountMultiplier, discountedPrice }) =>
         `<tr>
-            <td>${PURCHASE_TYPES_BY_TYPE[purchaseType].description} x${count}</td>
+            <td>${allPurchaseTypes.find(p => p.purchase_type_id === purchaseType)!.description} x${count}</td>
             <td>
                 ${discountMultiplier != null
             ? `<s>$${(basePrice / 100).toFixed(2)}<s> $${(discountedPrice / 100).toFixed(2)}`

@@ -29,13 +29,8 @@ type PostgresColumnType = keyof typeof TYPE_MAP
  * relatively small, and don't change very often!
  */
 const TABLES_TO_DUMP: readonly string[] = [
-    'purchase_type',
-    'discount',
     'volunteer_type',
     'diet',
-    'festival',
-    'festival_site',
-    'event_site',
     'event_type',
     'age_range'
 ]

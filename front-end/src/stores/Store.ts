@@ -1,9 +1,9 @@
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import jwtDecode from 'jwt-decode'
 import { autorun, makeAutoObservable } from 'mobx'
 
-import { TABLE_ROWS, Tables } from '../../../back-end/types/db-types.ts'
-import { PURCHASE_TYPES_BY_TYPE, VibeJWTPayload } from '../../../back-end/types/misc'
+import { Tables } from '../../../back-end/types/db-types.ts'
+import { VibeJWTPayload } from '../../../back-end/types/misc'
 import { objectFromEntries } from '../../../back-end/utils/misc.ts'
 import { request } from '../mobx/request'
 import { given, jsonParse } from '../utils'
@@ -20,6 +20,35 @@ class Store {
         })
     }
 
+    readonly purchaseTypes = request(() =>
+        vibefetch(null, '/tables/purchase_type', 'get', undefined)
+            .then(res => res.body))
+
+    readonly discounts = request(() =>
+        vibefetch(null, '/tables/discount', 'get', undefined)
+            .then(res => res.body))
+
+    readonly festivals = request(() =>
+        vibefetch(null, '/tables/festival', 'get', undefined)
+            .then(res => res.body))
+
+    readonly festivalSites = request(() =>
+        vibefetch(null, '/tables/festival_site', 'get', undefined)
+            .then(res => res.body))
+
+    readonly eventSites = request(() =>
+        vibefetch(null, '/tables/event_site', 'get', undefined)
+            .then(res => res.body))
+
+    get festivalsWithSalesOpen() {
+        return this.festivals.state.result?.filter(f => f.sales_are_open) ?? []
+    }
+
+    readonly festivalsHappeningAt = (date: Dayjs) =>
+        this.festivals.state.result
+            ?.filter(e =>
+                date.isAfter(dayjs.utc(e.start_date)) &&
+                date.isBefore(dayjs.utc(e.end_date))) ?? []
     /// User
     jwt: string | null = given(localStorage.getItem(JWT_KEY), jwt => {
         const parsed = jsonParse(jwt)
@@ -64,18 +93,25 @@ class Store {
     })
 
     get purchasedTickets() {
-        const purchasedTickets = objectFromEntries(TABLE_ROWS.festival.map(f =>
-            [f.festival_id, []] as [typeof f.festival_id, Tables['purchase'][]]))
+        const purchasedTickets: Record<Tables['festival']['festival_id'], Tables['purchase'][]> = objectFromEntries(this.festivals.state.result?.map(f =>
+            [f.festival_id, []]) ?? [])
 
         const accountInfo = this.accountInfo.state.result
 
         if (accountInfo != null) {
             const tickets = accountInfo.purchases
-                .filter(p => PURCHASE_TYPES_BY_TYPE[p.purchase_type_id].is_attendance_ticket)
+                .filter(p => this.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.is_attendance_ticket)
 
             for (const ticket of tickets) {
-                const festival_id = PURCHASE_TYPES_BY_TYPE[ticket.purchase_type_id].festival_id
-                purchasedTickets[festival_id].push(ticket)
+                const festival_id = this.purchaseTypes.state.result?.find(t => t.purchase_type_id === ticket.purchase_type_id)?.festival_id
+
+                if (festival_id) {
+                    const arr = purchasedTickets[festival_id]
+
+                    if (arr) {
+                        arr.push(ticket)
+                    }
+                }
             }
         }
 

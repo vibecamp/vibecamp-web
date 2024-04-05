@@ -1,7 +1,6 @@
 import { makeAutoObservable } from 'mobx'
 import React from 'react'
 
-import { TABLE_ROWS } from '../../../../back-end/types/db-types'
 import { useStable } from '../../mobx/hooks'
 import { observer } from '../../mobx/misc'
 import WindowObservables from '../../mobx/WindowObservables'
@@ -12,12 +11,12 @@ import MultiView from '../core/MultiView'
 import StripePaymentForm from '../core/StripePaymentForm'
 import SelectionView from './SelectionView'
 
-const campChampionsID = TABLE_ROWS.festival_site.find(f => f.festival_site_name === 'Camp Champions')!.festival_site_id
-const festivalsAtCampChampions = TABLE_ROWS.festival.filter(f => f.festival_site_id === campChampionsID)
-
 export default observer(() => {
+    const campChampionsID = Store.festivalSites.state.result?.find(f => f.festival_site_name === 'Camp Champions')!.festival_site_id
+    const festivalsAtCampChampions = Store.festivals.state.result?.filter(f => f.festival_site_id === campChampionsID)
+
     const purchaseForm = useStable(() => {
-        const isAtCampChampions = festivalsAtCampChampions.some(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)
+        const isAtCampChampions = festivalsAtCampChampions != null && festivalsAtCampChampions.some(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)
         // @ts-expect-error ksdjfghlsdfg
         const existingTickets = Store.purchasedTickets[WindowObservables.hashState?.ticketPurchaseModalState]
         const hasTicketsForThisFestival = (existingTickets ?? []).length > 0
@@ -32,7 +31,7 @@ export default observer(() => {
                         <SelectionView
                             purchaseForm={purchaseForm}
                             goToNext={purchaseForm.goToTicketPayment}
-                            festival={TABLE_ROWS.festival.find(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)}
+                            festival={Store.festivals.state.result?.find(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)}
                         />
                 },
                 {

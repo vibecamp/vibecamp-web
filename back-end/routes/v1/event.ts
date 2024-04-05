@@ -1,9 +1,8 @@
 import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
 import { accountReferralStatus, withDBConnection } from '../../utils/db.ts'
-import { TABLE_ROWS, Tables } from '../../types/db-types.ts'
+import { Tables } from '../../types/db-types.ts'
 import { EventJson } from '../../types/route-types.ts'
-import { PURCHASE_TYPES_BY_TYPE } from '../../types/misc.ts'
 
 const eventToJson = (event: Tables['event']): EventJson => ({
   ...event,
@@ -82,26 +81,6 @@ export default function register(router: Router) {
   })
 
   defineRoute(router, {
-    endpoint: '/event-sites',
-    method: 'post',
-    requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { festival_id } }) => {
-      return await withDBConnection(async db => {
-
-        // only referred accounts can view events schedule
-        const { allowedToPurchase } = await accountReferralStatus(db, account_id)
-        if (!allowedToPurchase) {
-          return [null, Status.Unauthorized]
-        }
-
-        const festival = TABLE_ROWS.festival.find(f => f.festival_id === festival_id)
-        return [{ eventSites: TABLE_ROWS.event_site.filter(s => s.festival_site_id === festival?.festival_site_id).toSorted((a, b) => a.name.localeCompare(b.name)) }, Status.OK]
-      })
-    }
-  })
-
-
-  defineRoute(router, {
     endpoint: '/event/save',
     method: 'post',
     requireAuth: true,
@@ -126,7 +105,8 @@ export default function register(router: Router) {
           // TODO: only allow on-site event creation for users with a ticket to
           // that specific festival, as opposed to just any festival
           const accountPurchases = await db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] })
-          if (!accountPurchases.some(p => PURCHASE_TYPES_BY_TYPE[p.purchase_type_id].is_attendance_ticket)) {
+          const purchaseTypes = await db.queryTable('purchase_type')
+          if (!accountPurchases.some(p => purchaseTypes.find(t => t.purchase_type_id === p.purchase_type_id)?.is_attendance_ticket)) {
             return [null, Status.Unauthorized]
           }
 

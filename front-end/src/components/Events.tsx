@@ -7,7 +7,7 @@ import { useObservableClass } from '../mobx/hooks'
 import { observer, setter,setTo } from '../mobx/misc'
 import { request } from '../mobx/request'
 import Store from '../stores/Store'
-import { festivalsHappeningAt, fieldProps, given, preventingDefault, someValue, validate } from '../utils'
+import { fieldProps, given, preventingDefault, someValue, validate } from '../utils'
 import { vibefetch } from '../vibefetch'
 import Button from './core/Button'
 import Col from './core/Col'
@@ -277,7 +277,7 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
             <div className='info'>
                 <Icon name='location_on' />
                 <span>
-                    {props.event.plaintext_location || (props.event.event_site_location ? TABLE_ROWS['event_site'].find(s => s.event_site_id === props.event.event_site_location)?.name : null)}
+                    {props.event.plaintext_location || (props.event.event_site_location ? Store.eventSites.state.result?.find(s => s.event_site_id === props.event.event_site_location)?.name : null)}
                 </span>
             </div>
 
@@ -333,14 +333,14 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
         get ongoingFestivals() {
             const start = props.eventsScreenState.eventBeingEdited?.start_datetime
             if (start != null) {
-                return festivalsHappeningAt(start)
+                return Store.festivalsHappeningAt(start)
             } else {
                 return []
             }
         }
 
         get ongoingFestivalsEventSites() {
-            return this.ongoingFestivals.map(f => TABLE_ROWS.event_site.filter(s => s.festival_site_id === f.festival_site_id)).flat()
+            return this.ongoingFestivals.map(f => Store.eventSites.state.result?.filter(s => s.festival_site_id === f.festival_site_id) ?? []).flat()
         }
     })
 
@@ -348,7 +348,7 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
         return null
     }
 
-    const selectedSite = TABLE_ROWS['event_site'].find(site => site.event_site_id === props.eventsScreenState.eventBeingEdited?.event_site_location)
+    const selectedSite = Store.eventSites.state.result?.find(site => site.event_site_id === props.eventsScreenState.eventBeingEdited?.event_site_location)
 
     const renderLocationInput = () =>
         props.eventsScreenState.eventBeingEdited &&

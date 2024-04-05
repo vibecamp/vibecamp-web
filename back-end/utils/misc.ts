@@ -1,5 +1,4 @@
-import { TABLE_ROWS, Tables } from '../types/db-types.ts'
-import { PURCHASE_TYPES_BY_TYPE } from '../types/misc.ts'
+import { Tables } from '../types/db-types.ts'
 import { Purchases } from '../types/route-types.ts'
 
 export async function allPromises<
@@ -82,10 +81,10 @@ export const discountPerPurchase = (purchaseType: Tables['purchase_type']['purch
   }
 }
 
-export const purchaseBreakdown = (purchases: Purchases, discounts: readonly Tables['discount'][]) =>
-  objectEntries(purchases)
+export const purchaseBreakdown = (purchases: Purchases, discounts: readonly Tables['discount'][], purchaseTypes: readonly Tables['purchase_type'][]) => {
+  return objectEntries(purchases)
     .map(([purchaseType, count]) => {
-      const basePrice = PURCHASE_TYPES_BY_TYPE[purchaseType].price_in_cents * count!
+      const basePrice = purchaseTypes.find(p => p.purchase_type_id === purchaseType)!.price_in_cents * count!
       const discountMultiplier = discountPerPurchase(purchaseType, discounts)
 
       return {
@@ -96,6 +95,7 @@ export const purchaseBreakdown = (purchases: Purchases, discounts: readonly Tabl
         discountedPrice: basePrice * (discountMultiplier ?? 1)
       }
     })
+}
 
 export const purchaseTypeAvailableNow = (purchaseType: Tables['purchase_type']) => {
   const { available_from, available_to } = purchaseType
