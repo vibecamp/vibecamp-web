@@ -32,7 +32,8 @@ type InProgressEvent = {
     event_site_location: Tables['event_site']['event_site_id'] | null,
     event_type: Tables['event']['event_type'] | undefined,
     bookmarks?: unknown,
-    created_by?: unknown
+    created_by?: unknown,
+    creator_name?: unknown
 }
 
 class EventsScreenState {
@@ -111,7 +112,7 @@ class EventsScreenState {
             return
         }
 
-        const { start_datetime, end_datetime, bookmarks, created_by, ...event } = this.eventBeingEdited
+        const { start_datetime, end_datetime, bookmarks, created_by, creator_name, ...event } = this.eventBeingEdited
 
         await vibefetch(Store.jwt, '/event/save', 'post', {
             event: {
