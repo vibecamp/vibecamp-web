@@ -49,7 +49,7 @@ Deno.test({
     fn() {
         const [query, params] = insertTableQuery(
             'account',
-            { email_address: 'foo@bar.com', is_seed_account: true }
+            { email_address: 'foo@bar.com', is_seed_account: true, fake_column: 'foo' }
         )
 
         assertEquals(
@@ -74,7 +74,7 @@ Deno.test({
     fn() {
         const [query, params] = updateTableQuery(
             'account',
-            { email_address: 'foo@bar.com' },
+            { email_address: 'foo@bar.com', fake_column: 'foo' },
             [
                 ['password_hash', '=', '1234'],
                 ['password_salt', '=', '4567']

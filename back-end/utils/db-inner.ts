@@ -1,5 +1,5 @@
-import { TableName, Tables } from '../types/db-types.ts'
-import { objectEntries } from './misc.ts'
+import { TABLE_COLUMNS, TableName, Tables } from '../types/db-types.ts'
+import { objectEntries, objectKeys } from './misc.ts'
 
 
 export const queryTableQuery =
@@ -33,8 +33,9 @@ export const insertTableQuery =
         table: TTableName,
         row: Partial<Tables[TableName]>
     ): [string, unknown[]] => {
+        const sanitizedRow = stripUnknownColumns(table, row)
 
-        const rowEntries = objectEntries(row)
+        const rowEntries = objectEntries(sanitizedRow)
 
         const columnNames = rowEntries.map(([columnName]) => columnName).join(', ')
         const columnValues = rowEntries.map(([_, value]) => value)
@@ -59,7 +60,9 @@ export const updateTableQuery = <
     row: Partial<Tables[TableName]>,
     where: WhereClause<TTableName, TColumnNames[number]>[]
 ): [string, unknown[]] => {
-    const rowEntries = objectEntries(row)
+    const sanitizedRow = stripUnknownColumns(table, row)
+
+    const rowEntries = objectEntries(sanitizedRow)
 
     const columns = rowEntries.map(([column]) => column).join(', ')
     const columnPlaceholders = rowEntries.map((_, index) => `$${index + 1}`).join(', ')
@@ -86,6 +89,32 @@ export const updateTableQuery = <
     `,
         [...columnValues, ...whereValues]
     ]
+}
+
+/**
+ * When extraneous columns appear in the query, the query will error. This has 
+ * caused a couple of production bugs, and there's no way to guard against it
+ * with types because TypeScript doesn't enforce the absence of object keys.
+ * So instead, we strip any extra columns out at runtime.
+ */
+const stripUnknownColumns = <
+    TTableName extends TableName
+>(
+    table: TTableName,
+    row: Partial<Tables[TableName]>
+): Partial<Tables[TableName]> => {
+    const knownColumns = new Set<string>(TABLE_COLUMNS[table])
+    const newRow: Partial<Tables[TableName]> = {}
+
+    for (const column of objectKeys(row)) {
+        if (knownColumns.has(column)) {
+            newRow[column] = row[column]
+        } else {
+            console.warn(`WARNING: Tried to send a query to table ${table} with unknown column ${column}`)
+        }
+    }
+
+    return newRow
 }
 
 export const deleteTableQuery = <

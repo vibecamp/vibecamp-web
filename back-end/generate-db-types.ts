@@ -125,6 +125,11 @@ ${rows
         })
     }
 
+    const dbColumnsStr =
+        `export const TABLE_COLUMNS = {
+${Object.entries(tables).map(([tableName, columns]) => `  ${tableName}: ${JSON.stringify(columns.map(c => c.column_name))},`).join('\n')}
+} as const`
+
     const dbTypesStr =
         `/**
  * NOTE: This file is generated automatically by generate-db-types.ts, it
@@ -142,5 +147,5 @@ ${columns.map(({ column_name, type }) => `    ${column_name}: ${type},`).join('\
 
 export type TableName = keyof Tables`
 
-    await Deno.writeTextFile('./types/db-types.ts', dbTypesStr + '\n\n' + dbRowsStr)
+    await Deno.writeTextFile('./types/db-types.ts', dbTypesStr + '\n\n' + dbRowsStr + '\n\n' + dbColumnsStr)
 })

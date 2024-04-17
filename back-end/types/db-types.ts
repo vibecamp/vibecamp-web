@@ -161,3 +161,22 @@ export const TABLE_ROWS = {
     {"volunteer_type_id":"GENERAL","description":"General volunteer"},
   ],
 } as const
+
+export const TABLE_COLUMNS = {
+  account: ["account_id","application_id","email_address","is_authorized_to_buy_tickets","is_seed_account","is_team_member","notes","password_hash","password_salt"],
+  age_range: ["age_range","description","end","start"],
+  application: ["anything_else","application_id","attractive_virtues","experiences_hoping_to_share","group_activity","hoping_to_get_out_of_the_festival","how_found_out","identify_as","interested_in_volunteering","is_accepted","last_conversation","looking_forward_to_conversations","name","previous_events","strongest_virtues","submitted_on","twitter_handle"],
+  attendee: ["age","age_range","associated_account_id","attendee_id","diet","discord_handle","festival_id","has_allergy_eggs","has_allergy_fish","has_allergy_milk","has_allergy_peanuts","has_allergy_shellfish","has_allergy_soy","has_allergy_tree_nuts","has_allergy_wheat","interested_in_pre_call","interested_in_volunteering_as","is_primary_for_account","medical_training","name","notes","planning_to_camp","twitter_handle"],
+  diet: ["description","diet_id"],
+  discount: ["discount_code","discount_id","price_multiplier","purchase_type_id"],
+  event: ["created_by_account_id","description","end_datetime","event_id","event_site_location","event_type","name","plaintext_location","start_datetime"],
+  event_bookmark: ["account_id","event_id"],
+  event_site: ["can_host_multiple_events","description","equipment","event_site_id","festival_site_id","location","name","people_cap","structure_type","theme"],
+  event_type: ["event_type_id"],
+  festival: ["email_banner_image","end_date","festival_id","festival_name","festival_site_id","info_url","sales_are_open","start_date"],
+  festival_site: ["festival_site_id","festival_site_name","location"],
+  invite_code: ["code","created_by_account_id","festival_id","used_by_account_id"],
+  purchase: ["checked_in","owned_by_account_id","purchase_id","purchase_type_id","purchased_on","stripe_payment_intent"],
+  purchase_type: ["available_from","available_to","description","festival_id","is_attendance_ticket","max_available","max_per_account","price_in_cents","purchase_type_id"],
+  volunteer_type: ["description","volunteer_type_id"],
+} as const
