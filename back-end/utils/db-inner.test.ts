@@ -49,6 +49,7 @@ Deno.test({
     fn() {
         const [query, params] = insertTableQuery(
             'account',
+            // @ts-ignore
             { email_address: 'foo@bar.com', is_seed_account: true, fake_column: 'foo' }
         )
 
@@ -74,6 +75,7 @@ Deno.test({
     fn() {
         const [query, params] = updateTableQuery(
             'account',
+            // @ts-ignore
             { email_address: 'foo@bar.com', fake_column: 'foo' },
             [
                 ['password_hash', '=', '1234'],
