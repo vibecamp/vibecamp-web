@@ -186,42 +186,42 @@ const ACTIVE_TRANSACTION_NAMES = new Set<string>()
  * Determine whether or not the account can purchase tickets, and how many
  * invite codes they should be given to pass out
  */
-export async function accountReferralStatus(
-  db: DBClient,
-  account_id: Tables['account']['account_id'],
-): Promise<{ allowedToRefer: number, allowedToPurchase: boolean }> {
-  const none = { allowedToRefer: 0, allowedToPurchase: false }
-  const account = (await db.queryTable('account', { where: ['account_id', '=', account_id] }))[0]!
+// export async function accountReferralStatus(
+//   db: DBClient,
+//   account_id: Tables['account']['account_id'],
+// ): Promise<{ allowedToRefer: number, allowedToPurchase: boolean }> {
+//   const none = { allowedToRefer: 0, allowedToPurchase: false }
+//   const account = (await db.queryTable('account', { where: ['account_id', '=', account_id] }))[0]!
 
-  // invite code chain
-  const chain = (await db.queryObject<
-    & Pick<Tables['account'], 'account_id' | 'is_seed_account'>
-    & Pick<Tables['invite_code'], 'created_by_account_id'>
-  >`
-    SELECT * FROM account_referral_chain(${account_id})
-  `).rows
+//   // invite code chain
+//   const chain = (await db.queryObject<
+//     & Pick<Tables['account'], 'account_id' | 'is_seed_account'>
+//     & Pick<Tables['invite_code'], 'created_by_account_id'>
+//   >`
+//     SELECT * FROM account_referral_chain(${account_id})
+//   `).rows
 
-  // account doesn't exist
-  if (chain.length === 0) {
-    return none
-  }
+//   // account doesn't exist
+//   if (chain.length === 0) {
+//     return none
+//   }
 
-  // somebody in the referral chain is a seed account
-  if (chain.some(account => account.is_seed_account)) {
-    const referralDistance = chain.length - 1
-    return {
-      allowedToRefer: REFERRAL_MAXES[referralDistance] ?? 0,
-      allowedToPurchase: true,
-    }
-  }
+//   // somebody in the referral chain is a seed account
+//   if (chain.some(account => account.is_seed_account)) {
+//     const referralDistance = chain.length - 1
+//     return {
+//       allowedToRefer: REFERRAL_MAXES[referralDistance] ?? 0,
+//       allowedToPurchase: true,
+//     }
+//   }
 
-  return {
-    allowedToRefer: 0,
-    allowedToPurchase:
-      account.is_authorized_to_buy_tickets ||
-      (await getApplicationStatus(account) === 'accepted')
-  }
-}
+//   return {
+//     allowedToRefer: 0,
+//     allowedToPurchase:
+//       account.is_authorized_to_buy_tickets ||
+//       (await getApplicationStatus(account) === 'accepted')
+//   }
+// }
 
 export async function getApplicationStatus(account: Tables['account']) {
   const { application_id } = account

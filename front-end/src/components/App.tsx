@@ -42,13 +42,14 @@ export default observer(() => {
                     icon: 'confirmation_number' as const,
                     component: Tickets
                 },
-                Store.accountInfo.state.result?.allowed_to_purchase
-                    ? {
-                        name: 'Events',
-                        icon: 'calendar_today' as const,
-                        component: Events
-                    }
-                    : null,
+                // Store.accountInfo.state.result?.allowed_to_purchase
+                //     ?
+                {
+                    name: 'Events',
+                    icon: 'calendar_today' as const,
+                    component: Events
+                },
+                // : null,
                 // Map: {
                 //     icon: 'map',
                 //     component: Map

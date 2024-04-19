@@ -16,12 +16,12 @@ export type FullAccountInfo =
     & Pick<Tables['account'], 'account_id' | 'email_address' | 'is_team_member'>
     & {
         application_status: 'unsubmitted' | 'pending' | 'accepted' | 'rejected',
-        allowed_to_purchase: boolean,
+        // allowed_to_purchase: boolean,
         attendees: Array<Tables['attendee']>,
         purchases: Array<Tables['purchase']>,
-        inviteCodes: Array<Tables['invite_code'] & {
-            used_by: string | null
-        }>
+        // inviteCodes: Array<Tables['invite_code'] & {
+        //     used_by: string | null
+        // }>
     }
 
 export type AttendeeInfo = Omit<Tables['attendee'], 'attendee_id' | 'notes' | 'associated_account_id' | 'festival_id'>

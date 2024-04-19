@@ -1,6 +1,6 @@
 import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
-import { accountReferralStatus, withDBConnection } from '../../utils/db.ts'
+import { withDBConnection } from '../../utils/db.ts'
 import { Tables } from '../../types/db-types.ts'
 import { EventJson } from '../../types/route-types.ts'
 
@@ -20,10 +20,10 @@ export default function register(router: Router) {
       return await withDBConnection(async db => {
 
         // only referred accounts can view events schedule
-        const { allowedToPurchase } = await accountReferralStatus(db, account_id)
-        if (!allowedToPurchase) {
-          return [null, Status.Unauthorized]
-        }
+        // const { allowedToPurchase } = await accountReferralStatus(db, account_id)
+        // if (!allowedToPurchase) {
+        //   return [null, Status.Unauthorized]
+        // }
 
         const events = await db.queryObject<
           Tables['event'] &

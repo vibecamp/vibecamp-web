@@ -1,6 +1,6 @@
 import { Router, Status } from 'oak'
 import { defineRoute, rateLimited } from './_common.ts'
-import { DBClient, accountReferralStatus, withDBConnection, withDBTransaction, getApplicationStatus } from '../../utils/db.ts'
+import { withDBConnection, withDBTransaction, getApplicationStatus } from '../../utils/db.ts'
 import { Tables } from "../../types/db-types.ts"
 import { allPromises } from "../../utils/misc.ts"
 import { ONE_SECOND_MS } from '../../utils/constants.ts'
@@ -18,49 +18,49 @@ export default function register(router: Router) {
     handler: async ({ jwt }) => {
       const { account_id } = jwt
 
-      const queryInviteCodes = async (db: DBClient) => (await db.queryObject<Tables['invite_code'] & { email_address: string | null }>`
-        SELECT code, email_address FROM invite_code
-        LEFT JOIN account ON account_id = used_by_account_id
-        WHERE created_by_account_id = ${account_id}
-      `).rows.map(({ email_address, ...invite_code }) => ({
-        ...invite_code,
-        used_by: email_address
-      }))
+      // const queryInviteCodes = async (db: DBClient) => (await db.queryObject<Tables['invite_code'] & { email_address: string | null }>`
+      //   SELECT code, email_address FROM invite_code
+      //   LEFT JOIN account ON account_id = used_by_account_id
+      //   WHERE created_by_account_id = ${account_id}
+      // `).rows.map(({ email_address, ...invite_code }) => ({
+      //   ...invite_code,
+      //   used_by: email_address
+      // }))
 
       const {
-        referralStatus: { allowedToPurchase, allowedToRefer },
+        // referralStatus: { allowedToPurchase, allowedToRefer },
         accounts,
         attendees,
         purchases,
-        currentInviteCodes,
+        // currentInviteCodes,
       } = await withDBTransaction(async (db) => {
 
         return allPromises({
-          referralStatus: accountReferralStatus(db, account_id),
+          // referralStatus: accountReferralStatus(db, account_id),
           accounts: db.queryTable('account', { where: ['account_id', '=', account_id] }),
           attendees: db.queryTable('attendee', { where: ['associated_account_id', '=', account_id] }),
           purchases: db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] }),
-          currentInviteCodes: queryInviteCodes(db)
+          // currentInviteCodes: queryInviteCodes(db)
         })
       })
 
       const account = accounts[0]
 
       if (account != null) {
-        let inviteCodes = currentInviteCodes
+        // let inviteCodes = currentInviteCodes
 
         // if this account should have invite codes, and has less than they should, create more
-        const uncreatedInviteCodes = allowedToRefer - currentInviteCodes.length
-        if (uncreatedInviteCodes > 0) {
-          await withDBTransaction(async (db) => {
-            for (let i = 0; i < uncreatedInviteCodes; i++) {
-              await db.insertTable('invite_code', {
-                created_by_account_id: account.account_id
-              })
-            }
-          })
-          inviteCodes = await withDBConnection(db => queryInviteCodes(db))
-        }
+        // const uncreatedInviteCodes = allowedToRefer - currentInviteCodes.length
+        // if (uncreatedInviteCodes > 0) {
+        //   await withDBTransaction(async (db) => {
+        //     for (let i = 0; i < uncreatedInviteCodes; i++) {
+        //       await db.insertTable('invite_code', {
+        //         created_by_account_id: account.account_id
+        //       })
+        //     }
+        //   })
+        //   inviteCodes = await withDBConnection(db => queryInviteCodes(db))
+        // }
 
         const applicationStatus = await getApplicationStatus(account)
 
@@ -69,11 +69,11 @@ export default function register(router: Router) {
             account_id: account.account_id,
             email_address: account.email_address,
             application_status: applicationStatus,
-            allowed_to_purchase: allowedToPurchase,
+            // allowed_to_purchase: allowedToPurchase,
             is_team_member: account.is_team_member,
             attendees,
             purchases,
-            inviteCodes
+            // inviteCodes
           },
           Status.OK
         ]

@@ -4,7 +4,8 @@ import { autorun, makeAutoObservable } from 'mobx'
 
 import { Tables } from '../../../back-end/types/db-types.ts'
 import { VibeJWTPayload } from '../../../back-end/types/misc'
-import { objectFromEntries } from '../../../back-end/utils/misc.ts'
+import { ONE_YEAR_MS } from '../../../back-end/utils/constants.ts'
+import { objectEntries, objectFromEntries } from '../../../back-end/utils/misc.ts'
 import { request } from '../mobx/request'
 import { given, jsonParse } from '../utils'
 import { vibefetch } from '../vibefetch'
@@ -30,7 +31,13 @@ class Store {
 
     readonly festivals = request(() =>
         vibefetch(null, '/tables/festival', 'get', undefined)
-            .then(res => res.body))
+            .then(res => res.body)
+            .then(f => f?.map(f => ({
+                ...f,
+                start_date: new Date(f.start_date),
+                end_date: new Date(f.end_date)
+            })))
+            .then(f => f?.sort((a, b) => festivalComparator(a) - festivalComparator(b))))
 
     readonly festivalSites = request(() =>
         vibefetch(null, '/tables/festival_site', 'get', undefined)
@@ -92,30 +99,47 @@ class Store {
         }
     })
 
-    get purchasedTickets() {
-        const purchasedTickets: Record<Tables['festival']['festival_id'], Tables['purchase'][]> = objectFromEntries(this.festivals.state.result?.map(f =>
+    get purchasesByFestival() {
+        const purchasesByFestival: Record<Tables['festival']['festival_id'], Tables['purchase'][]> = objectFromEntries(this.festivals.state.result?.map(f =>
             [f.festival_id, []]) ?? [])
 
         const accountInfo = this.accountInfo.state.result
 
         if (accountInfo != null) {
-            const tickets = accountInfo.purchases
-                .filter(p => this.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.is_attendance_ticket)
-
-            for (const ticket of tickets) {
-                const festival_id = this.purchaseTypes.state.result?.find(t => t.purchase_type_id === ticket.purchase_type_id)?.festival_id
+            for (const purchase of accountInfo.purchases) {
+                const festival_id = this.purchaseTypes.state.result?.find(t => t.purchase_type_id === purchase.purchase_type_id)?.festival_id
 
                 if (festival_id) {
-                    const arr = purchasedTickets[festival_id]
+                    const arr = purchasesByFestival[festival_id]
 
                     if (arr) {
-                        arr.push(ticket)
+                        arr.push(purchase)
                     }
                 }
             }
         }
 
-        return purchasedTickets
+        return purchasesByFestival
+    }
+
+    get purchasedTicketsByFestival() {
+        return objectFromEntries(objectEntries(this.purchasesByFestival)
+            .map(([festival_id, purchases]) =>
+                [
+                    festival_id,
+                    purchases.filter(p =>
+                        this.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.is_attendance_ticket)
+                ]))
+    }
+
+    get nonTicketPurchasesByFestival() {
+        return objectFromEntries(objectEntries(this.purchasesByFestival)
+            .map(([festival_id, purchases]) =>
+                [
+                    festival_id,
+                    purchases.filter(p =>
+                        !this.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.is_attendance_ticket)
+                ]))
     }
 
     /// Events
@@ -139,6 +163,14 @@ class Store {
             return null
         }
     }, { keepLatest: true })
+}
+
+const festivalComparator = (festival: Tables['festival']) => {
+    const isInPast = festival.end_date.valueOf() < Date.now()
+    const oneHundredYears = 100 * ONE_YEAR_MS
+    const modifier = isInPast ? oneHundredYears : 0 // push past events to the bottom of the list
+
+    return festival.start_date.valueOf() + modifier
 }
 
 export default new Store()

@@ -2,7 +2,6 @@ import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
 import { stripe } from '../../utils/stripe.ts'
 import {
-  accountReferralStatus,
   withDBConnection,
   withDBTransaction,
 } from '../../utils/db.ts'
@@ -21,10 +20,10 @@ export default function register(router: Router) {
     handler: async ({ jwt: { account_id }, body: { purchases, discount_codes, attendees } }) => {
 
       // verify that this user is allowed to purchase tickets
-      const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id))
-      if (!allowedToPurchase) {
-        return [null, Status.Unauthorized]
-      }
+      // const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id))
+      // if (!allowedToPurchase) {
+      //   return [null, Status.Unauthorized]
+      // }
 
       const alreadyPurchased = await withDBConnection(async db =>
         (await db.queryObject<{ purchase_type_id: Tables['purchase_type']['purchase_type_id'], count: bigint }>`

@@ -3,14 +3,11 @@ import React from 'react'
 import { observer } from '../mobx/misc'
 import WindowObservables from '../mobx/WindowObservables'
 import Store from '../stores/Store'
-import Application from './Application'
 import Button from './core/Button'
 import Col from './core/Col'
 import LoadingDots from './core/LoadingDots'
 import Modal from './core/Modal'
 import Spacer from './core/Spacer'
-import InviteCodeEntryForm from './tickets/InviteCodeEntryForm'
-import InviteCodes from './tickets/InviteCodes'
 import PurchaseTicketsModal from './tickets/PurchaseTicketsModal'
 import Ticket from './tickets/Ticket'
 
@@ -34,20 +31,21 @@ export default observer(() => {
 
                             <Spacer size={24} />
 
-                            {Store.accountInfo.state.result.allowed_to_purchase
-                                ? <>
-                                    {Store.festivals.state.result?.map(festival => {
-                                        const tickets = Store.purchasedTickets[festival.festival_id] ?? []
+                            {/* {Store.accountInfo.state.result.allowed_to_purchase
+                                ? <> */}
+                            {Store.festivals.state.result?.map(festival => {
+                                const tickets = Store.purchasedTicketsByFestival[festival.festival_id] ?? []
+                                const otherPurchases = Store.nonTicketPurchasesByFestival[festival.festival_id] ?? []
 
-                                        return (
-                                            <React.Fragment key={festival.festival_id}>
-                                                <h2>
-                                                    {festival.festival_name}
-                                                </h2>
+                                return (
+                                    <div key={festival.festival_id} style={festival.end_date.valueOf() < Date.now() ? { opacity: 0.5 } : undefined}>
+                                        <h2>
+                                            {festival.festival_name}
+                                        </h2>
 
-                                                <Spacer size={16} />
+                                        <Spacer size={16} />
 
-                                                {tickets.length === 0 &&
+                                        {tickets.length === 0 &&
                                                     <>
                                                         <div style={{ textAlign: 'center' }}>
                                                             {'(after you purchase tickets they\'ll show up here)'}
@@ -55,14 +53,28 @@ export default observer(() => {
                                                         <Spacer size={32} />
                                                     </>}
 
-                                                {tickets.map((ticket, index) =>
-                                                    <React.Fragment key={ticket.purchase_id}>
-                                                        {index > 0 &&
+                                        {tickets.map((ticket, index) =>
+                                            <React.Fragment key={ticket.purchase_id}>
+                                                {index > 0 &&
                                                             <Spacer size={24} />}
-                                                        <Ticket name={undefined} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
-                                                    </React.Fragment>)}
+                                                <Ticket name={undefined} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
+                                            </React.Fragment>)}
 
-                                                {festival.sales_are_open &&
+                                        {Store.purchaseTypes.state.result && otherPurchases.length > 0 &&
+                                            <div>
+                                                Other purchases:
+
+                                                <Spacer size={4} />
+
+                                                <div style={{ border: 'var(--controls-border)', borderRadius: 4, background: 'white' }}>
+                                                    {otherPurchases.map((p, i) =>
+                                                        <div style={{ padding: '4px 8px', borderTop: i > 0 ? 'var(--controls-border)' : undefined }} key={p.purchase_id}>
+                                                            1x {Store.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.description}
+                                                        </div>)}
+                                                </div>
+                                            </div>}
+
+                                        {festival.sales_are_open &&
                                                     <>
                                                         <Spacer size={24} />
 
@@ -73,7 +85,7 @@ export default observer(() => {
                                                         </Button>
                                                     </>}
 
-                                                {festival.info_url &&
+                                        {festival.info_url &&
                                                     <>
 
                                                         <Spacer size={16} />
@@ -88,15 +100,16 @@ export default observer(() => {
                                                         </a>
                                                     </>}
 
-                                                <Spacer size={32} />
-                                                <hr />
-                                                <Spacer size={32} />
-                                            </React.Fragment>
-                                        )
-                                    })}
+                                        <Spacer size={32} />
+                                        <hr />
+                                        <Spacer size={32} />
+                                    </div>
+                                )
+                            })}
 
-                                    <InviteCodes />
-                                </>
+                            {/* <InviteCodes /> */}
+                            {/* </> */}
+                            {/*
                                 : <>
                                     <h2>
                                         Welcome!
@@ -141,7 +154,7 @@ export default observer(() => {
                                     <Spacer size={16} />
 
                                     <InviteCodeEntryForm />
-                                </>}
+                                </>*/}
 
                             <Spacer size={24} />
 
