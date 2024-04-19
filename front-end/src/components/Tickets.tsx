@@ -96,9 +96,24 @@ export default observer(() => {
                                                             target='_blank'
                                                             rel="noreferrer"
                                                         >
-                                                            Info about {festival.festival_name} &nbsp; <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
+                                                            Info about {festival.festival_name}
+                                                            <Spacer size={5} />
+                                                            <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
                                                         </a>
                                                     </>}
+
+                                        <Spacer size={16} />
+
+                                        <a
+                                            className='button primary'
+                                            href='https://docs.google.com/forms/d/17-VvG7Go4KMwh2vc9hzDxyMZWMjtvI-E_tMZXh1Cff8/edit?ts=661f0a84'
+                                            target='_blank'
+                                            rel="noreferrer"
+                                        >
+                                            Need financial aid? Apply here
+                                            <Spacer size={5} />
+                                            <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
+                                        </a>
 
                                         <Spacer size={32} />
                                         <hr />
