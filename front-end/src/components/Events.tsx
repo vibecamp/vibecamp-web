@@ -155,7 +155,7 @@ export default observer(() => {
                             Events
                         </h1>
 
-                        {someValue(Store.purchasedTickets, t => t != null && t.length > 0) &&
+                        {someValue(Store.purchasedTicketsByFestival, t => t != null && t.length > 0) &&
                             <Button onClick={state.createNewEvent} isCompact style={{ width: 'auto' }}>
                                 Create event
 

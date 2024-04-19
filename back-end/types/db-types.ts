@@ -9,6 +9,7 @@ export type Tables = {
     application_id: Tables['application']['application_id'] | null,
     email_address: string,
     is_authorized_to_buy_tickets: boolean | null,
+    is_low_income: boolean,
     is_seed_account: boolean,
     is_team_member: boolean,
     notes: string,
@@ -178,7 +179,7 @@ export const TABLE_ROWS = {
 } as const
 
 export const TABLE_COLUMNS = {
-  account: ["account_id","application_id","email_address","is_authorized_to_buy_tickets","is_seed_account","is_team_member","notes","password_hash","password_salt"],
+  account: ["account_id","application_id","email_address","is_authorized_to_buy_tickets","is_low_income","is_seed_account","is_team_member","notes","password_hash","password_salt"],
   age_range: ["age_range","description","end","start"],
   application: ["anything_else","application_id","attractive_virtues","experiences_hoping_to_share","group_activity","hoping_to_get_out_of_the_festival","how_found_out","identify_as","interested_in_volunteering","is_accepted","last_conversation","looking_forward_to_conversations","name","previous_events","strongest_virtues","submitted_on","twitter_handle"],
   attendee: ["age","age_range","associated_account_id","attendee_id","diet","discord_handle","festival_id","has_allergy_eggs","has_allergy_fish","has_allergy_milk","has_allergy_peanuts","has_allergy_shellfish","has_allergy_soy","has_allergy_tree_nuts","has_allergy_wheat","interested_in_pre_call","interested_in_volunteering_as","is_primary_for_account","medical_training","name","notes","planning_to_camp","twitter_handle"],

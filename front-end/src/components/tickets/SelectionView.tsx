@@ -30,12 +30,13 @@ export default observer((props: Props) => {
             return Store.purchaseTypes.state.result
                 ?.filter(t =>
                     t.festival_id === props.festival?.festival_id &&
-                    purchaseTypeAvailableNow(t))
+                    purchaseTypeAvailableNow(t) &&
+                    !t.hidden_from_ui)
                 .sort((a, b) => b.price_in_cents - a.price_in_cents) ?? []
         }
 
         get attendancePurchases() {
-            return this.festivalPurchases.filter(t => t.is_attendance_ticket)
+            return this.festivalPurchases.filter(t => t.is_attendance_ticket && (!t.low_income_only || Store.accountInfo.state.result?.is_low_income))
         }
 
         get otherPurchases() {
@@ -161,7 +162,7 @@ export default observer((props: Props) => {
 
                     </>}
 
-                {Store.purchasedTickets[festival.festival_id]?.length === 0 && festival.festival_name === 'Vibeclipse 2024' && // HACK
+                {Store.purchasedTicketsByFestival[festival.festival_id]?.length === 0 && festival.festival_name === 'Vibeclipse 2024' && // HACK
                     <>
                         <Spacer size={32} />
                         <hr />

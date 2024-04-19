@@ -71,6 +71,7 @@ export default function register(router: Router) {
             application_status: applicationStatus,
             // allowed_to_purchase: allowedToPurchase,
             is_team_member: account.is_team_member,
+            is_low_income: account.is_low_income,
             attendees,
             purchases,
             // inviteCodes

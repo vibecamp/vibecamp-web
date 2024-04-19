@@ -13,7 +13,7 @@ export type VibeJWTPayload = {
 }
 
 export type FullAccountInfo =
-    & Pick<Tables['account'], 'account_id' | 'email_address' | 'is_team_member'>
+    & Pick<Tables['account'], 'account_id' | 'email_address' | 'is_team_member' | 'is_low_income'>
     & {
         application_status: 'unsubmitted' | 'pending' | 'accepted' | 'rejected',
         // allowed_to_purchase: boolean,
