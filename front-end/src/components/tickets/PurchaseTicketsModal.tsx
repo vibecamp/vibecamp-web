@@ -17,8 +17,7 @@ export default observer(() => {
 
     const purchaseForm = useStable(() => {
         const isAtCampChampions = festivalsAtCampChampions != null && festivalsAtCampChampions.some(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)
-        // @ts-expect-error ksdjfghlsdfg
-        const existingTickets = Store.purchasedTickets[WindowObservables.hashState?.ticketPurchaseModalState]
+        const existingTickets = Store.purchasedTicketsByFestival[WindowObservables.hashState?.ticketPurchaseModalState as string]
         const hasTicketsForThisFestival = (existingTickets ?? []).length > 0
         return makeAutoObservable(new PurchaseForm(!hasTicketsForThisFestival, isAtCampChampions && !hasTicketsForThisFestival))
     })
