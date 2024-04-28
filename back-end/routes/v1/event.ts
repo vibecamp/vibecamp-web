@@ -32,7 +32,7 @@ export default function register(router: Router) {
             bookmarks: bigint
           }
         >`
-          SELECT
+          SELECT DISTINCT ON (event.event_id)
             event.name,
             event.description,
             event.start_datetime,
@@ -63,7 +63,7 @@ export default function register(router: Router) {
             account.email_address,
             attendee.name
           ORDER BY
-            event.start_datetime
+            event.event_id, event.start_datetime
         `
 
         return [
