@@ -192,8 +192,15 @@ export default observer(() => {
 
 const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & { creator_name: string | null, start_datetime: Dayjs, end_datetime: Dayjs | null, bookmarks: number }, editEvent: (eventId: string) => void }> = observer((props) => {
     const state = useObservableClass(class {
+
+        /**
+         * For smoother interactivity, optimistically change UI bookmark status
+         * without waiting for network request
+         */
+        bookmarkStatusOptimistic: boolean | null = null
+
         get bookmarked() {
-            return Store.bookmarks.state.result?.event_ids.includes(props.event.event_id)
+            return this.bookmarkStatusOptimistic ?? Store.bookmarks.state.result?.event_ids.includes(props.event.event_id)
         }
 
         get when() {
@@ -225,10 +232,17 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
         }, { lazy: true })
 
         readonly toggleBookmark = async () => {
-            if (this.bookmarked) {
-                await this.unbookmarkEvent.load()
-            } else {
-                await this.bookmarkEvent.load()
+
+            try {
+                if (this.bookmarked) {
+                    this.bookmarkStatusOptimistic = false
+                    await this.unbookmarkEvent.load()
+                } else {
+                    this.bookmarkStatusOptimistic = true
+                    await this.bookmarkEvent.load()
+                }
+            } finally {
+                this.bookmarkStatusOptimistic = null
             }
         }
 
