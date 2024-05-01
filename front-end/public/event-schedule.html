@@ -79,7 +79,7 @@
         const root = document.querySelector('#root')
 
         async function loadEvents() {
-            const { events } = await fetch('http://localhost:10000/api/v1/events').then(res => res.json())
+            const { events } = await fetch('https://backend-2-6ri5.onrender.com/api/v1/events').then(res => res.json())
 
             root.innerHTML = `
                 <h1>
