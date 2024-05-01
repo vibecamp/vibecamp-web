@@ -15,8 +15,7 @@ export default function register(router: Router) {
   defineRoute(router, {
     endpoint: '/events',
     method: 'get',
-    requireAuth: true,
-    handler: async ({ jwt: { account_id } }) => {
+    handler: async () => {
       return await withDBConnection(async db => {
 
         // only referred accounts can view events schedule
@@ -29,41 +28,48 @@ export default function register(router: Router) {
           Tables['event'] &
           {
             creator_name: Tables['attendee']['name'] | null,
-            bookmarks: bigint
+            bookmarks: bigint,
+            event_site_location: Tables['event_site']['name'] | null
           }
         >`
-          SELECT DISTINCT ON (event.event_id)
-            event.name,
-            event.description,
-            event.start_datetime,
-            event.end_datetime,
-            event.plaintext_location,
-            event.event_site_location,
-            event.event_id,
-            event.created_by_account_id,
-            event.event_type,
-            attendee.name as creator_name,
-            COUNT(event_bookmark.account_id) as bookmarks
-          FROM event
-          LEFT JOIN account ON event.created_by_account_id = account.account_id
-          LEFT JOIN attendee ON account.account_id = attendee.associated_account_id
-          LEFT JOIN event_bookmark ON event_bookmark.event_id = event.event_id
-          WHERE
-            attendee.is_primary_for_account is null OR
-            attendee.is_primary_for_account = true
-          GROUP BY
-            event.name,
-            event.description,
-            event.start_datetime,
-            event.end_datetime,
-            event.plaintext_location,
-            event.event_site_location,
-            event.event_id,
-            event.created_by_account_id,
-            account.email_address,
-            attendee.name
-          ORDER BY
-            event.event_id, event.start_datetime
+          SELECT * FROM 
+          (
+            SELECT DISTINCT ON (event.event_id)
+              event.name,
+              event.description,
+              event.start_datetime,
+              event.end_datetime,
+              event.plaintext_location,
+              event_site.name as event_site_location,
+              event.event_id,
+              event.created_by_account_id,
+              event.event_type,
+              attendee.name as creator_name,
+              COUNT(event_bookmark.account_id) as bookmarks
+            FROM event
+            LEFT JOIN account ON event.created_by_account_id = account.account_id
+            LEFT JOIN attendee ON account.account_id = attendee.associated_account_id
+            LEFT JOIN event_bookmark ON event_bookmark.event_id = event.event_id
+            LEFT JOIN event_site ON event_site.event_site_id = event.event_site_location
+            WHERE
+              attendee.is_primary_for_account is null OR
+              attendee.is_primary_for_account = true
+            GROUP BY
+              event.name,
+              event.description,
+              event.start_datetime,
+              event.end_datetime,
+              event.plaintext_location,
+              event_site.name,
+              event.event_site_location,
+              event.event_id,
+              event.created_by_account_id,
+              account.email_address,
+              attendee.name
+            ORDER BY
+              event.event_id
+          ) events
+          ORDER BY start_datetime
         `
 
         return [

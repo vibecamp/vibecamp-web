@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Metadata -->
+    <title>My Vibecamp</title>
+    <meta name="description" content="Let's vibe, y'all">
+    <meta property="og:type" content="website">
+
+    <link rel="icon" href="/vibecamp-squircle.png" />
+    <meta property="og:image" content="/vibecamp-squircle.png">
+
+    <meta name="theme-color" content="#fffae5">
+
+    <link rel="manifest" href="/manifest.json" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+    <script>dayjs.extend(window.dayjs_plugin_utc)</script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto';
+        }
+
+        h1 {
+            margin: 8px 0;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .timestamp {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: rgba(0, 0, 0, 0.7);
+            font-size: 14px;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-top: 1px solid rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+        }
+
+        tr:nth-child(2n) {
+            background: #eee;
+        }
+        
+        td {
+            vertical-align: top;
+            padding: 4px 8px;
+        }
+
+        td:not(:last-child) {
+            border-right: 1px solid rgba(0, 0, 0, 0.3);
+        }
+
+        td.name {
+            width: 300px;
+        }
+        td.time {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+    
+    <script>
+        const root = document.querySelector('#root')
+
+        async function loadEvents() {
+            const { events } = await fetch('http://localhost:10000/api/v1/events').then(res => res.json())
+
+            root.innerHTML = `
+                <h1>
+                    Live events schedule
+                </h1>
+                <div class="timestamp">
+                    Last refreshed at ${dayjs().format('h:mma')}
+                </div>
+                <table>
+                    ${events
+                        .filter(event => dayjs.utc(event.start_datetime).isAfter(dayjs.utc()))
+                        .map(event =>
+                            `<tr>
+                                <td class="name">${event.name}</td>
+                                <td>${event.description}</td>
+                                <td>${event.plaintext_location || event.event_site_location || ''}</td>
+                                <td class="time">${dayjs.utc(event.start_datetime).format('dddd h:mma')}</td>
+                            </tr>`)
+                        .join('\n')}
+                </table>
+            `
+        }
+
+        loadEvents()
+        // setInterval(loadEvents, 1000)//5 * 60 * 1000)
+    </script>
+</body>
+
+</html>

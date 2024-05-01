@@ -278,7 +278,7 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
             <div className='info'>
                 <Icon name='location_on' />
                 <span>
-                    {props.event.plaintext_location || (props.event.event_site_location ? Store.eventSites.state.result?.find(s => s.event_site_id === props.event.event_site_location)?.name : null)}
+                    {props.event.plaintext_location || props.event.event_site_location}
                 </span>
             </div>
 
