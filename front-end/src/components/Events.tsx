@@ -490,6 +490,13 @@ const EventEditor = observer((props: { eventsScreenState: EventsScreenState }) =
 
                 <Spacer size={16} />
 
+                <InfoBlurb>
+                    NOTE: Anyone who has a my.vibe.camp account will
+                    be able to see the events you have created!
+                </InfoBlurb>
+
+                <Spacer size={16} />
+
                 <Button isSubmit isPrimary isLoading={state.isSaving}>
                     {props.eventsScreenState.eventBeingEdited.event_id == null
                         ? 'Create event'
