@@ -36,9 +36,25 @@
 
     &.TEAM_OFFICIAL {
         border-color: var(--color-accent-1);
+        
+        >.info.host {
+            color: var(--color-accent-1);
+
+            >.icon {
+                color: var(--color-accent-1);
+            }
+        }
     }
 
     &.CAMPSITE_OFFICIAL {
         border-color: var(--color-accent-2);
+        
+        >.info.host {
+            color: var(--color-accent-2);
+
+            >.icon {
+                color: var(--color-accent-2);
+            }
+        }
     }
 }

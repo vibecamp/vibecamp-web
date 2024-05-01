@@ -280,6 +280,18 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
 
             <Spacer size={8} />
 
+            {eventCreatorLabel &&
+                <>
+                    <div className='info host' title='Host'>
+                        <Icon name='person' />
+                        <span className='eventCreator'>
+                            {eventCreatorLabel}
+                        </span>
+                    </div>
+
+                    <Spacer size={4} />
+                </>}
+
             <div className='info'>
                 <Icon name='schedule' />
                 <span>
@@ -295,18 +307,6 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
                     {props.event.plaintext_location || props.event.event_site_location}
                 </span>
             </div>
-
-            {eventCreatorLabel &&
-                <>
-                    <Spacer size={4} />
-
-                    <div className='info' title='Host'>
-                        <Icon name='person' />
-                        <span className='eventCreator'>
-                            {eventCreatorLabel}
-                        </span>
-                    </div>
-                </>}
 
             <Spacer size={4} />
 
