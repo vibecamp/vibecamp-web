@@ -2,6 +2,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import React, { FC } from 'react'
 
 import { TABLE_ROWS, Tables } from '../../../back-end/types/db-types'
+import { Routes } from '../../../back-end/types/route-types'
 import { objectEntries, objectFromEntries } from '../../../back-end/utils/misc'
 import { useObservableClass } from '../mobx/hooks'
 import { observer, setter,setTo } from '../mobx/misc'
@@ -190,7 +191,7 @@ export default observer(() => {
     )
 })
 
-const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & { creator_name: string | null, start_datetime: Dayjs, end_datetime: Dayjs | null, bookmarks: number, event_site_location_name?: string }, editEvent: (eventId: string) => void }> = observer((props) => {
+const Event: FC<{ event: Omit<Routes['/events']['response']['events'][number], 'start_datetime' | 'end_datetime'> & { start_datetime: Dayjs, end_datetime: Dayjs | null }, editEvent: (eventId: string) => void }> = observer((props) => {
     const state = useObservableClass(class {
 
         /**

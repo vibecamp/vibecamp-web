@@ -78,7 +78,7 @@ export type Tables = {
     attendee_id: attendee__attendee_id_Type,
     diet: Tables['diet']['diet_id'] | null,
     discord_handle: string | null,
-    festival_id: Tables['attendee_cabin']['festival_id'],
+    festival_id: Tables['festival']['festival_id'],
     has_allergy_eggs: boolean | null,
     has_allergy_fish: boolean | null,
     has_allergy_milk: boolean | null,
