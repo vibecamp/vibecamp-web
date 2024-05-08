@@ -168,12 +168,22 @@ export default function register(router: Router) {
             }
           }
 
-          for (const attendee of attendees) {
-            await db.insertTable('attendee', {
-              ...attendee,
-              festival_id: festival_id!,
-              associated_account_id: accountId,
-            })
+          for (const { attendee_id, ...attendee } of attendees) {
+            if (attendee_id) {
+              await db.updateTable('attendee', {
+                ...attendee,
+                festival_id: festival_id!,
+                associated_account_id: accountId,
+              }, [
+                ['attendee_id', '=', attendee_id]
+              ])
+            } else {
+              await db.insertTable('attendee', {
+                ...attendee,
+                festival_id: festival_id!,
+                associated_account_id: accountId,
+              })
+            }
           }
 
           const account = (await db.queryTable('account', { where: ['account_id', '=', accountId] }))[0]!

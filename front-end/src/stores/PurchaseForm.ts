@@ -9,7 +9,7 @@ import WindowObservables from '../mobx/WindowObservables'
 import { vibefetch } from '../vibefetch'
 import Store from './Store'
 
-const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'> & { ticket_type: Tables['purchase_type']['purchase_type_id'] | null }> = {
+const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
     name: '',
     discord_handle: null,
     twitter_handle: null,
@@ -27,16 +27,21 @@ const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'> & { 
     has_allergy_tree_nuts: null,
     has_allergy_peanuts: null,
     has_allergy_wheat: null,
-    has_allergy_soy: null,
-    ticket_type: null
+    has_allergy_soy: null
 }
 
 export class PurchaseForm {
 
     constructor(isInitialPurchase: boolean, private readonly needsWaiverClicked: boolean) {
+        const primaryAttendee = {
+            ...(Store.accountInfo.state.result?.attendees.find(a => a.is_primary_for_account) ?? BLANK_ATTENDEE),
+            ticket_type: null,
+            is_primary_for_account: true
+        }
+
         this.attendees = (
             isInitialPurchase
-                ? [ { ...BLANK_ATTENDEE, is_primary_for_account: true } ]
+                ? [ primaryAttendee ]
                 : []
         )
     }
@@ -84,7 +89,7 @@ export class PurchaseForm {
     }
 
     readonly addAttendee = () => {
-        this.attendees.push({ ...BLANK_ATTENDEE, is_primary_for_account: false })
+        this.attendees.push({ ...BLANK_ATTENDEE, ticket_type: null, is_primary_for_account: false })
     }
 
     readonly removeAttendee = createTransformer((index: number) => () => {
