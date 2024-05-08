@@ -125,10 +125,20 @@ export default observer((props: Props) => {
                     through your account here, but they'll otherwise be a full
                     attendee (with a badge and everything). You can purchase
                     additional tickets for up to four minors.`}
-                    <Spacer size={4} />
+                    <Spacer size={8} />
                     {`Minors over two will need their own tickets, but
                     those will live under your account. Children under two years
                     old do not need a ticket.`}
+                </InfoBlurb>
+
+                <Spacer size={12} />
+
+                <InfoBlurb>
+                    {`NOTE: App features like event creation are per-account!
+                    If you buy tickets for multiple people under this account,
+                    the others won't be able to create their own events, manage
+                    their own bookmarks, etc. Generally speaking each attendee
+                    should make their own account.`}
                 </InfoBlurb>
 
                 {state.otherPurchases.length > 0 &&
