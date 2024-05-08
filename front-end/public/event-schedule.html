@@ -94,7 +94,7 @@
                             `<tr>
                                 <td class="name">${event.name}</td>
                                 <td>${event.description}</td>
-                                <td>${event.plaintext_location || event.event_site_location || ''}</td>
+                                <td>${event.plaintext_location || event.event_site_location_name || ''}</td>
                                 <td class="time">${dayjs.utc(event.start_datetime).format('dddd h:mma')}</td>
                             </tr>`)
                         .join('\n')}

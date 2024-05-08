@@ -10,6 +10,7 @@ Deno.test({
     fn() {
         assertEquals(
             purchaseBreakdown({
+                // @ts-expect-error sdfjkgh
                 ATTENDANCE_VIBECLIPSE_2024_OVER_16: 3,
                 VIBECAMP_3_BASIC_TICKET: 2,
                 VIBECAMP_3_BUS_TO_BALTIMORE_1130AM: 1
@@ -52,21 +53,21 @@ Deno.test({
                     count: 3,
                     discountMultiplier: 0.85,
                     discountedPrice: 55000 * 3 * 0.85,
-                    purchaseType: "ATTENDANCE_VIBECLIPSE_2024_OVER_16",
+                    purchaseType: "ATTENDANCE_VIBECLIPSE_2024_OVER_16" as Tables['purchase_type']['purchase_type_id'],
                 },
                 {
                     basePrice: 42000 * 2,
                     count: 2,
                     discountMultiplier: undefined,
                     discountedPrice: 42000 * 2,
-                    purchaseType: "VIBECAMP_3_BASIC_TICKET",
+                    purchaseType: "VIBECAMP_3_BASIC_TICKET" as Tables['purchase_type']['purchase_type_id'],
                 },
                 {
                     basePrice: 2700,
                     count: 1,
                     discountMultiplier: undefined,
                     discountedPrice: 2700,
-                    purchaseType: "VIBECAMP_3_BUS_TO_BALTIMORE_1130AM",
+                    purchaseType: "VIBECAMP_3_BUS_TO_BALTIMORE_1130AM" as Tables['purchase_type']['purchase_type_id'],
                 },
             ]
         )

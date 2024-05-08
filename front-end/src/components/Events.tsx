@@ -190,7 +190,7 @@ export default observer(() => {
     )
 })
 
-const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & { creator_name: string | null, start_datetime: Dayjs, end_datetime: Dayjs | null, bookmarks: number }, editEvent: (eventId: string) => void }> = observer((props) => {
+const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & { creator_name: string | null, start_datetime: Dayjs, end_datetime: Dayjs | null, bookmarks: number, event_site_location_name?: string }, editEvent: (eventId: string) => void }> = observer((props) => {
     const state = useObservableClass(class {
 
         /**
@@ -304,7 +304,7 @@ const Event: FC<{ event: Omit<Tables['event'], 'start_datetime' | 'end_datetime'
             <div className='info'>
                 <Icon name='location_on' />
                 <span>
-                    {props.event.plaintext_location || props.event.event_site_location}
+                    {props.event.plaintext_location || props.event.event_site_location_name}
                 </span>
             </div>
 

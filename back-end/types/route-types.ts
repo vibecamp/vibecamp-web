@@ -77,7 +77,11 @@ export type Routes = {
         method: 'get',
         body: undefined,
         response: {
-            events: (EventJson & { creator_name: string | null, bookmarks: number })[]
+            events: (EventJson & {
+                creator_name: string | null,
+                bookmarks: number,
+                event_site_location_name: Tables['event_site']['name'] | null
+            })[]
         }
     },
     '/event/save': {

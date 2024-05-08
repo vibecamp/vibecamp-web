@@ -2,13 +2,16 @@ import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
 import { withDBConnection } from '../../utils/db.ts'
 import { Tables } from '../../types/db-types.ts'
-import { EventJson } from '../../types/route-types.ts'
 
-const eventToJson = (event: Tables['event']): EventJson => ({
-  ...event,
-  start_datetime: event.start_datetime?.toISOString(),
-  end_datetime: event.end_datetime?.toISOString() ?? null
-})
+const stringifyStartAndEndDates = <T extends Tables['event']>(event: T):
+  Omit<T, 'start_datetime' | 'end_datetime'> & {
+    start_datetime: string,
+    end_datetime: string | null
+  } => ({
+    ...event,
+    start_datetime: event.start_datetime.toISOString(),
+    end_datetime: event.end_datetime?.toISOString() ?? null
+  })
 
 export default function register(router: Router) {
 
@@ -29,7 +32,7 @@ export default function register(router: Router) {
           {
             creator_name: Tables['attendee']['name'] | null,
             bookmarks: bigint,
-            event_site_location: Tables['event_site']['name'] | null
+            event_site_location_name: Tables['event_site']['name'] | null
           }
         >`
           SELECT * FROM 
@@ -40,7 +43,8 @@ export default function register(router: Router) {
               event.start_datetime,
               event.end_datetime,
               event.plaintext_location,
-              event_site.name as event_site_location,
+              event.event_site_location,
+              event_site.name as event_site_location_name,
               event.event_id,
               event.created_by_account_id,
               event.event_type,
@@ -74,9 +78,8 @@ export default function register(router: Router) {
 
         return [
           {
-            events: events.rows.map(({ bookmarks, creator_name, ...e }) => ({
-              ...eventToJson(e),
-              creator_name,
+            events: events.rows.map(({ bookmarks, ...e }) => ({
+              ...stringifyStartAndEndDates(e),
               bookmarks: Number(bookmarks)
             }))
           },
@@ -104,7 +107,7 @@ export default function register(router: Router) {
 
           const updatedEvent = (await db.updateTable('event', event, [['event_id', '=', event_id]]))[0]
 
-          return [{ event: eventToJson(updatedEvent!) }, Status.OK]
+          return [{ event: stringifyStartAndEndDates(updatedEvent!) }, Status.OK]
         } else {
 
           // only ticketholders can create events
@@ -130,7 +133,7 @@ export default function register(router: Router) {
             created_by_account_id: account_id
           })
 
-          return [{ event: eventToJson(createdEvent!) }, Status.OK]
+          return [{ event: stringifyStartAndEndDates(createdEvent!) }, Status.OK]
         }
       })
     },
