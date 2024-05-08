@@ -85,7 +85,7 @@ ${rows
 
     // table schemas
     const tables: Record<string, Array<{ column_name: string, type: string }>> = {}
-    // const primaryKeys = new Set<string>()
+    const primaryKeyNominalTypes: string[] = []
 
     const justColumns = columns.reduce((cols, row) => {
         const key = row.table_name + '__' + row.column_name
@@ -98,13 +98,14 @@ ${rows
     }, new Map<string, Pick<(typeof columns)[number], 'table_name' | 'column_name' | 'data_type' | 'is_nullable'>>())
 
     for (const { table_name, column_name, data_type, is_nullable } of justColumns.values()) {
-        // const key = table_name + '__' + column_name
+        const isPrimaryKey = column_name.endsWith('_id')
 
-        // const isPrimaryKey = columns.some(r =>
-        //     r.table_name === table_name && r.column_name === column_name && r.constraint_type === 'PRIMARY KEY')
-        // if (isPrimaryKey) {
-        //     primaryKeys.add(key)
-        // }
+        const nominalTypeName = table_name + '__' + column_name + '_Type'
+
+        // HACK
+        if (isPrimaryKey) {
+            primaryKeyNominalTypes.push(nominalTypeName)
+        }
 
         if (tables[table_name] == null) {
             tables[table_name] = []
@@ -119,11 +120,21 @@ ${rows
             column_name,
             type: (
                 isForeignKeyTo ? `Tables['${isForeignKeyTo.table_name}']['${isForeignKeyTo.column_name}']` :
-                    // isPrimaryKey ? `(${TYPE_MAP[data_type]} & { [${key}]: null })` :
-                    TYPE_MAP[data_type] ?? 'unknown'
+                    isPrimaryKey ? nominalTypeName :
+                        TYPE_MAP[data_type] ?? 'unknown'
             ) + (is_nullable === 'YES' ? ' | null' : '')
         })
     }
+
+    const headingComment = `/**
+ * NOTE: This file is generated automatically by generate-db-types.ts, it
+ * should not be modified manually!
+ */`
+
+    const nominalTypesStr = '// Nominal types for primary keys; explanation of this pattern: https://www.typescriptlang.org/play/typescript/language-extensions/nominal-typing.ts.html\n'
+        + primaryKeyNominalTypes
+            .map(t => `export const ${t}Symbol = Symbol('${t}'); export type ${t} = string & { [${t}Symbol]: undefined };`)
+            .join('\n')
 
     const dbColumnsStr =
         `export const TABLE_COLUMNS = {
@@ -131,12 +142,7 @@ ${Object.entries(tables).map(([tableName, columns]) => `  ${tableName}: ${JSON.s
 } as const`
 
     const dbTypesStr =
-        `/**
- * NOTE: This file is generated automatically by generate-db-types.ts, it
- * should not be modified manually!
- */
-        
-export type Tables = {
+        `export type Tables = {
 ${Object.entries(tables).map(([tableName, columns]) =>
             TABLES_TO_DUMP.includes(tableName)
                 ? `  ${tableName}: (typeof TABLE_ROWS)['${tableName}'][number]`
@@ -147,5 +153,5 @@ ${columns.map(({ column_name, type }) => `    ${column_name}: ${type},`).join('\
 
 export type TableName = keyof Tables`
 
-    await Deno.writeTextFile('./types/db-types.ts', dbTypesStr + '\n\n' + dbRowsStr + '\n\n' + dbColumnsStr)
+    await Deno.writeTextFile('./types/db-types.ts', headingComment + '\n\n' + nominalTypesStr + '\n\n' + dbTypesStr + '\n\n' + dbRowsStr + '\n\n' + dbColumnsStr)
 })

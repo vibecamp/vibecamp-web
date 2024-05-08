@@ -3,9 +3,44 @@
  * should not be modified manually!
  */
 
+// Nominal types for primary keys; explanation of this pattern: https://www.typescriptlang.org/play/typescript/language-extensions/nominal-typing.ts.html
+export const account__account_id_TypeSymbol = Symbol('account__account_id_Type'); export type account__account_id_Type = string & { [account__account_id_TypeSymbol]: undefined };
+export const account__application_id_TypeSymbol = Symbol('account__application_id_Type'); export type account__application_id_Type = string & { [account__application_id_TypeSymbol]: undefined };
+export const application__application_id_TypeSymbol = Symbol('application__application_id_Type'); export type application__application_id_Type = string & { [application__application_id_TypeSymbol]: undefined };
+export const attendee__associated_account_id_TypeSymbol = Symbol('attendee__associated_account_id_Type'); export type attendee__associated_account_id_Type = string & { [attendee__associated_account_id_TypeSymbol]: undefined };
+export const attendee__attendee_id_TypeSymbol = Symbol('attendee__attendee_id_Type'); export type attendee__attendee_id_Type = string & { [attendee__attendee_id_TypeSymbol]: undefined };
+export const attendee__festival_id_TypeSymbol = Symbol('attendee__festival_id_Type'); export type attendee__festival_id_Type = string & { [attendee__festival_id_TypeSymbol]: undefined };
+export const attendee_cabin__attendee_id_TypeSymbol = Symbol('attendee_cabin__attendee_id_Type'); export type attendee_cabin__attendee_id_Type = string & { [attendee_cabin__attendee_id_TypeSymbol]: undefined };
+export const attendee_cabin__cabin_id_TypeSymbol = Symbol('attendee_cabin__cabin_id_Type'); export type attendee_cabin__cabin_id_Type = string & { [attendee_cabin__cabin_id_TypeSymbol]: undefined };
+export const attendee_cabin__festival_id_TypeSymbol = Symbol('attendee_cabin__festival_id_Type'); export type attendee_cabin__festival_id_Type = string & { [attendee_cabin__festival_id_TypeSymbol]: undefined };
+export const cabin__cabin_id_TypeSymbol = Symbol('cabin__cabin_id_Type'); export type cabin__cabin_id_Type = string & { [cabin__cabin_id_TypeSymbol]: undefined };
+export const cabin__festival_site_id_TypeSymbol = Symbol('cabin__festival_site_id_Type'); export type cabin__festival_site_id_Type = string & { [cabin__festival_site_id_TypeSymbol]: undefined };
+export const diet__diet_id_TypeSymbol = Symbol('diet__diet_id_Type'); export type diet__diet_id_Type = string & { [diet__diet_id_TypeSymbol]: undefined };
+export const discount__discount_id_TypeSymbol = Symbol('discount__discount_id_Type'); export type discount__discount_id_Type = string & { [discount__discount_id_TypeSymbol]: undefined };
+export const discount__purchase_type_id_TypeSymbol = Symbol('discount__purchase_type_id_Type'); export type discount__purchase_type_id_Type = string & { [discount__purchase_type_id_TypeSymbol]: undefined };
+export const event__created_by_account_id_TypeSymbol = Symbol('event__created_by_account_id_Type'); export type event__created_by_account_id_Type = string & { [event__created_by_account_id_TypeSymbol]: undefined };
+export const event__event_id_TypeSymbol = Symbol('event__event_id_Type'); export type event__event_id_Type = string & { [event__event_id_TypeSymbol]: undefined };
+export const event_bookmark__account_id_TypeSymbol = Symbol('event_bookmark__account_id_Type'); export type event_bookmark__account_id_Type = string & { [event_bookmark__account_id_TypeSymbol]: undefined };
+export const event_bookmark__event_id_TypeSymbol = Symbol('event_bookmark__event_id_Type'); export type event_bookmark__event_id_Type = string & { [event_bookmark__event_id_TypeSymbol]: undefined };
+export const event_site__event_site_id_TypeSymbol = Symbol('event_site__event_site_id_Type'); export type event_site__event_site_id_Type = string & { [event_site__event_site_id_TypeSymbol]: undefined };
+export const event_site__festival_site_id_TypeSymbol = Symbol('event_site__festival_site_id_Type'); export type event_site__festival_site_id_Type = string & { [event_site__festival_site_id_TypeSymbol]: undefined };
+export const event_type__event_type_id_TypeSymbol = Symbol('event_type__event_type_id_Type'); export type event_type__event_type_id_Type = string & { [event_type__event_type_id_TypeSymbol]: undefined };
+export const festival__festival_id_TypeSymbol = Symbol('festival__festival_id_Type'); export type festival__festival_id_Type = string & { [festival__festival_id_TypeSymbol]: undefined };
+export const festival__festival_site_id_TypeSymbol = Symbol('festival__festival_site_id_Type'); export type festival__festival_site_id_Type = string & { [festival__festival_site_id_TypeSymbol]: undefined };
+export const festival_site__festival_site_id_TypeSymbol = Symbol('festival_site__festival_site_id_Type'); export type festival_site__festival_site_id_Type = string & { [festival_site__festival_site_id_TypeSymbol]: undefined };
+export const invite_code__created_by_account_id_TypeSymbol = Symbol('invite_code__created_by_account_id_Type'); export type invite_code__created_by_account_id_Type = string & { [invite_code__created_by_account_id_TypeSymbol]: undefined };
+export const invite_code__festival_id_TypeSymbol = Symbol('invite_code__festival_id_Type'); export type invite_code__festival_id_Type = string & { [invite_code__festival_id_TypeSymbol]: undefined };
+export const invite_code__used_by_account_id_TypeSymbol = Symbol('invite_code__used_by_account_id_Type'); export type invite_code__used_by_account_id_Type = string & { [invite_code__used_by_account_id_TypeSymbol]: undefined };
+export const purchase__owned_by_account_id_TypeSymbol = Symbol('purchase__owned_by_account_id_Type'); export type purchase__owned_by_account_id_Type = string & { [purchase__owned_by_account_id_TypeSymbol]: undefined };
+export const purchase__purchase_id_TypeSymbol = Symbol('purchase__purchase_id_Type'); export type purchase__purchase_id_Type = string & { [purchase__purchase_id_TypeSymbol]: undefined };
+export const purchase__purchase_type_id_TypeSymbol = Symbol('purchase__purchase_type_id_Type'); export type purchase__purchase_type_id_Type = string & { [purchase__purchase_type_id_TypeSymbol]: undefined };
+export const purchase_type__festival_id_TypeSymbol = Symbol('purchase_type__festival_id_Type'); export type purchase_type__festival_id_Type = string & { [purchase_type__festival_id_TypeSymbol]: undefined };
+export const purchase_type__purchase_type_id_TypeSymbol = Symbol('purchase_type__purchase_type_id_Type'); export type purchase_type__purchase_type_id_Type = string & { [purchase_type__purchase_type_id_TypeSymbol]: undefined };
+export const volunteer_type__volunteer_type_id_TypeSymbol = Symbol('volunteer_type__volunteer_type_id_Type'); export type volunteer_type__volunteer_type_id_Type = string & { [volunteer_type__volunteer_type_id_TypeSymbol]: undefined };
+
 export type Tables = {
   account: {
-    account_id: string,
+    account_id: account__account_id_Type,
     application_id: Tables['application']['application_id'] | null,
     email_address: string,
     is_authorized_to_buy_tickets: boolean | null,
@@ -19,7 +54,7 @@ export type Tables = {
   age_range: (typeof TABLE_ROWS)['age_range'][number]
   application: {
     anything_else: string,
-    application_id: string,
+    application_id: application__application_id_Type,
     attractive_virtues: string,
     experiences_hoping_to_share: string,
     group_activity: string,
@@ -40,10 +75,10 @@ export type Tables = {
     age: number | null,
     age_range: Tables['age_range']['age_range'] | null,
     associated_account_id: Tables['account']['account_id'],
-    attendee_id: string,
+    attendee_id: attendee__attendee_id_Type,
     diet: Tables['diet']['diet_id'] | null,
     discord_handle: string | null,
-    festival_id: Tables['festival']['festival_id'],
+    festival_id: Tables['attendee_cabin']['festival_id'],
     has_allergy_eggs: boolean | null,
     has_allergy_fish: boolean | null,
     has_allergy_milk: boolean | null,
@@ -67,7 +102,7 @@ export type Tables = {
     festival_id: Tables['attendee']['festival_id'],
   },
   cabin: {
-    cabin_id: string,
+    cabin_id: cabin__cabin_id_Type,
     festival_site_id: Tables['event_site']['festival_site_id'],
     max_occupancy: number | null,
     name: string,
@@ -77,7 +112,7 @@ export type Tables = {
   diet: (typeof TABLE_ROWS)['diet'][number]
   discount: {
     discount_code: string,
-    discount_id: string,
+    discount_id: discount__discount_id_Type,
     price_multiplier: string,
     purchase_type_id: Tables['purchase_type']['purchase_type_id'],
   },
@@ -85,7 +120,7 @@ export type Tables = {
     created_by_account_id: Tables['account']['account_id'],
     description: string,
     end_datetime: Date | null,
-    event_id: string,
+    event_id: event__event_id_Type,
     event_site_location: Tables['event_site']['event_site_id'] | null,
     event_type: Tables['event_type']['event_type_id'],
     name: string,
@@ -100,7 +135,7 @@ export type Tables = {
     can_host_multiple_events: boolean,
     description: string | null,
     equipment: string | null,
-    event_site_id: string,
+    event_site_id: event_site__event_site_id_Type,
     festival_site_id: Tables['festival_site']['festival_site_id'],
     location: unknown | null,
     name: string,
@@ -112,7 +147,7 @@ export type Tables = {
   festival: {
     email_banner_image: string | null,
     end_date: Date,
-    festival_id: string,
+    festival_id: festival__festival_id_Type,
     festival_name: string,
     festival_site_id: Tables['festival_site']['festival_site_id'],
     info_url: string | null,
@@ -120,7 +155,7 @@ export type Tables = {
     start_date: Date,
   },
   festival_site: {
-    festival_site_id: string,
+    festival_site_id: festival_site__festival_site_id_Type,
     festival_site_name: string,
     location: unknown,
   },
@@ -133,7 +168,7 @@ export type Tables = {
   purchase: {
     checked_in: boolean | null,
     owned_by_account_id: Tables['account']['account_id'] | null,
-    purchase_id: string,
+    purchase_id: purchase__purchase_id_Type,
     purchase_type_id: Tables['discount']['purchase_type_id'],
     purchased_on: Date,
     stripe_payment_intent: string | null,
@@ -149,7 +184,7 @@ export type Tables = {
     max_available: number | null,
     max_per_account: number | null,
     price_in_cents: number,
-    purchase_type_id: string,
+    purchase_type_id: purchase_type__purchase_type_id_Type,
   },
   volunteer_type: (typeof TABLE_ROWS)['volunteer_type'][number]
 }
