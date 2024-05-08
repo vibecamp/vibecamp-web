@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx'
 import React from 'react'
 
+import { Tables } from '../../../../back-end/types/db-types'
 import { useStable } from '../../mobx/hooks'
 import { observer } from '../../mobx/misc'
 import WindowObservables from '../../mobx/WindowObservables'
@@ -17,7 +18,7 @@ export default observer(() => {
 
     const purchaseForm = useStable(() => {
         const isAtCampChampions = festivalsAtCampChampions != null && festivalsAtCampChampions.some(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)
-        const existingTickets = Store.purchasedTicketsByFestival[WindowObservables.hashState?.ticketPurchaseModalState as string]
+        const existingTickets = Store.purchasedTicketsByFestival[WindowObservables.hashState?.ticketPurchaseModalState as Tables['festival']['festival_id']]
         const hasTicketsForThisFestival = (existingTickets ?? []).length > 0
         return makeAutoObservable(new PurchaseForm(!hasTicketsForThisFestival, isAtCampChampions && !hasTicketsForThisFestival))
     })

@@ -23,7 +23,7 @@ import RowSelect from './core/RowSelect'
 import Spacer from './core/Spacer'
 
 type InProgressEvent = {
-    event_id: string | undefined,
+    event_id: Tables['event']['event_id'] | undefined,
     name: string,
     description: string,
     start_datetime: Dayjs | null,

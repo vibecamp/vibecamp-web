@@ -119,7 +119,7 @@ export default function register(router: Router) {
   const attendeeInfoByAccount = new Map<Tables['account']['account_id'], Routes['/purchase/create-intent']['body']['attendees']>()
 
   type PurchaseMetadata =
-    & { accountId: string, discount_ids?: string }
+    & { accountId: Tables['account']['account_id'], discount_ids?: string }
     & Record<Tables['purchase_type']['purchase_type_id'], string> // stripe converts numbers to strings for some reason
 
   router.post('/purchase/record', async ctx => {
@@ -193,7 +193,7 @@ export default function register(router: Router) {
   })
 
   router.get('/purchase/check-in/:purchase_id', async ctx => {
-    const { purchase_id } = ctx.params
+    const purchase_id = ctx.params.purchase_id as Tables['purchase']['purchase_id']
 
     ctx.response.type = 'html'
 
