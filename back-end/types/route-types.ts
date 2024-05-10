@@ -38,7 +38,7 @@ export type Routes = {
     },
     '/account/update-attendee': {
         method: 'put',
-        body: Pick<Tables['attendee'], 'attendee_id'> & Partial<Omit<Tables['attendee'], 'associated_account_id' | 'notes'>>,
+        body: Pick<Tables['attendee'], 'attendee_id'> & Partial<Tables['attendee']>,
         response: Tables['attendee']
     },
     '/account/submit-invite-code': {

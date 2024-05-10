@@ -35,7 +35,7 @@ export default function register(router: Router) {
         // currentInviteCodes,
       } = await withDBTransaction(async (db) => {
 
-        return allPromises({
+        return await allPromises({
           // referralStatus: accountReferralStatus(db, account_id),
           accounts: db.queryTable('account', { where: ['account_id', '=', account_id] }),
           attendees: db.queryTable('attendee', { where: ['associated_account_id', '=', account_id] }),
@@ -180,7 +180,7 @@ export default function register(router: Router) {
     endpoint: '/account/update-attendee',
     method: 'put',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { attendee_id, ...attendeeUpdate } }) => {
+    handler: async ({ jwt: { account_id }, body: { attendee_id, associated_account_id: _, ...attendeeUpdate } }) => {
       const attendee = await withDBConnection(async db =>
         (await db.updateTable('attendee', attendeeUpdate, [
           ['associated_account_id', '=', account_id],
