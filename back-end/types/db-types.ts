@@ -9,7 +9,6 @@ export const account__application_id_TypeSymbol = Symbol('account__application_i
 export const application__application_id_TypeSymbol = Symbol('application__application_id_Type'); export type application__application_id_Type = string & { [application__application_id_TypeSymbol]: undefined };
 export const attendee__associated_account_id_TypeSymbol = Symbol('attendee__associated_account_id_Type'); export type attendee__associated_account_id_Type = string & { [attendee__associated_account_id_TypeSymbol]: undefined };
 export const attendee__attendee_id_TypeSymbol = Symbol('attendee__attendee_id_Type'); export type attendee__attendee_id_Type = string & { [attendee__attendee_id_TypeSymbol]: undefined };
-export const attendee__festival_id_TypeSymbol = Symbol('attendee__festival_id_Type'); export type attendee__festival_id_Type = string & { [attendee__festival_id_TypeSymbol]: undefined };
 export const attendee_cabin__attendee_id_TypeSymbol = Symbol('attendee_cabin__attendee_id_Type'); export type attendee_cabin__attendee_id_Type = string & { [attendee_cabin__attendee_id_TypeSymbol]: undefined };
 export const attendee_cabin__cabin_id_TypeSymbol = Symbol('attendee_cabin__cabin_id_Type'); export type attendee_cabin__cabin_id_Type = string & { [attendee_cabin__cabin_id_TypeSymbol]: undefined };
 export const attendee_cabin__festival_id_TypeSymbol = Symbol('attendee_cabin__festival_id_Type'); export type attendee_cabin__festival_id_Type = string & { [attendee_cabin__festival_id_TypeSymbol]: undefined };
@@ -78,7 +77,6 @@ export type Tables = {
     attendee_id: attendee__attendee_id_Type,
     diet: Tables['diet']['diet_id'] | null,
     discord_handle: string | null,
-    festival_id: Tables['festival']['festival_id'],
     has_allergy_eggs: boolean | null,
     has_allergy_fish: boolean | null,
     has_allergy_milk: boolean | null,
@@ -99,7 +97,7 @@ export type Tables = {
   attendee_cabin: {
     attendee_id: Tables['attendee']['attendee_id'],
     cabin_id: Tables['cabin']['cabin_id'],
-    festival_id: Tables['attendee']['festival_id'],
+    festival_id: Tables['festival']['festival_id'],
   },
   cabin: {
     cabin_id: cabin__cabin_id_Type,
@@ -162,7 +160,7 @@ export type Tables = {
   invite_code: {
     code: string,
     created_by_account_id: Tables['account']['account_id'],
-    festival_id: Tables['attendee']['festival_id'] | null,
+    festival_id: Tables['festival']['festival_id'] | null,
     used_by_account_id: Tables['account']['account_id'] | null,
   },
   purchase: {
@@ -177,7 +175,7 @@ export type Tables = {
     available_from: Date | null,
     available_to: Date | null,
     description: string,
-    festival_id: Tables['attendee']['festival_id'],
+    festival_id: Tables['festival']['festival_id'],
     hidden_from_ui: boolean,
     is_attendance_ticket: boolean,
     low_income_only: boolean,
@@ -217,7 +215,7 @@ export const TABLE_COLUMNS = {
   account: ["account_id","application_id","email_address","is_authorized_to_buy_tickets","is_low_income","is_seed_account","is_team_member","notes","password_hash","password_salt"],
   age_range: ["age_range","description","end","start"],
   application: ["anything_else","application_id","attractive_virtues","experiences_hoping_to_share","group_activity","hoping_to_get_out_of_the_festival","how_found_out","identify_as","interested_in_volunteering","is_accepted","last_conversation","looking_forward_to_conversations","name","previous_events","strongest_virtues","submitted_on","twitter_handle"],
-  attendee: ["age","age_range","associated_account_id","attendee_id","diet","discord_handle","festival_id","has_allergy_eggs","has_allergy_fish","has_allergy_milk","has_allergy_peanuts","has_allergy_shellfish","has_allergy_soy","has_allergy_tree_nuts","has_allergy_wheat","interested_in_pre_call","interested_in_volunteering_as","is_primary_for_account","medical_training","name","notes","planning_to_camp","twitter_handle"],
+  attendee: ["age","age_range","associated_account_id","attendee_id","diet","discord_handle","has_allergy_eggs","has_allergy_fish","has_allergy_milk","has_allergy_peanuts","has_allergy_shellfish","has_allergy_soy","has_allergy_tree_nuts","has_allergy_wheat","interested_in_pre_call","interested_in_volunteering_as","is_primary_for_account","medical_training","name","notes","planning_to_camp","twitter_handle"],
   attendee_cabin: ["attendee_id","cabin_id","festival_id"],
   cabin: ["cabin_id","festival_site_id","max_occupancy","name","nickname","notes"],
   diet: ["description","diet_id"],

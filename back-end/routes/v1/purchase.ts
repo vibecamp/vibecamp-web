@@ -152,14 +152,8 @@ export default function register(router: Router) {
         )
 
         await withDBTransaction(async db => {
-          let festival_id: Tables['festival']['festival_id']
-
-          const purchaseTypes = await db.queryTable('purchase_type')
-
           for (const [purchaseType, count] of objectEntries(purchases)) {
             for (let i = 0; i < count!; i++) {
-              festival_id = purchaseTypes.find(p => p.purchase_type_id === purchaseType)!.festival_id
-
               await db.insertTable('purchase', {
                 owned_by_account_id: accountId,
                 purchase_type_id: purchaseType,
@@ -172,7 +166,6 @@ export default function register(router: Router) {
             if (attendee_id) {
               await db.updateTable('attendee', {
                 ...attendee,
-                festival_id: festival_id!,
                 associated_account_id: accountId,
               }, [
                 ['attendee_id', '=', attendee_id]
@@ -180,7 +173,6 @@ export default function register(router: Router) {
             } else {
               await db.insertTable('attendee', {
                 ...attendee,
-                festival_id: festival_id!,
                 associated_account_id: accountId,
               })
             }
