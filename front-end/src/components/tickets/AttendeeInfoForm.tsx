@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import React from 'react'
 
-import { TABLE_ROWS, Tables } from '../../../../back-end/types/db-types'
+import { TABLE_ROWS } from '../../../../back-end/types/db-types'
 import { AttendeeInfo } from '../../../../back-end/types/misc'
 import { observer, setter } from '../../mobx/misc'
 import Store from '../../stores/Store'
@@ -16,6 +16,7 @@ type Props = {
     attendeeErrors: Partial<Record<keyof AttendeeInfo, string>>,
     isChild: boolean,
     showingErrors: boolean,
+    showFloatingHeading?: boolean,
     festival: Tables['festival']
 }
 
@@ -26,7 +27,7 @@ export default observer((props: Props) => {
 
     return (
         <>
-            {props.attendeeInfo.name &&
+            {props.showFloatingHeading && props.attendeeInfo.name &&
                 <div className='attendee-info-form-sticky-header'>
                     {`${props.attendeeInfo.name}'s info`}
                 </div>}
@@ -50,6 +51,22 @@ export default observer((props: Props) => {
             <Spacer size={FIELD_SPACE} />
 
             <Input
+                label='Twitter handle (optional)'
+                placeholder='@gptbrooke'
+                value={props.attendeeInfo.twitter_handle ?? ''}
+                onChange={setter(props.attendeeInfo, 'twitter_handle')}
+                error={props.showingErrors && props.attendeeErrors.twitter_handle}
+            />
+
+            <Spacer size={INFO_BLURB_SPACE} />
+
+            <InfoBlurb>
+                {'Username, not display name!'}
+            </InfoBlurb>
+
+            <Spacer size={FIELD_SPACE} />
+
+            <Input
                 label='Discord handle (optional)'
                 placeholder='gptbrooke'
                 value={props.attendeeInfo.discord_handle ?? ''}
@@ -67,22 +84,6 @@ export default observer((props: Props) => {
 
             <Spacer size={FIELD_SPACE} />
 
-            <Input
-                label='Twitter handle (optional)'
-                placeholder='@gptbrooke'
-                value={props.attendeeInfo.twitter_handle ?? ''}
-                onChange={setter(props.attendeeInfo, 'twitter_handle')}
-                error={props.showingErrors && props.attendeeErrors.twitter_handle}
-            />
-
-            <Spacer size={INFO_BLURB_SPACE} />
-
-            <InfoBlurb>
-                {'Username, not display name!'}
-            </InfoBlurb>
-
-            <Spacer size={FIELD_SPACE} />
-
             <RadioGroup
                 label={props.attendeeInfo.is_primary_for_account ? 'I am...' : 'This person is...'}
                 options={TABLE_ROWS.age_range.slice().sort((a, b) => b.start - a.start).map(r => ({ label: r.description, value: r.age_range }))}
@@ -93,9 +94,10 @@ export default observer((props: Props) => {
 
             {/* <Spacer size={INFO_BLURB_SPACE} /> */}
 
-            <InfoBlurb>
-                This age should be at the time of {props.festival.festival_name} ({dayjs.utc(props.festival.start_date).format('MM/DD/YYYY')} - {dayjs.utc(props.festival.end_date).format('MM/DD/YYYY')})
-            </InfoBlurb>
+            {props.festival &&
+                <InfoBlurb>
+                    This age should be at the time of {props.festival.festival_name} ({dayjs.utc(props.festival.start_date).format('MM/DD/YYYY')} - {dayjs.utc(props.festival.end_date).format('MM/DD/YYYY')})
+                </InfoBlurb>}
 
             {!props.isChild &&
                 <>
@@ -124,31 +126,34 @@ export default observer((props: Props) => {
 
                     </InfoBlurb>
 
-                    <Spacer size={FIELD_SPACE} />
+                    {props.festival &&
+                        <>
+                            <Spacer size={FIELD_SPACE} />
 
-                    <Checkbox
-                        value={props.attendeeInfo.interested_in_pre_call}
-                        onChange={setter(props.attendeeInfo, 'interested_in_pre_call')}
-                        error={props.showingErrors && props.attendeeErrors.interested_in_pre_call}
-                    >
-                        {`${props.attendeeInfo.is_primary_for_account ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
-                        video call before the event`}
-                    </Checkbox>
+                            <Checkbox
+                                value={props.attendeeInfo.interested_in_pre_call}
+                                onChange={setter(props.attendeeInfo, 'interested_in_pre_call')}
+                                error={props.showingErrors && props.attendeeErrors.interested_in_pre_call}
+                            >
+                                {`${props.attendeeInfo.is_primary_for_account ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
+                                video call before the event`}
+                            </Checkbox>
 
-                    <Spacer size={INFO_BLURB_SPACE} />
+                            <Spacer size={INFO_BLURB_SPACE} />
 
-                    <InfoBlurb>
-                        {`We'd like to introduce people to some of their fellow
-                        attendees so they can lay the foundations of
-                        connection before arriving at ${props.festival.festival_name}.
-                        If ${props.attendeeInfo.is_primary_for_account ? 'you' : 'this person'} would like
-                        to be invited to online hangouts please check the box
-                        below.`}&nbsp;
-                        <b>If you check this box, your email address
-                        ({Store.accountInfo.state.result?.email_address}) may be
-                        viewable by a limited number of attendees who also
-                        choose to participate.</b>
-                    </InfoBlurb>
+                            <InfoBlurb>
+                                {`We'd like to introduce people to some of their fellow
+                                attendees so they can lay the foundations of
+                                connection before arriving at ${props.festival.festival_name}.
+                                If ${props.attendeeInfo.is_primary_for_account ? 'you' : 'this person'} would like
+                                to be invited to online hangouts please check the box
+                                below.`}&nbsp;
+                                <b>If you check this box, your email address
+                                ({Store.accountInfo.state.result?.email_address}) may be
+                                viewable by a limited number of attendees who also
+                                choose to participate.</b>
+                            </InfoBlurb>
+                        </>}
                 </>}
         </>
     )

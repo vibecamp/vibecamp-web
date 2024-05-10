@@ -1,22 +1,56 @@
+import { autorun, reaction } from 'mobx'
 import React from 'react'
 
+import { Tables } from '../../../back-end/types/db-types'
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/utils/validation'
 import { useObservableClass } from '../mobx/hooks'
 import { observer, setter } from '../mobx/misc'
 import { request } from '../mobx/request'
 import Store from '../stores/Store'
-import { DEFAULT_FORM_ERROR, doNothing, preventingDefault } from '../utils'
+import { DEFAULT_FORM_ERROR, doNothing,preventingDefault } from '../utils'
 import { vibefetch } from '../vibefetch'
 import Button from './core/Button'
 import Col from './core/Col'
+import ErrorMessage from './core/ErrorMessage'
 import Input from './core/Input'
 import LoadingDots from './core/LoadingDots'
 import Modal from './core/Modal'
 import Spacer from './core/Spacer'
+import AttendeeInfoForm from './tickets/AttendeeInfoForm'
 
 export default observer(() => {
     const loading = Store.accountInfo.state.kind === 'loading'
     const loadingOrError = loading || Store.accountInfo.state.kind === 'error'
+
+    const state = useObservableClass(class {
+        primaryAttendee: Tables['attendee'] | null = null
+        primaryAttendeeModified = false
+
+        readonly initializePrimaryAttendee = autorun(() => {
+            if (this.primaryAttendee == null && Store.primaryAttendee != null) {
+                this.primaryAttendee = { ...Store.primaryAttendee }
+            }
+        })
+
+        readonly setPrimaryAttendeeModified = reaction(
+            () => JSON.stringify(this.primaryAttendee),
+            () => this.primaryAttendeeModified = true)
+
+        readonly updatePrimaryAttendeeInfo = request(async () => {
+            if (!this.primaryAttendee) {
+                return
+            }
+
+            const { status, body } = await vibefetch(Store.jwt, '/account/update-attendee', 'put', this.primaryAttendee)
+
+            if (status !== 200 || body == null) {
+                throw Error()
+            }
+
+            this.primaryAttendee = { ...body }
+            this.primaryAttendeeModified = false
+        }, { lazy: true })
+    })
 
     const emailAddressForm = useObservableClass(class {
         emailAddress: string | null = null
@@ -105,6 +139,36 @@ export default observer(() => {
                     ? 'Failed to load'
                     : Store.accountInfo.state.kind === 'result'
                         ? <>
+
+                            {state.primaryAttendee &&
+                                <form onSubmit={preventingDefault(state.updatePrimaryAttendeeInfo.load)}>
+                                    <AttendeeInfoForm attendeeInfo={state.primaryAttendee} attendeeErrors={{}} isChild={false} showingErrors={false} festival={undefined} />
+
+                                    <Spacer size={24} />
+
+                                    <Button
+                                        isSubmit
+                                        isPrimary
+                                        isLoading={state.updatePrimaryAttendeeInfo.state.kind === 'loading'}
+                                        disabled={!state.primaryAttendeeModified}
+                                    >
+                                        Update my info
+                                    </Button>
+
+                                    {state.updatePrimaryAttendeeInfo.state.kind === 'error' &&
+                                        <>
+                                            <Spacer size={16} />
+
+                                            <ErrorMessage error='Something went wrong, please try again' />
+                                        </>}
+
+                                    <Spacer size={32} />
+
+                                    <hr />
+
+                                    <Spacer size={32} />
+                                </form>}
+
                             <Input
                                 label='Email address'
                                 value={Store.accountInfo.state.result?.email_address}
@@ -186,7 +250,7 @@ export default observer(() => {
                             <Spacer size={24} />
 
                             <Button isSubmit isPrimary isLoading={passwordForm.updatePassword.state.kind === 'loading'}>
-                            Submit
+                                Submit
                             </Button>
                         </Col>
                     </form>}

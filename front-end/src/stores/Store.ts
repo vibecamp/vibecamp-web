@@ -99,6 +99,10 @@ class Store {
         }
     })
 
+    get primaryAttendee() {
+        return this.accountInfo.state.result?.attendees.find(a => a.is_primary_for_account)
+    }
+
     get purchasesByFestival() {
         const purchasesByFestival: Record<Tables['festival']['festival_id'], Tables['purchase'][]> = objectFromEntries(this.festivals.state.result?.map(f =>
             [f.festival_id, []]) ?? [])

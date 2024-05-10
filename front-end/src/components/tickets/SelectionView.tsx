@@ -76,6 +76,7 @@ export default observer((props: Props) => {
                             isChild={attendee.age != null && attendee.age < 18}
                             showingErrors={props.purchaseForm.showingErrors}
                             festival={festival}
+                            showFloatingHeading
                         />
 
                         <Spacer size={24} />
