@@ -1,6 +1,5 @@
 import React from 'react'
 
-import { Tables } from '../../../../back-end/types/db-types'
 import { purchaseTypeAvailableNow } from '../../../../back-end/utils/misc'
 import { useObservableClass } from '../../mobx/hooks'
 import { observer, setter, setTo } from '../../mobx/misc'
@@ -21,7 +20,7 @@ import PriceBreakdown from './PriceBreakdown'
 type Props = {
     purchaseForm: PurchaseForm,
     goToNext: () => void,
-    festival: Tables['festival'] | undefined
+    festival: (NonNullable<typeof Store.festivals.state.result>)[number] | undefined
 }
 
 export default observer((props: Props) => {

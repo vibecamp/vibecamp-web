@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import React from 'react'
 
 import { observer } from '../mobx/misc'
@@ -38,7 +39,7 @@ export default observer(() => {
                                 const otherPurchases = Store.nonTicketPurchasesByFestival[festival.festival_id] ?? []
 
                                 return (
-                                    <div key={festival.festival_id} style={festival.end_date.valueOf() < Date.now() ? { opacity: 0.5 } : undefined}>
+                                    <div key={festival.festival_id} style={festival.end_date.isBefore(dayjs.utc()) ? { opacity: 0.5 } : undefined}>
                                         <h2>
                                             {festival.festival_name}
                                         </h2>

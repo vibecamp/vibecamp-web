@@ -34,8 +34,8 @@ class Store {
             .then(res => res.body)
             .then(f => f?.map(f => ({
                 ...f,
-                start_date: new Date(f.start_date),
-                end_date: new Date(f.end_date)
+                start_date: dayjs.utc(f.start_date),
+                end_date: dayjs.utc(f.end_date)
             })))
             .then(f => f?.sort((a, b) => festivalComparator(a) - festivalComparator(b))))
 
@@ -169,12 +169,17 @@ class Store {
     }, { keepLatest: true })
 }
 
-const festivalComparator = (festival: Tables['festival']) => {
-    const isInPast = festival.end_date.valueOf() < Date.now()
+const storeInstance = new Store()
+
+const festivalComparator = (festival: {
+    start_date: Dayjs,
+    end_date: Dayjs | null
+}) => {
+    const isInPast = festival.end_date?.isBefore(dayjs.utc())
     const oneHundredYears = 100 * ONE_YEAR_MS
     const modifier = isInPast ? oneHundredYears : 0 // push past events to the bottom of the list
 
     return festival.start_date.valueOf() + modifier
 }
 
-export default new Store()
+export default storeInstance

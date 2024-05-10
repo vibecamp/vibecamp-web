@@ -147,11 +147,11 @@ export default observer(() => {
     const loadingOrError = loading || Store.accountInfo.state.kind === 'error'
 
     return (
-        <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
+        <Col padding='20px 0' pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
             {loading
                 ? <LoadingDots size={100} color='var(--color-accent-1)' />
                 : <>
-                    <Row justify='space-between'>
+                    <Row justify='space-between' padding='0 20px'>
                         <h1 style={{ fontSize: 24 }}>
                             Events
                         </h1>
@@ -172,12 +172,12 @@ export default observer(() => {
                         options={['All', 'Bookmarked', 'Mine']}
                         value={state.filter}
                         onChange={setter(state, 'filter')}
+                        style={{ padding: '0 20px' }}
                     />
 
-                    <Spacer size={8} />
+                    <Spacer size={12} />
 
-                    {state.visibleEvents?.map(e =>
-                        <Event event={e} editEvent={state.editEvent} key={e.event_id} />)}
+                    {renderEvents(state.visibleEvents, state.editEvent)}
 
                     <Modal isOpen={state.eventBeingEdited != null} onClose={state.stopEditingEvent} side='right'>
                         {() =>
@@ -191,7 +191,38 @@ export default observer(() => {
     )
 })
 
-const Event: FC<{ event: Omit<Routes['/events']['response']['events'][number], 'start_datetime' | 'end_datetime'> & { start_datetime: Dayjs, end_datetime: Dayjs | null }, editEvent: (eventId: string) => void }> = observer((props) => {
+function renderEvents(events: typeof Store.allEvents.state.result, editEvent: (eventId: string) => void) {
+    let currentFestival: (NonNullable<typeof Store.festivals.state.result>)[number] | undefined
+
+    return events?.map(e => {
+        const festival = Store.festivals.state.result?.find(f =>
+            e.start_datetime.isAfter(f.start_date) &&
+            e.start_datetime.isBefore(f.end_date.add(1, 'day')))
+
+        const isFirst = festival !== currentFestival
+        currentFestival = festival
+
+        return (
+            <Event
+                event={e}
+                editEvent={editEvent}
+                duringFestival={currentFestival?.festival_name}
+                firstOfFestival={isFirst}
+                key={e.event_id}
+            />
+        )
+    })
+}
+
+const Event: FC<{
+    event: Omit<Routes['/events']['response']['events'][number], 'start_datetime' | 'end_datetime'> & {
+        start_datetime: Dayjs,
+        end_datetime: Dayjs | null
+    },
+    editEvent: (eventId: string) => void,
+    firstOfFestival?: boolean,
+    duringFestival?: string,
+}> = observer((props) => {
     const state = useObservableClass(class {
 
         /**
@@ -257,13 +288,19 @@ const Event: FC<{ event: Omit<Routes['/events']['response']['events'][number], '
     )
 
     return (
-        <div className={'card' + ' ' + 'eventCard' + ' ' + (props.event.created_by_account_id === '-1' ? 'official' : '') + props.event.event_type}>
-            <div className='eventName'>
-                <div>{props.event.name}</div>
+        <div className={'eventCardWrapper' + ' ' + (props.duringFestival ? 'duringFestival' : '') + ' ' + (props.firstOfFestival ? 'firstOfFestival' : '')}>
+            {props.firstOfFestival &&
+                <div className='festivalStart'>
+                    {props.duringFestival}
+                </div>}
 
-                <div style={{ flexGrow: 1, flexShrink: 1 }}></div>
+            <div className={'card' + ' ' + 'eventCard' + ' ' + (props.event.created_by_account_id === '-1' ? 'official' : '') + ' ' + props.event.event_type}>
+                <div className='eventName'>
+                    <div>{props.event.name}</div>
 
-                {props.event.created_by_account_id === Store.accountInfo.state.result?.account_id &&
+                    <div style={{ flexGrow: 1, flexShrink: 1 }}></div>
+
+                    {props.event.created_by_account_id === Store.accountInfo.state.result?.account_id &&
                     <Button onClick={state.editEvent} isCompact style={{ width: 'auto' }}>
                         Edit
 
@@ -272,16 +309,16 @@ const Event: FC<{ event: Omit<Routes['/events']['response']['events'][number], '
                         <Icon name='edit_calendar' style={{ fontSize: '1em' }} />
                     </Button>}
 
+                    <Spacer size={8} />
+
+                    <Button onClick={state.toggleBookmark} isCompact style={{ width: 'auto' }}>
+                        <Icon name='star' fill={state.bookmarked ? 1 : 0} style={{ fontSize: '1em' }} />
+                    </Button>
+                </div>
+
                 <Spacer size={8} />
 
-                <Button onClick={state.toggleBookmark} isCompact style={{ width: 'auto' }}>
-                    <Icon name='star' fill={state.bookmarked ? 1 : 0} style={{ fontSize: '1em' }} />
-                </Button>
-            </div>
-
-            <Spacer size={8} />
-
-            {eventCreatorLabel &&
+                {eventCreatorLabel &&
                 <>
                     <div className='info host' title='Host'>
                         <Icon name='person' />
@@ -293,36 +330,37 @@ const Event: FC<{ event: Omit<Routes['/events']['response']['events'][number], '
                     <Spacer size={4} />
                 </>}
 
-            <div className='info'>
-                <Icon name='schedule' />
-                <span>
-                    {state.when}
-                </span>
+                <div className='info'>
+                    <Icon name='schedule' />
+                    <span>
+                        {state.when}
+                    </span>
+                </div>
+
+                <Spacer size={4} />
+
+                <div className='info'>
+                    <Icon name='location_on' />
+                    <span>
+                        {props.event.plaintext_location || props.event.event_site_location_name}
+                    </span>
+                </div>
+
+                <Spacer size={4} />
+
+                <div className='info' title='Bookmarked by'>
+                    <Icon name='star'/>
+                    <span>
+                        {props.event.bookmarks}
+                    </span>
+                </div>
+
+                <Spacer size={8} />
+
+                <pre>
+                    {props.event.description}
+                </pre>
             </div>
-
-            <Spacer size={4} />
-
-            <div className='info'>
-                <Icon name='location_on' />
-                <span>
-                    {props.event.plaintext_location || props.event.event_site_location_name}
-                </span>
-            </div>
-
-            <Spacer size={4} />
-
-            <div className='info' title='Bookmarked by'>
-                <Icon name='star'/>
-                <span>
-                    {props.event.bookmarks}
-                </span>
-            </div>
-
-            <Spacer size={8} />
-
-            <pre>
-                {props.event.description}
-            </pre>
         </div>
     )
 })

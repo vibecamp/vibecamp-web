@@ -1,4 +1,3 @@
-import dayjs from 'dayjs'
 import React from 'react'
 
 import { TABLE_ROWS } from '../../../../back-end/types/db-types'
@@ -17,7 +16,7 @@ type Props = {
     isChild: boolean,
     showingErrors: boolean,
     showFloatingHeading?: boolean,
-    festival: Tables['festival']
+    festival: (NonNullable<typeof Store.festivals.state.result>)[number] | undefined
 }
 
 const INFO_BLURB_SPACE = 12
@@ -96,7 +95,7 @@ export default observer((props: Props) => {
 
             {props.festival &&
                 <InfoBlurb>
-                    This age should be at the time of {props.festival.festival_name} ({dayjs.utc(props.festival.start_date).format('MM/DD/YYYY')} - {dayjs.utc(props.festival.end_date).format('MM/DD/YYYY')})
+                    This age should be at the time of {props.festival.festival_name} ({props.festival.start_date.format('MM/DD/YYYY')} - {props.festival.end_date.format('MM/DD/YYYY')})
                 </InfoBlurb>}
 
             {!props.isChild &&

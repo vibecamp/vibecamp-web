@@ -1,6 +1,22 @@
+.eventCardWrapper {
+    padding: 5px 20px;
+
+    &.duringFestival {
+        background: rgba(255, 89, 0, 0.1);
+
+        &.firstOfFestival {
+            box-shadow: rgba(255, 230, 180, 0.5) 0px 10px 10px inset;
+        }
+    }
+
+    >.festivalStart {
+        padding: 12px 0 8px 0px;
+        text-align: center;
+        font-weight: bold;
+    }
+}
 
 .eventCard {
-    margin-top: 10px;
 
     >.eventName {
         font-size: 20px;
