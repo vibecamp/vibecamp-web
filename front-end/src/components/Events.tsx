@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs'
-import React, { FC } from 'react'
+import React, { FC, ReactNode } from 'react'
 
 import { TABLE_ROWS, Tables } from '../../../back-end/types/db-types'
 import { Routes } from '../../../back-end/types/route-types'
@@ -357,11 +357,31 @@ const Event: FC<{
 
                 <Spacer size={8} />
 
-                <pre>
-                    {props.event.description}
-                </pre>
+                <EventDescription description={props.event.description} />
             </div>
         </div>
+    )
+})
+
+const EventDescription: FC<{ description: string }> = observer(({ description }) => {
+    const descriptionSegments: ReactNode[] = []
+    const urlRegex = /(?:http|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))(?:[\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/igm
+    let result: RegExpExecArray | null = null
+    let lastIndex = 0
+    // eslint-disable-next-line no-cond-assign
+    while (result = urlRegex.exec(description)) {
+        descriptionSegments.push(description.substring(lastIndex, result.index))
+        const url = result[0]
+        descriptionSegments.push(<a href={url} target='_blank' rel="noreferrer" key={result.index}>{url}</a>)
+        lastIndex = result.index + url.length
+    }
+
+    descriptionSegments.push(description.substring(lastIndex))
+
+    return (
+        <pre>
+            {descriptionSegments}
+        </pre>
     )
 })
 
