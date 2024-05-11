@@ -1,8 +1,5 @@
 import { Pool, PoolClient, Transaction } from 'postgres'
 import env from '../env.ts'
-import {
-  REFERRAL_MAXES,
-} from './constants.ts'
 import { TableName, Tables } from '../types/db-types.ts'
 import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
 import { WhereClause, queryTableQuery, insertTableQuery, updateTableQuery, deleteTableQuery } from './db-inner.ts'

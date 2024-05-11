@@ -106,3 +106,11 @@ export const purchaseTypeAvailableNow = (purchaseType: Tables['purchase_type']) 
     (available_to == null || now <= new Date(available_to).valueOf())
   )
 }
+
+export function given<T, R>(val: T | null | undefined, fn: (val: T) => R): R | null | undefined {
+  if (val != null) {
+    return fn(val)
+  } else {
+    return val as null | undefined
+  }
+}

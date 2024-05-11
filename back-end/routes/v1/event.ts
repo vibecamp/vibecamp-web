@@ -2,6 +2,12 @@ import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
 import { withDBConnection } from '../../utils/db.ts'
 import { Tables } from '../../types/db-types.ts'
+import dayjs from '../../utils/dayjs.ts'
+import { given } from '../../utils/misc.ts'
+
+const UTC_OFFSET_MINUTES = dayjs().utcOffset()
+
+const stringifyDate = (date: Date) => dayjs.utc(date).add(UTC_OFFSET_MINUTES, 'minutes').toISOString()
 
 const stringifyStartAndEndDates = <T extends Tables['event']>(event: T):
   Omit<T, 'start_datetime' | 'end_datetime'> & {
@@ -9,8 +15,8 @@ const stringifyStartAndEndDates = <T extends Tables['event']>(event: T):
     end_datetime: string | null
   } => ({
     ...event,
-    start_datetime: event.start_datetime.toISOString(),
-    end_datetime: event.end_datetime?.toISOString() ?? null
+    start_datetime: stringifyDate(event.start_datetime),
+    end_datetime: given(event.end_datetime, stringifyDate) ?? null
   })
 
 export default function register(router: Router) {
