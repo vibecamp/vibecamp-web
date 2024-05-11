@@ -196,8 +196,8 @@ function renderEvents(events: typeof Store.allEvents.state.result, editEvent: (e
 
     return events?.map(e => {
         const festival = Store.festivals.state.result?.find(f =>
-            e.start_datetime.isAfter(f.start_date) &&
-            e.start_datetime.isBefore(f.end_date.add(1, 'day')))
+            e.start_datetime.isAfter(f.start_date.startOf('day')) &&
+            e.start_datetime.isBefore(f.end_date.endOf('day')))
 
         const isFirst = festival !== currentFestival
         currentFestival = festival
