@@ -3,12 +3,12 @@ import React, { FC } from 'react'
 
 import { TABLE_ROWS, Tables } from '../../../back-end/types/db-types'
 import { Routes } from '../../../back-end/types/route-types'
-import { objectEntries, objectFromEntries } from '../../../back-end/utils/misc'
+import { given, objectEntries, objectFromEntries } from '../../../back-end/utils/misc'
 import { useObservableClass } from '../mobx/hooks'
 import { observer, setter,setTo } from '../mobx/misc'
 import { request } from '../mobx/request'
 import Store from '../stores/Store'
-import { fieldProps, given, preventingDefault, someValue, validate } from '../utils'
+import { fieldProps, preventingDefault, someValue, validate } from '../utils'
 import { vibefetch } from '../vibefetch'
 import Button from './core/Button'
 import Col from './core/Col'
@@ -236,7 +236,7 @@ const Event: FC<{
         }
 
         get when() {
-            const now = dayjs()
+            const now = dayjs.utc()
             const timeOnly = 'h:mma'
             const dateAndTime = (d: Dayjs) => (
                 now.isSame(d, 'year')
