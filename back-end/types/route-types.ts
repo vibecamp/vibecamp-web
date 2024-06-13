@@ -4,8 +4,7 @@ import { AttendeeInfo, FullAccountInfo } from "./misc.ts";
 export type Routes = {
   "/account/cabin": {
     method: "get";
-    body: Pick<Tables["attendee"], "attendee_id"> &
-      Pick<Tables["festival"], "festival_id">;
+    body: undefined;
     response: { cabin_name: string };
   };
   "/account": {
