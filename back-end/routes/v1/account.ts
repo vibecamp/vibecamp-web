@@ -38,24 +38,27 @@ export default function register(router: Router) {
 
         const attendee_id = attendee.attendee_id;
 
-        const cabin = await db.queryTable("attendee_cabin", {
+        const cabins = await db.queryTable("attendee_cabin", {
           where: ["attendee_id", "=", attendee_id],
         });
 
-        if (cabin.length === 0) {
+        const cabin = cabins[0];
+
+        if (cabin === undefined) {
           return [{ cabin_name: "" }, Status.OK];
         }
 
-        const cabinName = await db.queryTable("cabin", {
-          where: ["cabin_id", "=", cabin[0].cabin_id],
+        const cabinNames = await db.queryTable("cabin", {
+          where: ["cabin_id", "=", cabin.cabin_id],
         });
         // 8983e8b4-b3f8-4420-ba65-2f7fa757ec1a
+        const cabinName = cabinNames[0];
 
-        if (cabinName.length === 0) {
+        if (cabinName === undefined) {
           return [{ cabin_name: "error: cabin not found" }, Status.OK];
         }
 
-        return [{ cabin_name: cabinName[0].name }, Status.OK];
+        return [{ cabin_name: cabinName.name }, Status.OK];
       });
     },
   });
