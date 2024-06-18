@@ -1,9 +1,6 @@
-import { autorun } from 'mobx'
-import React, { CSSProperties } from 'react'
+import React, { CSSProperties, useCallback, useEffect, useState } from 'react'
 import { ChangeEvent } from 'react'
 
-import { useObservableClass } from '../../mobx/hooks'
-import { observer } from '../../mobx/misc'
 import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 
@@ -14,46 +11,44 @@ type Props = CommonFieldProps<number | null> & {
     style?: CSSProperties // HACK
 }
 
-export default observer((props: Props) => {
-    const state = useObservableClass(class {
-        strValue = String(props.value)
+export default React.memo(({ label, value, onChange, onBlur, disabled, error, placeholder, min, max, style }: Props) => {
+    const [strValue, setStrValue] = useState(String(value))
 
-        readonly strUpdater = autorun(() => {
-            this.strValue = String(props.value)
-        })
+    useEffect(() => {
+        setStrValue(String(value))
+    }, [value])
 
-        readonly handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value
+    const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
 
-            this.strValue = value
+        setStrValue(value)
 
-            const parsed = Number(value)
+        const parsed = Number(value)
 
-            if (value !== '' && !isNaN(parsed) && (props.min == null || parsed >= props.min) && (props.max == null || parsed <= props.max)) {
-                props.onChange(parsed)
-            }
+        if (value !== '' && !isNaN(parsed) && (min == null || parsed >= min) && (max == null || parsed <= max)) {
+            onChange(parsed)
         }
-    })
+    }, [max, min, onChange])
 
     return (
-        <label className='number-input' style={props.style}>
-            <div className='label'>{props.label}</div>
+        <label className='number-input' style={style}>
+            <div className='label'>{label}</div>
 
             <input
                 type='number'
                 inputMode='numeric'
-                placeholder={props.placeholder}
+                placeholder={placeholder}
                 step={1}
-                value={state.strValue}
-                onChange={state.handleChange}
+                value={strValue}
+                onChange={handleChange}
                 ref={disableWheel}
-                onBlur={props.onBlur}
-                disabled={props.disabled}
-                min={props.min}
-                max={props.max}
+                onBlur={onBlur}
+                disabled={disabled}
+                min={min}
+                max={max}
             />
 
-            <ErrorMessage error={props.error} />
+            <ErrorMessage error={error} />
         </label>
     )
 })

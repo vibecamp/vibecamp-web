@@ -1,7 +1,5 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 
-import { useStable } from '../../mobx/hooks'
-import { observer } from '../../mobx/misc'
 import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 
@@ -9,24 +7,26 @@ type Props = Omit<CommonFieldProps<boolean>, 'label'> & {
     children: React.ReactNode
 }
 
-export default observer((props: Props) => {
-    const handleChange = useStable(() => () => props.onChange(!props.value))
+export default React.memo(({ value, onChange, disabled, onBlur, error, children }: Props) => {
+    const handleChange = useCallback(() => {
+        onChange(!value)
+    }, [onChange, value])
 
     return (
-        <label className={'checkbox' + ' ' + (props.disabled ? 'disabled' : '')}>
+        <label className={'checkbox' + ' ' + (disabled ? 'disabled' : '')}>
             <input
                 type='checkbox'
-                checked={props.value}
+                checked={value}
                 onChange={handleChange}
-                onBlur={props.onBlur}
-                disabled={props.disabled}
-                aria-invalid={typeof props.error === 'string'}
-                aria-errormessage={typeof props.error === 'string' ? props.error : undefined}
+                onBlur={onBlur}
+                disabled={disabled}
+                aria-invalid={typeof error === 'string'}
+                aria-errormessage={typeof error === 'string' ? error : undefined}
             />
 
-            {props.children}
+            {children}
 
-            <ErrorMessage error={props.error} />
+            <ErrorMessage error={error} />
         </label>
     )
 })

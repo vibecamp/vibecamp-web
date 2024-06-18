@@ -1,12 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/utils/validation'
-import { useObservableClass } from '../mobx/hooks'
-import { observer, setter } from '../mobx/misc'
-import { request } from '../mobx/request'
-import WindowObservables from '../mobx/WindowObservables'
-import Store from '../stores/Store'
-import { DEFAULT_FORM_ERROR, preventingDefault } from '../utils'
+import useForm, { fieldToProps } from '../hooks/useForm'
+import useHashState from '../hooks/useHashState'
+import { useStore } from '../hooks/useStore'
+import { DEFAULT_FORM_ERROR } from '../utils'
 import { vibefetch } from '../vibefetch'
 import Button from './core/Button'
 import Col from './core/Col'
@@ -15,115 +13,85 @@ import Input from './core/Input'
 import Spacer from './core/Spacer'
 import Stripes from './core/Stripes'
 
-export default observer(() => {
-    const state = useObservableClass(class {
-        mode: 'login' | 'signup' | 'forgot-password' | 'new-password' = (
-            typeof WindowObservables.hashState?.passwordResetSecret === 'string'
-                ? 'new-password'
-                : 'login'
-        )
-
-        emailAddress = ''
-        password = ''
-        passwordConfirmation = ''
-
-        passwordResetEmailSent = false
-
-        get emailAddressError() {
-            if (this.mode !== 'new-password') {
-                return getEmailValidationError(this.emailAddress)
-            }
-        }
-
-        get passwordError() {
-            if (this.mode !== 'forgot-password') {
-                return getPasswordValidationError(this.password)
-            }
-        }
-
-        get passwordConfirmationError() {
-            if (this.mode === 'signup' && this.password !== this.passwordConfirmation) {
-                return 'Passwords don\'t match'
-            }
-        }
-
-        readonly goToLogin = () => {
-            this.mode = 'login'
-        }
-
-        readonly goToSignup = () => {
-            this.mode = 'signup'
-        }
-
-        readonly goToForgotPassword = () => {
-            this.mode = 'forgot-password'
-        }
-
-        readonly loginOrSignup = request(async () => {
-            const validationError = (
-                this.emailAddressError ||
-                this.passwordError ||
-                this.passwordConfirmationError
-            )
-
-            if (validationError) {
-                return { fieldError: true }
-            }
-
-            if (state.mode === 'forgot-password') {
+export default React.memo(() => {
+    const store = useStore()
+    const { hashState } = useHashState()
+    const [mode, setMode] = useState<'login' | 'signup' | 'forgot-password' | 'new-password'>(
+        typeof hashState?.passwordResetSecret === 'string'
+            ? 'new-password'
+            : 'login'
+    )
+    const [passwordResetEmailSent, setPasswordResetEmailSent] = useState(false)
+    const loginForm = useForm({
+        initial: {
+            emailAddress: '',
+            password: '',
+            passwordConfirmation: ''
+        },
+        validators: {
+            emailAddress: emailAddress => {
+                if (mode !== 'new-password') {
+                    return getEmailValidationError(emailAddress)
+                }
+            },
+            password: password => {
+                if (mode !== 'forgot-password') {
+                    return getPasswordValidationError(password)
+                }
+            },
+            passwordConfirmation: (passwordConfirmation, { password }) => {
+                if (mode === 'signup' && password !== passwordConfirmation) {
+                    return 'Passwords don\'t match'
+                }
+            },
+        },
+        submit: async ({ emailAddress, password }, reset) => {
+            if (mode === 'forgot-password') {
                 const { status } = await vibefetch(null, '/account/send-password-reset-email', 'post', {
-                    email_address: this.emailAddress
+                    email_address: emailAddress
                 })
 
                 if (status !== 200) {
-                    return { submissionError: DEFAULT_FORM_ERROR }
+                    return DEFAULT_FORM_ERROR
                 }
 
-                state.passwordResetEmailSent = true
-            } else if (state.mode === 'new-password') {
+                setPasswordResetEmailSent(true)
+            } else if (mode === 'new-password') {
                 const { body } = await vibefetch(null, '/account/reset-password', 'put', {
-                    password: this.password,
-                    secret: WindowObservables.hashState?.passwordResetSecret as string
+                    password: password,
+                    secret: hashState?.passwordResetSecret as string
                 })
                 const { jwt } = body ?? {}
 
                 if (jwt == null) {
-                    return { submissionError: DEFAULT_FORM_ERROR }
+                    return DEFAULT_FORM_ERROR
                 }
 
-                Store.jwt = jwt
-                this.emailAddress = this.password = this.passwordConfirmation = ''
+                store.setJwt(jwt)
+                reset()
             } else {
-                const { body, status } = await vibefetch(null, `/${state.mode}`, 'post', {
-                    email_address: this.emailAddress,
-                    password: this.password
+                const { body, status } = await vibefetch(null, `/${mode}`, 'post', {
+                    email_address: emailAddress,
+                    password: password
                 })
                 const { jwt } = body ?? {}
 
-                if (state.mode === 'login' && status === 401) {
-                    return { submissionError: 'Incorrect email or password' }
+                if (mode === 'login' && status === 401) {
+                    return 'Incorrect email or password'
                 }
 
                 if (jwt == null) {
-                    return { submissionError: DEFAULT_FORM_ERROR }
+                    return DEFAULT_FORM_ERROR
                 }
 
-                Store.jwt = jwt
-                this.emailAddress = this.password = this.passwordConfirmation = ''
+                store.setJwt(jwt)
+                reset()
             }
-        }, { lazy: true })
+        }
     })
 
-    const submissionState = state.loginOrSignup.state
-    const loading = submissionState.kind === 'loading'
-    const submissionError = (
-        submissionState.kind === 'error'
-            ? DEFAULT_FORM_ERROR
-            : submissionState.result?.submissionError
-    )
-
     return (
-        <form className='login' onSubmit={preventingDefault(state.loginOrSignup.load)} noValidate>
+        <form className='login' onSubmit={loginForm.handleSubmit} noValidate>
             <Col padding={20}>
                 <Stripes position='top-left' />
 
@@ -131,53 +99,47 @@ export default observer(() => {
 
                 <Spacer size={24} />
 
-                {state.mode !== 'new-password' &&
+                {mode !== 'new-password' &&
                     <Input
                         label='Email address'
                         type='email'
-                        disabled={loading}
-                        autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
-                        value={state.emailAddress}
-                        onChange={setter(state, 'emailAddress')}
-                        error={submissionState.result?.fieldError ? state.emailAddressError : undefined}
+                        disabled={loginForm.submitting}
+                        autocomplete={mode === 'login' ? 'current-password' : 'new-password'}
+                        {...fieldToProps(loginForm.fields.emailAddress)}
                     />}
 
-                {state.mode !== 'forgot-password' &&
+                {mode !== 'forgot-password' &&
                     <>
                         <Spacer size={16} />
 
                         <Input
-                            label={state.mode === 'login' ? 'Password' : 'New password'}
+                            label={mode === 'login' ? 'Password' : 'New password'}
                             type='password'
-                            disabled={loading}
-                            autocomplete={state.mode === 'login' ? 'current-password' : 'new-password'}
-                            value={state.password}
-                            onChange={setter(state, 'password')}
-                            error={submissionState.result?.fieldError ? state.passwordError : undefined}
+                            disabled={loginForm.submitting}
+                            autocomplete={mode === 'login' ? 'current-password' : 'new-password'}
+                            {...fieldToProps(loginForm.fields.password)}
                         />
                     </>
                 }
 
-                {(state.mode === 'signup' || state.mode === 'new-password') &&
+                {(mode === 'signup' || mode === 'new-password') &&
                     <>
                         <Spacer size={16} />
 
                         <Input
-                            label={state.mode === 'new-password' ? 'Confirm new password' : 'Confirm password'}
+                            label={mode === 'new-password' ? 'Confirm new password' : 'Confirm password'}
                             type='password'
-                            disabled={loading}
-                            value={state.passwordConfirmation}
-                            onChange={setter(state, 'passwordConfirmation')}
-                            error={submissionState.result?.fieldError ? state.passwordConfirmationError : undefined}
+                            disabled={loginForm.submitting}
+                            {...fieldToProps(loginForm.fields.passwordConfirmation)}
                         />
                     </>
                 }
 
                 <Spacer size={8} />
 
-                <ErrorMessage error={submissionError} />
+                <ErrorMessage error={loginForm.wholeFormError} />
 
-                {state.passwordResetEmailSent &&
+                {passwordResetEmailSent &&
                     <>
                         <Spacer size={8} />
 
@@ -188,32 +150,32 @@ export default observer(() => {
 
                 <Spacer size={24} />
 
-                <Button isSubmit isPrimary isLoading={loading} disabled={state.passwordResetEmailSent}>
-                    {state.mode === 'login' ? 'Log in'
-                        : state.mode === 'signup' ? 'Sign up'
-                            : state.mode === 'forgot-password' ? 'Reset password'
+                <Button isSubmit isPrimary isLoading={loginForm.submitting} disabled={passwordResetEmailSent}>
+                    {mode === 'login' ? 'Log in'
+                        : mode === 'signup' ? 'Sign up'
+                            : mode === 'forgot-password' ? 'Reset password'
                                 : 'Update password'}
                 </Button>
 
-                {state.mode === 'login'
+                {mode === 'login'
                     ? <>
                         <Spacer size={8} />
 
-                        <Button onClick={state.goToSignup}>Create an account</Button>
+                        <Button onClick={() => setMode('signup')}>Create an account</Button>
                     </>
-                    : state.mode === 'signup'
+                    : mode === 'signup'
                         ? <>
                             <Spacer size={8} />
 
-                            <Button onClick={state.goToLogin}>I already have an account</Button>
+                            <Button onClick={() => setMode('login')}>I already have an account</Button>
                         </>
                         : null}
 
                 <Spacer size={8} />
 
-                {state.mode !== 'forgot-password' && state.mode !== 'new-password'
-                    ? <Button onClick={state.goToForgotPassword}>Forgot your password?</Button>
-                    : <Button onClick={state.goToLogin}>Back to login</Button>}
+                {mode !== 'forgot-password' && mode !== 'new-password'
+                    ? <Button onClick={() => setMode('forgot-password')}>Forgot your password?</Button>
+                    : <Button onClick={() => setMode('login')}>Back to login</Button>}
 
             </Col>
         </form>

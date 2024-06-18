@@ -2,7 +2,7 @@ import { Routes } from '../../back-end/types/route-types'
 import env from './env'
 export const API_PREFIX = '/api/v1'
 
-export async function vibefetch<TEndpoint extends keyof Routes>(jwt: string | null, input: TEndpoint, method: Routes[TEndpoint]['method'], body: Routes[TEndpoint]['body']) {
+export async function vibefetch<TEndpoint extends keyof Routes>(jwt: string | null | undefined, input: TEndpoint, method: Routes[TEndpoint]['method'], body: Routes[TEndpoint]['body']) {
     const res = await fetch(env.BACK_END_ORIGIN + API_PREFIX + input, {
         method,
         headers: {

@@ -1,10 +1,9 @@
 import React from 'react'
 
-import { observer } from '../../mobx/misc'
 import InfoBlurb from '../core/InfoBlurb'
 import Spacer from '../core/Spacer'
 
-export default observer(() => {
+export default React.memo(() => {
     const inviteCodes = [] // Store.accountInfo.state.result?.inviteCodes
 
     // if (inviteCodes == null || inviteCodes.length === 0) {

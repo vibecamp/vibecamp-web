@@ -1,8 +1,4 @@
-import { createTransformer } from 'mobx-utils'
 import React, { CSSProperties } from 'react'
-
-import { useStable } from '../../mobx/hooks'
-import { observer } from '../../mobx/misc'
 
 type Props<TOption extends string|number> = {
     label?: string,
@@ -13,27 +9,25 @@ type Props<TOption extends string|number> = {
     style?: CSSProperties
 }
 
-function RowSelect<TOption extends string|number>(props: Props<TOption>) {
-    const handleChange = useStable(() => createTransformer((option: TOption) => () => props.onChange(option)))
-
+function RowSelect<TOption extends string|number>({ style, value, onChange, label, options, disabled }: Props<TOption>) {
     return (
-        <div className='row-select' style={{ ...props.style, '--selection-index': props.value != null ? props.options.indexOf(props.value) : -1, '--selection-options': props.options.length } as CSSProperties}>
-            {props.label &&
+        <div className='row-select' style={{ ...style, '--selection-index': value != null ? options.indexOf(value) : -1, '--selection-options': options.length } as CSSProperties}>
+            {label &&
                 <div className='label'>
-                    {props.label}
+                    {label}
                 </div>}
 
             <div className='options'>
-                {props.options.map((option, index) =>
-                    <label className={option === props.value ? 'selected' : ''} key={index}>
+                {options.map((option, index) =>
+                    <label className={option === value ? 'selected' : ''} key={index}>
                         {option}
 
                         <input
                             type='radio'
                             value={option}
-                            checked={option === props.value}
-                            onChange={handleChange(option)}
-                            disabled={props.disabled}
+                            checked={option === value}
+                            onChange={() => onChange(option)}
+                            disabled={disabled}
                         />
                     </label>)}
             </div>
@@ -41,4 +35,4 @@ function RowSelect<TOption extends string|number>(props: Props<TOption>) {
     )
 }
 
-export default observer(RowSelect)
+export default React.memo(RowSelect) as typeof RowSelect

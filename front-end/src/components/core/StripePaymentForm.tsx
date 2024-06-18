@@ -1,13 +1,11 @@
 import { Elements,PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import { loadStripe,StripeElementsOptions } from '@stripe/stripe-js'
-import React, { FC } from 'react'
+import React, { FC, useCallback, useState } from 'react'
 
 import { Purchases } from '../../../../back-end/types/route-types'
 import env from '../../env'
-import { useObservableClass, useValuesObservable } from '../../mobx/hooks'
-import { observer } from '../../mobx/misc'
-import { request } from '../../mobx/request'
-import { fieldProps,preventingDefault } from '../../utils'
+import { usePromise } from '../../hooks/usePromise'
+import { preventingDefault } from '../../utils'
 import PriceBreakdown from '../tickets/PriceBreakdown'
 import Button from './Button'
 import Col from './Col'
@@ -24,7 +22,7 @@ type Props = {
     onCompletePurchase?: () => Promise<void> | void,
 }
 
-export default observer(({ stripeOptions, ...otherProps }: Props) => {
+export default React.memo(({ stripeOptions, ...otherProps }: Props) => {
     if (stripeOptions == null) {
         return null
     }
@@ -36,72 +34,69 @@ export default observer(({ stripeOptions, ...otherProps }: Props) => {
     )
 })
 
-const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = observer(props => {
-    const stripeStuff = useValuesObservable({
-        stripe: useStripe(),
-        elements: useElements()
-    })
+const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = React.memo(({ purchases, onCompletePurchase }) => {
+    const stripe = useStripe()
+    const elements = useElements()
 
-    const state = useObservableClass(class {
-        discountCode = ''
+    const [discountCode, setDiscountCode] = useState('')
 
-        readonly confirmPayment = request(async () => {
-            if (!stripeStuff.stripe || !stripeStuff.elements) {
-                console.error('Stripe not initialized yet')
-                return
-            }
+    const confirmPayment = usePromise(async () => {
+        if (!stripe || !elements) {
+            console.error('Stripe not initialized yet')
+            return
+        }
 
-            const { error } = await stripeStuff.stripe.confirmPayment({
-                elements: stripeStuff.elements,
-                confirmParams: {
-                    return_url: location.origin,
-                },
-                redirect: 'if_required'
-            })
+        const { error } = await stripe.confirmPayment({
+            elements: elements,
+            confirmParams: {
+                return_url: location.origin,
+            },
+            redirect: 'if_required'
+        })
 
-            // This point will only be reached if there is an immediate error when
-            // confirming the payment. Otherwise, your customer will be redirected to
-            // your `return_url`. For some payment methods like iDEAL, your customer will
-            // be redirected to an intermediate site first to authorize the payment, then
-            // redirected to the `return_url`.
-            if (error?.type === 'card_error' || error?.type === 'validation_error') {
-                return error.message
-            } else if (error != null) {
-                return 'An unexpected error occurred.'
-            } else {
-                await props.onCompletePurchase?.()
-            }
-        }, { lazy: true })
-    })
+        // This point will only be reached if there is an immediate error when
+        // confirming the payment. Otherwise, your customer will be redirected to
+        // your `return_url`. For some payment methods like iDEAL, your customer will
+        // be redirected to an intermediate site first to authorize the payment, then
+        // redirected to the `return_url`.
+        if (error?.type === 'card_error' || error?.type === 'validation_error') {
+            return error.message
+        } else if (error != null) {
+            return 'An unexpected error occurred.'
+        } else {
+            await onCompletePurchase?.()
+        }
+    }, [elements, onCompletePurchase, stripe], { lazy: true })
 
     return (
-        !stripeStuff.stripe || !stripeStuff.elements
+        !stripe || !elements
             ? <LoadingDots size={60} color='var(--color-accent-1)' />
-            : <form id="payment-form" onSubmit={preventingDefault(state.confirmPayment.load)} noValidate>
+            : <form id="payment-form" onSubmit={preventingDefault(confirmPayment.load)} noValidate>
                 <Col padding={20} pageLevel>
                     <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
 
-                    {props.purchases &&
+                    {purchases &&
                         <>
                             <Spacer size={16} />
 
-                            <PriceBreakdown purchases={props.purchases} />
+                            <PriceBreakdown purchases={purchases} />
                         </>}
 
                     <Spacer size={16} />
 
                     <Input
                         label='Discount code (optional)'
-                        {...fieldProps(state, 'discountCode')}
+                        value={discountCode}
+                        onChange={setDiscountCode}
                     />
 
                     <Spacer size={16} />
 
-                    <ErrorMessage error={state.confirmPayment.state.result} />
+                    <ErrorMessage error={confirmPayment.state.result} />
 
                     <Spacer size={8} />
 
-                    <Button isSubmit isPrimary isLoading={state.confirmPayment.state.kind === 'loading'}>
+                    <Button isSubmit isPrimary isLoading={confirmPayment.state.kind === 'loading'}>
                         Pay now
                     </Button>
                 </Col>

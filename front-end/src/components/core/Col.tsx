@@ -1,7 +1,5 @@
 import React, { CSSProperties } from 'react'
 
-import { observer } from '../../mobx/misc'
-
 type Props = {
     align?: 'start' | 'center' | 'end' | 'stretch',
     justify?: 'start' | 'center' | 'end' | 'space-between' | 'space-around',
@@ -10,13 +8,13 @@ type Props = {
     children: React.ReactNode
 }
 
-export default observer((props: Props) => {
+export default React.memo(({ pageLevel, padding, align, justify, children }: Props) => {
     return (
         <div
-            className={`col ${props.pageLevel ? 'page-level' : ''}`}
-            style={{ alignItems: props.align, justifyContent: props.justify, padding: props.padding }}
+            className={`col ${pageLevel ? 'page-level' : ''}`}
+            style={{ alignItems: align, justifyContent: justify, padding: padding }}
         >
-            {props.children}
+            {children}
         </div>
     )
 })

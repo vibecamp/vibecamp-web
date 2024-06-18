@@ -1,8 +1,6 @@
 import React from 'react'
 
-import { observer } from '../mobx/misc'
-
-export default observer(() => {
+export default React.memo(() => {
 
     return <h1>Info</h1>
 })

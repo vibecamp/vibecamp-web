@@ -24,7 +24,7 @@ export type FullAccountInfo =
         // }>
     }
 
-export type AttendeeInfo = Omit<Tables['attendee'], 'attendee_id' | 'notes' | 'associated_account_id' | 'festival_id'> & {
+export type AttendeeInfo = Omit<Tables['attendee'], 'attendee_id' | 'notes' | 'associated_account_id'> & {
     attendee_id?: Tables['attendee']['attendee_id']
 }
 

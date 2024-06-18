@@ -1,27 +1,41 @@
-import { makeAutoObservable } from 'mobx'
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 
 import { Tables } from '../../../../back-end/types/db-types'
-import { useStable } from '../../mobx/hooks'
-import { observer } from '../../mobx/misc'
-import WindowObservables from '../../mobx/WindowObservables'
-import { PurchaseForm } from '../../stores/PurchaseForm'
-import Store from '../../stores/Store'
+import useHashState from '../../hooks/useHashState'
+import usePurchaseFormState from '../../hooks/usePurchaseFormState'
+import { useStore } from '../../hooks/useStore'
 import { wait } from '../../utils'
 import MultiView from '../core/MultiView'
 import StripePaymentForm from '../core/StripePaymentForm'
 import SelectionView from './SelectionView'
 
-export default observer(() => {
-    const campChampionsID = Store.festivalSites.state.result?.find(f => f.festival_site_name === 'Camp Champions')!.festival_site_id
-    const festivalsAtCampChampions = Store.festivals.state.result?.filter(f => f.festival_site_id === campChampionsID)
+export default React.memo(() => {
+    const store = useStore()
+    const { hashState, setHashState } = useHashState()
 
-    const purchaseForm = useStable(() => {
-        const isAtCampChampions = festivalsAtCampChampions != null && festivalsAtCampChampions.some(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)
-        const existingTickets = Store.purchasedTicketsByFestival[WindowObservables.hashState?.ticketPurchaseModalState as Tables['festival']['festival_id']]
-        const hasTicketsForThisFestival = (existingTickets ?? []).length > 0
-        return makeAutoObservable(new PurchaseForm(!hasTicketsForThisFestival, isAtCampChampions && !hasTicketsForThisFestival))
-    })
+    const campChampionsID = useMemo(() =>
+        store.festivalSites.state.result?.find(f => f.festival_site_name === 'Camp Champions')!.festival_site_id
+    , [store.festivalSites.state.result])
+
+    const festivalsAtCampChampions = useMemo(() =>
+        store.festivals.state.result?.filter(f => f.festival_site_id === campChampionsID)
+    , [campChampionsID, store.festivals.state.result])
+
+    const isAtCampChampions = festivalsAtCampChampions != null && festivalsAtCampChampions.some(f => f.festival_id === hashState?.ticketPurchaseModalState)
+    const existingTickets = store.purchasedTicketsByFestival[hashState?.ticketPurchaseModalState as Tables['festival']['festival_id']]
+    const hasTicketsForThisFestival = (existingTickets ?? []).length > 0
+    const purchaseFormState = usePurchaseFormState({ isInitialPurchase: !hasTicketsForThisFestival, needsWaiverClicked: isAtCampChampions && !hasTicketsForThisFestival })
+
+    const handlePurchaseCompletion = useCallback(async () => {
+        // HACK: When the purchase flow completes, the webhook will take an
+        // indeterminate amount of time to record the purchases. So, we wait a couple
+        // seconds before refreshing the list, which should usually be enough
+        await wait(2000)
+
+        setHashState({ currentView: 'Tickets', ticketPurchaseModalState: null })
+
+        await store.accountInfo.load()
+    }, [setHashState, store.accountInfo])
 
     return (
         <MultiView
@@ -29,32 +43,21 @@ export default observer(() => {
                 {
                     name: 'selection', content:
                         <SelectionView
-                            purchaseForm={purchaseForm}
-                            goToNext={purchaseForm.goToTicketPayment}
-                            festival={Store.festivals.state.result?.find(f => f.festival_id === WindowObservables.hashState?.ticketPurchaseModalState)}
+                            purchaseFormState={purchaseFormState}
+                            goToNext={purchaseFormState.goToTicketPayment}
+                            festival={store.festivals.state.result?.find(f => f.festival_id === hashState?.ticketPurchaseModalState)}
                         />
                 },
                 {
                     name: 'payment', content:
                         <StripePaymentForm
-                            stripeOptions={purchaseForm.stripeOptions.state.result}
-                            purchases={purchaseForm.purchases}
+                            stripeOptions={purchaseFormState.stripeOptions.state.result}
+                            purchases={purchaseFormState.purchases}
                             onCompletePurchase={handlePurchaseCompletion}
                         />
                 }
             ]}
-            currentView={WindowObservables.hashState?.ticketPurchaseModalState === 'payment' ? 'payment' : 'selection'}
+            currentView={hashState?.ticketPurchaseModalState === 'payment' ? 'payment' : 'selection'}
         />
     )
 })
-
-const handlePurchaseCompletion = async () => {
-    // HACK: When the purchase flow completes, the webhook will take an
-    // indeterminate amount of time to record the purchases. So, we wait a couple
-    // seconds before refreshing the list, which should usually be enough
-    await wait(2000)
-
-    WindowObservables.assignHashState({ currentView: 'Tickets', ticketPurchaseModalState: null })
-
-    await Store.accountInfo.load()
-}

@@ -1,7 +1,5 @@
 import React, { CSSProperties } from 'react'
 
-import { observer } from '../../mobx/misc'
-
 type Props = {
     name: MaterialIconName,
     fill?: number,
@@ -31,16 +29,16 @@ export type MaterialIconName =
     | 'info'
     | 'star'
 
-export default observer((props: Props) => {
+export default React.memo(({ fill, style: _style, name }: Props) => {
     const style = {
-        fontVariationSettings: `'FILL' ${props.fill}, 'wght' 400, 'GRAD' 0, 'opsz' 24`,
+        fontVariationSettings: `'FILL' ${fill}, 'wght' 400, 'GRAD' 0, 'opsz' 24`,
         transition: 'font-variation-settings 0.1s ease-out',
-        ...props.style
+        ..._style
     }
 
     return (
         <span className="icon material-symbols-outlined" style={style}>
-            {props.name}
+            {name}
         </span>
     )
 })

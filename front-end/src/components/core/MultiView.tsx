@@ -1,7 +1,5 @@
 import React, { CSSProperties, ReactNode } from 'react'
 
-import { observer } from '../../mobx/misc'
-
 type Props<TView> = {
     views: readonly { readonly name: TView, readonly content: ReactNode }[],
     currentView: TView,
@@ -23,4 +21,4 @@ function MultiView<TView>({ views, currentView }: Props<TView>) {
     )
 }
 
-export default observer(MultiView) as typeof MultiView
+export default React.memo(MultiView) as typeof MultiView

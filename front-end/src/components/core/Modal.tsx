@@ -1,8 +1,5 @@
-import { autorun } from 'mobx'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
-import { useObservableClass } from '../../mobx/hooks'
-import { observer } from '../../mobx/misc'
 import Icon from './Icon'
 
 type Props = {
@@ -13,57 +10,55 @@ type Props = {
     children: () => React.ReactNode
 }
 
-export default observer((props: Props) => {
-    const state = useObservableClass(class {
-        modalState: 'closed' | 'opening' | 'open' | 'closing' = props.isOpen ? 'open' : 'closed'
+export default React.memo(({ isOpen, onClose, title, side, children }: Props) => {
+    const [modalState, setModalState] = useState<'closed' | 'opening' | 'open' | 'closing'>(isOpen ? 'open' : 'closed')
 
-        readonly stateTransitioner = autorun(() => {
-            if (props.isOpen) {
-                if (this.modalState === 'closed') {
-                    this.modalState = 'opening'
-                } else if (this.modalState === 'opening') {
-                    requestAnimationFrame(() =>
-                        this.modalState = 'open')
-                }
-            } else {
-                if (this.modalState === 'open') {
-                    this.modalState = 'closing'
-                } else if (this.modalState === 'closing') {
-                    setTimeout(() => {
-                        this.modalState = 'closed'
-                    }, 200)
-                }
+    useEffect(() => {
+        if (isOpen) {
+            if (modalState === 'closed') {
+                setModalState('opening')
+            } else if (modalState === 'opening') {
+                requestAnimationFrame(() =>
+                    setModalState('open'))
             }
-        })
-    })
+        } else {
+            if (modalState === 'open') {
+                setModalState('closing')
+            } else if (modalState === 'closing') {
+                setTimeout(() => {
+                    setModalState('closed')
+                }, 200)
+            }
+        }
+    }, [isOpen, modalState])
 
-    if (state.modalState === 'closed') {
+    if (modalState === 'closed') {
         return null
     }
 
     return (
-        <div className={'modal' + ' ' + props.side + ' ' + state.modalState}>
-            <dialog className='dialog' aria-modal={state.modalState === 'open'}>
+        <div className={'modal' + ' ' + side + ' ' + modalState}>
+            <dialog className='dialog' aria-modal={modalState === 'open'}>
 
-                {(props.onClose || props.title) &&
+                {(onClose || title) &&
                     <div className='header'>
-                        {props.onClose != null &&
-                            <button onClick={props.onClose}>
+                        {onClose != null &&
+                            <button onClick={onClose}>
                                 <Icon name='arrow_back_ios' />
 
                                 Back
                             </button>}
 
                         <span className='title'>
-                            {props.title}
+                            {title}
                         </span>
 
-                        {props.onClose != null &&
+                        {onClose != null &&
                             <span className='balancer'></span>}
                     </div>}
 
                 <div className="content">
-                    {props.children()}
+                    {children()}
                 </div>
 
             </dialog>

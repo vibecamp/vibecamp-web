@@ -1,7 +1,5 @@
 import React, { CSSProperties } from 'react'
 
-import { observer } from '../../mobx/misc'
-
 type Props = {
     align?: 'start' | 'center' | 'end' | 'stretch',
     justify?: 'start' | 'center' | 'end' | 'space-between' | 'space-around',
@@ -9,10 +7,10 @@ type Props = {
     children: React.ReactNode
 }
 
-export default observer((props: Props) => {
+export default React.memo(({ padding, align, justify, children }: Props) => {
     return (
-        <div className="row" style={{ alignItems: props.align, justifyContent: props.justify, padding: props.padding }}>
-            {props.children}
+        <div className="row" style={{ alignItems: align, justifyContent: justify, padding: padding }}>
+            {children}
         </div>
     )
 })

@@ -1,10 +1,8 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
 import { purchaseTypeAvailableNow } from '../../../../back-end/utils/misc'
-import { useObservableClass } from '../../mobx/hooks'
-import { observer, setter, setTo } from '../../mobx/misc'
-import { PurchaseForm } from '../../stores/PurchaseForm'
-import Store from '../../stores/Store'
+import { PurchaseFormState } from '../../hooks/usePurchaseFormState'
+import { DayjsFestival, useStore } from '../../hooks/useStore'
 import { preventingDefault, someValue } from '../../utils'
 import Button from '../core/Button'
 import Col from '../core/Col'
@@ -18,49 +16,52 @@ import AttendeeInfoForm from './AttendeeInfoForm'
 import PriceBreakdown from './PriceBreakdown'
 
 type Props = {
-    purchaseForm: PurchaseForm,
+    purchaseFormState: PurchaseFormState,
     goToNext: () => void,
-    festival: (NonNullable<typeof Store.festivals.state.result>)[number] | undefined
+    festival: DayjsFestival | undefined
 }
 
-export default observer((props: Props) => {
-    const state = useObservableClass(class {
-        get festivalPurchases() {
-            return Store.purchaseTypes.state.result
-                ?.filter(t =>
-                    t.festival_id === props.festival?.festival_id &&
-                    purchaseTypeAvailableNow(t) &&
-                    !t.hidden_from_ui)
-                .sort((a, b) => b.price_in_cents - a.price_in_cents) ?? []
-        }
+export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => {
+    const store = useStore()
 
-        get attendancePurchases() {
-            return this.festivalPurchases.filter(t => t.is_attendance_ticket && (!t.low_income_only || Store.accountInfo.state.result?.is_low_income))
-        }
+    const festivalPurchases = useMemo(() =>
+        store.purchaseTypes.state.result
+            ?.filter(t =>
+                t.festival_id === festival?.festival_id &&
+                purchaseTypeAvailableNow(t) &&
+                !t.hidden_from_ui)
+            .sort((a, b) => b.price_in_cents - a.price_in_cents) ?? []
+    , [festival?.festival_id, store.purchaseTypes.state.result])
 
-        get otherPurchases() {
-            return this.festivalPurchases.filter(t => !t.is_attendance_ticket).sort((a, b) => a.description.localeCompare(b.description))
-        }
+    const attendancePurchases = useMemo(() =>
+        festivalPurchases
+            .filter(t => t.is_attendance_ticket && (!t.low_income_only || store.accountInfo.state.result?.is_low_income))
+    , [festivalPurchases, store.accountInfo.state.result?.is_low_income])
 
-        get attendancePurchaseOptions() {
-            return this.attendancePurchases.map(p => ({ label: `${p.description} ($${p.price_in_cents / 100})`, value: p.purchase_type_id }))
-        }
+    const otherPurchases = useMemo(() =>
+        festivalPurchases
+            .filter(t => !t.is_attendance_ticket)
+            .sort((a, b) => a.description.localeCompare(b.description))
+    , [festivalPurchases])
 
-        get emptySelection() {
-            return !someValue(props.purchaseForm.purchases, v => v != null && v > 0)
-        }
-    })
+    const attendancePurchaseOptions = useMemo(() =>
+        attendancePurchases
+            .map(p => ({ label: `${p.description} ($${p.price_in_cents / 100})`, value: p.purchase_type_id }))
+    , [attendancePurchases])
 
-    const { festival } = props
+    const emptySelection = useMemo(() =>
+        !someValue(purchaseFormState.purchases, v => v != null && v > 0)
+    , [purchaseFormState.purchases])
+
     if (festival == null) {
         return null
     }
 
     return (
-        <form onSubmit={preventingDefault(props.goToNext)} noValidate>
+        <form onSubmit={preventingDefault(goToNext)} noValidate>
             <Col padding={20} pageLevel>
 
-                {props.purchaseForm.attendees.map((attendee, index) =>
+                {purchaseFormState.attendees.map((attendee, index) =>
                     <React.Fragment key={index}>
 
                         {index > 0 && <>
@@ -71,9 +72,9 @@ export default observer((props: Props) => {
 
                         <AttendeeInfoForm
                             attendeeInfo={attendee}
-                            attendeeErrors={props.purchaseForm.attendeeErrors[index]!}
+                            attendeeErrors={purchaseFormState.attendeeErrors[index]!}
+                            setAttendeeProperty={purchaseFormState.setAttendeeProperty}
                             isChild={attendee.age != null && attendee.age < 18}
-                            showingErrors={props.purchaseForm.showingErrors}
                             festival={festival}
                             showFloatingHeading
                         />
@@ -82,10 +83,10 @@ export default observer((props: Props) => {
 
                         <RadioGroup
                             label='Ticket type for this person'
-                            options={state.attendancePurchaseOptions}
+                            options={attendancePurchaseOptions}
                             value={attendee.ticket_type}
-                            onChange={setter(attendee, 'ticket_type')}
-                            error={props.purchaseForm.showingErrors && props.purchaseForm.attendeeErrors[index]?.ticket_type}
+                            onChange={val => purchaseFormState.setAttendeeProperty(attendee, 'ticket_type', val)}
+                            error={purchaseFormState.showingErrors && purchaseFormState.attendeeErrors[index]?.ticket_type}
                         />
 
                         <Spacer size={24} />
@@ -94,7 +95,7 @@ export default observer((props: Props) => {
                             <>
                                 <Spacer size={24} />
 
-                                <Button isDanger onClick={props.purchaseForm.removeAttendee(index)}>
+                                <Button isDanger onClick={purchaseFormState.removeAttendee(index)}>
                                     Remove {attendee.name || 'attendee'}
                                 </Button>
                             </>}
@@ -102,13 +103,13 @@ export default observer((props: Props) => {
                         <Spacer size={32} />
                     </React.Fragment>)}
 
-                <Button onClick={props.purchaseForm.addAttendee} disabled={props.purchaseForm.attendees.length === 6}>
+                <Button onClick={purchaseFormState.addAttendee} disabled={purchaseFormState.attendees.length === 6}>
                     <Icon name='add' style={{ fontSize: 'inherit' }} />
                     <Spacer size={4} />
                     Bring another attendee
                 </Button>
 
-                {props.purchaseForm.attendees.length === 6 &&
+                {purchaseFormState.attendees.length === 6 &&
                     <>
                         <Spacer size={12} />
 
@@ -141,7 +142,7 @@ export default observer((props: Props) => {
                     should make their own account.`}
                 </InfoBlurb>
 
-                {state.otherPurchases.length > 0 &&
+                {otherPurchases.length > 0 &&
                     <>
                         <Spacer size={32} />
                         <hr />
@@ -153,7 +154,7 @@ export default observer((props: Props) => {
 
                         <Spacer size={24} />
 
-                        {state.otherPurchases.map(p =>
+                        {otherPurchases.map(p =>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }} key={p.purchase_type_id}>
                                 <div>
                                     {p.description} (${(p.price_in_cents / 100).toFixed(2)} each)
@@ -162,8 +163,12 @@ export default observer((props: Props) => {
                                 <Spacer size={24} />
 
                                 <NumberInput
-                                    value={props.purchaseForm.otherPurchases[p.purchase_type_id] ?? 0}
-                                    onChange={val => props.purchaseForm.otherPurchases[p.purchase_type_id] = val ?? undefined}
+                                    value={purchaseFormState.otherPurchases[p.purchase_type_id] ?? 0}
+                                    onChange={val => {
+                                        if (val != null) {
+                                            purchaseFormState.setOtherPurchasesCount(p.purchase_type_id, val)
+                                        }
+                                    }}
                                     style={{ width: 64 }}
                                     min={0}
                                     max={p.max_per_account ?? undefined}
@@ -172,7 +177,7 @@ export default observer((props: Props) => {
 
                     </>}
 
-                {Store.purchasedTicketsByFestival[festival.festival_id]?.length === 0 && festival.festival_name === 'Vibeclipse 2024' && // HACK
+                {store.purchasedTicketsByFestival[festival.festival_id]?.length === 0 && festival.festival_name === 'Vibeclipse 2024' && // HACK
                     <>
                         <Spacer size={32} />
                         <hr />
@@ -183,14 +188,14 @@ export default observer((props: Props) => {
                             href='https://admin.gazeboevents.com/forms/706B540F-AF67-4D4B-9C42-A402E51C2039'
                             target='_blank'
                             rel="noreferrer"
-                            onMouseDown={setTo(props.purchaseForm, 'hasClickedWaiver', true)} // Must be MouseDown and not Click to handle long-press on mobile
+                            onMouseDown={purchaseFormState.handleWaiverClick} // Must be MouseDown and not Click to handle long-press on mobile
                         >
                             Campsite forms &nbsp; <Icon name='open_in_new' style={{ fontSize: 18 }} />
                         </a>
 
                         <Spacer size={4} />
 
-                        <ErrorMessage error={props.purchaseForm.showingErrors && props.purchaseForm.hasClickedWaiverError} />
+                        <ErrorMessage error={purchaseFormState.showingErrors && purchaseFormState.hasClickedWaiverError} />
 
                         <Spacer size={8} />
 
@@ -210,15 +215,15 @@ export default observer((props: Props) => {
                 <hr />
                 <Spacer size={32} />
 
-                <PriceBreakdown purchases={props.purchaseForm.purchases} />
+                <PriceBreakdown purchases={purchaseFormState.purchases} />
 
                 <Spacer size={8} />
 
-                <ErrorMessage error={props.purchaseForm.numberOfAttendeesError} />
+                <ErrorMessage error={purchaseFormState.numberOfAttendeesError} />
 
                 <Spacer size={16} />
 
-                <Button isSubmit isPrimary disabled={state.emptySelection}>
+                <Button isSubmit isPrimary disabled={emptySelection}>
                     Proceed to payment
                 </Button>
             </Col>

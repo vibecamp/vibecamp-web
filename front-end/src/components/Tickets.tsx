@@ -1,9 +1,8 @@
 import dayjs from 'dayjs'
-import React from 'react'
+import React, { useCallback } from 'react'
 
-import { observer } from '../mobx/misc'
-import WindowObservables from '../mobx/WindowObservables'
-import Store from '../stores/Store'
+import useHashState from '../hooks/useHashState'
+import { useStore } from '../hooks/useStore'
 import Button from './core/Button'
 import Col from './core/Col'
 import LoadingDots from './core/LoadingDots'
@@ -12,19 +11,29 @@ import Spacer from './core/Spacer'
 import PurchaseTicketsModal from './tickets/PurchaseTicketsModal'
 import Ticket from './tickets/Ticket'
 
-export default observer(() => {
-    const loading = Store.accountInfo.state.kind === 'loading'
-    const loadingOrError = loading || Store.accountInfo.state.kind === 'error'
+export default React.memo(() => {
+    const store = useStore()
+    const { hashState, setHashState } = useHashState()
+    const loading = store.accountInfo.state.kind === 'loading'
+    const loadingOrError = loading || store.accountInfo.state.kind === 'error'
 
-    const { application_status } = Store.accountInfo.state.result ?? {}
+    // const { application_status } = store.accountInfo.state.result ?? {}
+
+    const closeTicketPurchaseModal = useCallback(() => {
+        setHashState({ ticketPurchaseModalState: null })
+    }, [setHashState])
+
+    const openTicketPurchaseModal = (festival_id: string) => () => {
+        setHashState({ ticketPurchaseModalState: festival_id })
+    }
 
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
             {loading ?
                 <LoadingDots size={100} color='var(--color-accent-1)' />
-                : Store.accountInfo.state.kind === 'error' || Store.accountInfo.state.result == null ?
+                : store.accountInfo.state.kind === 'error' || store.accountInfo.state.result == null ?
                     'Failed to load'
-                    : Store.accountInfo.state.kind === 'result' ?
+                    : store.accountInfo.state.kind === 'result' ?
                         <>
                             <h1 style={{ fontSize: 24, alignSelf: 'flex-start' }}>
                                 My tickets
@@ -32,11 +41,9 @@ export default observer(() => {
 
                             <Spacer size={24} />
 
-                            {/* {Store.accountInfo.state.result.allowed_to_purchase
-                                ? <> */}
-                            {Store.festivals.state.result?.map(festival => {
-                                const tickets = Store.purchasedTicketsByFestival[festival.festival_id] ?? []
-                                const otherPurchases = Store.nonTicketPurchasesByFestival[festival.festival_id] ?? []
+                            {store.festivals.state.result?.map(festival => {
+                                const tickets = store.purchasedTicketsByFestival[festival.festival_id] ?? []
+                                const otherPurchases = store.nonTicketPurchasesByFestival[festival.festival_id] ?? []
 
                                 return (
                                     <div key={festival.festival_id} style={festival.end_date.isBefore(dayjs.utc()) ? { opacity: 0.5 } : undefined}>
@@ -61,7 +68,7 @@ export default observer(() => {
                                                 <Ticket name={undefined} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
                                             </React.Fragment>)}
 
-                                        {Store.purchaseTypes.state.result && otherPurchases.length > 0 &&
+                                        {store.purchaseTypes.state.result && otherPurchases.length > 0 &&
                                             <div>
                                                 Other purchases:
 
@@ -70,7 +77,7 @@ export default observer(() => {
                                                 <div style={{ border: 'var(--controls-border)', borderRadius: 4, background: 'white' }}>
                                                     {otherPurchases.map((p, i) =>
                                                         <div style={{ padding: '4px 8px', borderTop: i > 0 ? 'var(--controls-border)' : undefined }} key={p.purchase_id}>
-                                                            1x {Store.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.description}
+                                                            1x {store.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.description}
                                                         </div>)}
                                                 </div>
                                             </div>}
@@ -123,55 +130,6 @@ export default observer(() => {
                                 )
                             })}
 
-                            {/* <InviteCodes /> */}
-                            {/* </> */}
-                            {/*
-                                : <>
-                                    <h2>
-                                        Welcome!
-                                    </h2>
-
-                                    <Spacer size={8} />
-
-                                    <div>
-                                        {`You'll need to apply to Vibecamp before
-                                        you can buy tickets. The team will
-                                        review your submission and invite you
-                                        if approved.`}
-                                    </div>
-
-                                    <Spacer size={16} />
-
-                                    <Button isPrimary disabled={application_status !== 'unsubmitted'} onClick={openApplicationModal}>
-                                        {application_status === 'pending'
-                                            ? 'Your application is under review!'
-                                            : application_status === 'rejected'
-                                                ? 'Your application has been denied :('
-                                                : 'Apply to Vibecamp'}
-                                    </Button>
-
-                                    <Modal
-                                        title='Apply to Vibecamp'
-                                        isOpen={WindowObservables.hashState?.applicationModalOpen === true}
-                                        onClose={closeApplicationModal}
-                                        side='right'
-                                    >
-                                        {() => <Application onSuccess={handleApplicationSubmissionSuccess} />}
-                                    </Modal>
-
-                                    <Spacer size={48} />
-
-                                    <div>
-                                        {`Or, a friend who has invite codes can
-                                        give you one, which will allow you to
-                                        buy tickets.`}
-                                    </div>
-
-                                    <Spacer size={16} />
-
-                                    <InviteCodeEntryForm />
-                                </>*/}
-
                             <Spacer size={24} />
 
                             <div style={{ textAlign: 'center' }}>
@@ -183,33 +141,12 @@ export default observer(() => {
 
             <Modal
                 title='Ticket purchase'
-                isOpen={WindowObservables.hashState?.ticketPurchaseModalState != null}
+                isOpen={hashState?.ticketPurchaseModalState != null}
                 onClose={closeTicketPurchaseModal}
                 side='right'
             >
-                {() => Store.accountInfo.state.result && <PurchaseTicketsModal />}
+                {() => store.accountInfo.state.result && <PurchaseTicketsModal />}
             </Modal>
         </Col>
     )
 })
-
-const closeTicketPurchaseModal = () => {
-    WindowObservables.assignHashState({ ticketPurchaseModalState: null })
-}
-
-const openTicketPurchaseModal = (festival_id: string) => () => {
-    WindowObservables.assignHashState({ ticketPurchaseModalState: festival_id })
-}
-
-const closeApplicationModal = () => {
-    WindowObservables.assignHashState({ applicationModalOpen: false })
-}
-
-const handleApplicationSubmissionSuccess = () => {
-    closeApplicationModal()
-    void Store.accountInfo.load()
-}
-
-const openApplicationModal = () => {
-    WindowObservables.assignHashState({ applicationModalOpen: true })
-}

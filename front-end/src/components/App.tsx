@@ -1,11 +1,9 @@
-import { autorun, configure as configureMobx } from 'mobx'
-import React, { FC } from 'react'
+import React, { FC, useEffect, useMemo } from 'react'
 
 import { exists } from '../../../back-end/utils/misc'
-import { useObservableClass } from '../mobx/hooks'
-import { observer } from '../mobx/misc'
-import WindowObservables from '../mobx/WindowObservables'
-import Store from '../stores/Store'
+import useHashState from '../hooks/useHashState'
+import { StoreContext, useNewStoreInstance } from '../hooks/useStore'
+import useWindowSize from '../hooks/useWindowSize'
 import Account from './Account'
 import Icon, { MaterialIconName } from './core/Icon'
 import Modal from './core/Modal'
@@ -16,88 +14,87 @@ import Events from './Events'
 import Login from './Login'
 import Tickets from './Tickets'
 
-// eslint-disable-next-line no-console
-console.log(Store)
-
-configureMobx({
-    enforceActions: 'never',
-})
-
-if (WindowObservables.hashState?.currentView == null) {
-    WindowObservables.assignHashState({ currentView: 'Tickets' })
-}
-
 type View = {
     readonly name: string,
     readonly icon: MaterialIconName,
     readonly component: FC
 }
 
-export default observer(() => {
-    const state = useObservableClass(class {
-        get views(): readonly View[] {
-            return [
-                {
-                    name: 'Tickets',
-                    icon: 'confirmation_number' as const,
-                    component: Tickets
-                },
-                // Store.accountInfo.state.result?.allowed_to_purchase
-                //     ?
-                {
-                    name: 'Events',
-                    icon: 'calendar_today' as const,
-                    component: Events
-                },
-                // : null,
-                // Map: {
-                //     icon: 'map',
-                //     component: Map
-                // },
-                // Info: {
-                //     icon: 'info',
-                //     component: Info
-                // },
-                {
-                    name: 'Account',
-                    icon: 'person' as const,
-                    component: Account
-                }
-            ].filter(exists)
-        }
+export default React.memo(() => {
+    const store = useNewStoreInstance()
+    const { hashState, setHashState } = useHashState()
+    const { height } = useWindowSize()
 
-        readonly heightSetters = autorun(() => {
-            const root = document.getElementById('root')
-            if (root != null) {
-                root.style.height = WindowObservables.height + 'px'
+    useEffect(() => {
+        if (hashState?.currentView == null) {
+            setHashState({ currentView: 'Tickets' })
+        }
+    }, [hashState?.currentView, setHashState])
+
+    const views = useMemo(() =>
+        [
+            {
+                name: 'Tickets',
+                icon: 'confirmation_number' as const,
+                component: Tickets
+            },
+            // Store.accountInfo.state.result?.allowed_to_purchase
+            //     ?
+            {
+                name: 'Events',
+                icon: 'calendar_today' as const,
+                component: Events
+            },
+            // : null,
+            // Map: {
+            //     icon: 'map',
+            //     component: Map
+            // },
+            // Info: {
+            //     icon: 'info',
+            //     component: Info
+            // },
+            {
+                name: 'Account',
+                icon: 'person' as const,
+                component: Account
             }
-        })
-    })
+        ].filter(exists)
+    , [])
+
+    useEffect(() => {
+        const root = document.getElementById('root')
+        if (root != null) {
+            root.style.height = height + 'px'
+        }
+    }, [height])
 
     return (
-        <>
+        <StoreContext.Provider value={store}>
             <Stripes position='bottom-right' />
 
             <MultiView
-                views={state.views.map(({ name, component: Component }) =>
+                views={views.map(({ name, component: Component }) =>
                     ({ name, content: <Component /> }))}
-                currentView={WindowObservables.hashState?.currentView}
+                currentView={hashState?.currentView}
             />
 
-            <Nav views={state.views} />
+            <Nav views={views} />
 
-            <Modal isOpen={!Store.loggedIn} side='left'>
+            <Modal isOpen={!store.loggedIn} side='left'>
                 {() => <Login />}
             </Modal>
-        </>
+        </StoreContext.Provider>
     )
 })
 
-const Nav = observer((props: { views: readonly View[] }) => {
+const Nav = React.memo((props: { views: readonly View[] }) => {
+    const { hashState } = useHashState()
+
     return (
         <div className='nav'>
             {props.views.map(({ name, icon }, index) => {
-                const active = name === WindowObservables.hashState?.currentView
+                const active = name === hashState?.currentView
 
                 return (
                     <a

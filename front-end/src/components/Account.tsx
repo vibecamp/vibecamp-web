@@ -1,13 +1,10 @@
-import { autorun, reaction } from 'mobx'
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { Tables } from '../../../back-end/types/db-types'
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/utils/validation'
-import { useObservableClass } from '../mobx/hooks'
-import { observer, setter } from '../mobx/misc'
-import { request } from '../mobx/request'
-import Store from '../stores/Store'
-import { DEFAULT_FORM_ERROR, doNothing,preventingDefault } from '../utils'
+import useForm, { fieldToProps } from '../hooks/useForm'
+import { usePromise } from '../hooks/usePromise'
+import { useStore } from '../hooks/useStore'
+import { DEFAULT_FORM_ERROR, doNothing, preventingDefault } from '../utils'
 import { vibefetch } from '../vibefetch'
 import Button from './core/Button'
 import Col from './core/Col'
@@ -16,117 +13,48 @@ import Input from './core/Input'
 import LoadingDots from './core/LoadingDots'
 import Modal from './core/Modal'
 import Spacer from './core/Spacer'
-import AttendeeInfoForm from './tickets/AttendeeInfoForm'
+import AttendeeInfoForm, { Props as AttendeeInfoFormProps } from './tickets/AttendeeInfoForm'
 
-export default observer(() => {
-    const loading = Store.accountInfo.state.kind === 'loading'
-    const loadingOrError = loading || Store.accountInfo.state.kind === 'error'
+export default React.memo(() => {
+    const store = useStore()
+    const loading = store.accountInfo.state.kind === 'loading'
+    const loadingOrError = loading || store.accountInfo.state.kind === 'error'
 
-    const state = useObservableClass(class {
-        primaryAttendee: Tables['attendee'] | null = null
-        primaryAttendeeModified = false
+    const [primaryAttendee, setPrimaryAttendee] = useState(store.primaryAttendee)
+    const [primaryAttendeeModified, setPrimaryAttendeeModified] = useState(false)
 
-        readonly initializePrimaryAttendee = autorun(() => {
-            if (this.primaryAttendee == null && Store.primaryAttendee != null) {
-                this.primaryAttendee = { ...Store.primaryAttendee }
-            }
-        })
+    useEffect(() => {
+        setPrimaryAttendee(store.primaryAttendee)
+    }, [store.primaryAttendee])
 
-        readonly setPrimaryAttendeeModified = reaction(
-            () => JSON.stringify(this.primaryAttendee),
-            () => this.primaryAttendeeModified = true)
+    const setAttendeeProperty = useCallback<AttendeeInfoFormProps['setAttendeeProperty']>((_, property, value) => {
+        if (primaryAttendee) {
+            setPrimaryAttendee({ ...primaryAttendee, [property]: value })
+            setPrimaryAttendeeModified(true)
+        }
+    }, [primaryAttendee])
 
-        readonly updatePrimaryAttendeeInfo = request(async () => {
-            if (!this.primaryAttendee) {
-                return
-            }
-
-            const { status, body } = await vibefetch(Store.jwt, '/account/update-attendee', 'put', this.primaryAttendee)
+    const saveAttendeeInfo = usePromise(async () => {
+        if (primaryAttendee) {
+            const { status, body } = await vibefetch(store.jwt, '/account/update-attendee', 'put', primaryAttendee)
 
             if (status !== 200 || body == null) {
-                throw Error()
+                return DEFAULT_FORM_ERROR
             }
 
-            this.primaryAttendee = { ...body }
-            this.primaryAttendeeModified = false
-        }, { lazy: true })
-    })
-
-    const emailAddressForm = useObservableClass(class {
-        emailAddress: string | null = null
-
-        get emailAddressError() {
-            return getEmailValidationError(this.emailAddress)
+            setPrimaryAttendee(body)
+            setPrimaryAttendeeModified(false)
         }
+    }, [primaryAttendee, store.jwt], { lazy: true })
 
-        readonly beginChangingEmail = () => {
-            this.emailAddress = Store.accountInfo.state.result?.email_address ?? null
-        }
-        readonly stopChangingEmail = () => {
-            this.emailAddress = null
-        }
+    const handleAttendeeFormSubmit = useMemo(() => preventingDefault(saveAttendeeInfo.load), [saveAttendeeInfo.load])
 
-        readonly updateEmail = request(async () => {
-            if (this.emailAddressError) {
-                return { fieldError: true }
-            }
-
-            const { status } = await vibefetch(Store.jwt, '/account/update-email', 'put', {
-                email_address: this.emailAddress!
-            })
-
-            if (status !== 200) {
-                return { submissionError: DEFAULT_FORM_ERROR }
-            }
-
-            await Store.accountInfo.load()
-            this.stopChangingEmail()
-        }, { lazy: true })
-    })
-
-    const passwordForm = useObservableClass(class {
-        password: string | null = null
-        passwordConfirmation: string | null = null
-
-        get passwordError() {
-            return getPasswordValidationError(this.password)
-        }
-        get passwordConfirmationError() {
-            if (this.password !== this.passwordConfirmation) {
-                return 'Passwords don\'t match'
-            }
-        }
-
-        readonly beginChangingPassword = () => {
-            this.password = ''
-            this.passwordConfirmation = ''
-        }
-        readonly stopChangingPassword = () => {
-            this.password = null
-            this.passwordConfirmation = null
-        }
-
-        readonly updatePassword = request(async () => {
-            if (this.passwordError || this.passwordConfirmationError) {
-                return { fieldError: true }
-            }
-
-            const { status } = await vibefetch(Store.jwt, '/account/update-password', 'put', {
-                password: this.password!
-            })
-
-            if (status !== 200) {
-                return { submissionError: DEFAULT_FORM_ERROR }
-            }
-
-            await Store.accountInfo.load()
-            this.stopChangingPassword()
-        }, { lazy: true })
-    })
+    const [editing, setEditing] = useState<'none' | 'email' | 'password'>('none')
+    const stopEditing = useCallback(() => setEditing('none'), [])
 
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
-            {Store.accountInfo.state.kind === 'result' &&
+            {store.accountInfo.state.kind === 'result' &&
                 <h1 style={{ fontSize: 24, alignSelf: 'flex-start' }}>
                     My account
                 </h1>}
@@ -135,50 +63,54 @@ export default observer(() => {
 
             {loading
                 ? <LoadingDots size={100} color='var(--color-accent-1)' />
-                : Store.accountInfo.state.kind === 'error' || Store.accountInfo.state.result == null
+                : store.accountInfo.state.kind === 'error' || store.accountInfo.state.result == null
                     ? 'Failed to load'
-                    : Store.accountInfo.state.kind === 'result'
+                    : primaryAttendee != null
                         ? <>
+                            <form onSubmit={handleAttendeeFormSubmit}>
+                                <AttendeeInfoForm
+                                    attendeeInfo={primaryAttendee}
+                                    attendeeErrors={{}}
+                                    setAttendeeProperty={setAttendeeProperty}
+                                    isChild={false}
+                                    festival={undefined}
+                                />
 
-                            {state.primaryAttendee &&
-                                <form onSubmit={preventingDefault(state.updatePrimaryAttendeeInfo.load)}>
-                                    <AttendeeInfoForm attendeeInfo={state.primaryAttendee} attendeeErrors={{}} isChild={false} showingErrors={false} festival={undefined} />
+                                <Spacer size={24} />
 
-                                    <Spacer size={24} />
+                                <Button
+                                    isSubmit
+                                    isPrimary
+                                    isLoading={saveAttendeeInfo.state.kind === 'loading'}
+                                    disabled={!primaryAttendeeModified}
+                                >
+                                    Update my info
+                                </Button>
 
-                                    <Button
-                                        isSubmit
-                                        isPrimary
-                                        isLoading={state.updatePrimaryAttendeeInfo.state.kind === 'loading'}
-                                        disabled={!state.primaryAttendeeModified}
-                                    >
-                                        Update my info
-                                    </Button>
+                                {saveAttendeeInfo.state.error != null &&
+                                    <>
+                                        <Spacer size={16} />
 
-                                    {state.updatePrimaryAttendeeInfo.state.kind === 'error' &&
-                                        <>
-                                            <Spacer size={16} />
+                                        <ErrorMessage error={DEFAULT_FORM_ERROR} />
+                                    </>}
 
-                                            <ErrorMessage error='Something went wrong, please try again' />
-                                        </>}
+                                <Spacer size={32} />
 
-                                    <Spacer size={32} />
+                                <hr />
 
-                                    <hr />
-
-                                    <Spacer size={32} />
-                                </form>}
+                                <Spacer size={32} />
+                            </form>
 
                             <Input
                                 label='Email address'
-                                value={Store.accountInfo.state.result?.email_address}
+                                value={store.accountInfo.state.result?.email_address}
                                 onChange={doNothing}
                                 disabled
                             />
 
                             <Spacer size={8} />
 
-                            <Button onClick={emailAddressForm.beginChangingEmail}>
+                            <Button onClick={() => setEditing('email')}>
                                 Change email
                             </Button>
 
@@ -193,68 +125,124 @@ export default observer(() => {
 
                             <Spacer size={8} />
 
-                            <Button onClick={passwordForm.beginChangingPassword}>
+                            <Button onClick={() => setEditing('password')}>
                                 Change password
                             </Button>
 
                             <Spacer size={32} />
 
-                            <Button isDanger isPrimary onClick={Store.logOut}>
+                            <Button isDanger isPrimary onClick={store.logOut}>
                                 Log out
                             </Button>
                         </>
                         : null}
 
-            <Modal isOpen={emailAddressForm.emailAddress != null} onClose={emailAddressForm.stopChangingEmail} side='right'>
-                {() =>
-                    <form onSubmit={preventingDefault(emailAddressForm.updateEmail.load)} noValidate>
-                        <Col padding={20} pageLevel>
-                            <Input
-                                label='New email address'
-                                value={emailAddressForm.emailAddress ?? ''}
-                                onChange={setter(emailAddressForm, 'emailAddress')}
-                                error={emailAddressForm.updateEmail.state.result?.fieldError ? emailAddressForm.emailAddressError : undefined}
-                            />
-
-                            <Spacer size={24} />
-
-                            <Button isSubmit isPrimary isLoading={emailAddressForm.updateEmail.state.kind === 'loading'} disabled={emailAddressForm.emailAddress === Store.accountInfo.state.result?.email_address}>
-                            Submit
-                            </Button>
-                        </Col>
-                    </form>}
+            <Modal isOpen={editing === 'email'} onClose={stopEditing} side='right'>
+                {() => <EmailAddressEditor stopEditing={stopEditing} />}
             </Modal>
 
-            <Modal isOpen={passwordForm.password != null} onClose={passwordForm.stopChangingPassword} side='right'>
-                {() =>
-                    <form onSubmit={preventingDefault(passwordForm.updatePassword.load)} noValidate>
-                        <Col padding={20} pageLevel>
-                            <Input
-                                label='New password'
-                                type='password'
-                                value={passwordForm.password ?? ''}
-                                onChange={setter(passwordForm, 'password')}
-                                error={passwordForm.updatePassword.state.result?.fieldError ? passwordForm.passwordError : undefined}
-                            />
-
-                            <Spacer size={16} />
-
-                            <Input
-                                label='Confirm password'
-                                type='password'
-                                value={passwordForm.passwordConfirmation ?? ''}
-                                onChange={setter(passwordForm, 'passwordConfirmation')}
-                                error={passwordForm.updatePassword.state.result?.fieldError ? passwordForm.passwordConfirmationError : undefined}
-                            />
-
-                            <Spacer size={24} />
-
-                            <Button isSubmit isPrimary isLoading={passwordForm.updatePassword.state.kind === 'loading'}>
-                                Submit
-                            </Button>
-                        </Col>
-                    </form>}
+            <Modal isOpen={editing === 'password'} onClose={stopEditing} side='right'>
+                {() => <PasswordEditor stopEditing={stopEditing} />}
             </Modal>
         </Col>
+    )
+})
+
+const EmailAddressEditor = React.memo(({ stopEditing }: { stopEditing: () => void }) => {
+    const store = useStore()
+
+    const emailAddressForm = useForm({
+        initial: {
+            emailAddress: store.accountInfo.state.result?.email_address ?? ''
+        },
+        validators: {
+            emailAddress: getEmailValidationError
+        },
+        submit: async ({ emailAddress }) => {
+            const { status } = await vibefetch(store.jwt, '/account/update-email', 'put', {
+                email_address: emailAddress
+            })
+
+            if (status !== 200) {
+                return DEFAULT_FORM_ERROR
+            }
+
+            await store.accountInfo.load()
+            stopEditing()
+        }
+    })
+
+    return (
+        <form onSubmit={emailAddressForm.handleSubmit} noValidate>
+            <Col padding={20} pageLevel>
+                <Input
+                    label='New email address'
+                    {...fieldToProps(emailAddressForm.fields.emailAddress)}
+                />
+
+                <Spacer size={24} />
+
+                <Button isSubmit isPrimary isLoading={emailAddressForm.submitting} disabled={emailAddressForm.fields.emailAddress.value === store.accountInfo.state.result?.email_address}>
+                                Submit
+                </Button>
+            </Col>
+        </form>
+    )
+})
+
+const PasswordEditor = React.memo(({ stopEditing }: { stopEditing: () => void }) => {
+    const store = useStore()
+
+    const passwordForm = useForm({
+        initial: {
+            password: '',
+            passwordConfirmation: ''
+        },
+        validators: {
+            password: getPasswordValidationError,
+            passwordConfirmation: (passwordConfirmation, { password }) => {
+                if (password !== passwordConfirmation) {
+                    return 'Passwords don\'t match'
+                }
+            }
+        },
+        submit: async ({ password }) => {
+            const { status } = await vibefetch(store.jwt, '/account/update-password', 'put', {
+                password
+            })
+
+            if (status !== 200) {
+                return DEFAULT_FORM_ERROR
+            }
+
+            await store.accountInfo.load()
+            stopEditing()
+        }
+    })
+
+    return (
+        <form onSubmit={passwordForm.handleSubmit} noValidate>
+            <Col padding={20} pageLevel>
+                <Input
+                    label='New password'
+                    type='password'
+                    {...fieldToProps(passwordForm.fields.password)}
+                />
+
+                <Spacer size={16} />
+
+                <Input
+                    label='Confirm password'
+                    type='password'
+                    {...fieldToProps(passwordForm.fields.passwordConfirmation)}
+                />
+
+                <Spacer size={24} />
+
+                <Button isSubmit isPrimary isLoading={passwordForm.submitting}>
+                                Submit
+                </Button>
+            </Col>
+        </form>
     )
 })

@@ -1,9 +1,8 @@
 import React from 'react'
 
-import { observer } from '../mobx/misc'
 import Spacer from './core/Spacer'
 
-export default observer(() => {
+export default React.memo(() => {
 
     return (
         <>

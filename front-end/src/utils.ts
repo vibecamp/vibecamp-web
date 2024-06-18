@@ -1,6 +1,5 @@
 
 import { objectEntries, objectFromEntries } from '../../back-end/utils/misc'
-import { setter } from './mobx/misc'
 
 export function wait(ms: number): Promise<void> {
     return new Promise(res => setTimeout(res, ms))
@@ -14,10 +13,11 @@ export function jsonParse(json: string): unknown | undefined {
     }
 }
 
-export const preventingDefault = <F extends () => unknown>(fn: F) => (event: { preventDefault: () => void }) => {
-    event.preventDefault()
-    return fn()
-}
+export const preventingDefault = <F extends () => unknown | void>(fn: F) =>
+    (event: { preventDefault: () => void }) => {
+        event.preventDefault()
+        return fn()
+    }
 
 export const DEFAULT_FORM_ERROR = 'Something went wrong, please try again'
 
@@ -45,16 +45,4 @@ export function someValue<TObj extends object>(obj: TObj, cb: (value: TObj[keyof
         }
     }
     return false
-}
-
-export function fieldProps<TObj extends object, TField extends keyof TObj>(obj: TObj, field: TField, errors?: ErrorsFor<TObj>, showingErrors?: boolean): {
-    value: TObj[TField],
-    onChange: (val: TObj[TField]) => void,
-    error: false | undefined | string
-} {
-    return {
-        value: obj[field],
-        onChange: setter(obj, field),
-        error: showingErrors && errors?.[field]
-    }
 }

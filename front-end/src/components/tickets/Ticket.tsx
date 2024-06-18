@@ -1,9 +1,7 @@
 import { QRCodeSVG } from 'qrcode.react'
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 
 import { Tables } from '../../../../back-end/types/db-types'
-import { useObservableClass } from '../../mobx/hooks'
-import { observer } from '../../mobx/misc'
 
 type Props = {
     name: string | undefined,
@@ -20,14 +18,10 @@ const QR_HEIGHT = '50%'
 const NAME_FONT_SIZE = 30
 const TYPE_FONT_SIZE = 18
 
-export default observer((props: Props) => {
-    const state = useObservableClass(class {
-        qrCodeZoom = false
+export default React.memo(({ name, ticketType, ownedByAccountId }: Props) => {
+    const [qrCodeZoom, setQrCodeZoom] = useState(false)
 
-        readonly toggleQRCodeZoom = () => {
-            this.qrCodeZoom = !this.qrCodeZoom
-        }
-    })
+    const toggleQRCodeZoom = useCallback(() => setQrCodeZoom(v => !v), [])
 
     return (
         <div style={{ width: '100%', position: 'relative', overflow: 'hidden' }}>
@@ -62,7 +56,7 @@ export default observer((props: Props) => {
 
                     <pattern id="swirlpattern" x="0" y="0" width="1" height="1"
                         viewBox="0 0 1024 576" preserveAspectRatio="xMidYMid slice">
-                        <image width="1024" height="576" xlinkHref={props.ticketType === 'adult' || props.ticketType == null ? '/swirl1.png' : '/swirl2.png'} />
+                        <image width="1024" height="576" xlinkHref={ticketType === 'adult' || ticketType == null ? '/swirl1.png' : '/swirl2.png'} />
                     </pattern>
                 </defs>
 
@@ -73,17 +67,17 @@ export default observer((props: Props) => {
 
                 {/* <g transform={`translate(${TICKET_WIDTH * 0.1}, ${TICKET_HEIGHT * 0.5})`} filter="url(#glow)">
                     <text x={0} y={0} style={{ fontWeight: 'bold', fontSize: NAME_FONT_SIZE }} opacity={FOREGROUND_OPACITY}>
-                        {props.name}
+                        {name}
                     </text>
                     <text x={0} y={NAME_FONT_SIZE} style={{ fontSize: TYPE_FONT_SIZE }} opacity={FOREGROUND_OPACITY}>
-                        {props.ticketType == null ? '' : props.ticketType === 'adult' ? 'adult ticket' : 'child ticket'}
+                        {ticketType == null ? '' : ticketType === 'adult' ? 'adult ticket' : 'child ticket'}
                     </text>
                 </g> */}
             </svg>
 
-            <div onClick={state.toggleQRCodeZoom} style={state.qrCodeZoom ? QR_CODE_CONTAINER_ZOOMED_STYLE : QR_CODE_CONTAINER_STYLE}>
+            <div onClick={toggleQRCodeZoom} style={qrCodeZoom ? QR_CODE_CONTAINER_ZOOMED_STYLE : QR_CODE_CONTAINER_STYLE}>
                 <QRCodeSVG
-                    value={`${props.ownedByAccountId}`}
+                    value={`${ownedByAccountId}`}
                     style={{ width: '100%', height: '100%', maxWidth: '80vw', maxHeight: '80vh' }}
                 />
             </div>

@@ -4,10 +4,9 @@ import { TileLayer } from 'react-leaflet'
 import { Marker } from 'react-leaflet'
 import { Popup } from 'react-leaflet'
 
-import { observer } from '../mobx/misc'
 import Spacer from './core/Spacer'
 
-export default observer(() => {
+export default React.memo(() => {
 
     return (
         <>

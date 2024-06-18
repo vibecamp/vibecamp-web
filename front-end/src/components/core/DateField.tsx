@@ -1,54 +1,53 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import dayjs, { Dayjs } from 'dayjs'
-import { autorun } from 'mobx'
-import React, { ChangeEvent } from 'react'
+import React, { ChangeEvent, useCallback, useEffect, useState } from 'react'
 
-import { useObservableClass } from '../../mobx/hooks'
-import { observer } from '../../mobx/misc'
+import { Maybe } from '../../../../back-end/types/misc'
+import { given } from '../../../../back-end/utils/misc'
 import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 
-type Props = CommonFieldProps<Dayjs | null>
+type Props = CommonFieldProps<Dayjs | null> & {
+    min?: Maybe<Dayjs>
+}
 
-export default observer((props: Props) => {
-    const state = useObservableClass(class {
-        strValue = props.value == null ? '' : formatNoTimezone(props.value)
+export default React.memo(({ value, onChange, onBlur, label, disabled, error, min }: Props) => {
+    const [strValue, setStrValue] = useState(formatNoTimezone(value))
 
-        readonly strUpdater = autorun(() => {
-            if (props.value != null) {
-                this.strValue = formatNoTimezone(props.value)
-            }
-        })
-
-        readonly handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value
-
-            this.strValue = value
-
-            const date = dayjs(value)
-            if (date.isValid()) {
-                props.onChange(date)
-            } else {
-                props.onChange(null)
-            }
+    useEffect(() => {
+        if (value != null) {
+            setStrValue(formatNoTimezone(value))
         }
-    })
+    }, [value])
+
+    const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+
+        setStrValue(value)
+
+        const date = dayjs(value)
+        if (date.isValid()) {
+            onChange(date)
+        } else {
+            onChange(null)
+        }
+    }, [onChange])
 
     return (
-        <label className={'date-field' + ' ' + (props.disabled ? 'disabled' : '')}>
-            <div className='label'>{props.label}</div>
+        <label className={'date-field' + ' ' + (disabled ? 'disabled' : '')}>
+            <div className='label'>{label}</div>
 
             <input
                 type='datetime-local'
-                value={state.strValue ?? ''}
-                onChange={state.handleChange}
-                disabled={props.disabled}
-                onBlur={props.onBlur}
+                value={strValue ?? ''}
+                onChange={handleChange}
+                disabled={disabled}
+                min={formatNoTimezone(min)}
+                onBlur={onBlur}
             />
 
-            <ErrorMessage error={props.error} />
+            <ErrorMessage error={error} />
         </label>
     )
 })
 
-export const formatNoTimezone = (d: Dayjs) => d.format().replace(/:[0-9]+-[0-9]+:[0-9]+$/, '')
+export const formatNoTimezone = (d: Maybe<Dayjs>): string => given(d, d => d.format('YYYY-MM-DDTHH:mm')) ?? ''
