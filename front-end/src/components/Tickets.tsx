@@ -45,6 +45,10 @@ export default React.memo(() => {
                                 const tickets = store.purchasedTicketsByFestival[festival.festival_id] ?? []
                                 const otherPurchases = store.nonTicketPurchasesByFestival[festival.festival_id] ?? []
 
+                                // HACK: Attendees under one account may have separate cabin names, which
+                                // is assumed not to be true as this is currently written
+                                const cabinName = store.accountInfo.state.result?.cabins.filter(c => c.festival_id === festival.festival_id)?.[0]?.cabin_name
+
                                 return (
                                     <div key={festival.festival_id} style={festival.end_date.isBefore(dayjs.utc()) ? { opacity: 0.5 } : undefined}>
                                         <h2>
@@ -67,6 +71,11 @@ export default React.memo(() => {
                                                     <Spacer size={24} />}
                                                 <Ticket name={undefined} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
                                             </React.Fragment>)}
+
+                                        {cabinName &&
+                                            <div>
+                                                Cabin: {cabinName}
+                                            </div>}
 
                                         {store.purchaseTypes.state.result && otherPurchases.length > 0 &&
                                             <div>
