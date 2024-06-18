@@ -22,6 +22,11 @@ export type FullAccountInfo =
         // inviteCodes: Array<Tables['invite_code'] & {
         //     used_by: string | null
         // }>
+        cabins: Array<{
+            cabin_name: Tables['cabin']['name'],
+            attendee_id: Tables['attendee']['attendee_id'],
+            festival_id: Tables['festival']['festival_id'],
+        }>
     }
 
 export type AttendeeInfo = Omit<Tables['attendee'], 'attendee_id' | 'notes' | 'associated_account_id'> & {

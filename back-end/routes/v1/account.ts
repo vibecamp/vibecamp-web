@@ -10,53 +10,6 @@ import { passwordResetEmail, sendMail } from '../../utils/mailgun.ts'
 
 export default function register(router: Router) {
 
-  defineRoute(router, {
-    endpoint: "/account/cabin",
-    method: "get",
-    requireAuth: true,
-    handler: async ({ jwt: { account_id } }) => {
-      return await withDBTransaction(async (db) => {
-        const attendees = await db.queryTable("attendee", {
-          where: ["associated_account_id", "=", account_id],
-        });
-
-        if (attendees.length === 0) {
-          return [{ cabin_name: "error: attendee not found" }, Status.OK];
-        }
-
-        const attendee = attendees.find((a) => a.is_primary_for_account);
-
-        if (attendee === undefined) {
-          return [{ cabin_name: "error: no primary attendee" }, Status.OK];
-        }
-
-        const attendee_id = attendee.attendee_id;
-
-        const cabins = await db.queryTable("attendee_cabin", {
-          where: ["attendee_id", "=", attendee_id],
-        });
-
-        const cabin = cabins[0];
-
-        if (cabin === undefined) {
-          return [{ cabin_name: "" }, Status.OK];
-        }
-
-        const cabinNames = await db.queryTable("cabin", {
-          where: ["cabin_id", "=", cabin.cabin_id],
-        });
-        // 8983e8b4-b3f8-4420-ba65-2f7fa757ec1a
-        const cabinName = cabinNames[0];
-
-        if (cabinName === undefined) {
-          return [{ cabin_name: "error: cabin not found" }, Status.OK];
-        }
-
-        return [{ cabin_name: cabinName.name }, Status.OK];
-      });
-    },
-  })
-
   // purchase one or multiple tickets, fill out baseline required attendee info
   defineRoute(router, {
     endpoint: '/account',
@@ -65,50 +18,33 @@ export default function register(router: Router) {
     handler: async ({ jwt }) => {
       const { account_id } = jwt
 
-      // const queryInviteCodes = async (db: DBClient) => (await db.queryObject<Tables['invite_code'] & { email_address: string | null }>`
-      //   SELECT code, email_address FROM invite_code
-      //   LEFT JOIN account ON account_id = used_by_account_id
-      //   WHERE created_by_account_id = ${account_id}
-      // `).rows.map(({ email_address, ...invite_code }) => ({
-      //   ...invite_code,
-      //   used_by: email_address
-      // }))
-
       const {
-        // referralStatus: { allowedToPurchase, allowedToRefer },
         accounts,
         attendees,
         purchases,
-        // currentInviteCodes,
+        cabins,
       } = await withDBTransaction(async (db) => {
 
         return await allPromises({
-          // referralStatus: accountReferralStatus(db, account_id),
           accounts: db.queryTable('account', { where: ['account_id', '=', account_id] }),
           attendees: db.queryTable('attendee', { where: ['associated_account_id', '=', account_id] }),
           purchases: db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] }),
-          // currentInviteCodes: queryInviteCodes(db)
+          cabins: db.queryObject<{
+            cabin_name: Tables['cabin']['name'],
+            attendee_id: Tables['attendee']['attendee_id'],
+            festival_id: Tables['festival']['festival_id'],
+          }>`
+            select cabin.name as cabin_name, attendee.attendee_id, festival_id from attendee
+            left join attendee_cabin on attendee.attendee_id = attendee_cabin.attendee_id
+            left join cabin on attendee_cabin.cabin_id = cabin.cabin_id
+            where attendee_cabin.cabin_id is not null and associated_account_id = 'e8e4f94b-a1fc-4344-a589-a865a6683c37'
+          `
         })
       })
 
       const account = accounts[0]
 
       if (account != null) {
-        // let inviteCodes = currentInviteCodes
-
-        // if this account should have invite codes, and has less than they should, create more
-        // const uncreatedInviteCodes = allowedToRefer - currentInviteCodes.length
-        // if (uncreatedInviteCodes > 0) {
-        //   await withDBTransaction(async (db) => {
-        //     for (let i = 0; i < uncreatedInviteCodes; i++) {
-        //       await db.insertTable('invite_code', {
-        //         created_by_account_id: account.account_id
-        //       })
-        //     }
-        //   })
-        //   inviteCodes = await withDBConnection(db => queryInviteCodes(db))
-        // }
-
         const applicationStatus = await getApplicationStatus(account)
 
         return [
@@ -116,12 +52,11 @@ export default function register(router: Router) {
             account_id: account.account_id,
             email_address: account.email_address,
             application_status: applicationStatus,
-            // allowed_to_purchase: allowedToPurchase,
             is_team_member: account.is_team_member,
             is_low_income: account.is_low_income,
             attendees,
             purchases,
-            // inviteCodes
+            cabins: cabins.rows,
           },
           Status.OK
         ]
@@ -227,7 +162,11 @@ export default function register(router: Router) {
     endpoint: '/account/update-attendee',
     method: 'put',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { attendee_id, associated_account_id: _, ...attendeeUpdate } }) => {
+    handler: async ({ jwt: { account_id }, body: { attendee_id, ...attendeeUpdate } }) => {
+      if (attendee_id == null) {
+        return [null, Status.InternalServerError]
+      }
+
       const attendee = await withDBConnection(async db =>
         (await db.updateTable('attendee', attendeeUpdate, [
           ['associated_account_id', '=', account_id],

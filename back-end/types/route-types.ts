@@ -2,11 +2,6 @@ import { Tables } from './db-types.ts'
 import { AttendeeInfo, FullAccountInfo } from './misc.ts'
 
 export type Routes = {
-    '/account/cabin': {
-        method: 'get',
-        body: undefined,
-        response: { cabin_name: string }
-    },
     '/account': {
         method: 'get',
         body: undefined,
