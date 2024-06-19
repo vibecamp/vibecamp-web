@@ -65,8 +65,8 @@ export default React.memo(() => {
                 ? <LoadingDots size={100} color='var(--color-accent-1)' />
                 : store.accountInfo.state.kind === 'error' || store.accountInfo.state.result == null
                     ? 'Failed to load'
-                    : primaryAttendee != null
-                        ? <>
+                    : <>
+                        {primaryAttendee != null&&
                             <form onSubmit={handleAttendeeFormSubmit}>
                                 <AttendeeInfoForm
                                     attendeeInfo={primaryAttendee}
@@ -99,43 +99,42 @@ export default React.memo(() => {
                                 <hr />
 
                                 <Spacer size={32} />
-                            </form>
+                            </form>}
 
-                            <Input
-                                label='Email address'
-                                value={store.accountInfo.state.result?.email_address}
-                                onChange={doNothing}
-                                disabled
-                            />
+                        <Input
+                            label='Email address'
+                            value={store.accountInfo.state.result?.email_address}
+                            onChange={doNothing}
+                            disabled
+                        />
 
-                            <Spacer size={8} />
+                        <Spacer size={8} />
 
-                            <Button onClick={() => setEditing('email')}>
-                                Change email
-                            </Button>
+                        <Button onClick={() => setEditing('email')}>
+                            Change email
+                        </Button>
 
-                            <Spacer size={24} />
+                        <Spacer size={24} />
 
-                            <Input
-                                label='Password'
-                                value='········'
-                                onChange={doNothing}
-                                disabled
-                            />
+                        <Input
+                            label='Password'
+                            value='········'
+                            onChange={doNothing}
+                            disabled
+                        />
 
-                            <Spacer size={8} />
+                        <Spacer size={8} />
 
-                            <Button onClick={() => setEditing('password')}>
-                                Change password
-                            </Button>
+                        <Button onClick={() => setEditing('password')}>
+                            Change password
+                        </Button>
 
-                            <Spacer size={32} />
+                        <Spacer size={32} />
 
-                            <Button isDanger isPrimary onClick={store.logOut}>
-                                Log out
-                            </Button>
-                        </>
-                        : null}
+                        <Button isDanger isPrimary onClick={store.logOut}>
+                            Log out
+                        </Button>
+                    </>}
 
             <Modal isOpen={editing === 'email'} onClose={stopEditing} side='right'>
                 {() => <EmailAddressEditor stopEditing={stopEditing} />}
