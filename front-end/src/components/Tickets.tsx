@@ -50,7 +50,7 @@ export default React.memo(() => {
                                 const cabinName = store.accountInfo.state.result?.cabins.filter(c => c.festival_id === festival.festival_id)?.[0]?.cabin_name
 
                                 return (
-                                    <div key={festival.festival_id} style={festival.end_date.isBefore(dayjs.utc()) ? { opacity: 0.5 } : undefined}>
+                                    <div key={festival.festival_id} style={festival.end_date.isBefore(dayjs.utc()) ? { filter: 'contrast(0.5)' } : undefined}>
                                         <h2>
                                             {festival.festival_name}
                                         </h2>
@@ -83,7 +83,7 @@ export default React.memo(() => {
 
                                                 <Spacer size={4} />
 
-                                                <div style={{ border: 'var(--controls-border)', borderRadius: 4, background: 'white' }}>
+                                                <div style={{ border: 'var(--controls-border)', borderRadius: 4, background: 'var(--color-background-1)' }}>
                                                     {otherPurchases.map((p, i) =>
                                                         <div style={{ padding: '4px 8px', borderTop: i > 0 ? 'var(--controls-border)' : undefined }} key={p.purchase_id}>
                                                             1x {store.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.description}

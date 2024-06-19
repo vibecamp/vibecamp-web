@@ -33,12 +33,32 @@ html, body {
 html {
     --color-primary: rgba(0, 0, 0, 0.8);
     --color-secondary: rgba(0, 0, 0, 0.2);
+    --color-tertiary: rgba(0, 0, 0, 0.7);
+    --color-danger: red;
+
     --color-accent-1: rgb(79, 176, 229);
     --color-accent-2: rgb(255, 0, 174);
     --color-accent-3: rgb(255, 89, 0);
 
+    --color-background-1: white;
+    --color-background-2: #fffae5;
+
     --checkbox-size: 16px;
     --controls-border: 1px solid rgba(0, 0, 0, 0.3);
+
+    background: var(--color-background-1);
+
+    @media (prefers-color-scheme: dark) {
+        --color-primary: rgba(255, 255, 255, 0.8);
+        --color-secondary: rgba(255, 255, 255, 0.2);
+        --color-tertiary: rgba(255, 255, 255, 0.7);
+        --color-danger: #d80000;
+        
+        --color-background-1: #222;
+        --color-background-2: #444;
+
+        --controls-border: 1px solid rgba(255, 255, 255, 0.3);
+    }
 }
 
 body {
@@ -84,7 +104,7 @@ a {
 .card {
     border-radius: 8px;
     padding: 10px 20px;
-    background: white;
+    background: var(--color-background-1);
     border: var(--controls-border);
     overflow: hidden;
 }
@@ -112,7 +132,7 @@ a {
 
 .nav {
     min-height: 60px;
-    background: #fffae5;
+    background: var(--color-background-2);
     border-top: var(--controls-border);
     display: flex;
     align-items: stretch;
@@ -134,14 +154,14 @@ a {
         justify-content: center;
         align-items: center;
         text-decoration: none;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-primary);
+        opacity: 0.5;
         cursor: pointer;
         font-weight: 500;
         max-width: 120px;
 
         &.active {
-            color: var(--color-primary);
-            // transform: translateY(-10px);
+            opacity: 1;
         }
     }
 
@@ -156,7 +176,7 @@ a {
 
     > .code-widget {
         border: var(--controls-border);
-        background: white;
+        background: var(--color-background-1);
         font-weight: 300;
         border-radius: 8px;
         overflow: hidden;
@@ -218,7 +238,7 @@ iframe {
     position: sticky;
     top: 8px;
     left: -20;
-    background: white;
+    background: var(--color-background-1);
     z-index: 10;
     width: 100%;
     padding: 8px;

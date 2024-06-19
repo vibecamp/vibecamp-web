@@ -1,9 +1,10 @@
 import { Elements,PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import { loadStripe,StripeElementsOptions } from '@stripe/stripe-js'
-import React, { FC, useCallback, useState } from 'react'
+import React, { FC, useMemo, useState } from 'react'
 
 import { Purchases } from '../../../../back-end/types/route-types'
 import env from '../../env'
+import usePrefersDarkTheme from '../../hooks/usePrefersDarkTheme'
 import { usePromise } from '../../hooks/usePromise'
 import { preventingDefault } from '../../utils'
 import PriceBreakdown from '../tickets/PriceBreakdown'
@@ -23,12 +24,19 @@ type Props = {
 }
 
 export default React.memo(({ stripeOptions, ...otherProps }: Props) => {
+    const prefersDarkTheme = usePrefersDarkTheme()
+
+    const options = useMemo(() => ({
+        ...stripeOptions,
+        appearance: { theme: prefersDarkTheme ? 'night' : undefined }
+    } as const), [prefersDarkTheme, stripeOptions])
+
     if (stripeOptions == null) {
         return null
     }
 
     return (
-        <Elements options={stripeOptions} stripe={stripePromise}>
+        <Elements options={options} stripe={stripePromise}>
             <PaymentFormInner {...otherProps} />
         </Elements>
     )

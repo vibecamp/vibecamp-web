@@ -5,7 +5,7 @@
     background: none;
 
     border: var(--controls-border);
-    background: white;
+    background: var(--color-background-1);
     border-radius: 8px;
     padding: 10px 20px;
     min-height: 42px;
@@ -14,7 +14,7 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    color: rgba(0, 0, 0, 0.8);
+    color: var(--color-primary);
 
     width: 100%;
     max-width: 400px;
@@ -28,12 +28,12 @@
     }
 
     &.danger {
-        border: 1px solid red;
-        color: red;
+        border: 1px solid var(--color-danger);
+        color: var(--color-danger);
         
         &.primary {
             color: rgba(255, 255, 255, 0.9);
-            background: red;
+            background: var(--color-danger);
         }
     }
 
@@ -44,6 +44,6 @@
 
     &:disabled {
         cursor: default;
-        opacity: 0.7;
+        filter: contrast(0.5);
     }
 }

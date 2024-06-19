@@ -33,7 +33,7 @@
         border: none;
         position: static;
 
-        background: white;
+        background: var(--color-background-1);
         box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
         transition: transform 0.2s ease-out;
         width: 100%;
