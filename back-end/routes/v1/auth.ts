@@ -62,7 +62,7 @@ export default function register(router: Router) {
       )
 
       const account = await withDBConnection(async (db) => {
-        const existingAccount = (await db.queryObject<Tables['account']>`SELECT * FROM account WHERE email_address = ${email_address}`).rows[0]
+        const existingAccount = (await db.queryTable('account', { where: ['email_address', '=', email_address] }))[0]
 
         if (existingAccount != null && existingAccount.password_hash == null && existingAccount.password_salt == null) {
           return (await db.updateTable('account', {
