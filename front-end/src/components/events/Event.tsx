@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { Routes } from '../../../../back-end/types/route-types'
 import { usePromise } from '../../hooks/usePromise'
 import { useStore } from '../../hooks/useStore'
+import { urlsToLinks } from '../../utils'
 import { vibefetch } from '../../vibefetch'
 import Button from '../core/Button'
 import Icon from '../core/Icon'
@@ -130,7 +131,9 @@ export default React.memo(({ event, editEvent, firstOfFestival, duringFestival }
                 <div className='info'>
                     <Icon name='location_on' />
                     <span>
-                        {event.plaintext_location || event.event_site_location_name}
+                        {event.plaintext_location
+                            ? urlsToLinks(event.plaintext_location)
+                            : event.event_site_location_name}
                     </span>
                 </div>
 

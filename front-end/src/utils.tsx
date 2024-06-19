@@ -1,4 +1,6 @@
 
+import React, { ReactNode } from 'react'
+
 import { objectEntries, objectFromEntries } from '../../back-end/utils/misc'
 
 export function wait(ms: number): Promise<void> {
@@ -45,4 +47,22 @@ export function someValue<TObj extends object>(obj: TObj, cb: (value: TObj[keyof
         }
     }
     return false
+}
+
+export function urlsToLinks(str: string): React.ReactNode[] {
+    const segments: ReactNode[] = []
+    const urlRegex = /(?:http|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))(?:[\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/igm
+    let result: RegExpExecArray | null = null
+    let lastIndex = 0
+    // eslint-disable-next-line no-cond-assign
+    while (result = urlRegex.exec(str)) {
+        segments.push(str.substring(lastIndex, result.index))
+        const url = result[0]
+        segments.push(<a href={url} target='_blank' rel="noreferrer" key={result.index}>{url}</a>)
+        lastIndex = result.index + url.length
+    }
+
+    segments.push(str.substring(lastIndex))
+
+    return segments
 }
