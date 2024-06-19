@@ -16,6 +16,27 @@
     }
 }
 
+.scrollToTopButton {
+    position: fixed;
+    left: calc(50vw - 68.24px);
+    top: 10px;
+    width: auto;
+    padding: 5px 10px;
+    border-radius: 21px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+
+    > .icon {
+        transform: rotate(90deg);
+    }
+
+    &.hidden {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
 .eventCard {
 
     >.eventName {
