@@ -3,7 +3,7 @@ import { assertEquals } from 'https://deno.land/std@0.152.0/testing/asserts.ts'
 import { stub } from "https://deno.land/std@0.220.0/testing/mock.ts"
 
 import { Tables } from '../types/db-types.ts'
-import { purchaseBreakdown, purchaseTypeAvailableNow } from './misc.ts'
+import { purchaseBreakdown, purchaseTypeAvailable } from './misc.ts'
 
 Deno.test({
     name: 'purchaseBreakdown()',
@@ -95,65 +95,65 @@ Deno.test({
         stub(Date, 'now', () => new Date(now).valueOf())
 
         assertEquals(
-            purchaseTypeAvailableNow({
+            purchaseTypeAvailable({
                 ...basePurchaseType,
                 "available_from": null,
                 "available_to": null
-            } as unknown as Tables['purchase_type']),
+            } as unknown as Tables['purchase_type'], { is_low_income: false }, { sales_are_open: true }),
             true
         )
 
         assertEquals(
-            purchaseTypeAvailableNow({
+            purchaseTypeAvailable({
                 ...basePurchaseType,
                 "available_from": new Date(beforeNow).valueOf(),
                 "available_to": null
-            } as unknown as Tables['purchase_type']),
+            } as unknown as Tables['purchase_type'], { is_low_income: false }, { sales_are_open: true }),
             true
         )
 
         assertEquals(
-            purchaseTypeAvailableNow({
+            purchaseTypeAvailable({
                 ...basePurchaseType,
                 "available_from": null,
                 "available_to": new Date(afterNow).valueOf()
-            } as unknown as Tables['purchase_type']),
+            } as unknown as Tables['purchase_type'], { is_low_income: false }, { sales_are_open: true }),
             true
         )
 
         assertEquals(
-            purchaseTypeAvailableNow({
+            purchaseTypeAvailable({
                 ...basePurchaseType,
                 "available_from": new Date(beforeNow).valueOf(),
                 "available_to": new Date(afterNow).valueOf()
-            } as unknown as Tables['purchase_type']),
+            } as unknown as Tables['purchase_type'], { is_low_income: false }, { sales_are_open: true }),
             true
         )
 
         assertEquals(
-            purchaseTypeAvailableNow({
+            purchaseTypeAvailable({
                 ...basePurchaseType,
                 "available_from": new Date(afterNow).valueOf(),
                 "available_to": null
-            } as unknown as Tables['purchase_type']),
+            } as unknown as Tables['purchase_type'], { is_low_income: false }, { sales_are_open: true }),
             false
         )
 
         assertEquals(
-            purchaseTypeAvailableNow({
+            purchaseTypeAvailable({
                 ...basePurchaseType,
                 "available_from": null,
                 "available_to": new Date(beforeNow).valueOf()
-            } as unknown as Tables['purchase_type']),
+            } as unknown as Tables['purchase_type'], { is_low_income: false }, { sales_are_open: true }),
             false
         )
 
         assertEquals(
-            purchaseTypeAvailableNow({
+            purchaseTypeAvailable({
                 ...basePurchaseType,
                 "available_from": new Date(afterNow).valueOf(),
                 "available_to": new Date(beforeNow).valueOf()
-            } as unknown as Tables['purchase_type']),
+            } as unknown as Tables['purchase_type'], { is_low_income: false }, { sales_are_open: true }),
             false
         )
     }

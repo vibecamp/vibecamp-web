@@ -5,7 +5,7 @@ import {
   withDBConnection,
   withDBTransaction,
 } from '../../utils/db.ts'
-import { exists, objectEntries, objectFromEntries, purchaseBreakdown, purchaseTypeAvailableNow, sum } from '../../utils/misc.ts'
+import { exists, objectEntries, objectFromEntries, purchaseBreakdown, purchaseTypeAvailable, sum } from '../../utils/misc.ts'
 import { Tables } from "../../types/db-types.ts"
 import { Purchases, Routes } from '../../types/route-types.ts'
 import { sendMail, receiptEmail } from '../../utils/mailgun.ts'
@@ -18,12 +18,12 @@ export default function register(router: Router) {
     method: 'post',
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: { purchases, discount_codes, attendees } }) => {
+      const account = (await withDBConnection(db =>
+        db.queryTable('account', { where: ['account_id', '=', account_id] })))[0]
 
-      // verify that this user is allowed to purchase tickets
-      // const { allowedToPurchase } = await withDBConnection(db => accountReferralStatus(db, account_id))
-      // if (!allowedToPurchase) {
-      //   return [null, Status.Unauthorized]
-      // }
+      if (account == null) {
+        return [null, Status.Unauthorized]
+      }
 
       const alreadyPurchased = await withDBConnection(async db =>
         (await db.queryObject<{ purchase_type_id: Tables['purchase_type']['purchase_type_id'], count: bigint }>`
@@ -49,13 +49,8 @@ export default function register(router: Router) {
         const festivals = await withDBConnection(db => db.queryTable('festival'))
         const festival = festivals.find(f => f.festival_id === festival_id)!
 
-        // if festival hasn't started sales, don't allow purchases
-        if (!festival.sales_are_open) {
-          return [null, Status.Unauthorized]
-        }
-
         // if purchase type isn't available yet, don't allow purchases
-        if (!purchaseTypeAvailableNow(purchaseType)) {
+        if (!purchaseTypeAvailable(purchaseType, account, festival)) {
           return [null, Status.Unauthorized]
         }
 

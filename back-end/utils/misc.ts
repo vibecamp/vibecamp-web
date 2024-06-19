@@ -1,4 +1,5 @@
 import { Tables } from '../types/db-types.ts'
+import { Maybe } from '../types/misc.ts'
 import { Purchases } from '../types/route-types.ts'
 
 export async function allPromises<
@@ -97,11 +98,14 @@ export const purchaseBreakdown = (purchases: Purchases, discounts: readonly Tabl
     })
 }
 
-export const purchaseTypeAvailableNow = (purchaseType: Tables['purchase_type']) => {
+export const purchaseTypeAvailable = (purchaseType: Tables['purchase_type'], account: Maybe<Pick<Tables['account'], 'is_low_income'>>, festival: Pick<Tables['festival'], 'sales_are_open'>) => {
   const { available_from, available_to } = purchaseType
   const now = Date.now()
 
   return (
+    festival.sales_are_open &&
+    !purchaseType.hidden_from_ui &&
+    (!purchaseType.low_income_only || account?.is_low_income) &&
     (available_from == null || now >= new Date(available_from).valueOf()) &&
     (available_to == null || now <= new Date(available_to).valueOf())
   )

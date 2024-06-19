@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 
-import { purchaseTypeAvailableNow } from '../../../../back-end/utils/misc'
+import { purchaseTypeAvailable } from '../../../../back-end/utils/misc'
 import { PurchaseFormState } from '../../hooks/usePurchaseFormState'
 import { DayjsFestival, useStore } from '../../hooks/useStore'
 import { preventingDefault, someValue } from '../../utils'
@@ -28,15 +28,14 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
         store.purchaseTypes.state.result
             ?.filter(t =>
                 t.festival_id === festival?.festival_id &&
-                purchaseTypeAvailableNow(t) &&
-                !t.hidden_from_ui)
-            .sort((a, b) => b.price_in_cents - a.price_in_cents) ?? []
-    , [festival?.festival_id, store.purchaseTypes.state.result])
+                purchaseTypeAvailable(t, store.accountInfo.state.result, festival)) ?? []
+    , [festival, store.accountInfo.state.result, store.purchaseTypes.state.result])
 
     const attendancePurchases = useMemo(() =>
         festivalPurchases
-            .filter(t => t.is_attendance_ticket && (!t.low_income_only || store.accountInfo.state.result?.is_low_income))
-    , [festivalPurchases, store.accountInfo.state.result?.is_low_income])
+            .filter(t => t.is_attendance_ticket)
+            .sort((a, b) => b.price_in_cents - a.price_in_cents)
+    , [festivalPurchases])
 
     const otherPurchases = useMemo(() =>
         festivalPurchases
