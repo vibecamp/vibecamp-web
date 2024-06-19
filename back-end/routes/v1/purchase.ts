@@ -252,37 +252,37 @@ async function purchaseTypeAvailability(account_id: Tables['account']['account_i
     festivals: await db.queryTable('festival'),
   }))
 
-  if (account == null) {
-    return []
-  }
-
   return allPurchaseTypes.map(purchaseType => {
-    const { purchase_type_id, max_available, max_per_account, festival_id } = purchaseType
-    const festival = festivals.find(f => f.festival_id === festival_id)!
+    if (account == null) {
+      return { purchaseType, available: 0 }
+    } else {
+      const { purchase_type_id, max_available, max_per_account, festival_id } = purchaseType
+      const festival = festivals.find(f => f.festival_id === festival_id)!
 
-    // start with no limit
-    let available = Number.MAX_SAFE_INTEGER
+      // start with no limit
+      let available = Number.MAX_SAFE_INTEGER
 
-    // if purchase type isn't available currently, don't allow purchases
-    if (!purchaseTypeAvailable(purchaseType, account, festival)) {
-      available = 0
+      // if purchase type isn't available currently, don't allow purchases
+      if (!purchaseTypeAvailable(purchaseType, account, festival)) {
+        available = 0
+      }
+
+      // cap by max purchases available of this type across the board
+      const allPurchased = allPurchaseCounts.find(c => c.purchase_type_id === purchase_type_id)?.count ?? 0
+      if (max_available != null) {
+        available = Math.min(available, max_available - allPurchased)
+      }
+
+      // cap by max purchases available of this type per-account
+      if (max_per_account != null) {
+        const alreadyPurchasedCount = accountPurchaseCounts.find(p => p.purchase_type_id === purchase_type_id)?.count ?? 0
+        available = Math.min(available, max_per_account - alreadyPurchasedCount)
+      }
+
+      // if we went negative, bump up to 0
+      available = Math.max(available, 0)
+
+      return { purchaseType, available }
     }
-
-    // cap by max purchases available of this type across the board
-    const allPurchased = allPurchaseCounts.find(c => c.purchase_type_id === purchase_type_id)?.count ?? 0
-    if (max_available != null) {
-      available = Math.min(available, max_available - allPurchased)
-    }
-
-    // cap by max purchases available of this type per-account
-    if (max_per_account != null) {
-      const alreadyPurchasedCount = accountPurchaseCounts.find(p => p.purchase_type_id === purchase_type_id)?.count ?? 0
-      available = Math.min(available, max_per_account - alreadyPurchasedCount)
-    }
-
-    // if we went negative, bump up to 0
-    available = Math.max(available, 0)
-
-    return { purchaseType, available }
   })
 }
