@@ -119,6 +119,14 @@ export type Routes = {
         },
         response: null
     },
+    '/purchase/availability': {
+        method: 'get',
+        body: undefined,
+        response: Array<{
+            purchaseType: Tables['purchase_type'],
+            available: number
+        }>
+    },
     '/purchase/create-intent': {
         method: 'post',
         body: {

@@ -14,56 +14,29 @@ import env from '../../env.ts'
 export default function register(router: Router) {
 
   defineRoute(router, {
+    endpoint: '/purchase/availability',
+    method: 'get',
+    requireAuth: true,
+    handler: async ({ jwt: { account_id } }) => {
+      return [await purchaseTypeAvailability(account_id), Status.OK]
+    }
+  })
+
+  defineRoute(router, {
     endpoint: '/purchase/create-intent',
     method: 'post',
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: { purchases, discount_codes, attendees } }) => {
-      const account = (await withDBConnection(db =>
-        db.queryTable('account', { where: ['account_id', '=', account_id] })))[0]
+      const availability = await purchaseTypeAvailability(account_id)
 
-      if (account == null) {
-        return [null, Status.Unauthorized]
-      }
-
-      const alreadyPurchased = await withDBConnection(async db =>
-        (await db.queryObject<{ purchase_type_id: Tables['purchase_type']['purchase_type_id'], count: bigint }>`
-          SELECT purchase.purchase_type_id, COUNT(*)
-          FROM purchase, purchase_type
-          WHERE purchase_type.purchase_type_id = purchase.purchase_type_id AND purchase.owned_by_account_id = ${account_id}
-          group by purchase.purchase_type_id
-        `).rows.map(row => ({
-          ...row,
-          // `count` comes back from the client as a BigInt, which causes problems if not converted
-          count: Number(row.count)
-        })))
-
-      const purchaseTypes = await withDBConnection(db => db.queryTable('purchase_type'))
-
-      for (const [purchaseTypeId, toPurchaseCount] of objectEntries(purchases)) {
-        const purchaseType = purchaseTypes.find(p => p.purchase_type_id === purchaseTypeId)!
-        if (purchaseType == null) {
+      for (const [purchaseTypeId, numberToPurchase] of objectEntries(purchases)) {
+        const current = availability.find(p => p.purchaseType.purchase_type_id === purchaseTypeId)
+        if (current == null) {
           throw Error(`Can't create purchase intent with invalid purchase type: ${purchaseTypeId}`)
         }
 
-        const { festival_id, max_available, max_per_account } = purchaseType
-        const festivals = await withDBConnection(db => db.queryTable('festival'))
-        const festival = festivals.find(f => f.festival_id === festival_id)!
-
-        // if purchase type isn't available yet, don't allow purchases
-        if (!purchaseTypeAvailable(purchaseType, account, festival)) {
-          return [null, Status.Unauthorized]
-        }
-
-        const allPurchased = await withDBConnection(async db => Number(
-          (await db.queryObject<{ count: bigint }>`SELECT COUNT(*) FROM purchase WHERE purchase_type_id = ${purchaseTypeId}`).rows[0]!.count
-        ))
-        if (max_available != null && allPurchased + toPurchaseCount! > max_available) {
-          throw [null, Status.Unauthorized]
-        }
-
-        const alreadyPurchasedCount = alreadyPurchased.find(p => p.purchase_type_id === purchaseTypeId)?.count ?? 0
-
-        if (max_per_account != null && alreadyPurchasedCount + toPurchaseCount! > max_per_account) {
+        // if purchase type isn't available, don't allow purchase
+        if (current.available < numberToPurchase!) {
           return [null, Status.Unauthorized]
         }
       }
@@ -80,7 +53,7 @@ export default function register(router: Router) {
           return [purchaseType, integerCount]
         }))
 
-      const purchaseInfo = await purchaseBreakdown(sanitizedPurchases, discounts, purchaseTypes)
+      const purchaseInfo = purchaseBreakdown(sanitizedPurchases, discounts, availability.map(a => a.purchaseType))
 
       const amount = purchaseInfo
         .map(({ discountedPrice }) => discountedPrice)
@@ -251,4 +224,65 @@ const messageHtml = (icon: 'success' | 'warning' | 'error', message: string) => 
       </body>
     `
   )
+}
+
+async function purchaseTypeAvailability(account_id: Tables['account']['account_id']) {
+  const { account, accountPurchaseCounts, allPurchaseCounts, allPurchaseTypes, festivals } = await withDBConnection(async db => ({
+    account: (await db.queryTable('account', { where: ['account_id', '=', account_id] }))[0],
+    accountPurchaseCounts: (await db.queryObject<{ purchase_type_id: Tables['purchase_type']['purchase_type_id'], count: bigint }>`
+      SELECT purchase.purchase_type_id, COUNT(*)
+      FROM purchase, purchase_type
+      WHERE purchase_type.purchase_type_id = purchase.purchase_type_id
+        AND purchase.owned_by_account_id = ${account_id}
+      GROUP BY purchase.purchase_type_id
+    `).rows.map(row => ({
+      ...row,
+      // `count` comes back from the client as a BigInt, which causes problems if not converted
+      count: Number(row.count)
+    })),
+    allPurchaseCounts: (await db.queryObject<{ purchase_type_id: Tables['purchase_type']['purchase_type_id'], count: bigint }>`
+      SELECT purchase_type_id, COUNT(purchase_type_id)
+      FROM purchase
+      GROUP BY purchase_type_id
+    `).rows.map(row => ({
+      ...row,
+      count: Number(row.count)
+    })),
+    allPurchaseTypes: await db.queryTable('purchase_type'),
+    festivals: await db.queryTable('festival'),
+  }))
+
+  if (account == null) {
+    return []
+  }
+
+  return allPurchaseTypes.map(purchaseType => {
+    const { purchase_type_id, max_available, max_per_account, festival_id } = purchaseType
+    const festival = festivals.find(f => f.festival_id === festival_id)!
+
+    // start with no limit
+    let available = Number.MAX_SAFE_INTEGER
+
+    // if purchase type isn't available currently, don't allow purchases
+    if (!purchaseTypeAvailable(purchaseType, account, festival)) {
+      available = 0
+    }
+
+    // cap by max purchases available of this type across the board
+    const allPurchased = allPurchaseCounts.find(c => c.purchase_type_id === purchase_type_id)?.count ?? 0
+    if (max_available != null) {
+      available = Math.min(available, max_available - allPurchased)
+    }
+
+    // cap by max purchases available of this type per-account
+    if (max_per_account != null) {
+      const alreadyPurchasedCount = accountPurchaseCounts.find(p => p.purchase_type_id === purchase_type_id)?.count ?? 0
+      available = Math.min(available, max_per_account - alreadyPurchasedCount)
+    }
+
+    // if we went negative, bump up to 0
+    available = Math.max(available, 0)
+
+    return { purchaseType, available }
+  })
 }

@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
 
-import { purchaseTypeAvailable } from '../../../../back-end/utils/misc'
 import { PurchaseFormState } from '../../hooks/usePurchaseFormState'
 import { DayjsFestival, useStore } from '../../hooks/useStore'
 import { preventingDefault, someValue } from '../../utils'
@@ -25,27 +24,29 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
     const store = useStore()
 
     const festivalPurchases = useMemo(() =>
-        store.purchaseTypes.state.result
-            ?.filter(t =>
-                t.festival_id === festival?.festival_id &&
-                purchaseTypeAvailable(t, store.accountInfo.state.result, festival)) ?? []
-    , [festival, store.accountInfo.state.result, store.purchaseTypes.state.result])
+        store.purchaseTypeAvailability.state.result
+            ?.filter(({ purchaseType, available }) =>
+                available > 0 &&
+                purchaseType.festival_id === festival?.festival_id) ?? []
+    , [festival?.festival_id, store.purchaseTypeAvailability.state.result])
 
     const attendancePurchases = useMemo(() =>
         festivalPurchases
-            .filter(t => t.is_attendance_ticket)
-            .sort((a, b) => b.price_in_cents - a.price_in_cents)
+            .filter(({ purchaseType }) => purchaseType.is_attendance_ticket)
+            .sort((a, b) => b.purchaseType.price_in_cents - a.purchaseType.price_in_cents)
     , [festivalPurchases])
 
     const otherPurchases = useMemo(() =>
         festivalPurchases
-            .filter(t => !t.is_attendance_ticket)
-            .sort((a, b) => a.description.localeCompare(b.description))
+            .filter(({ purchaseType }) => !purchaseType.is_attendance_ticket)
+            .sort((a, b) => a.purchaseType.description.localeCompare(b.purchaseType.description))
     , [festivalPurchases])
 
     const attendancePurchaseOptions = useMemo(() =>
-        attendancePurchases
-            .map(p => ({ label: `${p.description} ($${p.price_in_cents / 100})`, value: p.purchase_type_id }))
+        attendancePurchases.map(({ purchaseType }) => ({
+            label: `${purchaseType.description} ($${purchaseType.price_in_cents / 100})`,
+            value: purchaseType.purchase_type_id
+        }))
     , [attendancePurchases])
 
     const emptySelection = useMemo(() =>
@@ -153,24 +154,24 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
 
                         <Spacer size={24} />
 
-                        {otherPurchases.map(p =>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }} key={p.purchase_type_id}>
+                        {otherPurchases.map(({ purchaseType, available }) =>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }} key={purchaseType.purchase_type_id}>
                                 <div>
-                                    {p.description} (${(p.price_in_cents / 100).toFixed(2)} each)
+                                    {purchaseType.description} (${(purchaseType.price_in_cents / 100).toFixed(2)} each)
                                 </div>
 
                                 <Spacer size={24} />
 
                                 <NumberInput
-                                    value={purchaseFormState.otherPurchases[p.purchase_type_id] ?? 0}
+                                    value={purchaseFormState.otherPurchases[purchaseType.purchase_type_id] ?? 0}
                                     onChange={val => {
                                         if (val != null) {
-                                            purchaseFormState.setOtherPurchasesCount(p.purchase_type_id, val)
+                                            purchaseFormState.setOtherPurchasesCount(purchaseType.purchase_type_id, val)
                                         }
                                     }}
                                     style={{ width: 64 }}
                                     min={0}
-                                    max={p.max_per_account ?? undefined}
+                                    max={available}
                                 />
                             </div>)}
 

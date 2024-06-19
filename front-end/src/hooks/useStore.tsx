@@ -45,6 +45,14 @@ export function useNewStoreInstance() {
             .then(res => res.body)
     , [])
 
+    const purchaseTypeAvailability = usePromise(async () => {
+        if (jwt != null) {
+            return (await vibefetch(jwt, '/purchase/availability', 'get', undefined)).body
+        } else {
+            return null
+        }
+    }, [jwt])
+
     const discounts = usePromise(() =>
         vibefetch(null, '/tables/discount', 'get', undefined)
             .then(res => res.body)
@@ -162,6 +170,7 @@ export function useNewStoreInstance() {
         loggedIn,
         jwtPayload,
         purchaseTypes,
+        purchaseTypeAvailability,
         discounts,
         festivals,
         festivalsWithSalesOpen,
@@ -174,7 +183,7 @@ export function useNewStoreInstance() {
         purchasesByFestival,
         purchasedTicketsByFestival,
         nonTicketPurchasesByFestival
-    }), [accountInfo, allEvents, bookmarks, discounts, eventSites, festivalSites, festivals, festivalsWithSalesOpen, jwt, jwtPayload, logOut, loggedIn, nonTicketPurchasesByFestival, primaryAttendee, purchaseTypes, purchasedTicketsByFestival, purchasesByFestival])
+    }), [accountInfo, allEvents, bookmarks, discounts, eventSites, festivalSites, festivals, festivalsWithSalesOpen, jwt, jwtPayload, logOut, loggedIn, nonTicketPurchasesByFestival, primaryAttendee, purchaseTypeAvailability, purchaseTypes, purchasedTicketsByFestival, purchasesByFestival])
 }
 
 const festivalComparator = (festival: {
