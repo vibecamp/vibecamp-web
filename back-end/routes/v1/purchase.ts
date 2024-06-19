@@ -1,6 +1,6 @@
 import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
-import { stripe } from '../../utils/stripe.ts'
+import { stripe, usingStripeTestKey } from '../../utils/stripe.ts'
 import {
   withDBConnection,
   withDBTransaction,
@@ -157,7 +157,8 @@ export default function register(router: Router) {
               await db.insertTable('purchase', {
                 owned_by_account_id: accountId,
                 purchase_type_id: purchaseType,
-                stripe_payment_intent
+                stripe_payment_intent,
+                is_test_purchase: usingStripeTestKey
               })
             }
           }
