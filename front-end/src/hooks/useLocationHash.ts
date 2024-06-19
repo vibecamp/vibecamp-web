@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-import { useWindowEvent } from './utils'
+import useWindowEvent from './useWindowEvent'
 
 export default function useLocationHash() {
     const [hash, setHash] = useState(window.location.hash)

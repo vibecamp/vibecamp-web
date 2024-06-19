@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-import { useWindowEvent } from './utils'
+import useWindowEvent from './useWindowEvent'
 
 export default function useWindowSize() {
     const [size, setSize] = useState(getSize())

@@ -20,6 +20,7 @@ export type MaterialIconName =
     | 'person'
     | 'open_in_new'
     | 'arrow_back_ios'
+    | 'arrow_back'
     | 'check'
     | 'content_copy'
     | 'add'

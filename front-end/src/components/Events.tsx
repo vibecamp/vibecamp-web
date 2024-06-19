@@ -8,6 +8,7 @@ import Col from './core/Col'
 import Icon from './core/Icon'
 import LoadingDots from './core/LoadingDots'
 import Modal from './core/Modal'
+import { useSlideScroll } from './core/MultiView'
 import Row from './core/Row'
 import RowSelect from './core/RowSelect'
 import Spacer from './core/Spacer'
@@ -15,6 +16,8 @@ import Event from './events/Event'
 import EventEditor from './events/EventEditor'
 
 export default React.memo(() => {
+    const { scrollToTop, scrollHeight, scrollTop } = useSlideScroll()
+    const showScrollButton = scrollTop > 100
     const store = useStore()
     const [filter, setFilter] = useState<'All' | 'Bookmarked' | 'Mine'>('All')
 
@@ -67,6 +70,14 @@ export default React.memo(() => {
                     />
 
                     <Spacer size={12} />
+
+                    <div style={{ position: 'fixed', top: 0, left: 0, opacity: showScrollButton ? 1 : 0, width: '100%', padding: 10, pointerEvents: showScrollButton ? undefined : 'none', appearance: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Button onClick={scrollToTop} style={{ width: 'auto', padding: '5px 10px', borderRadius: 21 }}>
+                            <Icon name='arrow_back' style={{ transform: 'rotate(90deg)' }} />
+                            <Spacer size={6} />
+                            Scroll to top
+                        </Button>
+                    </div>
 
                     <Events events={visibleEvents} editEvent={editEvent} />
 
