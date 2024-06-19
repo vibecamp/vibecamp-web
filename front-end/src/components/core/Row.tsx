@@ -2,7 +2,7 @@ import React, { CSSProperties } from 'react'
 
 type Props = {
     align?: 'start' | 'center' | 'end' | 'stretch',
-    justify?: 'start' | 'center' | 'end' | 'space-between' | 'space-around',
+    justify?: 'start' | 'center' | 'end' | 'space-between' | 'space-around' | 'stretch',
     padding?: CSSProperties['padding'],
     children: React.ReactNode
 }

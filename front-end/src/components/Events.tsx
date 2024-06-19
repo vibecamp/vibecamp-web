@@ -6,6 +6,7 @@ import { someValue } from '../utils'
 import Button from './core/Button'
 import Col from './core/Col'
 import Icon from './core/Icon'
+import Input from './core/Input'
 import LoadingDots from './core/LoadingDots'
 import Modal from './core/Modal'
 import { useSlideScroll } from './core/MultiView'
@@ -20,16 +21,22 @@ export default React.memo(() => {
     const showScrollButton = scrollTop > 100
     const store = useStore()
     const [filter, setFilter] = useState<'All' | 'Bookmarked' | 'Mine'>('All')
+    const [searchString, setSearchString] = useState('')
 
     const visibleEvents = useMemo(() => {
-        const allEvent = store.allEvents.state.result ?? []
+        const allEvents = (store.allEvents.state.result ?? []).filter(e =>
+            e.name.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()) ||
+            e.creator_name?.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()) ||
+            e.description.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()) ||
+            e.plaintext_location?.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()) ||
+            e.event_site_location_name?.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()))
 
         switch(filter) {
-        case 'All': return allEvent.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')))
-        case 'Bookmarked': return allEvent.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')) && store.bookmarks.state.result?.event_ids.includes(e.event_id))
-        case 'Mine': return allEvent.filter(e => e.created_by_account_id === store.jwtPayload?.account_id)
+        case 'All': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')))
+        case 'Bookmarked': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')) && store.bookmarks.state.result?.event_ids.includes(e.event_id))
+        case 'Mine': return allEvents.filter(e => e.created_by_account_id === store.jwtPayload?.account_id)
         }
-    }, [filter, store.allEvents.state.result, store.bookmarks.state.result?.event_ids, store.jwtPayload?.account_id])
+    }, [filter, store.allEvents.state.result, store.bookmarks.state.result?.event_ids, store.jwtPayload?.account_id, searchString])
 
     const [eventBeingEdited, setEventBeingEdited] = useState<DayjsEvent | 'new' | undefined>(undefined)
 
@@ -58,6 +65,22 @@ export default React.memo(() => {
 
                                 <Icon name='calendar_add_on' />
                             </Button>}
+                    </Row>
+
+                    <Spacer size={8} />
+
+                    <Row justify='stretch' align='center' padding='0 20px'>
+                        <Input
+                            placeholder='Search...'
+                            value={searchString}
+                            onChange={setSearchString}
+                        />
+
+                        <Spacer size={8} />
+
+                        <Button style={{ width: 'auto' }} onClick={() => setSearchString('')} disabled={searchString === ''}>
+                            Clear search
+                        </Button>
                     </Row>
 
                     <Spacer size={8} />

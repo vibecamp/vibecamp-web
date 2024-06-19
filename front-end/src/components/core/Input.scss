@@ -2,20 +2,12 @@
     display: flex;
     flex-direction: column;
     font-size: 14px;
+    flex-grow: 1;
     color: var(--color-tertiary);
 
     transition: color 0.1s ease-out, opacity 0.1s ease-out;
 
     --focus-color: rgb(0, 166, 255);
-    // &:nth-of-type(3n + 1) {
-    //     --focus-color: rgb(255, 158, 0);
-    // }
-    // &:nth-of-type(3n + 2) {
-    //     --focus-color: rgb(255, 0, 174);
-    // }
-    // &:nth-of-type(3n + 3) {
-    //     --focus-color: rgb(0, 166, 255);
-    // }
 
     &:focus-within>.label {
         color: var(--focus-color);
