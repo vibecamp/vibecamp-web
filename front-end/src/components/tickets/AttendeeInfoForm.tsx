@@ -125,7 +125,7 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
                         viewable by a limited number of attendees who also
                         choose to participate.</b>
                     </InfoBlurb>
-            </>}
+                </>}
         </>
     )
 })
