@@ -98,61 +98,33 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
                     This age should be at the time of {festival.festival_name} ({festival.start_date.format('MM/DD/YYYY')} - {festival.end_date.format('MM/DD/YYYY')})
                 </InfoBlurb>}
 
-            {!isChild &&
+            {!isChild && festival &&
                 <>
                     <Spacer size={FIELD_SPACE} />
 
-                    <RadioGroup
-                        label={`${attendeeInfo.is_primary_for_account ? 'I\'m' : 'They\'re'} interested in volunteering as a...`}
-                        options={VOLUNTEER_OPTIONS}
-                        value={attendeeInfo.interested_in_volunteering_as}
-                        onChange={val => setAttendeeProperty(attendeeInfo, 'interested_in_volunteering_as', val)}
-                        error={attendeeErrors.interested_in_volunteering_as}
-                    />
+                    <Checkbox
+                        value={attendeeInfo.interested_in_pre_call}
+                        onChange={val => setAttendeeProperty(attendeeInfo, 'interested_in_pre_call', val)}
+                        error={attendeeErrors.interested_in_pre_call}
+                    >
+                        {`${attendeeInfo.is_primary_for_account ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
+                        video call before the event`}
+                    </Checkbox>
 
                     <Spacer size={INFO_BLURB_SPACE} />
 
                     <InfoBlurb>
-                        Volunteers fall into two major categories: fae, and general volunteers.
-                        <Spacer size={6} />
-                        Fae are part of our safety team, which is responsible for psychological, social, and physical safety during the event.
-                        <Spacer size={6} />
-                        General volunteers are our muscle. They will be tasked with setup, breakdown, and general physical tasks.
-                        <Spacer size={6} />
-                        {attendeeInfo.is_primary_for_account
-                            ? 'If you indicate you are willing to volunteer we will reach out to you with more details via email.'
-                            : 'If this person indicates they are willing to volunteer we will reach out to you with more details via email.'}
-
+                        {`We'd like to introduce people to some of their fellow
+                        attendees so they can lay the foundations of
+                        connection before arriving at ${festival.festival_name}.
+                        If ${attendeeInfo.is_primary_for_account ? 'you' : 'this person'} would like
+                        to be invited to online hangouts please check the box
+                        below.`}&nbsp;
+                        <b>If you check this box, your email address
+                        ({store.accountInfo.state.result?.email_address}) may be
+                        viewable by a limited number of attendees who also
+                        choose to participate.</b>
                     </InfoBlurb>
-
-                    {festival &&
-                        <>
-                            <Spacer size={FIELD_SPACE} />
-
-                            <Checkbox
-                                value={attendeeInfo.interested_in_pre_call}
-                                onChange={val => setAttendeeProperty(attendeeInfo, 'interested_in_pre_call', val)}
-                                error={attendeeErrors.interested_in_pre_call}
-                            >
-                                {`${attendeeInfo.is_primary_for_account ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
-                                video call before the event`}
-                            </Checkbox>
-
-                            <Spacer size={INFO_BLURB_SPACE} />
-
-                            <InfoBlurb>
-                                {`We'd like to introduce people to some of their fellow
-                                attendees so they can lay the foundations of
-                                connection before arriving at ${festival.festival_name}.
-                                If ${attendeeInfo.is_primary_for_account ? 'you' : 'this person'} would like
-                                to be invited to online hangouts please check the box
-                                below.`}&nbsp;
-                                <b>If you check this box, your email address
-                                ({store.accountInfo.state.result?.email_address}) may be
-                                viewable by a limited number of attendees who also
-                                choose to participate.</b>
-                            </InfoBlurb>
-                        </>}
                 </>}
         </>
     )

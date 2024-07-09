@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useState } from 'react'
 
 import { getUuidValidationError } from '../../../../back-end/utils/validation'
 import { usePromise } from '../../hooks/usePromise'
