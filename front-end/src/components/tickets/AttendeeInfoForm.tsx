@@ -97,35 +97,6 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
                 <InfoBlurb>
                     This age should be at the time of {festival.festival_name} ({festival.start_date.format('MM/DD/YYYY')} - {festival.end_date.format('MM/DD/YYYY')})
                 </InfoBlurb>}
-
-            {!isChild && festival &&
-                <>
-                    <Spacer size={FIELD_SPACE} />
-
-                    <Checkbox
-                        value={attendeeInfo.interested_in_pre_call}
-                        onChange={val => setAttendeeProperty(attendeeInfo, 'interested_in_pre_call', val)}
-                        error={attendeeErrors.interested_in_pre_call}
-                    >
-                        {`${attendeeInfo.is_primary_for_account ? 'I\'m' : 'They\'re'} interested in being introduced to other attendees on a
-                        video call before the event`}
-                    </Checkbox>
-
-                    <Spacer size={INFO_BLURB_SPACE} />
-
-                    <InfoBlurb>
-                        {`We'd like to introduce people to some of their fellow
-                        attendees so they can lay the foundations of
-                        connection before arriving at ${festival.festival_name}.
-                        If ${attendeeInfo.is_primary_for_account ? 'you' : 'this person'} would like
-                        to be invited to online hangouts please check the box
-                        below.`}&nbsp;
-                        <b>If you check this box, your email address
-                        ({store.accountInfo.state.result?.email_address}) may be
-                        viewable by a limited number of attendees who also
-                        choose to participate.</b>
-                    </InfoBlurb>
-                </>}
         </>
     )
 })
