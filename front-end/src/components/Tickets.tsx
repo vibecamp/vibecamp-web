@@ -119,18 +119,22 @@ export default React.memo(() => {
                                                 </a>
                                             </>}
 
-                                        <Spacer size={16} />
+                                        {festival.festival_site_id !== 'ae4b04e5-8acf-400f-81f1-9a25553861c2' &&
+                                            (<>
+                                                <Spacer size={16} />
 
-                                        <a
-                                            className='button primary'
-                                            href='https://docs.google.com/forms/d/1-H7RljNum3D9VP8qLY8b65sCB-xR62sczVvh2m5LRLQ/edit'
-                                            target='_blank'
-                                            rel="noreferrer"
-                                        >
-                                            Need financial aid? Apply here
-                                            <Spacer size={5} />
-                                            <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
-                                        </a>
+                                                <a
+                                                    className='button primary'
+                                                    href='https://docs.google.com/forms/d/1-H7RljNum3D9VP8qLY8b65sCB-xR62sczVvh2m5LRLQ/edit'
+                                                    target='_blank'
+                                                    rel="noreferrer"
+                                                >
+                                                    Need financial aid? Apply here
+                                                    <Spacer size={5} />
+                                                    <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
+                                                </a>
+                                            </>)
+                                        }
 
                                         <Spacer size={32} />
                                         <hr />
