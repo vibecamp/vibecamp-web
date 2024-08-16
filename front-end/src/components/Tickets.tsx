@@ -119,7 +119,7 @@ export default React.memo(() => {
                                                 </a>
                                             </>}
 
-                                        {(festival.festival_site_id !== 'ae4b04e5-8acf-400f-81f1-9a25553861c2' && festival.festival_id !== '26879a92-b187-4809-a282-6be11169902f') &&
+                                        {festival.festival_name.includes('Vibe') &&
                                             (<>
                                                 <Spacer size={16} />
 
