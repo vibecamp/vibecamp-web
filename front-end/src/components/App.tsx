@@ -2,6 +2,7 @@ import React, { FC, useEffect, useMemo } from 'react'
 
 import { exists } from '../../../back-end/utils/misc'
 import useHashState from '../hooks/useHashState'
+import useIsOffline from '../hooks/useIsOffline'
 import { StoreContext, useNewStoreInstance } from '../hooks/useStore'
 import useWindowSize from '../hooks/useWindowSize'
 import Account from './Account'
@@ -90,6 +91,7 @@ export default React.memo(() => {
 
 const Nav = React.memo((props: { views: readonly View[] }) => {
     const { hashState } = useHashState()
+    const isOffline = useIsOffline()
 
     return (
         <div className='nav'>
@@ -109,6 +111,10 @@ const Nav = React.memo((props: { views: readonly View[] }) => {
                     </a>
                 )
             })}
+
+            <div className={`offline-banner ${!isOffline ? 'hidden' : ''}`}>
+                Currently offline
+            </div>
         </div>
     )
 })

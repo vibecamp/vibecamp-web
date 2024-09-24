@@ -131,6 +131,7 @@ a {
 }
 
 .nav {
+    position: relative;
     min-height: 60px;
     background: var(--color-background-2);
     border-top: var(--controls-border);
@@ -140,6 +141,25 @@ a {
     z-index: 10;
     flex-grow: 0;
     flex-shrink: 0;
+
+    .offline-banner {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        width: 100vw;
+        padding: 2px;
+        font-size: 10px;
+        text-align: center;
+        background: var(--color-danger);
+        color: rgba(255, 255, 255, 0.9);
+    
+        transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+    
+        &.hidden {
+            transform: translateX(-100vw);
+            opacity: 0;
+        }
+    }
 
     a {
         appearance: none;
