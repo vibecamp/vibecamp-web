@@ -101,7 +101,7 @@ export type Tables = {
   },
   cabin: {
     cabin_id: cabin__cabin_id_Type,
-    festival_site_id: Tables['event_site']['festival_site_id'],
+    festival_site_id: Tables['festival_site']['festival_site_id'],
     max_occupancy: number | null,
     name: string,
     nickname: string | null,
@@ -164,11 +164,12 @@ export type Tables = {
     used_by_account_id: Tables['account']['account_id'] | null,
   },
   purchase: {
+    applied_discount: Tables['discount']['discount_id'] | null,
     checked_in: boolean | null,
     is_test_purchase: boolean,
     owned_by_account_id: Tables['account']['account_id'] | null,
     purchase_id: purchase__purchase_id_Type,
-    purchase_type_id: Tables['discount']['purchase_type_id'],
+    purchase_type_id: Tables['purchase_type']['purchase_type_id'],
     purchased_on: Date,
     stripe_payment_intent: string | null,
   },
@@ -228,7 +229,7 @@ export const TABLE_COLUMNS = {
   festival: ["email_banner_image","end_date","festival_id","festival_name","festival_site_id","info_url","sales_are_open","start_date"],
   festival_site: ["festival_site_id","festival_site_name","location"],
   invite_code: ["code","created_by_account_id","festival_id","used_by_account_id"],
-  purchase: ["checked_in","is_test_purchase","owned_by_account_id","purchase_id","purchase_type_id","purchased_on","stripe_payment_intent"],
+  purchase: ["applied_discount","checked_in","is_test_purchase","owned_by_account_id","purchase_id","purchase_type_id","purchased_on","stripe_payment_intent"],
   purchase_type: ["available_from","available_to","description","festival_id","hidden_from_ui","is_attendance_ticket","low_income_only","max_available","max_per_account","price_in_cents","purchase_type_id"],
   volunteer_type: ["description","volunteer_type_id"],
 } as const
