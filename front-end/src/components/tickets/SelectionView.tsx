@@ -8,6 +8,7 @@ import Col from '../core/Col'
 import ErrorMessage from '../core/ErrorMessage'
 import Icon from '../core/Icon'
 import InfoBlurb from '../core/InfoBlurb'
+import Input from '../core/Input'
 import NumberInput from '../core/NumberInput'
 import RadioGroup from '../core/RadioGroup'
 import Spacer from '../core/Spacer'
@@ -215,7 +216,17 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
                 <hr />
                 <Spacer size={32} />
 
-                <PriceBreakdown purchases={purchaseFormState.purchases} />
+                <Input
+                    label='Discount code (optional)'
+                    value={purchaseFormState.discountCode}
+                    onChange={purchaseFormState.setDiscountCode}
+                />
+
+                <Spacer size={32} />
+                <hr />
+                <Spacer size={32} />
+
+                <PriceBreakdown purchases={purchaseFormState.purchases} discountCode={purchaseFormState.discountCode} />
 
                 <Spacer size={8} />
 

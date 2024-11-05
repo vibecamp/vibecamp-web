@@ -1,38 +1,56 @@
 import React, { useMemo } from 'react'
 
 import { Purchases } from '../../../../back-end/types/route-types'
-import { objectEntries, sum } from '../../../../back-end/utils/misc'
+import { formatCents, purchaseBreakdown, totalCost } from '../../../../back-end/utils/misc'
+import { usePromise } from '../../hooks/usePromise'
 import { useStore } from '../../hooks/useStore'
+import { vibefetch } from '../../vibefetch'
 import Spacer from '../core/Spacer'
 
 type Props = {
-    purchases: Purchases
+    purchases: Purchases,
+    discountCode: string
 }
 
-export default React.memo(({ purchases }: Props) => {
+export default React.memo(({ purchases, discountCode }: Props) => {
     const store = useStore()
-    const entries = useMemo(() => objectEntries(purchases), [purchases])
 
-    const purchaseTypes = store.purchaseTypes.state.result
+    const allPurchaseTypes = store.purchaseTypes.state.result
 
-    if (!purchaseTypes) {
+    const appliedDiscounts = usePromise(() =>
+        vibefetch(store.jwt, '/discounts-by-code', 'post', { discount_code: discountCode })
+            .then(res => res.body)
+    , [discountCode, store.jwt]).state.result
+
+    const breakdown = useMemo(() =>
+        allPurchaseTypes && purchaseBreakdown(purchases, appliedDiscounts ?? [], allPurchaseTypes)
+    , [allPurchaseTypes, appliedDiscounts, purchases])
+
+    if (!allPurchaseTypes || !breakdown) {
         return null
     }
 
+    const total = totalCost(breakdown)
+
     return (
         <>
-            {entries.map(([purchase_id, count]) => {
-                const purchaseType = purchaseTypes.find(p => p.purchase_type_id === purchase_id)!
-
+            {breakdown.map(({ purchaseType, count, basePrice, discountMultiplier, discountedPrice }) => {
                 return (
-                    <React.Fragment key={purchase_id}>
+                    <React.Fragment key={purchaseType.purchase_type_id}>
                         <div className='price-line-item'>
                             <div>
                                 {purchaseType.description} x {count}
                             </div>
                             <div>
-                                {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-                            ${(purchaseType.price_in_cents * count! / 100).toFixed(2)}
+                                <span style={discountMultiplier != null ? { textDecoration: 'line-through' } : undefined}>
+                                    ${formatCents(basePrice)}
+                                </span>
+
+                                {discountMultiplier != null &&
+                                    <span>
+                                        &nbsp;
+                                        ${formatCents(discountedPrice)}
+                                    </span>}
                             </div>
                         </div>
 
@@ -41,9 +59,23 @@ export default React.memo(({ purchases }: Props) => {
                 )
             })}
 
-            {entries.length > 0 &&
+            {breakdown.length > 0 &&
                 <>
                     <hr />
+                    <Spacer size={8} />
+                </>}
+
+            {appliedDiscounts && appliedDiscounts.length > 0 &&
+                <>
+                    <div className='price-line-item'>
+                        <div>
+                            Discount code:
+                        </div>
+                        <div>
+                            {discountCode}
+                        </div>
+                    </div>
+
                     <Spacer size={8} />
                 </>}
 
@@ -52,11 +84,7 @@ export default React.memo(({ purchases }: Props) => {
                     Total:
                 </div>
                 <div>
-                    ${entries
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        .map(([purchase_id, count]) => purchaseTypes.find(p => p.purchase_type_id === purchase_id)!.price_in_cents * count! / 100)
-                        .reduce(sum, 0)
-                        .toFixed(2)}
+                    ${formatCents(total)}
                 </div>
             </div>
         </>

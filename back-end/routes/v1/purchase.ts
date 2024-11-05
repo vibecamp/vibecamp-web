@@ -5,7 +5,7 @@ import {
   withDBConnection,
   withDBTransaction,
 } from '../../utils/db.ts'
-import { exists, objectEntries, objectFromEntries, purchaseBreakdown, purchaseTypeAvailable, sum } from '../../utils/misc.ts'
+import { exists, getDiscountsFromCode, objectEntries, objectFromEntries, purchaseBreakdown, purchaseTypeAvailable, sum } from '../../utils/misc.ts'
 import { Tables } from "../../types/db-types.ts"
 import { Purchases, Routes } from '../../types/route-types.ts'
 import { sendMail, receiptEmail } from '../../utils/mailgun.ts'
@@ -23,10 +23,24 @@ export default function register(router: Router) {
   })
 
   defineRoute(router, {
+    endpoint: '/discounts-by-code',
+    method: 'post',
+    requireAuth: true,
+    handler: async ({ body: { discount_code } }) => {
+      if (discount_code === '') {
+        return [[], Status.OK]
+      }
+
+      const allDiscounts = await withDBConnection(db => db.queryTable('discount'))
+      return [getDiscountsFromCode(allDiscounts, discount_code), Status.OK]
+    }
+  })
+
+  defineRoute(router, {
     endpoint: '/purchase/create-intent',
     method: 'post',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { purchases, discount_codes, attendees } }) => {
+    handler: async ({ jwt: { account_id }, body: { purchases, discount_code, attendees } }) => {
       const availability = await purchaseTypeAvailability(account_id)
 
       for (const [purchaseTypeId, numberToPurchase] of objectEntries(purchases)) {
@@ -42,8 +56,9 @@ export default function register(router: Router) {
       }
 
       const allDiscounts = await withDBConnection(db => db.queryTable('discount'))
-      const discounts = Array.from(new Set(discount_codes.map(c => c.toLocaleUpperCase()))).map(code =>
-        allDiscounts.filter(d => d.discount_code.toLocaleUpperCase() === code)).flat()
+      const discounts = discount_code != null
+        ? getDiscountsFromCode(allDiscounts, discount_code)
+        : []
 
       const sanitizedPurchases = objectFromEntries(objectEntries(purchases).map(
         ([purchaseType, count]) => {
@@ -54,10 +69,7 @@ export default function register(router: Router) {
         }))
 
       const purchaseInfo = purchaseBreakdown(sanitizedPurchases, discounts, availability.map(a => a.purchaseType))
-
-      const amount = purchaseInfo
-        .map(({ discountedPrice }) => discountedPrice)
-        .reduce(sum, 0)
+      const amount = totalCost(purchaseInfo)
 
       const metadata: PurchaseMetadata = {
         accountId: account_id,

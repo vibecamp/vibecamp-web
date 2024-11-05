@@ -70,8 +70,8 @@ export const pad = (str: string, length: number) => {
 export const indent = (str: string) =>
   str.split('\n').map(line => '\t' + line).join('\n')
 
-export const discountPerPurchase = (purchaseType: Tables['purchase_type']['purchase_type_id'], discounts: readonly Tables['discount'][]) => {
-  const relevantDiscounts = discounts.filter(d => d.purchase_type_id === purchaseType)
+export const discountPerPurchase = (purchaseTypeId: Tables['purchase_type']['purchase_type_id'], discounts: readonly Tables['discount'][]) => {
+  const relevantDiscounts = discounts.filter(d => d.purchase_type_id === purchaseTypeId)
 
   if (relevantDiscounts.length === 0) {
     return undefined
@@ -82,21 +82,27 @@ export const discountPerPurchase = (purchaseType: Tables['purchase_type']['purch
   }
 }
 
-export const purchaseBreakdown = (purchases: Purchases, discounts: readonly Tables['discount'][], purchaseTypes: readonly Tables['purchase_type'][]) => {
+export const purchaseBreakdown = (purchases: Purchases, appliedDiscounts: readonly Tables['discount'][], allPurchaseTypes: readonly Tables['purchase_type'][]) => {
   return objectEntries(purchases)
-    .map(([purchaseType, count]) => {
-      const basePrice = purchaseTypes.find(p => p.purchase_type_id === purchaseType)!.price_in_cents * count!
-      const discountMultiplier = discountPerPurchase(purchaseType, discounts)
+    .map(([purchaseTypeId, count]) => {
+      const purchaseType = allPurchaseTypes.find(p => p.purchase_type_id === purchaseTypeId)!
+      const basePrice = purchaseType!.price_in_cents * count!
+      const discountMultiplier = discountPerPurchase(purchaseTypeId, appliedDiscounts)
 
       return {
         purchaseType,
         count,
         basePrice,
         discountMultiplier,
-        discountedPrice: basePrice * (discountMultiplier ?? 1)
+        discountedPrice: Math.round(basePrice * (discountMultiplier ?? 1))
       }
     })
 }
+
+export const totalCost = (breakdown: ReturnType<typeof purchaseBreakdown>): number =>
+  breakdown
+    .map(({ discountedPrice }) => discountedPrice)
+    .reduce(sum, 0)
 
 export const purchaseTypeAvailable = (purchaseType: Tables['purchase_type'], account: Maybe<Pick<Tables['account'], 'is_low_income'>>, festival: Pick<Tables['festival'], 'sales_are_open'>) => {
   const { available_from, available_to } = purchaseType
@@ -109,6 +115,12 @@ export const purchaseTypeAvailable = (purchaseType: Tables['purchase_type'], acc
     (available_from == null || now >= new Date(available_from).valueOf()) &&
     (available_to == null || now <= new Date(available_to).valueOf())
   )
+}
+
+export const formatCents = (cents: number) => (cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+export const getDiscountsFromCode = (allDiscounts: readonly Tables['discount'][], discountCode: string): readonly Tables['discount'][] => {
+  return allDiscounts.filter(d => d.discount_code.toLocaleUpperCase() === discountCode.toLocaleUpperCase())
 }
 
 export function given<T, R>(val: T | null | undefined, fn: (val: T) => R): R | null | undefined {

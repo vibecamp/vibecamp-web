@@ -127,11 +127,18 @@ export type Routes = {
             available: number
         }>
     },
+    '/discounts-by-code': {
+        method: 'post',
+        body: {
+            discount_code: string
+        },
+        response: readonly Tables['discount'][]
+    },
     '/purchase/create-intent': {
         method: 'post',
         body: {
             purchases: Purchases,
-            discount_codes: readonly string[],
+            discount_code: string | null,
             attendees: AttendeeInfo[],
         },
         response: { stripe_client_secret: string }
@@ -153,7 +160,6 @@ export type Purchases = Partial<Record<Tables['purchase_type']['purchase_type_id
  */
 export const PUBLIC_TABLES = [
     'purchase_type',
-    'discount',
     'festival',
     'festival_site',
     'event_site'

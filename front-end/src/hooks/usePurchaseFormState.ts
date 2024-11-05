@@ -85,6 +85,8 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
         }
     }
 
+    const [discountCode, setDiscountCode] = useState('')
+
     const stripeOptions = usePromise(async () => {
         if (store.loggedIn && isValid && Object.values(purchases).some(count => count != null && count > 0)) {
             const { body: response } = await vibefetch(
@@ -93,7 +95,7 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
                 'post',
                 {
                     purchases,
-                    discount_codes: [],
+                    discount_code: discountCode || null,
                     attendees: attendees.map(({ ticket_type: _, ...attendee }) => attendee)
                 }
             )
@@ -112,7 +114,7 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
         } else {
             return undefined
         }
-    }, [attendees, isValid, purchases, store.jwt, store.loggedIn])
+    }, [attendees, discountCode, isValid, purchases, store.jwt, store.loggedIn])
 
     const goToTicketPayment = useCallback(() => {
         setShowingErrors(true)
@@ -150,7 +152,9 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
         addAttendee,
         removeAttendee,
         setAttendeeProperty,
-        setOtherPurchasesCount
+        setOtherPurchasesCount,
+        discountCode,
+        setDiscountCode
     }
 }
 

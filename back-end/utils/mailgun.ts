@@ -2,7 +2,7 @@ import env from '../env.ts'
 import { encode } from 'std/encoding/base64.ts'
 import { Purchases } from '../types/route-types.ts'
 import { Tables } from '../types/db-types.ts'
-import { objectEntries, purchaseBreakdown, sum } from './misc.ts'
+import { formatCents, objectEntries, purchaseBreakdown, totalCost } from './misc.ts'
 import { PASSWORD_RESET_SECRET_KEY } from './constants.ts'
 import { withDBConnection } from './db.ts'
 
@@ -55,23 +55,19 @@ export const receiptEmail = async (account: Pick<Tables['account'], 'email_addre
     const festival = allFestivals.find(f => f.festival_id === purchaseTypes[0]?.festival_id)
     const now = new Date()
 
-    const purchasesInfo = await purchaseBreakdown(purchases, discounts, allPurchaseTypes)
+    const purchasesInfo = purchaseBreakdown(purchases, discounts, allPurchaseTypes)
+    const total = totalCost(purchasesInfo)
 
     const purchaseRows = purchasesInfo.map(({ purchaseType, count, basePrice, discountMultiplier, discountedPrice }) =>
         `<tr>
-            <td>${allPurchaseTypes.find(p => p.purchase_type_id === purchaseType)!.description} x${count}</td>
+            <td>${purchaseType.description} x${count}</td>
             <td>
                 ${discountMultiplier != null
-            ? `<s>$${(basePrice / 100).toFixed(2)}<s> $${(discountedPrice / 100).toFixed(2)}`
-            : `$${(basePrice / 100).toFixed(2)}`}
+            ? `<s>$${formatCents(basePrice)}</s> $${formatCents(discountedPrice)}`
+            : `$${formatCents(basePrice)}`}
             </td>
         </tr>`)
         .join('\n')
-
-    const totalCost = purchasesInfo
-        .map(({ discountedPrice }) => discountedPrice / 100)
-        .reduce(sum, 0)
-        .toFixed(2)
 
     return {
         to: account.email_address,
@@ -91,10 +87,17 @@ export const receiptEmail = async (account: Pick<Tables['account'], 'email_addre
                 <h2>Purchases:</h2>
                 <table>
                     ${purchaseRows}
+
+                    ${discounts.length > 0
+                ? `<tr>
+                            <td>Discount code:</td>
+                            <td>${discounts[0]!.discount_code}</td>    
+                        </tr>`
+                : ''}
                     
                     <tr>
                         <td>Total:</td>
-                        <td>$${totalCost}</td>
+                        <td>$${total}</td>
                     </tr>
                 </table>
                 <p class="details">

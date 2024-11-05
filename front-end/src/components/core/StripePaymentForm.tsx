@@ -1,6 +1,6 @@
 import { Elements,PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import { loadStripe,StripeElementsOptions } from '@stripe/stripe-js'
-import React, { FC, useMemo, useState } from 'react'
+import React, { FC, useMemo } from 'react'
 
 import { Purchases } from '../../../../back-end/types/route-types'
 import env from '../../env'
@@ -11,7 +11,6 @@ import PriceBreakdown from '../tickets/PriceBreakdown'
 import Button from './Button'
 import Col from './Col'
 import ErrorMessage from './ErrorMessage'
-import Input from './Input'
 import LoadingDots from './LoadingDots'
 import Spacer from './Spacer'
 
@@ -19,7 +18,8 @@ const stripePromise = loadStripe(env.STRIPE_PUBLIC_KEY)
 
 type Props = {
     stripeOptions: StripeElementsOptions | undefined,
-    purchases?: Purchases,
+    purchases: Purchases,
+    discountCode: string,
     onCompletePurchase?: () => Promise<void> | void,
 }
 
@@ -42,11 +42,9 @@ export default React.memo(({ stripeOptions, ...otherProps }: Props) => {
     )
 })
 
-const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = React.memo(({ purchases, onCompletePurchase }) => {
+const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = React.memo(({ purchases, discountCode, onCompletePurchase }) => {
     const stripe = useStripe()
     const elements = useElements()
-
-    const [discountCode, setDiscountCode] = useState('')
 
     const confirmPayment = usePromise(async () => {
         if (!stripe || !elements) {
@@ -83,20 +81,9 @@ const PaymentFormInner: FC<Omit<Props, 'stripeOptions'>> = React.memo(({ purchas
                 <Col padding={20} pageLevel>
                     <PaymentElement id="payment-element" options={{ layout: 'tabs' }} />
 
-                    {purchases &&
-                        <>
-                            <Spacer size={16} />
-
-                            <PriceBreakdown purchases={purchases} />
-                        </>}
-
                     <Spacer size={16} />
 
-                    <Input
-                        label='Discount code (optional)'
-                        value={discountCode}
-                        onChange={setDiscountCode}
-                    />
+                    <PriceBreakdown purchases={purchases} discountCode={discountCode} />
 
                     <Spacer size={16} />
 

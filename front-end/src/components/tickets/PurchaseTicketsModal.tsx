@@ -53,6 +53,7 @@ export default React.memo(() => {
                         <StripePaymentForm
                             stripeOptions={purchaseFormState.stripeOptions.state.result}
                             purchases={purchaseFormState.purchases}
+                            discountCode={purchaseFormState.discountCode}
                             onCompletePurchase={handlePurchaseCompletion}
                         />
                 }
