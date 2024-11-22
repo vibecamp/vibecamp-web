@@ -5,7 +5,7 @@ import {
   withDBConnection,
   withDBTransaction,
 } from '../../utils/db.ts'
-import { exists, getDiscountsFromCode, objectEntries, objectFromEntries, purchaseBreakdown, purchaseTypeAvailable, sum } from '../../utils/misc.ts'
+import { exists, getDiscountsFromCode, objectEntries, objectFromEntries, purchaseBreakdown, purchaseTypeAvailable, totalCost } from '../../utils/misc.ts'
 import { Tables } from "../../types/db-types.ts"
 import { Purchases, Routes } from '../../types/route-types.ts'
 import { sendMail, receiptEmail } from '../../utils/mailgun.ts'
