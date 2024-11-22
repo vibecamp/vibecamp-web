@@ -53,21 +53,57 @@ Deno.test({
                     count: 3,
                     discountMultiplier: 0.85,
                     discountedPrice: 55000 * 3 * 0.85,
-                    purchaseType: "ATTENDANCE_VIBECLIPSE_2024_OVER_16" as Tables['purchase_type']['purchase_type_id'],
+                    purchaseType: {
+                        purchase_type_id: "ATTENDANCE_VIBECLIPSE_2024_OVER_16" as Tables['purchase_type']['purchase_type_id'],
+                        price_in_cents: 55000,
+                        max_available: 600,
+                        description: "Ticket (16 or older)",
+                        max_per_account: 2,
+                        festival_id: "a1fe0c91-5087-48d6-87b9-bdc1ef3716a6" as Tables['festival']['festival_id'],
+                        is_attendance_ticket: true,
+                        available_from: null,
+                        available_to: null,
+                        hidden_from_ui: false,
+                        low_income_only: false
+                    }
                 },
                 {
                     basePrice: 42000 * 2,
                     count: 2,
                     discountMultiplier: undefined,
                     discountedPrice: 42000 * 2,
-                    purchaseType: "VIBECAMP_3_BASIC_TICKET" as Tables['purchase_type']['purchase_type_id'],
+                    purchaseType: {
+                        purchase_type_id: "VIBECAMP_3_BASIC_TICKET" as Tables['purchase_type']['purchase_type_id'],
+                        price_in_cents: 42000,
+                        max_available: null,
+                        description: "Basic ticket",
+                        max_per_account: 2,
+                        festival_id: "4821bd6a-9e16-4944-b9a1-afe3256ff18d" as Tables['festival']['festival_id'],
+                        is_attendance_ticket: true,
+                        available_from: null,
+                        available_to: null,
+                        hidden_from_ui: false,
+                        low_income_only: false
+                    },
                 },
                 {
                     basePrice: 2700,
                     count: 1,
                     discountMultiplier: undefined,
                     discountedPrice: 2700,
-                    purchaseType: "VIBECAMP_3_BUS_TO_BALTIMORE_1130AM" as Tables['purchase_type']['purchase_type_id'],
+                    purchaseType: {
+                        purchase_type_id: "VIBECAMP_3_BUS_TO_BALTIMORE_1130AM" as Tables['purchase_type']['purchase_type_id'],
+                        price_in_cents: 2700,
+                        max_available: 100,
+                        description: "Bus ticket - Ramblewood to BWI (Baltimore Airport) - 11:30am",
+                        max_per_account: null,
+                        festival_id: "4821bd6a-9e16-4944-b9a1-afe3256ff18d" as Tables['festival']['festival_id'],
+                        is_attendance_ticket: false,
+                        available_from: null,
+                        available_to: null,
+                        hidden_from_ui: false,
+                        low_income_only: false
+                    },
                 },
             ]
         )
