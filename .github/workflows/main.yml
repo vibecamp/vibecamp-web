@@ -31,3 +31,10 @@ jobs:
       - name: Typecheck
         working-directory: back-end
         run: deno task check
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+    steps:
+      - name: Deploy
+        run: curl "$deploy_url"
