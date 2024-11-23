@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [front-end-lint, front-end-typecheck, back-end-check]
     env:
-      RENDER_DEPLOY_URL_BACKEND: ${{ secrets.RENDER_DEPLOY_URL_BACKEND }}
+      RENDER_DEPLOY_URL_BACKEND: https://www.google.com
       RENDER_DEPLOY_URL_FRONTEND: ${{ secrets.RENDER_DEPLOY_URL_FRONTEND }}
     steps:
       - name: Deploy
