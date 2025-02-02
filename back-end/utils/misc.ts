@@ -1,4 +1,4 @@
-import type { Dayjs } from 'dayjs'
+import type { Dayjs } from './dayjs.ts'
 import { Tables } from '../types/db-types.ts'
 import { Maybe } from '../types/misc.ts'
 import { Purchases } from '../types/route-types.ts'
