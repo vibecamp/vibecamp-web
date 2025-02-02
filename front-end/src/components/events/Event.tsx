@@ -22,27 +22,25 @@ type Props = {
 }
 
 export default React.memo(({ event, editEvent, firstOfFestival, duringFestival }: Props) => {
+    return (
+        <div className={'eventCardWrapper' + ' ' + (duringFestival ? 'duringFestival' : '') + ' ' + (firstOfFestival ? 'firstOfFestival' : '')}>
+            {firstOfFestival &&
+                <div className='festivalStart'>
+                    {duringFestival}
+                </div>}
+
+            <div className={'card' + ' ' + 'eventCard' + ' ' + (event.created_by_account_id === '-1' ? 'official' : '') + ' ' + event.event_type}>
+                <EventInfo event={event} editEvent={editEvent} />
+            </div>
+        </div>
+    )
+})
+
+export function EventInfo({ event, editEvent }: Pick<Props, 'event' | 'editEvent'>) {
     const store = useStore()
 
     const [bookmarkStatusOptimistic, setBookmarkStatusOptimistic] = useState<boolean | null>(null)
     const bookmarked = bookmarkStatusOptimistic ?? store.bookmarks.state.result?.event_ids.includes(event.event_id)
-    const when = useMemo(() => {
-        const now = dayjs.utc()
-        const timeOnly = 'h:mma'
-        const dateAndTime = (d: Dayjs) => (
-            now.isSame(d, 'year')
-                ? 'ddd, M/D [at] ' + timeOnly
-                : 'ddd, M/D/YYYY [at] ' + timeOnly
-        )
-
-        if (event.end_datetime == null) {
-            return event.start_datetime.format(dateAndTime(event.start_datetime))
-        } else if (event.end_datetime.isSame(event.start_datetime, 'day')) {
-            return event.start_datetime.format(dateAndTime(event.start_datetime)) + ' - ' + event.end_datetime.format(timeOnly)
-        } else {
-            return event.start_datetime.format(dateAndTime(event.start_datetime)) + ' - ' + event.end_datetime.format(dateAndTime(event.end_datetime))
-        }
-    }, [event.end_datetime, event.start_datetime])
 
     const unbookmarkEvent = usePromise(async () => {
         await vibefetch(store.jwt, '/event/unbookmark', 'post', { event_id: event.event_id })
@@ -53,6 +51,8 @@ export default React.memo(({ event, editEvent, firstOfFestival, duringFestival }
         await vibefetch(store.jwt, '/event/bookmark', 'post', { event_id: event.event_id })
         await store.bookmarks.load()
     }, [event.event_id, store.bookmarks, store.jwt], { lazy: true })
+
+    const when = useMemo(() => formatEventTime(event), [event])
 
     const toggleBookmark = useCallback(async () => {
         try {
@@ -77,19 +77,13 @@ export default React.memo(({ event, editEvent, firstOfFestival, duringFestival }
     )
 
     return (
-        <div className={'eventCardWrapper' + ' ' + (duringFestival ? 'duringFestival' : '') + ' ' + (firstOfFestival ? 'firstOfFestival' : '')}>
-            {firstOfFestival &&
-                <div className='festivalStart'>
-                    {duringFestival}
-                </div>}
+        <div className='eventInfo'>
+            <div className='eventName'>
+                <div>{event.name}</div>
 
-            <div className={'card' + ' ' + 'eventCard' + ' ' + (event.created_by_account_id === '-1' ? 'official' : '') + ' ' + event.event_type}>
-                <div className='eventName'>
-                    <div>{event.name}</div>
+                <div style={{ flexGrow: 1, flexShrink: 1 }}></div>
 
-                    <div style={{ flexGrow: 1, flexShrink: 1 }}></div>
-
-                    {event.created_by_account_id === store.accountInfo.state.result?.account_id &&
+                {event.created_by_account_id === store.accountInfo.state.result?.account_id &&
                     <Button onClick={handleEditButtonClick} isCompact style={{ width: 'auto' }}>
                         Edit
 
@@ -98,16 +92,16 @@ export default React.memo(({ event, editEvent, firstOfFestival, duringFestival }
                         <Icon name='edit_calendar' style={{ fontSize: '1em' }} />
                     </Button>}
 
-                    <Spacer size={8} />
-
-                    <Button onClick={toggleBookmark} isCompact style={{ width: 'auto' }}>
-                        <Icon name='star' fill={bookmarked ? 1 : 0} style={{ fontSize: '1em' }} />
-                    </Button>
-                </div>
-
                 <Spacer size={8} />
 
-                {eventCreatorLabel &&
+                <Button onClick={toggleBookmark} isCompact style={{ width: 'auto' }}>
+                    <Icon name='star' fill={bookmarked ? 1 : 0} style={{ fontSize: '1em' }} />
+                </Button>
+            </div>
+
+            <Spacer size={8} />
+
+            {eventCreatorLabel &&
                 <>
                     <div className='info host' title='Host'>
                         <Icon name='person' />
@@ -119,37 +113,57 @@ export default React.memo(({ event, editEvent, firstOfFestival, duringFestival }
                     <Spacer size={4} />
                 </>}
 
-                <div className='info'>
-                    <Icon name='schedule' />
-                    <span>
-                        {when}
-                    </span>
-                </div>
-
-                <Spacer size={4} />
-
-                <div className='info'>
-                    <Icon name='location_on' />
-                    <span>
-                        {event.plaintext_location
-                            ? urlsToLinks(event.plaintext_location)
-                            : event.event_site_location_name}
-                    </span>
-                </div>
-
-                <Spacer size={4} />
-
-                <div className='info' title='Bookmarked by'>
-                    <Icon name='star'/>
-                    <span>
-                        {event.bookmarks}
-                    </span>
-                </div>
-
-                <Spacer size={8} />
-
-                <EventDescription description={event.description} />
+            <div className='info'>
+                <Icon name='schedule' />
+                <span>
+                    {when}
+                </span>
             </div>
+
+            <Spacer size={4} />
+
+            <div className='info'>
+                <Icon name='location_on' />
+                <span>
+                    {formatEventLocation(event)}
+                </span>
+            </div>
+
+            <Spacer size={4} />
+
+            <div className='info' title='Bookmarked by'>
+                <Icon name='star'/>
+                <span>
+                    {event.bookmarks}
+                </span>
+            </div>
+
+            <Spacer size={8} />
+
+            <EventDescription description={event.description} />
         </div>
     )
-})
+}
+
+const formatEventTime = (event: Props['event']) => {
+    const now = dayjs.utc()
+    const timeOnly = 'h:mma'
+    const dateAndTime = (d: Dayjs) => (
+        now.isSame(d, 'year')
+            ? 'ddd, M/D [at] ' + timeOnly
+            : 'ddd, M/D/YYYY [at] ' + timeOnly
+    )
+
+    if (event.end_datetime == null) {
+        return event.start_datetime.format(dateAndTime(event.start_datetime))
+    } else if (event.end_datetime.isSame(event.start_datetime, 'day')) {
+        return event.start_datetime.format(dateAndTime(event.start_datetime)) + ' - ' + event.end_datetime.format(timeOnly)
+    } else {
+        return event.start_datetime.format(dateAndTime(event.start_datetime)) + ' - ' + event.end_datetime.format(dateAndTime(event.end_datetime))
+    }
+}
+
+export const formatEventLocation = (event: Props['event']) =>
+    event.plaintext_location
+        ? urlsToLinks(event.plaintext_location)
+        : event.event_site_location_name

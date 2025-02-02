@@ -23,16 +23,23 @@ export default function useHashState() {
         return parsed as HashState
     }, [hash])
 
-    const setHashState = useCallback((state: HashState) => {
-        window.location.hash = encodeURIComponent(JSON.stringify({ ...hashState, ...state }))
+    const getHashStateString = useCallback((state: HashState) => {
+        return encodeURIComponent(JSON.stringify({ ...hashState, ...state }))
     }, [hashState])
 
-    return { hashState, setHashState } as const
+    const setHashState = useCallback((state: HashState) => {
+        window.location.hash = getHashStateString(state)
+    }, [getHashStateString])
+
+    return { hashState, setHashState, getHashStateString } as const
 }
 
 type HashState = Readonly<{
     currentView?: string | number | boolean | null,
     ticketPurchaseModalState?: string | number | boolean | null,
     applicationModalOpen?: string | number | boolean | null,
+    eventsFilter?: string | number | boolean | null,
+    viewingEventDetails?: string | number | boolean | null,
+    compactEventsView?: string | number | boolean | null,
     [PASSWORD_RESET_SECRET_KEY]?: string | number | boolean | null
 }>
