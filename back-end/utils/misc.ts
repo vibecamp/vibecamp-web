@@ -132,7 +132,7 @@ export function given<T, R>(val: T | null | undefined, fn: (val: T) => R): R | n
   }
 }
 
-// Checks if two events overlap in location and time with buffer minutes (can be 0)
+// Checks if two events overlap in location and time with buffer minutes (default 0)
 export function eventsOverlap(
   event1: Pick<Tables['event'], 'event_id' | 'event_site_location'> & {
     start_datetime: Dayjs,
@@ -142,7 +142,7 @@ export function eventsOverlap(
     start_datetime: Dayjs,
     end_datetime: Dayjs | null
   },
-  bufferMinutes = 15
+  bufferMinutes = 0
 ): boolean {
   if (
     // Same event (for edit case)
