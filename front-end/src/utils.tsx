@@ -1,9 +1,7 @@
-
 import React, { ReactNode } from 'react'
-import { Dayjs } from 'dayjs'
 
-import { Tables } from '../../back-end/types/db-types'
 import { exists, objectEntries, objectFromEntries } from '../../back-end/utils/misc'
+import { DayjsEvent } from './hooks/useStore'
 
 export function wait(ms: number): Promise<void> {
     return new Promise(res => setTimeout(res, ms))
@@ -69,16 +67,9 @@ export function urlsToLinks(str: string): React.ReactNode[] {
     return segments
 }
 
-// Checks if two events overlap in location and time with buffer minutes (default 0)
-export function eventsOverlap(
-    event1: Pick<Tables['event'], 'event_id' | 'event_site_location'> & {
-      start_datetime: Dayjs,
-      end_datetime: Dayjs | null
-    },
-    event2: Pick<Tables['event'], 'event_id' | 'event_site_location'> & {
-      start_datetime: Dayjs,
-      end_datetime: Dayjs | null
-    },
+export function checkEventsOverlap(
+    event1: DayjsEvent,
+    event2: DayjsEvent,
     bufferMinutes = 0
   ): boolean {
     if (
@@ -92,7 +83,7 @@ export function eventsOverlap(
     ) {
       return false
     }
-  
+
     const start1 = event1.start_datetime
     const start2 = event2.start_datetime
     
@@ -104,9 +95,9 @@ export function eventsOverlap(
       return start1.unix() >= start2.subtract(bufferMinutes, 'minutes').unix()
     }
   
-    // Both events have end times so we check for overlap with buffer
+    // Check for overlap with buffer
     return (
       start1.unix() <= event2.end_datetime.add(bufferMinutes, 'minutes').unix() &&
       event1.end_datetime.unix() >= start2.subtract(bufferMinutes, 'minutes').unix()
     )
-  }
+}
