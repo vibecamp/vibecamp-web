@@ -2,10 +2,9 @@ import dayjs, { Dayjs } from 'dayjs'
 import React, { useCallback, useMemo, useState } from 'react'
 
 import { TABLE_ROWS, Tables } from '../../../../back-end/types/db-types'
-import { given, objectEntries,objectFromEntries } from '../../../../back-end/utils/misc'
+import { given, objectEntries, objectFromEntries } from '../../../../back-end/utils/misc'
 import useBooleanState from '../../hooks/useBooleanState'
 import useForm, { fieldToProps } from '../../hooks/useForm'
-import { usePromise } from '../../hooks/usePromise'
 import { DayjsEvent, useStore } from '../../hooks/useStore'
 import { vibefetch } from '../../vibefetch'
 import Button from '../core/Button'
@@ -17,6 +16,7 @@ import Modal from '../core/Modal'
 import RadioGroup from '../core/RadioGroup'
 import RowSelect from '../core/RowSelect'
 import Spacer from '../core/Spacer'
+import EventDeletionModal from './EventDeletionModal'
 import EventSiteInfo from './EventSiteInfo'
 
 type Props = {
@@ -98,14 +98,6 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
             onDone()
         }
     })
-
-    const deleteEvent = usePromise(async () => {
-        if (event_id != null) {
-            await vibefetch(store.jwt, '/event/delete', 'post', { event_id })
-            await store.allEvents.load()
-            onDone()
-        }
-    }, [event_id, onDone, store.allEvents, store.jwt], { lazy: true })
 
     const [locationType, setLocationType] = useState<'Onsite' | 'Offsite'>('Onsite')
     const [confirmingDeletion, setConfirmingDeletion] = useState(false)
@@ -312,27 +304,13 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                             Delete event
                         </Button>
 
-                        <Modal isOpen={confirmingDeletion} side='right'>
-                            {() => (
-                                <Col align='center' justify='center' padding={20} pageLevel>
-                                    <div style={{ fontSize: 22, textAlign: 'center' }}>
-                                        Are you sure you want to delete &quot;{fields.name.value}&quot;?
-                                    </div>
-
-                                    <Spacer size={16} />
-
-                                    <Button isDanger isPrimary onClick={deleteEvent.load} isLoading={deleteEvent.state.kind === 'loading'}>
-                                        Yes, delete the event
-                                    </Button>
-
-                                    <Spacer size={8} />
-
-                                    <Button onClick={() => setConfirmingDeletion(false)} disabled={deleteEvent.state.kind === 'loading'}>
-                                        Cancel
-                                    </Button>
-                                </Col>
-                            )}
-                        </Modal>
+                        <EventDeletionModal
+                            eventId={event_id}
+                            eventName={fields.name.value}
+                            isOpen={confirmingDeletion}
+                            onClose={() => setConfirmingDeletion(false)}
+                            onDone={onDone}
+                        />
 
                         <Spacer size={8} />
                     </>}
