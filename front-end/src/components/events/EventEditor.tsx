@@ -1,11 +1,12 @@
 import dayjs, { Dayjs } from 'dayjs'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 
 import { TABLE_ROWS, Tables } from '../../../../back-end/types/db-types'
 import { given, objectEntries, objectFromEntries } from '../../../../back-end/utils/misc'
 import useBooleanState from '../../hooks/useBooleanState'
 import useForm, { fieldToProps } from '../../hooks/useForm'
 import { DayjsEvent, useStore } from '../../hooks/useStore'
+import { checkNewEventOverlap } from '../../utils'
 import { vibefetch } from '../../vibefetch'
 import Button from '../core/Button'
 import Col from '../core/Col'
@@ -17,6 +18,7 @@ import RadioGroup from '../core/RadioGroup'
 import RowSelect from '../core/RowSelect'
 import Spacer from '../core/Spacer'
 import EventDeletionModal from './EventDeletionModal'
+import EventOverlapModal from './EventOverlapModal'
 import EventSiteInfo from './EventSiteInfo'
 
 type Props = {
@@ -135,9 +137,48 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
             site.event_site_id === fields.event_site_location.value)
     , [fields.event_site_location.value, store.eventSites.state.result])
 
-    return (
+    const [confirmingOverlap, setConfirmingOverlap] = useState(false)
 
-        <form onSubmit={handleSubmit} noValidate>
+    const overlappingEvents = useMemo(() => {
+        if (!fields.start_datetime.value || !fields.event_site_location.value) return []
+
+        const currentEvent: InProgressEvent = {
+            event_id: event_id,
+            name: fields.name.value,
+            description: fields.description.value,
+            start_datetime: fields.start_datetime.value,
+            end_datetime: fields.end_datetime.value,
+            plaintext_location: fields.plaintext_location.value,
+            event_site_location: fields.event_site_location.value,
+            event_type: fields.event_type.value
+        }
+
+        return (store.allEvents.state.result ?? []).filter(
+            e => checkNewEventOverlap(currentEvent, e, 15)
+        )
+    }, [
+        event_id,
+        fields.name.value,
+        fields.description.value,
+        fields.start_datetime.value,
+        fields.end_datetime.value,
+        fields.plaintext_location.value,
+        fields.event_site_location.value,
+        fields.event_type.value,
+        store.allEvents.state.result
+    ])
+
+    const formRef = useRef<HTMLFormElement>(null)
+
+    return (
+        <form ref={formRef} onSubmit={(e) => {
+            e.preventDefault()
+            if (overlappingEvents.length > 0) {
+                setConfirmingOverlap(true)
+            } else {
+                handleSubmit(e)
+            }
+        }} noValidate>
             <Col padding={20} pageLevel>
                 <Button onClick={openGuidanceModal} isCompact isPrimary>
                     Guidelines for creating events
@@ -295,6 +336,17 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                         ? 'Create event'
                         : 'Save event'}
                 </Button>
+
+                <EventOverlapModal
+                    isOpen={confirmingOverlap}
+                    onClose={() => setConfirmingOverlap(false)}
+                    overlappingEvents={overlappingEvents}
+                    onConfirm={() => {
+                        setConfirmingOverlap(false)
+                        const syntheticEvent = new Event('submit') as unknown as React.FormEvent<HTMLFormElement>
+                        handleSubmit(syntheticEvent)
+                    }}
+                />
 
                 <Spacer size={8} />
 

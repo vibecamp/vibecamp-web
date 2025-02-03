@@ -1,5 +1,7 @@
 import React, { ReactNode } from 'react'
+import { Dayjs } from 'dayjs'
 
+import { Tables } from '../../back-end/types/db-types'
 import { exists, objectEntries, objectFromEntries } from '../../back-end/utils/misc'
 import { DayjsEvent } from './hooks/useStore'
 
@@ -67,37 +69,49 @@ export function urlsToLinks(str: string): React.ReactNode[] {
     return segments
 }
 
-export function checkEventsOverlap(
-    event1: DayjsEvent,
-    event2: DayjsEvent,
+// TODO: Don't repeat this code (just here for now to avoid circular dependency)
+type InProgressEvent = {
+    event_id: Tables['event']['event_id'] | undefined,
+    name: string,
+    description: string,
+    start_datetime: Dayjs | null,
+    end_datetime: Dayjs | null,
+    plaintext_location: string | null,
+    event_site_location: Tables['event_site']['event_site_id'] | null,
+    event_type: Tables['event']['event_type'] | undefined,
+    bookmarks?: unknown,
+    created_by?: unknown,
+    creator_name?: unknown
+}
+
+export function checkNewEventOverlap(
+    newEvent: InProgressEvent,
+    existingEvent: DayjsEvent,
     bufferMinutes = 0
-  ): boolean {
+): boolean {
     if (
-      // Same event (for edit case)
-      event1.event_id === event2.event_id ||
-      // Either event has no event site location
-      !exists(event1.event_site_location) ||
-      !exists(event2.event_site_location) ||
-      // Events are at different locations
-      event1.event_site_location !== event2.event_site_location
+        !newEvent.start_datetime ||
+        newEvent.event_id === existingEvent.event_id ||
+        !exists(newEvent.event_site_location) ||
+        !exists(existingEvent.event_site_location) ||
+        newEvent.event_site_location !== existingEvent.event_site_location
     ) {
-      return false
+        return false
     }
 
-    const start1 = event1.start_datetime
-    const start2 = event2.start_datetime
+    const start1 = newEvent.start_datetime
+    const start2 = existingEvent.start_datetime
     
-    // Treat events with no end time as running indefinitely
-    if (!exists(event1.end_datetime)) {
-      return start2.unix() >= start1.subtract(bufferMinutes, 'minutes').unix()
+    // Treat events with no end_datetime as running indefinitely
+    if (!exists(newEvent.end_datetime)) {
+        return start2.isAfter(start1.subtract(bufferMinutes, 'minutes'))
     }
-    if (!exists(event2.end_datetime)) {
-      return start1.unix() >= start2.subtract(bufferMinutes, 'minutes').unix()
+    if (!exists(existingEvent.end_datetime)) {
+        return start1.isAfter(start2.subtract(bufferMinutes, 'minutes'))
     }
   
-    // Check for overlap with buffer
     return (
-      start1.unix() <= event2.end_datetime.add(bufferMinutes, 'minutes').unix() &&
-      event1.end_datetime.unix() >= start2.subtract(bufferMinutes, 'minutes').unix()
+        start1.isBefore(existingEvent.end_datetime.add(bufferMinutes, 'minutes')) &&
+        newEvent.end_datetime.isAfter(start2.subtract(bufferMinutes, 'minutes'))
     )
 }
