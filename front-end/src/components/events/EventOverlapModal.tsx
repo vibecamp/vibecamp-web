@@ -21,7 +21,7 @@ export default React.memo(({ isOpen, onClose, onConfirm, overlappingEvents }: Pr
             {() => (
                 <Col align='center' justify='center' padding={20} pageLevel>
                     <div style={{ fontSize: 22, textAlign: 'center' }}>
-                        This overlaps with the following events. Want to schedule it anyway?
+                        {`This overlaps with the following event${overlappingEvents.length === 1 ? '' : 's'}. Want to schedule it anyway?`}
                     </div>
 
                     <Spacer size={16} />
