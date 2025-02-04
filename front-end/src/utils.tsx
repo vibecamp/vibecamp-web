@@ -1,9 +1,8 @@
 import React, { ReactNode } from 'react'
-import { Dayjs } from 'dayjs'
 
-import { Tables } from '../../back-end/types/db-types'
 import { exists, objectEntries, objectFromEntries } from '../../back-end/utils/misc'
 import { DayjsEvent } from './hooks/useStore'
+import { InProgressEvent } from './types/misc'
 
 export function wait(ms: number): Promise<void> {
     return new Promise(res => setTimeout(res, ms))
@@ -67,21 +66,6 @@ export function urlsToLinks(str: string): React.ReactNode[] {
     segments.push(str.substring(lastIndex))
 
     return segments
-}
-
-// TODO: Don't repeat this code (just here for now to avoid circular dependency)
-type InProgressEvent = {
-    event_id: Tables['event']['event_id'] | undefined,
-    name: string,
-    description: string,
-    start_datetime: Dayjs | null,
-    end_datetime: Dayjs | null,
-    plaintext_location: string | null,
-    event_site_location: Tables['event_site']['event_site_id'] | null,
-    event_type: Tables['event']['event_type'] | undefined,
-    bookmarks?: unknown,
-    created_by?: unknown,
-    creator_name?: unknown
 }
 
 export function checkNewEventOverlap(

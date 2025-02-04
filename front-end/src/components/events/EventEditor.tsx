@@ -1,11 +1,12 @@
-import dayjs, { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 
-import { TABLE_ROWS, Tables } from '../../../../back-end/types/db-types'
+import { TABLE_ROWS } from '../../../../back-end/types/db-types'
 import { given, objectEntries, objectFromEntries } from '../../../../back-end/utils/misc'
 import useBooleanState from '../../hooks/useBooleanState'
 import useForm, { fieldToProps } from '../../hooks/useForm'
 import { DayjsEvent, useStore } from '../../hooks/useStore'
+import { InProgressEvent } from '../../types/misc'
 import { checkNewEventOverlap } from '../../utils'
 import { vibefetch } from '../../vibefetch'
 import Button from '../core/Button'
@@ -23,20 +24,6 @@ import EventSiteInfo from './EventSiteInfo'
 type Props = {
     eventBeingEdited: DayjsEvent | 'new',
     onDone: () => void
-}
-
-type InProgressEvent = {
-    event_id: Tables['event']['event_id'] | undefined,
-    name: string,
-    description: string,
-    start_datetime: Dayjs | null,
-    end_datetime: Dayjs | null,
-    plaintext_location: string | null,
-    event_site_location: Tables['event_site']['event_site_id'] | null,
-    event_type: Tables['event']['event_type'] | undefined,
-    bookmarks?: unknown,
-    created_by?: unknown,
-    creator_name?: unknown
 }
 
 export default React.memo(({ eventBeingEdited, onDone }: Props) => {
