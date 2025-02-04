@@ -15,7 +15,7 @@ type Props = {
     overlappingEvents: DayjsEvent[]
 }
 
-export default React.memo(({ isOpen, onClose, onConfirm, overlappingEvents }: Props) => {    
+export default React.memo(({ isOpen, onClose, onConfirm, overlappingEvents }: Props) => {
     return (
         <Modal isOpen={isOpen} side='right'>
             {() => (
@@ -26,7 +26,7 @@ export default React.memo(({ isOpen, onClose, onConfirm, overlappingEvents }: Pr
 
                     <Spacer size={16} />
 
-                    <CompactEvents 
+                    <CompactEvents
                         events={overlappingEvents}
                         editEvent={doNothing}
                     />
