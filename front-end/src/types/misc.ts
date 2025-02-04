@@ -1,6 +1,6 @@
-import { Dayjs } from 'dayjs'
+import { Dayjs } from "dayjs"
 
-import { Tables } from '../../../back-end/types/db-types'
+import { Tables } from "../../../back-end/types/db-types"
 
 export type InProgressEvent = {
     event_id: Tables['event']['event_id'] | undefined,

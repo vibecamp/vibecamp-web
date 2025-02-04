@@ -85,7 +85,7 @@ export function checkNewEventOverlap(
 
     const start1 = newEvent.start_datetime
     const start2 = existingEvent.start_datetime
-
+    
     // Treat events with no end_datetime as running indefinitely
     if (!exists(newEvent.end_datetime)) {
         return start2.isAfter(start1.subtract(bufferMinutes, 'minutes'))
@@ -93,7 +93,7 @@ export function checkNewEventOverlap(
     if (!exists(existingEvent.end_datetime)) {
         return start1.isAfter(start2.subtract(bufferMinutes, 'minutes'))
     }
-
+  
     return (
         start1.isBefore(existingEvent.end_datetime.add(bufferMinutes, 'minutes')) &&
         newEvent.end_datetime.isAfter(start2.subtract(bufferMinutes, 'minutes'))
