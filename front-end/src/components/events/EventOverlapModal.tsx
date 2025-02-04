@@ -19,7 +19,10 @@ export default React.memo(({ isOpen, onClose, onConfirm, overlappingEvents }: Pr
             {() => (
                 <Col align='center' justify='center' padding={20} pageLevel>
                     <div style={{ fontSize: 22, textAlign: 'center' }}>
-                        This event overlaps with:
+                        This event overlaps with the following. Schedule it anyway?
+
+                        <Spacer size={16} />
+
                         {overlappingEvents.map(event => (
                             <div key={event.event_id} style={{ fontSize: 16, marginTop: 8 }}>
                                 &quot;{event.name}&quot;
@@ -30,7 +33,9 @@ export default React.memo(({ isOpen, onClose, onConfirm, overlappingEvents }: Pr
                                 {event.event_site_location_name}
                             </div>
                         ))}
-                        <br />
+
+                        <Spacer size={16} />
+
                         Want to schedule it anyway?
                     </div>
 

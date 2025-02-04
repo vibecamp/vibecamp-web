@@ -329,7 +329,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                     overlappingEvents={overlappingEvents}
                     onConfirm={() => {
                         setConfirmingOverlap(false)
-                        const syntheticEvent = new Event('submit') as unknown as React.FormEvent<HTMLFormElement>;
+                        const syntheticEvent = new Event('submit') as unknown as React.FormEvent<HTMLFormElement>
                         handleSubmit(syntheticEvent)
                     }}
                 />
