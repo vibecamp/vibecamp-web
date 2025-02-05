@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react'
 
-import { exists, objectEntries, objectFromEntries } from '../../back-end/utils/misc'
+import { objectEntries, objectFromEntries } from '../../back-end/utils/misc'
 import { DayjsEvent } from './hooks/useStore'
 import { InProgressEvent } from './types/misc'
 
@@ -75,27 +75,26 @@ export function checkInProgressEventOverlap(
 ): boolean {
     if (
         !newEvent.start_datetime ||
-        newEvent.event_id === existingEvent.event_id ||
-        !exists(newEvent.event_site_location) ||
-        !exists(existingEvent.event_site_location) ||
+        !newEvent.event_site_location ||
+        !existingEvent.start_datetime ||
+        !existingEvent.event_site_location ||
+        (newEvent.event_id && existingEvent.event_id && newEvent.event_id === existingEvent.event_id) ||
         newEvent.event_site_location !== existingEvent.event_site_location
     ) {
         return false
     }
 
-    const start1 = newEvent.start_datetime
+    const start1 = newEvent.start_datetime.isUTC() ? newEvent.start_datetime : newEvent.start_datetime.utc(true)
     const start2 = existingEvent.start_datetime
+    const end1 = newEvent.end_datetime?.isUTC() ? newEvent.end_datetime : newEvent.end_datetime?.utc(true)
+    const end2 = existingEvent.end_datetime
 
     // Treat events with no end_datetime as running indefinitely
-    if (!exists(newEvent.end_datetime)) {
-        return start2.isAfter(start1.subtract(bufferMinutes, 'minutes'))
-    }
-    if (!exists(existingEvent.end_datetime)) {
-        return start1.isAfter(start2.subtract(bufferMinutes, 'minutes'))
-    }
+    if (!end1) return start2.isAfter(start1.subtract(bufferMinutes, 'minutes'))
+    if (!end2) return start1.isAfter(start2.subtract(bufferMinutes, 'minutes'))
 
     return (
-        start1.isBefore(existingEvent.end_datetime.add(bufferMinutes, 'minutes')) &&
-        newEvent.end_datetime.isAfter(start2.subtract(bufferMinutes, 'minutes'))
+        start1.isBefore(end2.add(bufferMinutes, 'minutes')) &&
+        end1.isAfter(start2.subtract(bufferMinutes, 'minutes'))
     )
 }
