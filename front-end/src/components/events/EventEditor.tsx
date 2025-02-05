@@ -170,10 +170,8 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
         }
     }, [handleSubmit, overlappingEvents.length])
 
-    const formRef = useRef<HTMLFormElement>(null)
-
     return (
-        <form ref={formRef} onSubmit={handleSubmitWithOverlapCheck} noValidate>
+        <form onSubmit={handleSubmitWithOverlapCheck} noValidate>
             <Col padding={20} pageLevel>
                 <Button onClick={openGuidanceModal} isCompact isPrimary>
                     Guidelines for creating events
