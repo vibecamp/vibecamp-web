@@ -128,7 +128,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
     const overlappingEvents = useMemo(() => {
         if (!fields.start_datetime.value || !fields.event_site_location.value) return []
 
-        const currentEvent: InProgressEvent = {
+        const inProgressEvent: InProgressEvent = {
             event_id: event_id,
             name: fields.name.value,
             description: fields.description.value,
@@ -140,7 +140,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
         }
 
         return (store.allEvents.state.result ?? []).filter(
-            e => checkInProgressEventOverlap(currentEvent, e, 15)
+            e => checkInProgressEventOverlap(inProgressEvent, e, 15)
         )
     }, [
         event_id,
