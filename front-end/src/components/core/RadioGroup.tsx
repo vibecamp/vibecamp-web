@@ -6,12 +6,12 @@ import ErrorMessage from './ErrorMessage'
 type Props<T> = Omit<CommonFieldProps<T>, 'value'> & {
     value: T | undefined,
     options: readonly { value: T, label: string }[],
-    directon?: 'column' | 'row'
+    direction?: 'column' | 'row'
 }
 
-function RadioGroup<T>({ disabled, directon, label, value, onChange, onBlur, error, options }: Props<T>) {
+function RadioGroup<T>({ disabled, direction, label, value, onChange, onBlur, error, options }: Props<T>) {
     return (
-        <fieldset className={`radio-group ${disabled ? 'disabled' : ''} ${directon}`}>
+        <fieldset className={`radio-group ${disabled ? 'disabled' : ''} ${direction}`}>
             {label &&
                 <legend>{label}</legend>}
 

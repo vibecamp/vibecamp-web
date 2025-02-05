@@ -288,7 +288,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                                                 label: s.name
                                             })) ?? []
                                     }
-                                    directon='row'
+                                    direction='row'
                                     {...fieldToProps(fields.event_site_location)}
                                 />
                             </>
