@@ -7,7 +7,7 @@ import useBooleanState from '../../hooks/useBooleanState'
 import useForm, { fieldToProps } from '../../hooks/useForm'
 import { DayjsEvent, useStore } from '../../hooks/useStore'
 import { InProgressEvent } from '../../types/misc'
-import { checkNewEventOverlap } from '../../utils'
+import { checkInProgressEventOverlap } from '../../utils'
 import { vibefetch } from '../../vibefetch'
 import Button from '../core/Button'
 import Col from '../core/Col'
@@ -140,7 +140,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
         }
 
         return (store.allEvents.state.result ?? []).filter(
-            e => checkNewEventOverlap(currentEvent, e, 15)
+            e => checkInProgressEventOverlap(currentEvent, e, 15)
         )
     }, [
         event_id,

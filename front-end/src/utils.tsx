@@ -68,7 +68,7 @@ export function urlsToLinks(str: string): React.ReactNode[] {
     return segments
 }
 
-export function checkNewEventOverlap(
+export function checkInProgressEventOverlap(
     newEvent: InProgressEvent,
     existingEvent: DayjsEvent,
     bufferMinutes = 0
