@@ -123,8 +123,6 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
             site.event_site_id === fields.event_site_location.value)
     , [fields.event_site_location.value, store.eventSites.state.result])
 
-    const [confirmingOverlap, setConfirmingOverlap] = useState(false)
-
     const overlappingEvents = useMemo(() => {
         if (!fields.start_datetime.value || !fields.event_site_location.value) return []
 
@@ -154,17 +152,28 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
         store.allEvents.state.result
     ])
 
+    const [confirmingOverlap, setConfirmingOverlap] = useState(false)
+    const savedEventRef = useRef<React.FormEvent<HTMLFormElement> | null>(null)
+
+    const cleanupModal = useCallback(() => {
+        savedEventRef.current = null
+        setConfirmingOverlap(false)
+    }, [])
+
+    const handleSubmitWithOverlapCheck = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if (overlappingEvents.length > 0) {
+            savedEventRef.current = e
+            setConfirmingOverlap(true)
+        } else {
+            handleSubmit(e)
+        }
+    }, [handleSubmit, overlappingEvents.length])
+
     const formRef = useRef<HTMLFormElement>(null)
 
     return (
-        <form ref={formRef} onSubmit={(e) => {
-            e.preventDefault()
-            if (overlappingEvents.length > 0) {
-                setConfirmingOverlap(true)
-            } else {
-                handleSubmit(e)
-            }
-        }} noValidate>
+        <form ref={formRef} onSubmit={handleSubmitWithOverlapCheck} noValidate>
             <Col padding={20} pageLevel>
                 <Button onClick={openGuidanceModal} isCompact isPrimary>
                     Guidelines for creating events
@@ -325,12 +334,13 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
 
                 <EventOverlapModal
                     isOpen={confirmingOverlap}
-                    onClose={() => setConfirmingOverlap(false)}
+                    onClose={cleanupModal}
                     overlappingEvents={overlappingEvents}
                     onConfirm={() => {
-                        setConfirmingOverlap(false)
-                        const syntheticEvent = new Event('submit') as unknown as React.FormEvent<HTMLFormElement>
-                        handleSubmit(syntheticEvent)
+                        if (savedEventRef.current) {
+                            handleSubmit(savedEventRef.current)
+                        }
+                        cleanupModal()
                     }}
                 />
 
