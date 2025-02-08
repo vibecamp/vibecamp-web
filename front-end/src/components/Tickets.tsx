@@ -56,17 +56,17 @@ export default React.memo(() => {
                                 <>
                                     <div className='card'>
                                         <div style={{ textAlign: 'center' }}>
-                                            Want updates and announcements?
+                                            Want email announcements?
                                         </div>
 
                                         <Spacer size={8} />
 
                                         <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                            <Button isPrimary onClick={subscribeToNewsletter}>
+                                            <Button isPrimary isCompact onClick={subscribeToNewsletter}>
                                                 Subscribe
                                             </Button>
                                             <Spacer size={8} />
-                                            <Button onClick={dismissNewsletterPrompt}>
+                                            <Button isCompact onClick={dismissNewsletterPrompt}>
                                                 Dismiss
                                             </Button>
                                         </div>

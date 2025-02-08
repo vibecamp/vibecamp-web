@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useState } from 'react'
 
 import { TABLE_ROWS, Tables } from '../../../../back-end/types/db-types'
 import { given, objectEntries,objectFromEntries } from '../../../../back-end/utils/misc'
+import useBooleanState from '../../hooks/useBooleanState'
 import useForm, { fieldToProps } from '../../hooks/useForm'
 import { usePromise } from '../../hooks/usePromise'
 import { DayjsEvent, useStore } from '../../hooks/useStore'
@@ -39,6 +40,8 @@ type InProgressEvent = {
 
 export default React.memo(({ eventBeingEdited, onDone }: Props) => {
     const store = useStore()
+
+    const { state: guidanceModalOpen, setTrue: openGuidanceModal, setFalse: closeGuidanceModal } = useBooleanState(false)
 
     const event_id = typeof eventBeingEdited === 'object' ? eventBeingEdited.event_id : undefined
 
@@ -144,6 +147,45 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
 
         <form onSubmit={handleSubmit} noValidate>
             <Col padding={20} pageLevel>
+                <Button onClick={openGuidanceModal} isCompact isPrimary>
+                    Guidelines for creating events
+                </Button>
+
+                <Modal isOpen={guidanceModalOpen} onClose={closeGuidanceModal} side='right' title='Event Creation Advice'>
+                    {() =>
+                        <Col padding={20}>
+                            <p>
+                                Vibecamp is an altar to freedom. No rules, no limits. No gods, no masters. That said, all Vibecamp event hosts perpetually grovel at the altar of the four O’s.
+                            </p>
+
+                            <Spacer size={8} />
+
+                            <p>
+                                <b>Overcommunicate.</b> In the event description, express stakes and risks. Campers want to know what to expect, especially in terms of activity that might ask them to go beyond their comfort zone (non-exhaustively including: nudity, risk of injury, games that play with boundaries/consent). They want to know it whether or not they intend to take part themselves. That’s why it is best to make these stakes clear up front in the event description, even if it risks ruining the mystique. (The mystique that can be ruined by words is not the true mystique.)
+                            </p>
+
+                            <Spacer size={8} />
+
+                            <p>
+                                <b>Optics.</b> Consider them. No part of the internet is safe from the dreaded sarcastic screenshot retweet, not even my.vibe.camp. There is always an unavoidable risk of context collapse being used maliciously. Hosts are aware of this (without allowing it to paralyze them—see fourth O!) and apply the same kind of care as they would when posting publicly as themselves.
+                            </p>
+
+                            <Spacer size={8} />
+
+                            <p>
+                                <b>On my head be it.</b> Vibecamp is all about freedom. The price of freedom is responsibility. That’s why event hosts take camper safety as seriously as Vibecamp LLC itself does. Whatever special risks their event may have, the host takes precautions in proportion to those risks. If they neglect this duty in a way that leads to a human cost, they are prepared to own the consequences.
+                            </p>
+
+                            <Spacer size={8} />
+
+                            <p>
+                                <b>Ovoid fear.</b> That’s right—whatever you want to see at Vibecamp, simply ovoid being too scared to make it happen. If a would-be host is uncertain about the safety or practicality of their event, they can always moot their issue for discussion, for example on the Vibecamp Discord. Whatever the problem is, we’ll solve it together. Remember: no wall is so high that a small group of thoughtful, committed citizens cannot huck a melon over it.
+                            </p>
+                        </Col>}
+                </Modal>
+
+                <Spacer size={16} />
+
                 <Input
                     label='Event name'
                     disabled={submitting}
