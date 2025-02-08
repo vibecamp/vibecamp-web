@@ -112,6 +112,25 @@ export default React.memo(() => {
 
                     <Spacer size={12} />
 
+                    <div style={{ fontStyle: 'italic', paddingLeft: 20, paddingRight: 20 }}>
+                        Note: Only events marked as
+
+                        <Spacer size={4} />
+
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'normal' }}>
+                            <Icon name='person' style={{ color: 'var(--color-secondary)', fontSize: 18, marginRight: 4 }} />
+                            Vibecamp team
+                        </div>
+
+                        <Spacer size={4} />
+
+                        are created under the prerogative of Vibecamp LLC. All
+                        other events represent the will and intentions of the
+                        individuals hosting them.
+                    </div>
+
+                    <Spacer size={8} />
+
                     <Button className={'scrollToTopButton' + ' ' + (!showScrollButton ? 'hidden' : '')} style={{ opacity: showScrollButton ? 1 : 0, pointerEvents: showScrollButton ? undefined : 'none' }} onClick={scrollToTop} >
                         <Icon name='arrow_back' />
                         <Spacer size={6} />
