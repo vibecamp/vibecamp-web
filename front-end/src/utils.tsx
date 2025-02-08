@@ -1,7 +1,8 @@
-
 import React, { ReactNode } from 'react'
 
 import { objectEntries, objectFromEntries } from '../../back-end/utils/misc'
+import { DayjsEvent } from './hooks/useStore'
+import { InProgressEvent } from './types/misc'
 
 export function wait(ms: number): Promise<void> {
     return new Promise(res => setTimeout(res, ms))
@@ -65,4 +66,48 @@ export function urlsToLinks(str: string): React.ReactNode[] {
     segments.push(str.substring(lastIndex))
 
     return segments
+}
+
+export function checkInProgressEventOverlap(
+    newEvent: InProgressEvent,
+    existingEvent: DayjsEvent,
+    bufferMinutes = 0
+): boolean {
+    if (
+        !newEvent.start_datetime ||
+        !newEvent.event_site_location ||
+        !existingEvent.event_site_location ||
+        (newEvent.event_id && existingEvent.event_id && newEvent.event_id === existingEvent.event_id) ||
+        newEvent.event_site_location !== existingEvent.event_site_location
+    ) {
+        return false
+    }
+
+    const start1 = newEvent.start_datetime.isUTC() ? newEvent.start_datetime : newEvent.start_datetime.utc(true)
+    const start2 = existingEvent.start_datetime
+    const end1 = newEvent.end_datetime?.isUTC() ? newEvent.end_datetime : newEvent.end_datetime?.utc(true)
+    const end2 = existingEvent.end_datetime
+
+    if (!end1) {
+        if (!end2) {
+            // if neither has an end time, just check if they start at the same time
+            return start1.diff(start2, 'minutes') <= bufferMinutes
+        } else {
+            // if only 2 has an end time, see if 1 starts during 2
+            return start1.isAfter(start2.subtract(bufferMinutes, 'minutes'))
+                && start1.isBefore(end2.add(bufferMinutes, 'minutes'))
+        }
+    } else {
+        if (!end2) {
+            // if only 1 has an end time, see if 2 starts during 1
+            return start2.isAfter(start1.subtract(bufferMinutes, 'minutes'))
+                && start2.isBefore(end1.add(bufferMinutes, 'minutes'))
+        } else {
+            // if both have end times, test overlap
+            return (
+                start1.isBefore(end2.add(bufferMinutes, 'minutes')) &&
+                end1.isAfter(start2.subtract(bufferMinutes, 'minutes'))
+            )
+        }
+    }
 }

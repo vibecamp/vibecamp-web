@@ -11,7 +11,8 @@ export type UseFormInit<T extends Record<string, unknown>> = {
 
 export type Form<T extends Record<string, unknown>> = {
     fields: {[Key in keyof T]: Field<T[Key]>},
-    handleSubmit: (e: FormEvent<HTMLFormElement>) => void,
+    values: T,
+    handleSubmit: (e?: FormEvent<HTMLFormElement>) => void,
     submitting: boolean,
     wholeFormError: string | undefined,
     reset: (to?: T) => void,
@@ -69,19 +70,20 @@ export default function useForm<T extends Record<string, unknown>>({ initial, va
         return await submit(values, reset)
     }, [fields, reset, submit, values], { lazy: true })
 
-    const handleSubmit = useCallback((event: { preventDefault?: () => void }) => {
-        event.preventDefault?.()
+    const handleSubmit = useCallback((event?: { preventDefault?: () => void }) => {
+        event?.preventDefault?.()
         void submission.load()
     }, [submission])
 
     const result: Form<T> = useMemo(() => ({
         fields,
+        values,
         handleSubmit,
         submitting: submission.state.kind === 'loading',
         wholeFormError: submission.state.result ?? undefined,
         reset,
         dirty
-    }), [dirty, fields, handleSubmit, reset, submission.state.kind, submission.state.result])
+    }), [dirty, fields, handleSubmit, reset, submission.state.kind, submission.state.result, values])
 
     return result
 }

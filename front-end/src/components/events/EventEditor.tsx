@@ -1,12 +1,13 @@
-import dayjs, { Dayjs } from 'dayjs'
-import React, { useCallback, useMemo, useState } from 'react'
+import dayjs from 'dayjs'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { TABLE_ROWS, Tables } from '../../../../back-end/types/db-types'
-import { given, objectEntries,objectFromEntries } from '../../../../back-end/utils/misc'
+import { TABLE_ROWS } from '../../../../back-end/types/db-types'
+import { given, objectEntries, objectFromEntries } from '../../../../back-end/utils/misc'
 import useBooleanState from '../../hooks/useBooleanState'
 import useForm, { fieldToProps } from '../../hooks/useForm'
-import { usePromise } from '../../hooks/usePromise'
 import { DayjsEvent, useStore } from '../../hooks/useStore'
+import { InProgressEvent } from '../../types/misc'
+import { checkInProgressEventOverlap } from '../../utils'
 import { vibefetch } from '../../vibefetch'
 import Button from '../core/Button'
 import Col from '../core/Col'
@@ -17,25 +18,13 @@ import Modal from '../core/Modal'
 import RadioGroup from '../core/RadioGroup'
 import RowSelect from '../core/RowSelect'
 import Spacer from '../core/Spacer'
+import EventDeletionModal from './EventDeletionModal'
+import EventOverlapModal from './EventOverlapModal'
 import EventSiteInfo from './EventSiteInfo'
 
 type Props = {
     eventBeingEdited: DayjsEvent | 'new',
     onDone: () => void
-}
-
-type InProgressEvent = {
-    event_id: Tables['event']['event_id'] | undefined,
-    name: string,
-    description: string,
-    start_datetime: Dayjs | null,
-    end_datetime: Dayjs | null,
-    plaintext_location: string | null,
-    event_site_location: Tables['event_site']['event_site_id'] | null,
-    event_type: Tables['event']['event_type'] | undefined,
-    bookmarks?: unknown,
-    created_by?: unknown,
-    creator_name?: unknown
 }
 
 export default React.memo(({ eventBeingEdited, onDone }: Props) => {
@@ -45,7 +34,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
 
     const event_id = typeof eventBeingEdited === 'object' ? eventBeingEdited.event_id : undefined
 
-    const { fields, handleSubmit, submitting } = useForm<InProgressEvent>({
+    const { fields, values: inProgressEvent, handleSubmit, submitting } = useForm<InProgressEvent>({
         initial: (
             eventBeingEdited === 'new'
                 ? {
@@ -87,25 +76,21 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
             }
         },
         submit: async ({ start_datetime, end_datetime, bookmarks, created_by, creator_name, ...event }) => {
-            await vibefetch(store.jwt, '/event/save', 'post', {
-                event: {
-                    ...event,
-                    start_datetime: formatNoTimezone(start_datetime),
-                    end_datetime: end_datetime && formatNoTimezone(end_datetime)
-                }
-            })
-            await store.allEvents.load()
-            onDone()
+            if (overlappingEvents.length > 0 && overlapConfirmationState === 'editing') {
+                setOverlapConfirmationState('confirming')
+            } else {
+                await vibefetch(store.jwt, '/event/save', 'post', {
+                    event: {
+                        ...event,
+                        start_datetime: formatNoTimezone(start_datetime),
+                        end_datetime: end_datetime && formatNoTimezone(end_datetime)
+                    }
+                })
+                await store.allEvents.load()
+                onDone()
+            }
         }
     })
-
-    const deleteEvent = usePromise(async () => {
-        if (event_id != null) {
-            await vibefetch(store.jwt, '/event/delete', 'post', { event_id })
-            await store.allEvents.load()
-            onDone()
-        }
-    }, [event_id, onDone, store.allEvents, store.jwt], { lazy: true })
 
     const [locationType, setLocationType] = useState<'Onsite' | 'Offsite'>('Onsite')
     const [confirmingDeletion, setConfirmingDeletion] = useState(false)
@@ -143,8 +128,22 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
             site.event_site_id === fields.event_site_location.value)
     , [fields.event_site_location.value, store.eventSites.state.result])
 
-    return (
+    const overlappingEvents = useMemo(() => {
+        if (!inProgressEvent.start_datetime || !inProgressEvent.event_site_location) return []
 
+        return store.allEvents.state.result?.filter(e =>
+            checkInProgressEventOverlap(inProgressEvent, e, 15)) ?? []
+    }, [inProgressEvent, store.allEvents.state.result])
+
+    const [overlapConfirmationState, setOverlapConfirmationState] = useState<'editing' | 'confirming' | 'confirmed'>('editing')
+
+    useEffect(() => {
+        if (overlapConfirmationState === 'confirmed') {
+            handleSubmit()
+        }
+    }, [handleSubmit, overlapConfirmationState])
+
+    return (
         <form onSubmit={handleSubmit} noValidate>
             <Col padding={20} pageLevel>
                 <Button onClick={openGuidanceModal} isCompact isPrimary>
@@ -260,7 +259,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                                                 label: s.name
                                             })) ?? []
                                     }
-                                    directon='row'
+                                    direction='row'
                                     {...fieldToProps(fields.event_site_location)}
                                 />
                             </>
@@ -304,6 +303,13 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                         : 'Save event'}
                 </Button>
 
+                <EventOverlapModal
+                    isOpen={overlapConfirmationState === 'confirming'}
+                    onClose={() => setOverlapConfirmationState('editing')}
+                    overlappingEvents={overlappingEvents}
+                    onConfirm={() => setOverlapConfirmationState('confirmed')}
+                />
+
                 <Spacer size={8} />
 
                 {event_id != null
@@ -312,27 +318,13 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                             Delete event
                         </Button>
 
-                        <Modal isOpen={confirmingDeletion} side='right'>
-                            {() => (
-                                <Col align='center' justify='center' padding={20} pageLevel>
-                                    <div style={{ fontSize: 22, textAlign: 'center' }}>
-                                        Are you sure you want to delete &quot;{fields.name.value}&quot;?
-                                    </div>
-
-                                    <Spacer size={16} />
-
-                                    <Button isDanger isPrimary onClick={deleteEvent.load} isLoading={deleteEvent.state.kind === 'loading'}>
-                                        Yes, delete the event
-                                    </Button>
-
-                                    <Spacer size={8} />
-
-                                    <Button onClick={() => setConfirmingDeletion(false)} disabled={deleteEvent.state.kind === 'loading'}>
-                                        Cancel
-                                    </Button>
-                                </Col>
-                            )}
-                        </Modal>
+                        <EventDeletionModal
+                            eventId={event_id}
+                            eventName={fields.name.value}
+                            isOpen={confirmingDeletion}
+                            onClose={() => setConfirmingDeletion(false)}
+                            onDone={onDone}
+                        />
 
                         <Spacer size={8} />
                     </>}
