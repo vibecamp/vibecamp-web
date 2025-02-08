@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { TABLE_ROWS } from '../../../../back-end/types/db-types'
 import { given, objectEntries, objectFromEntries } from '../../../../back-end/utils/misc'
@@ -33,7 +33,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
 
     const event_id = typeof eventBeingEdited === 'object' ? eventBeingEdited.event_id : undefined
 
-    const { fields, handleSubmit, submitting } = useForm<InProgressEvent>({
+    const { fields, values: inProgressEvent, handleSubmit, submitting } = useForm<InProgressEvent>({
         initial: (
             eventBeingEdited === 'new'
                 ? {
@@ -75,15 +75,19 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
             }
         },
         submit: async ({ start_datetime, end_datetime, bookmarks, created_by, creator_name, ...event }) => {
-            await vibefetch(store.jwt, '/event/save', 'post', {
-                event: {
-                    ...event,
-                    start_datetime: formatNoTimezone(start_datetime),
-                    end_datetime: end_datetime && formatNoTimezone(end_datetime)
-                }
-            })
-            await store.allEvents.load()
-            onDone()
+            if (overlappingEvents.length > 0 && overlapConfirmationState === 'editing') {
+                setOverlapConfirmationState('confirming')
+            } else {
+                await vibefetch(store.jwt, '/event/save', 'post', {
+                    event: {
+                        ...event,
+                        start_datetime: formatNoTimezone(start_datetime),
+                        end_datetime: end_datetime && formatNoTimezone(end_datetime)
+                    }
+                })
+                await store.allEvents.load()
+                onDone()
+            }
         }
     })
 
@@ -124,54 +128,22 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
     , [fields.event_site_location.value, store.eventSites.state.result])
 
     const overlappingEvents = useMemo(() => {
-        if (!fields.start_datetime.value || !fields.event_site_location.value) return []
+        if (!inProgressEvent.start_datetime || !inProgressEvent.event_site_location) return []
 
-        const inProgressEvent: InProgressEvent = {
-            event_id: event_id,
-            name: fields.name.value,
-            description: fields.description.value,
-            start_datetime: fields.start_datetime.value,
-            end_datetime: fields.end_datetime.value,
-            plaintext_location: fields.plaintext_location.value,
-            event_site_location: fields.event_site_location.value,
-            event_type: fields.event_type.value
+        return store.allEvents.state.result?.filter(e =>
+            checkInProgressEventOverlap(inProgressEvent, e, 15)) ?? []
+    }, [inProgressEvent, store.allEvents.state.result])
+
+    const [overlapConfirmationState, setOverlapConfirmationState] = useState<'editing' | 'confirming' | 'confirmed'>('editing')
+
+    useEffect(() => {
+        if (overlapConfirmationState === 'confirmed') {
+            handleSubmit()
         }
-
-        return (store.allEvents.state.result ?? []).filter(
-            e => checkInProgressEventOverlap(inProgressEvent, e, 15)
-        )
-    }, [
-        event_id,
-        fields.name.value,
-        fields.description.value,
-        fields.start_datetime.value,
-        fields.end_datetime.value,
-        fields.plaintext_location.value,
-        fields.event_site_location.value,
-        fields.event_type.value,
-        store.allEvents.state.result
-    ])
-
-    const [confirmingOverlap, setConfirmingOverlap] = useState(false)
-    const savedEventRef = useRef<React.FormEvent<HTMLFormElement> | null>(null)
-
-    const cleanupModal = useCallback(() => {
-        savedEventRef.current = null
-        setConfirmingOverlap(false)
-    }, [])
-
-    const handleSubmitWithOverlapCheck = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        if (overlappingEvents.length > 0) {
-            savedEventRef.current = e
-            setConfirmingOverlap(true)
-        } else {
-            handleSubmit(e)
-        }
-    }, [handleSubmit, overlappingEvents.length])
+    }, [handleSubmit, overlapConfirmationState])
 
     return (
-        <form onSubmit={handleSubmitWithOverlapCheck} noValidate>
+        <form onSubmit={handleSubmit} noValidate>
             <Col padding={20} pageLevel>
                 <Button onClick={openGuidanceModal} isCompact isPrimary>
                     Guidelines for creating events
@@ -331,15 +303,10 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                 </Button>
 
                 <EventOverlapModal
-                    isOpen={confirmingOverlap}
-                    onClose={cleanupModal}
+                    isOpen={overlapConfirmationState === 'confirming'}
+                    onClose={() => setOverlapConfirmationState('editing')}
                     overlappingEvents={overlappingEvents}
-                    onConfirm={() => {
-                        if (savedEventRef.current) {
-                            handleSubmit(savedEventRef.current)
-                        }
-                        cleanupModal()
-                    }}
+                    onConfirm={() => setOverlapConfirmationState('confirmed')}
                 />
 
                 <Spacer size={8} />
