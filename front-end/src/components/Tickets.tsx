@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import React, { useCallback } from 'react'
 
 import useHashState from '../hooks/useHashState'
+import { useLocalStorageState } from '../hooks/useLocalStorageState'
 import { useStore } from '../hooks/useStore'
 import Button from './core/Button'
 import Col from './core/Col'
@@ -16,6 +17,7 @@ export default React.memo(() => {
     const { hashState, setHashState } = useHashState()
     const loading = store.accountInfo.state.kind === 'loading'
     const loadingOrError = loading || store.accountInfo.state.kind === 'error'
+    const [newsletterPromptDismissed, setNewsletterPromptDismissed] = useLocalStorageState('newsletterPromptDismissed', false)
 
     // const { application_status } = store.accountInfo.state.result ?? {}
 
@@ -26,6 +28,15 @@ export default React.memo(() => {
     const openTicketPurchaseModal = (festival_id: string) => () => {
         setHashState({ ticketPurchaseModalState: festival_id })
     }
+
+    const subscribeToNewsletter = useCallback(() => {
+        window.open('https://manage.kmail-lists.com/subscriptions/subscribe?a=XUCiTJ&g=WtMjJ6', '_blank')
+        setNewsletterPromptDismissed(true)
+    }, [setNewsletterPromptDismissed])
+
+    const dismissNewsletterPrompt = useCallback(() => {
+        setNewsletterPromptDismissed(true)
+    }, [setNewsletterPromptDismissed])
 
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
@@ -40,6 +51,29 @@ export default React.memo(() => {
                             </h1>
 
                             <Spacer size={24} />
+
+                            {!newsletterPromptDismissed &&
+                                <>
+                                    <div className='card'>
+                                        <div style={{ textAlign: 'center' }}>
+                                            Want updates and announcements?
+                                        </div>
+
+                                        <Spacer size={8} />
+
+                                        <div style={{ display: 'flex', flexDirection: 'row' }}>
+                                            <Button isPrimary onClick={subscribeToNewsletter}>
+                                                Subscribe
+                                            </Button>
+                                            <Spacer size={8} />
+                                            <Button onClick={dismissNewsletterPrompt}>
+                                                Dismiss
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <Spacer size={24} />
+                                </>}
 
                             {store.festivals.state.result?.map(festival => {
                                 const tickets = store.purchasedTicketsByFestival[festival.festival_id] ?? []
