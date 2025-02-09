@@ -23,7 +23,7 @@ export default React.memo(({ code, usedBy }: Props) => {
                     {code}
                 </div>
 
-                <button onClick={copy}>
+                <button type='button' onClick={copy}>
                     {copied
                         ? <Icon name='check' />
                         : <Icon name='content_copy' />}
