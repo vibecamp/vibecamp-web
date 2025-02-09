@@ -43,7 +43,7 @@ export default React.memo(({ isOpen, onClose, title, side, children }: Props) =>
                 {(onClose || title) &&
                     <div className='header'>
                         {onClose != null &&
-                            <button onClick={onClose}>
+                            <button type='button' onClick={onClose}>
                                 <Icon name='arrow_back_ios' />
 
                                 Back
