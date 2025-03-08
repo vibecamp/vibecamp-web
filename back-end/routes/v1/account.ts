@@ -1,15 +1,21 @@
 import { Router, Status } from 'oak'
 import { defineRoute, rateLimited } from './_common.ts'
-import { withDBConnection, withDBTransaction, getApplicationStatus } from '../../utils/db.ts'
-import { Tables } from "../../types/db-types.ts"
-import { allPromises } from "../../utils/misc.ts"
+import {
+  getApplicationStatus,
+  withDBConnection,
+  withDBTransaction,
+} from '../../utils/db.ts'
+import { Tables } from '../../types/db-types.ts'
+import { allPromises } from '../../utils/misc.ts'
 import { ONE_SECOND_MS } from '../../utils/constants.ts'
 import { createAccountJwt, hashAndSaltPassword } from './auth.ts'
-import { getPasswordValidationError, getUuidValidationError } from '../../utils/validation.ts'
+import {
+  getPasswordValidationError,
+  getUuidValidationError,
+} from '../../utils/validation.ts'
 import { passwordResetEmail, sendMail } from '../../utils/mailgun.ts'
 
 export default function register(router: Router) {
-
   // purchase one or multiple tickets, fill out baseline required attendee info
   defineRoute(router, {
     endpoint: '/account',
@@ -24,21 +30,26 @@ export default function register(router: Router) {
         purchases,
         cabins,
       } = await withDBTransaction(async (db) => {
-
         return await allPromises({
-          accounts: db.queryTable('account', { where: ['account_id', '=', account_id] }),
-          attendees: db.queryTable('attendee', { where: ['associated_account_id', '=', account_id] }),
-          purchases: db.queryTable('purchase', { where: ['owned_by_account_id', '=', account_id] }),
+          accounts: db.queryTable('account', {
+            where: ['account_id', '=', account_id],
+          }),
+          attendees: db.queryTable('attendee', {
+            where: ['associated_account_id', '=', account_id],
+          }),
+          purchases: db.queryTable('purchase', {
+            where: ['owned_by_account_id', '=', account_id],
+          }),
           cabins: db.queryObject<{
-            cabin_name: Tables['cabin']['name'],
-            attendee_id: Tables['attendee']['attendee_id'],
-            festival_id: Tables['festival']['festival_id'],
+            cabin_name: Tables['cabin']['name']
+            attendee_id: Tables['attendee']['attendee_id']
+            festival_id: Tables['festival']['festival_id']
           }>`
             select cabin.name as cabin_name, attendee.attendee_id, festival_id from attendee
             left join attendee_cabin on attendee.attendee_id = attendee_cabin.attendee_id
             left join cabin on attendee_cabin.cabin_id = cabin.cabin_id
             where attendee_cabin.cabin_id is not null and associated_account_id = 'e8e4f94b-a1fc-4344-a589-a865a6683c37'
-          `
+          `,
         })
       })
 
@@ -58,7 +69,7 @@ export default function register(router: Router) {
             purchases,
             cabins: cabins.rows,
           },
-          Status.OK
+          Status.OK,
         ]
       } else {
         return [null, Status.NotFound]
@@ -70,16 +81,19 @@ export default function register(router: Router) {
     endpoint: '/account/update-email',
     method: 'put',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { email_address: raw_email_address } }) => {
+    handler: async (
+      { jwt: { account_id }, body: { email_address: raw_email_address } },
+    ) => {
       const email_address = raw_email_address.toLowerCase()
 
-      await withDBConnection(db =>
+      await withDBConnection((db) =>
         db.updateTable('account', { email_address }, [
           ['account_id', '=', account_id],
-        ]))
+        ])
+      )
 
       return [null, Status.OK]
-    }
+    },
   })
 
   defineRoute(router, {
@@ -87,32 +101,39 @@ export default function register(router: Router) {
     method: 'put',
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: { password } }) => {
-
       if (getPasswordValidationError(password)) {
         return [null, Status.BadRequest]
       }
 
       const { password_hash, password_salt } = await hashAndSaltPassword(
-        password
+        password,
       )
 
-      await withDBConnection(db =>
+      await withDBConnection((db) =>
         db.updateTable('account', { password_hash, password_salt }, [
           ['account_id', '=', account_id],
-        ]))
+        ])
+      )
 
       return [null, Status.OK]
-    }
+    },
   })
 
-  const passwordResetSecrets = new Map<string, Tables['account']['account_id']>()
+  const passwordResetSecrets = new Map<
+    string,
+    Tables['account']['account_id']
+  >()
 
   defineRoute(router, {
     endpoint: '/account/send-password-reset-email',
     method: 'post',
     requireAuth: false,
     handler: rateLimited(500, async ({ body: { email_address } }) => {
-      const accountRes = await withDBConnection(db => db.queryTable('account', { where: ['email_address', '=', email_address] }))
+      const accountRes = await withDBConnection((db) =>
+        db.queryTable('account', {
+          where: ['email_address', '=', email_address],
+        })
+      )
       const account = accountRes[0]
 
       if (account) {
@@ -123,7 +144,7 @@ export default function register(router: Router) {
       }
 
       return [null, Status.OK]
-    })
+    }),
   })
 
   defineRoute(router, {
@@ -141,13 +162,14 @@ export default function register(router: Router) {
         }
 
         const { password_hash, password_salt } = await hashAndSaltPassword(
-          password
+          password,
         )
 
-        const accountRes = await withDBConnection(db =>
+        const accountRes = await withDBConnection((db) =>
           db.updateTable('account', { password_hash, password_salt }, [
             ['account_id', '=', account_id],
-          ]))
+          ])
+        )
 
         const account = accountRes[0]!
 
@@ -155,82 +177,100 @@ export default function register(router: Router) {
       } else {
         return [{ jwt: null }, Status.InternalServerError]
       }
-    }
+    },
   })
 
   defineRoute(router, {
     endpoint: '/account/update-attendee',
     method: 'put',
     requireAuth: true,
-    handler: async ({ jwt: { account_id }, body: { attendee_id, ...attendeeUpdate } }) => {
+    handler: async (
+      { jwt: { account_id }, body: { attendee_id, ...attendeeUpdate } },
+    ) => {
       if (attendee_id == null) {
         return [null, Status.InternalServerError]
       }
 
-      const attendee = await withDBConnection(async db =>
+      const attendee = await withDBConnection(async (db) =>
         (await db.updateTable('attendee', attendeeUpdate, [
           ['associated_account_id', '=', account_id],
           ['attendee_id', '=', attendee_id],
-        ]))[0])
+        ]))[0]
+      )
 
       if (attendee == null) {
         return [null, Status.InternalServerError]
       }
 
       return [attendee, Status.OK]
-    }
+    },
   })
 
   defineRoute(router, {
     endpoint: '/account/submit-invite-code',
     method: 'post',
     requireAuth: true,
-    handler: rateLimited(ONE_SECOND_MS, async ({ jwt, body: { invite_code } }) => {
-      const { account_id } = jwt
+    handler: rateLimited(
+      ONE_SECOND_MS,
+      async ({ jwt, body: { invite_code } }) => {
+        const { account_id } = jwt
 
-      // we do our own check because postgres will throw an error on a
-      // malformed uuid, causing a 500 response
-      if (getUuidValidationError(invite_code) != null) {
-        // invite code doesn't exist
-        console.error(`Invalid invite code submitted: "${invite_code}"`)
-        return [null, Status.NotFound]
-      }
-
-      return await withDBTransaction(async (db) => {
-        const inviteCodeResult = (await db.queryTable('invite_code', { where: ['code', '=', invite_code] }))[0]
-
-        if (inviteCodeResult == null) {
+        // we do our own check because postgres will throw an error on a
+        // malformed uuid, causing a 500 response
+        if (getUuidValidationError(invite_code) != null) {
           // invite code doesn't exist
           console.error(`Invalid invite code submitted: "${invite_code}"`)
           return [null, Status.NotFound]
         }
 
-        if (inviteCodeResult.used_by_account_id != null) {
-          // invite code already used
-          console.error(`Already-used invite code submitted: "${invite_code}"`)
-          return [null, Status.Forbidden]
-        }
+        return await withDBTransaction(async (db) => {
+          const inviteCodeResult = (await db.queryTable('invite_code', {
+            where: ['code', '=', invite_code],
+          }))[0]
 
-        const accountResult = await db.queryTable('account', { where: ['account_id', '=', account_id] })
-        const currentAccount = accountResult[0]
-        if (currentAccount == null) {
-          // account doesn't exist
-          throw Error(`Tried to submit invite code from account that doesn't exist: "${account_id}"`)
-        }
+          if (inviteCodeResult == null) {
+            // invite code doesn't exist
+            console.error(`Invalid invite code submitted: "${invite_code}"`)
+            return [null, Status.NotFound]
+          }
 
-        const codeUsedByCurrentAccount = (await db.queryTable('invite_code', { where: ['used_by_account_id', '=', account_id] }))[0]
-        if (codeUsedByCurrentAccount != null) {
-          // this account already used an invite code
-          throw Error(`Account tried to submit an invite code but has already used one: "${account_id}"`)
-        }
+          if (inviteCodeResult.used_by_account_id != null) {
+            // invite code already used
+            console.error(
+              `Already-used invite code submitted: "${invite_code}"`,
+            )
+            return [null, Status.Forbidden]
+          }
 
-        await db.updateTable('invite_code', {
-          used_by_account_id: account_id
-        }, [['code', '=', invite_code]])
+          const accountResult = await db.queryTable('account', {
+            where: ['account_id', '=', account_id],
+          })
+          const currentAccount = accountResult[0]
+          if (currentAccount == null) {
+            // account doesn't exist
+            throw Error(
+              `Tried to submit invite code from account that doesn't exist: "${account_id}"`,
+            )
+          }
 
-        return [null, Status.OK]
-      })
-    }),
+          const codeUsedByCurrentAccount = (await db.queryTable('invite_code', {
+            where: ['used_by_account_id', '=', account_id],
+          }))[0]
+          if (codeUsedByCurrentAccount != null) {
+            // this account already used an invite code
+            throw Error(
+              `Account tried to submit an invite code but has already used one: "${account_id}"`,
+            )
+          }
+
+          await db.updateTable('invite_code', {
+            used_by_account_id: account_id,
+          }, [['code', '=', invite_code]])
+
+          return [null, Status.OK]
+        })
+      },
+    ),
   })
 
   defineRoute(router, {
@@ -255,8 +295,10 @@ export default function register(router: Router) {
         twitter_handle,
       } = application
 
-      return await withDBConnection(async db => {
-        const account = (await db.queryTable('account', { where: ['account_id', '=', account_id] }))[0]!
+      return await withDBConnection(async (db) => {
+        const account = (await db.queryTable('account', {
+          where: ['account_id', '=', account_id],
+        }))[0]!
 
         if (account.application_id != null) {
           return [null, Status.BadRequest]
@@ -281,11 +323,14 @@ export default function register(router: Router) {
 
         const { application_id } = application
 
-        await db.updateTable('account', { application_id }, [['account_id', '=', account_id]])
+        await db.updateTable('account', { application_id }, [[
+          'account_id',
+          '=',
+          account_id,
+        ]])
 
         return [null, Status.OK]
       })
-
-    }
+    },
   })
 }

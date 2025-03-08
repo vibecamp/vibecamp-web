@@ -2,7 +2,13 @@ import { Pool, PoolClient, Transaction } from 'postgres'
 import env from '../env.ts'
 import { TableName, Tables } from '../types/db-types.ts'
 import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
-import { WhereClause, queryTableQuery, insertTableQuery, updateTableQuery, deleteTableQuery } from './db-inner.ts'
+import {
+  deleteTableQuery,
+  insertTableQuery,
+  queryTableQuery,
+  updateTableQuery,
+  WhereClause,
+} from './db-inner.ts'
 
 const url = new URL(env.DB_URL)
 
@@ -18,12 +24,12 @@ const db = new Pool({
       // Initial interval is always gonna be zero
       if (prevInterval === 0) return 1
       return prevInterval * 2
-    }
-  }
+    },
+  },
 }, env.DB_CONNECTION_POOL_SIZE)
 
 function handleShutdown() {
-  console.log("Releasing DB connections...")
+  console.log('Releasing DB connections...')
   try {
     db.end()
     console.log('connections released')
@@ -42,12 +48,14 @@ export type DBClient = Pick<PoolClient, 'queryObject'> & CustomClientMethods
 /**
  * Acquire a DB connection from the pool, perform queries with it, and then
  * release the connection and return any result
- * 
+ *
  * Using this wrapper function ensures pool connections are always released
  * back into the pool
  */
 export async function withDBConnection<TResult>(
-  cb: (db: DBClient & Pick<PoolClient, 'createTransaction'>) => Promise<TResult>,
+  cb: (
+    db: DBClient & Pick<PoolClient, 'createTransaction'>,
+  ) => Promise<TResult>,
 ): Promise<TResult> {
   const client = await db.connect() as PoolClient & DBClient
   client.queryTable = queryTable(client)
@@ -66,7 +74,7 @@ export async function withDBConnection<TResult>(
 /**
  * Create a DB transaction, perform queries within it, and then
  * commit the transaction and release the connection, returning any result
- * 
+ *
  * Using this wrapper function ensures transactions are always committed when
  * finished
  */
@@ -80,7 +88,7 @@ export async function withDBTransaction<TResult>(
     }) as Transaction & DBClient
 
     try {
-      await transaction.begin();
+      await transaction.begin()
 
       transaction.queryTable = queryTable(transaction)
       transaction.insertTable = insertTable(transaction)
@@ -103,56 +111,61 @@ export async function withDBTransaction<TResult>(
 }
 
 type CustomClientMethods = {
-  queryTable: ReturnType<typeof queryTable>,
-  insertTable: ReturnType<typeof insertTable>,
-  updateTable: ReturnType<typeof updateTable>,
+  queryTable: ReturnType<typeof queryTable>
+  insertTable: ReturnType<typeof insertTable>
+  updateTable: ReturnType<typeof updateTable>
   deleteTable: ReturnType<typeof deleteTable>
 }
 
 const queryTable = (db: Pick<PoolClient, 'queryObject'>) =>
-  async <
-    TTableName extends TableName,
-    TColumnName extends keyof Tables[TTableName],
-  >(
-    table: TTableName,
-    opts: { where?: WhereClause<TTableName, TColumnName> } = {}
-  ): Promise<Tables[TTableName][]> => {
-    return (await db.queryObject<Tables[TTableName]>(...queryTableQuery(table, opts))).rows
-  }
+async <
+  TTableName extends TableName,
+  TColumnName extends keyof Tables[TTableName],
+>(
+  table: TTableName,
+  opts: { where?: WhereClause<TTableName, TColumnName> } = {},
+): Promise<Tables[TTableName][]> => {
+  return (await db.queryObject<Tables[TTableName]>(
+    ...queryTableQuery(table, opts),
+  )).rows
+}
 
 const insertTable = (db: Pick<PoolClient, 'queryObject'>) =>
-  async <
-    TTableName extends TableName
-  >(
-    table: TTableName,
-    row: Partial<Tables[TableName]>
-  ): Promise<Tables[TTableName]> => {
-    return (await db.queryObject<Tables[TTableName]>(...insertTableQuery(table, row))).rows[0]!
-  }
+async <
+  TTableName extends TableName,
+>(
+  table: TTableName,
+  row: Partial<Tables[TableName]>,
+): Promise<Tables[TTableName]> => {
+  return (await db.queryObject<Tables[TTableName]>(
+    ...insertTableQuery(table, row),
+  )).rows[0]!
+}
 
 const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
-  async <
-    TTableName extends TableName,
-    TColumnNames extends Array<keyof Tables[TTableName]>
-  >(
-    table: TTableName,
-    row: Partial<Tables[TableName]>,
-    where: WhereClause<TTableName, TColumnNames[number]>[]
-  ): Promise<Tables[TTableName][]> => {
-    return (await db.queryObject<Tables[TTableName]>(...updateTableQuery(table, row, where))).rows
-  }
+async <
+  TTableName extends TableName,
+  TColumnNames extends Array<keyof Tables[TTableName]>,
+>(
+  table: TTableName,
+  row: Partial<Tables[TableName]>,
+  where: WhereClause<TTableName, TColumnNames[number]>[],
+): Promise<Tables[TTableName][]> => {
+  return (await db.queryObject<Tables[TTableName]>(
+    ...updateTableQuery(table, row, where),
+  )).rows
+}
 
 const deleteTable = (db: Pick<PoolClient, 'queryObject'>) =>
-  async <
-    TTableName extends TableName,
-    TColumnNames extends Array<keyof Tables[TTableName]>
-  >(
-    table: TTableName,
-    where: WhereClause<TTableName, TColumnNames[number]>[]
-  ): Promise<void> => {
-    await db.queryObject<Tables[TTableName]>(...deleteTableQuery(table, where))
-  }
-
+async <
+  TTableName extends TableName,
+  TColumnNames extends Array<keyof Tables[TTableName]>,
+>(
+  table: TTableName,
+  where: WhereClause<TTableName, TColumnNames[number]>[],
+): Promise<void> => {
+  await db.queryObject<Tables[TTableName]>(...deleteTableQuery(table, where))
+}
 
 /**
  * Get a unique and unused name for a transaction
@@ -224,12 +237,19 @@ export async function getApplicationStatus(account: Tables['account']) {
   const { application_id } = account
 
   if (application_id != null) {
-    const application = (await withDBConnection(db => db.queryTable('application', { where: ['application_id', '=', application_id] })))[0]!
+    const application = (await withDBConnection((db) =>
+      db.queryTable('application', {
+        where: ['application_id', '=', application_id],
+      })
+    ))[0]!
 
     switch (application.is_accepted) {
-      case true: return 'accepted'
-      case false: return 'rejected'
-      case null: return 'pending'
+      case true:
+        return 'accepted'
+      case false:
+        return 'rejected'
+      case null:
+        return 'pending'
     }
   }
 

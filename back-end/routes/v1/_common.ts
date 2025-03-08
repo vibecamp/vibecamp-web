@@ -1,16 +1,16 @@
 import { Maybe, VibeJWTPayload } from '../../types/misc.ts'
 import {
+  Response,
   RouteParams,
   Router,
   RouterContext,
   RouterMiddleware,
   Status,
-  Response,
 } from 'oak'
 import { getJwtPayload } from './auth.ts'
 import { wait } from '../../utils/misc.ts'
-import { getNumericDate } from "djwts"
-import { Routes } from "../../types/route-types.ts"
+import { getNumericDate } from 'djwts'
+import { Routes } from '../../types/route-types.ts'
 import { ONE_DAY_MS, ONE_SECOND_MS } from '../../utils/constants.ts'
 
 export type AnyRouterContext = RouterContext<
@@ -30,11 +30,15 @@ type UnauthenticatedRouteContext<TEndpoint extends keyof Routes> = {
   body: Routes[TEndpoint]['body']
 }
 
-type AuthenticatedRouteContext<TEndpoint extends keyof Routes> = UnauthenticatedRouteContext<TEndpoint> & {
-  jwt: VibeJWTPayload
-}
+type AuthenticatedRouteContext<TEndpoint extends keyof Routes> =
+  & UnauthenticatedRouteContext<TEndpoint>
+  & {
+    jwt: VibeJWTPayload
+  }
 
-type AnyRouteContext = UnauthenticatedRouteContext<keyof Routes> & Partial<AuthenticatedRouteContext<keyof Routes>>
+type AnyRouteContext =
+  & UnauthenticatedRouteContext<keyof Routes>
+  & Partial<AuthenticatedRouteContext<keyof Routes>>
 
 export type ResponseWithError = Response & { error?: string }
 
@@ -48,16 +52,20 @@ export function defineRoute<TEndpoint extends keyof Routes>(
   router: Router,
   config:
     | {
-      method: Routes[TEndpoint]['method'],
+      method: Routes[TEndpoint]['method']
       endpoint: TEndpoint
       requireAuth?: false
-      handler: (context: UnauthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response']>
+      handler: (
+        context: UnauthenticatedRouteContext<TEndpoint>,
+      ) => RouteResponse<Routes[TEndpoint]['response']>
     }
     | {
-      method: Routes[TEndpoint]['method'],
+      method: Routes[TEndpoint]['method']
       endpoint: TEndpoint
       requireAuth: true
-      handler: (context: AuthenticatedRouteContext<TEndpoint>) => RouteResponse<Routes[TEndpoint]['response']>
+      handler: (
+        context: AuthenticatedRouteContext<TEndpoint>,
+      ) => RouteResponse<Routes[TEndpoint]['response']>
     },
 ) {
   const endpoint = API_BASE + config.endpoint
@@ -73,7 +81,9 @@ export function defineRoute<TEndpoint extends keyof Routes>(
     if (config.requireAuth) {
       const jwt: Maybe<VibeJWTPayload> = await getJwtPayload(ctx)
 
-      if (jwt == null || jwt.exp == null || getNumericDate(new Date()) > jwt.exp) {
+      if (
+        jwt == null || jwt.exp == null || getNumericDate(new Date()) > jwt.exp
+      ) {
         constructResponse(ctx, [null, Status.Unauthorized])
       } else {
         const response = await Promise.race([
@@ -101,7 +111,10 @@ export function defineRoute<TEndpoint extends keyof Routes>(
   router[config.method](...args)
 }
 
-function constructResponse<TEndpoint extends keyof Routes>(ctx: AnyRouterContext, [res, status]: readonly [Routes[TEndpoint]['response'], Status]) {
+function constructResponse<TEndpoint extends keyof Routes>(
+  ctx: AnyRouterContext,
+  [res, status]: readonly [Routes[TEndpoint]['response'], Status],
+) {
   ctx.response.body = JSON.stringify(res)
   ctx.response.status = status
   ctx.response.type = 'json'
@@ -112,7 +125,13 @@ async function timeout() {
   return [null, Status.RequestTimeout] as const
 }
 
-export const rateLimited = <TContext extends AnyRouteContext, TReturn extends [unknown, Status]>(ms: number, fn: (context: TContext) => Promise<TReturn>): (context: TContext) => Promise<[TReturn[0] | null, Status]> => {
+export const rateLimited = <
+  TContext extends AnyRouteContext,
+  TReturn extends [unknown, Status],
+>(
+  ms: number,
+  fn: (context: TContext) => Promise<TReturn>,
+): (context: TContext) => Promise<[TReturn[0] | null, Status]> => {
   const lastRequestFor = new Map<string, number>()
 
   setInterval(() => {
@@ -132,8 +151,11 @@ export const rateLimited = <TContext extends AnyRouteContext, TReturn extends [u
   }
 }
 
-export const cached = <TReturn>(ms: number, fn: (context: AnyRouteContext) => Promise<TReturn>): (context: AnyRouteContext) => Promise<TReturn> => {
-  let cache: { timestamp: number, value: TReturn } | undefined
+export const cached = <TReturn>(
+  ms: number,
+  fn: (context: AnyRouteContext) => Promise<TReturn>,
+): (context: AnyRouteContext) => Promise<TReturn> => {
+  let cache: { timestamp: number; value: TReturn } | undefined
 
   return async (context: AnyRouteContext): Promise<TReturn> => {
     if (cache != null && Date.now() - cache.timestamp < ms) {

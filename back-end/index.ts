@@ -1,7 +1,7 @@
 import { Application, isHttpError, Status, STATUS_TEXT } from 'oak'
 import { router } from './routes/index.ts'
 import { ResponseWithError } from './routes/v1/_common.ts'
-import { pad, indent } from './utils/misc.ts'
+import { indent, pad } from './utils/misc.ts'
 
 const app = new Application()
 
@@ -12,7 +12,11 @@ app.use(async (ctx, next) => {
   await next()
 
   if (ctx.request.url.pathname !== '/healthz') {
-    const baseLog = `[ ${new Date().toISOString()}  ${pad(ctx.request.method, 7)}  ${pad(ctx.request.url.pathname, 34)} ]: ${ctx.response.status} ${STATUS_TEXT[ctx.response.status]}`
+    const baseLog = `[ ${new Date().toISOString()}  ${
+      pad(ctx.request.method, 7)
+    }  ${pad(ctx.request.url.pathname, 34)} ]: ${ctx.response.status} ${
+      STATUS_TEXT[ctx.response.status]
+    }`
     const error = (ctx.response as ResponseWithError).error
 
     if (error) {
@@ -38,8 +42,8 @@ app.use(async (ctx, next) => {
     }
 
     if (err instanceof Error) {
-      Error.captureStackTrace(err);
-      (ctx.response as ResponseWithError).error = err.stack
+      Error.captureStackTrace(err)
+      ;(ctx.response as ResponseWithError).error = err.stack
     }
   }
 })
@@ -48,7 +52,10 @@ app.use(async (ctx, next) => {
 app.use(async (ctx, next) => {
   ctx.response.headers.set('Access-Control-Allow-Credentials', 'true')
   ctx.response.headers.set('Access-Control-Allow-Headers', 'Authorization')
-  ctx.response.headers.set('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS')
+  ctx.response.headers.set(
+    'Access-Control-Allow-Methods',
+    'PUT, POST, GET, DELETE, OPTIONS',
+  )
 
   // https://stackoverflow.com/a/1850482
   const requesterOrigin = ctx.request.headers.get('origin')

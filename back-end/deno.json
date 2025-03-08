@@ -11,7 +11,8 @@
   },
   "fmt": {
     "semiColons": false,
-    "singleQuote": true
+    "singleQuote": true,
+    
   },
   "tasks": {
     "start": "deno task check && deno run --allow-net --allow-env index.ts",

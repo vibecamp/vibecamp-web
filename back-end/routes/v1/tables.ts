@@ -5,17 +5,18 @@ import { Status } from 'https://deno.land/std@0.152.0/http/http_status.ts'
 import { withDBConnection } from '../../utils/db.ts'
 
 export default function register(router: Router) {
+  for (const table of PUBLIC_TABLES) {
+    const endpoint = `/tables/${table}` as const
 
-    for (const table of PUBLIC_TABLES) {
-        const endpoint = `/tables/${table}` as const
-
-        defineRoute(router, {
-            endpoint,
-            method: 'get',
-            handler: async () => {
-                const rows = await withDBConnection(db => db.queryTable(table)) as Routes[typeof endpoint]['response']
-                return [rows, Status.OK]
-            }
-        })
-    }
+    defineRoute(router, {
+      endpoint,
+      method: 'get',
+      handler: async () => {
+        const rows = await withDBConnection((db) =>
+          db.queryTable(table)
+        ) as Routes[typeof endpoint]['response']
+        return [rows, Status.OK]
+      },
+    })
+  }
 }

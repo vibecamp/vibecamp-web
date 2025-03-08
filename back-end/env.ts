@@ -1,11 +1,7 @@
 import { load as loadDotenv } from 'std/dotenv/mod.ts'
 
 const readPermission = await Deno.permissions.query({ name: 'read' })
-const env = (
-  readPermission.state === 'granted'
-    ? await loadDotenv()
-    : {}
-)
+const env = readPermission.state === 'granted' ? await loadDotenv() : {}
 
 function assertEnv(key: string): string {
   const val = env[key] ?? Deno.env.get(key)
@@ -23,5 +19,5 @@ export default {
   STRIPE_SIGNING_SECRET: assertEnv('STRIPE_SIGNING_SECRET'),
   MAILGUN_API_KEY: assertEnv('MAILGUN_API_KEY'),
   DB_CONNECTION_POOL_SIZE: Number(assertEnv('DB_CONNECTION_POOL_SIZE')),
-  FRONT_END_BASE_URL: assertEnv('FRONT_END_BASE_URL')
+  FRONT_END_BASE_URL: assertEnv('FRONT_END_BASE_URL'),
 }

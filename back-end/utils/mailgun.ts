@@ -2,7 +2,12 @@ import env from '../env.ts'
 import { encode } from 'std/encoding/base64.ts'
 import { Purchases } from '../types/route-types.ts'
 import { Tables } from '../types/db-types.ts'
-import { formatCents, objectEntries, purchaseBreakdown, totalCost } from './misc.ts'
+import {
+  formatCents,
+  objectEntries,
+  purchaseBreakdown,
+  totalCost,
+} from './misc.ts'
 import { PASSWORD_RESET_SECRET_KEY } from './constants.ts'
 import { withDBConnection } from './db.ts'
 
@@ -11,68 +16,87 @@ const FROM = `Vibecamp <support@${MAILGUN_DOMAIN}>`
 const REPLY_TO = 'support@vibe.camp'
 
 export type Email = {
-    readonly to: string,
-    readonly subject: string,
-    readonly html: string,
+  readonly to: string
+  readonly subject: string
+  readonly html: string
 }
 
 export async function sendMail(email: Email) {
-    const allFields = [
-        ...objectEntries(email),
-        ['from', FROM],
-        ['h:Reply-To', REPLY_TO]
-    ] as const
+  const allFields = [
+    ...objectEntries(email),
+    ['from', FROM],
+    ['h:Reply-To', REPLY_TO],
+  ] as const
 
-    const opts = {
-        method: 'post',
-        body: allFields
-            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-            .join('&'),
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Basic ${encode('api:' + env.MAILGUN_API_KEY)}`
-        }
-    }
+  const opts = {
+    method: 'post',
+    body: allFields
+      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .join('&'),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${encode('api:' + env.MAILGUN_API_KEY)}`,
+    },
+  }
 
-    const res = await fetch(
-        `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`,
-        opts
-    )
+  const res = await fetch(
+    `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`,
+    opts,
+  )
 
-    if (!res.ok) {
-        const { html: _, ...rest } = email
-        throw Error(`Failed to send mailgun email: ${JSON.stringify(rest)}`)
-    }
+  if (!res.ok) {
+    const { html: _, ...rest } = email
+    throw Error(`Failed to send mailgun email: ${JSON.stringify(rest)}`)
+  }
 }
 
-export const receiptEmail = async (account: Pick<Tables['account'], 'email_address' | 'account_id'>, purchases: Purchases, discounts: readonly Tables['discount'][]): Promise<Email> => {
-    const allPurchaseTypes = await withDBConnection(db => db.queryTable('purchase_type'))
-    const allFestivals = await withDBConnection(db => db.queryTable('festival'))
+export const receiptEmail = async (
+  account: Pick<Tables['account'], 'email_address' | 'account_id'>,
+  purchases: Purchases,
+  discounts: readonly Tables['discount'][],
+): Promise<Email> => {
+  const allPurchaseTypes = await withDBConnection((db) =>
+    db.queryTable('purchase_type')
+  )
+  const allFestivals = await withDBConnection((db) => db.queryTable('festival'))
 
-    const purchaseTypes = objectEntries(purchases)
-        .filter(([_, count]) => count != null && count > 0)
-        .map(([type, _]) => allPurchaseTypes.find(p => p.purchase_type_id === type))
-    const festival = allFestivals.find(f => f.festival_id === purchaseTypes[0]?.festival_id)
-    const now = new Date()
+  const purchaseTypes = objectEntries(purchases)
+    .filter(([_, count]) => count != null && count > 0)
+    .map(([type, _]) =>
+      allPurchaseTypes.find((p) => p.purchase_type_id === type)
+    )
+  const festival = allFestivals.find((f) =>
+    f.festival_id === purchaseTypes[0]?.festival_id
+  )
+  const now = new Date()
 
-    const purchasesInfo = purchaseBreakdown(purchases, discounts, allPurchaseTypes)
-    const total = totalCost(purchasesInfo)
+  const purchasesInfo = purchaseBreakdown(
+    purchases,
+    discounts,
+    allPurchaseTypes,
+  )
+  const total = totalCost(purchasesInfo)
 
-    const purchaseRows = purchasesInfo.map(({ purchaseType, count, basePrice, discountMultiplier, discountedPrice }) =>
-        `<tr>
+  const purchaseRows = purchasesInfo.map((
+    { purchaseType, count, basePrice, discountMultiplier, discountedPrice },
+  ) =>
+    `<tr>
             <td>${purchaseType.description} x${count}</td>
             <td>
-                ${discountMultiplier != null
-            ? `<s>$${formatCents(basePrice)}</s> $${formatCents(discountedPrice)}`
-            : `$${formatCents(basePrice)}`}
+                ${
+      discountMultiplier != null
+        ? `<s>$${formatCents(basePrice)}</s> $${formatCents(discountedPrice)}`
+        : `$${formatCents(basePrice)}`
+    }
             </td>
-        </tr>`)
-        .join('\n')
+        </tr>`
+  )
+    .join('\n')
 
-    return {
-        to: account.email_address,
-        subject: 'Vibecamp purchase receipt',
-        html: withContainer(`
+  return {
+    to: account.email_address,
+    subject: 'Vibecamp purchase receipt',
+    html: withContainer(`
             <img src="${festival?.email_banner_image}">
 
             <div class="container">
@@ -88,12 +112,14 @@ export const receiptEmail = async (account: Pick<Tables['account'], 'email_addre
                 <table>
                     ${purchaseRows}
 
-                    ${discounts.length > 0
-                ? `<tr>
+                    ${
+      discounts.length > 0
+        ? `<tr>
                             <td>Discount code:</td>
                             <td>${discounts[0]!.discount_code}</td>    
                         </tr>`
-                : ''}
+        : ''
+    }
                     
                     <tr>
                         <td>Total:</td>
@@ -107,17 +133,22 @@ export const receiptEmail = async (account: Pick<Tables['account'], 'email_addre
                     Account ID: ${account.account_id}
                 </p>
             </div>
-        `)
-    }
+        `),
+  }
 }
 
-export const passwordResetEmail = (account: Pick<Tables['account'], 'email_address' | 'account_id'>, secret: string): Email => {
-    const resetUrl = `${env.FRONT_END_BASE_URL}#${encodeURIComponent(JSON.stringify({ [PASSWORD_RESET_SECRET_KEY]: secret }))}`
+export const passwordResetEmail = (
+  account: Pick<Tables['account'], 'email_address' | 'account_id'>,
+  secret: string,
+): Email => {
+  const resetUrl = `${env.FRONT_END_BASE_URL}#${
+    encodeURIComponent(JSON.stringify({ [PASSWORD_RESET_SECRET_KEY]: secret }))
+  }`
 
-    return {
-        to: account.email_address,
-        subject: 'Vibecamp password reset',
-        html: withContainer(`
+  return {
+    to: account.email_address,
+    subject: 'Vibecamp password reset',
+    html: withContainer(`
             <div class="container">
                 <h1>Vibecamp password reset</h1>
                 <p>
@@ -134,8 +165,8 @@ export const passwordResetEmail = (account: Pick<Tables['account'], 'email_addre
                     Account ID: ${account.account_id}
                 </p>
             </div>
-        `)
-    }
+        `),
+  }
 }
 
 const withContainer = (content: string) => `

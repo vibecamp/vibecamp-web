@@ -1,6 +1,6 @@
 export const REFERRAL_MAXES = [
-    5, // seed people
-    3  // 1 degrees of separation
+  5, // seed people
+  3, // 1 degrees of separation
 ] as const
 
 export const ONE_SECOND_MS = 1_000
