@@ -1,10 +1,9 @@
-import dayjs, { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import jwtDecode from 'jwt-decode'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
 import { Tables } from '../../../back-end/types/db-types'
 import { VibeJWTPayload } from '../../../back-end/types/misc'
-import { ONE_YEAR_MS } from '../../../back-end/utils/constants'
 import { given, objectEntries, objectFromEntries } from '../../../back-end/utils/misc'
 import { jsonParse } from '../utils'
 import { vibefetch } from '../vibefetch'
@@ -56,12 +55,13 @@ export function useNewStoreInstance() {
     const festivals = usePromise(() =>
         vibefetch(null, '/tables/festival', 'get', undefined)
             .then(res => res.body)
-            .then(f => f?.map(f => ({
-                ...f,
-                start_date: dayjs.utc(f.start_date),
-                end_date: dayjs.utc(f.end_date)
-            })))
-            .then(f => f?.sort((a, b) => festivalComparator(a) - festivalComparator(b)))
+            .then(f => f
+                ?.map(f => ({
+                    ...f,
+                    start_date: dayjs.utc(f.start_date),
+                    end_date: dayjs.utc(f.end_date)
+                }))
+                .sort((a, b) => a.start_date.valueOf() - b.start_date.valueOf()))
     , [])
 
     const festivalsWithSalesOpen = useMemo(() =>
@@ -178,17 +178,6 @@ export function useNewStoreInstance() {
         purchasedTicketsByFestival,
         nonTicketPurchasesByFestival
     }), [accountInfo, allEvents, bookmarks, eventSites, festivalSites, festivals, festivalsWithSalesOpen, jwt, jwtPayload, logOut, loggedIn, nonTicketPurchasesByFestival, primaryAttendee, purchaseTypeAvailability, purchaseTypes, purchasedTicketsByFestival, purchasesByFestival])
-}
-
-const festivalComparator = (festival: {
-    start_date: Dayjs,
-    end_date: Dayjs | null
-}) => {
-    const isInPast = festival.end_date?.isBefore(dayjs.utc())
-    const oneHundredYears = 100 * ONE_YEAR_MS
-    const modifier = isInPast ? oneHundredYears : 0 // push past events to the bottom of the list
-
-    return festival.start_date.valueOf() + modifier
 }
 
 export type Store = ReturnType<typeof useNewStoreInstance>

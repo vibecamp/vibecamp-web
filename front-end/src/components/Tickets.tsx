@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 
 import useHashState from '../hooks/useHashState'
 import { useLocalStorageState } from '../hooks/useLocalStorageState'
@@ -38,6 +38,10 @@ export default React.memo(() => {
         setNewsletterPromptDismissed(true)
     }, [setNewsletterPromptDismissed])
 
+    const festivalsReversed = useMemo(() =>
+        store.festivals.state.result?.slice().reverse()
+    , [store.festivals.state.result])
+
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
             {loading ?
@@ -75,7 +79,7 @@ export default React.memo(() => {
                                     <Spacer size={24} />
                                 </>}
 
-                            {store.festivals.state.result?.map(festival => {
+                            {festivalsReversed?.map(festival => {
                                 const tickets = store.purchasedTicketsByFestival[festival.festival_id] ?? []
                                 const otherPurchases = store.nonTicketPurchasesByFestival[festival.festival_id] ?? []
 
