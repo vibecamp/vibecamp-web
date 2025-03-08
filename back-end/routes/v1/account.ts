@@ -48,7 +48,7 @@ export default function register(router: Router) {
             select cabin.name as cabin_name, attendee.attendee_id, festival_id from attendee
             left join attendee_cabin on attendee.attendee_id = attendee_cabin.attendee_id
             left join cabin on attendee_cabin.cabin_id = cabin.cabin_id
-            where attendee_cabin.cabin_id is not null
+            where attendee_cabin.cabin_id is not null and attendee.associated_account_id = ${account_id}
           `,
         })
       })
