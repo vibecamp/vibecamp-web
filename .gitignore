@@ -42,3 +42,5 @@ sitemap.xml
 front-end/.vscode
 front-end/.env
 back-end/.env
+
+.zed
