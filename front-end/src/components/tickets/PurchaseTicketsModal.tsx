@@ -21,10 +21,16 @@ export default React.memo(() => {
         store.festivals.state.result?.filter(f => f.festival_site_id === campChampionsID)
     , [campChampionsID, store.festivals.state.result])
 
-    const isAtCampChampions = festivalsAtCampChampions != null && festivalsAtCampChampions.some(f => f.festival_id === hashState?.ticketPurchaseModalState)
-    const existingTickets = store.purchasedTicketsByFestival[hashState?.ticketPurchaseModalState as Tables['festival']['festival_id']]
+    const ticketPurchaseModalState = hashState?.ticketPurchaseModalState
+    const isAtCampChampions = festivalsAtCampChampions != null && festivalsAtCampChampions.some(f => f.festival_id === ticketPurchaseModalState)
+    const existingTickets =
+        ticketPurchaseModalState == null || ticketPurchaseModalState === 'payment'
+            ? []
+            : store.purchasedTicketsByFestival[ticketPurchaseModalState!]
     const hasTicketsForThisFestival = (existingTickets ?? []).length > 0
     const purchaseFormState = usePurchaseFormState({ isInitialPurchase: !hasTicketsForThisFestival, needsWaiverClicked: isAtCampChampions && !hasTicketsForThisFestival })
+
+    const festival = store.festivals.state.result?.find(f => f.festival_id === ticketPurchaseModalState)
 
     const handlePurchaseCompletion = useCallback(async () => {
         // HACK: When the purchase flow completes, the webhook will take an
@@ -32,7 +38,7 @@ export default React.memo(() => {
         // seconds before refreshing the list, which should usually be enough
         await wait(2000)
 
-        setHashState({ currentView: 'Tickets', ticketPurchaseModalState: null })
+        setHashState({ currentView: 'Tickets', ticketPurchaseModalState: undefined })
 
         await store.accountInfo.load()
     }, [setHashState, store.accountInfo])

@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import React, { useCallback, useMemo, useState } from 'react'
 
-import useHashState from '../hooks/useHashState'
+import useHashState, { EventsFilter } from '../hooks/useHashState'
 import { DayjsEvent, DayjsFestival, useStore } from '../hooks/useStore'
 import { someValue } from '../utils'
 import Button from './core/Button'
@@ -17,14 +17,12 @@ import Spacer from './core/Spacer'
 import Event, { EventInfo } from './events/Event'
 import EventEditor from './events/EventEditor'
 
-type EventsFilter = 'All' | 'Bookmarked' | 'Mine'
-
 export default React.memo(() => {
     const { scrollToTop, scrollTop } = useSlideScroll()
     const showScrollButton = scrollTop > 100
     const store = useStore()
     const { hashState, setHashState } = useHashState()
-    const filter = (hashState?.eventsFilter ?? 'All') as EventsFilter
+    const filter = hashState?.eventsFilter ?? 'All'
     const setFilter = useCallback((filter: EventsFilter) => {
         const eventsFilter: undefined | 'Bookmarked' | 'Mine' = filter === 'All' ? undefined : filter
         setHashState({ eventsFilter })

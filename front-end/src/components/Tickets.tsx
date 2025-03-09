@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import React, { useCallback, useMemo } from 'react'
 
+import { Tables } from '../../../back-end/types/db-types'
 import useHashState from '../hooks/useHashState'
 import { useLocalStorageState } from '../hooks/useLocalStorageState'
 import { useStore } from '../hooks/useStore'
@@ -22,10 +23,10 @@ export default React.memo(() => {
     // const { application_status } = store.accountInfo.state.result ?? {}
 
     const closeTicketPurchaseModal = useCallback(() => {
-        setHashState({ ticketPurchaseModalState: null })
+        setHashState({ ticketPurchaseModalState: undefined })
     }, [setHashState])
 
-    const openTicketPurchaseModal = (festival_id: string) => () => {
+    const openTicketPurchaseModal = (festival_id: Tables['festival']['festival_id']) => () => {
         setHashState({ ticketPurchaseModalState: festival_id })
     }
 

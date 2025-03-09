@@ -59,7 +59,7 @@ export default React.memo(() => {
             } else if (mode === 'new-password') {
                 const { body } = await vibefetch(null, '/account/reset-password', 'put', {
                     password: password,
-                    secret: hashState?.passwordResetSecret as string
+                    secret: hashState?.passwordResetSecret ?? ''
                 })
                 const { jwt } = body ?? {}
 

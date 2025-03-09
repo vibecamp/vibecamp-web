@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 
+import { Tables } from '../../../back-end/types/db-types'
 import { PASSWORD_RESET_SECRET_KEY } from '../../../back-end/utils/constants'
 import { jsonParse } from '../utils'
 import useLocationHash from './useLocationHash'
@@ -35,11 +36,12 @@ export default function useHashState() {
 }
 
 type HashState = Readonly<{
-    currentView?: string | number | boolean | null,
-    ticketPurchaseModalState?: string | number | boolean | null,
-    applicationModalOpen?: string | number | boolean | null,
-    eventsFilter?: string | number | boolean | null,
-    viewingEventDetails?: string | number | boolean | null,
-    compactEventsView?: string | number | boolean | null,
-    [PASSWORD_RESET_SECRET_KEY]?: string | number | boolean | null
+    currentView?: 'Tickets' | 'Events' | 'Account',
+    ticketPurchaseModalState?: Tables['festival']['festival_id'] | 'payment',
+    eventsFilter?: EventsFilter,
+    viewingEventDetails?: Tables['event']['event_id'],
+    compactEventsView?: boolean,
+    [PASSWORD_RESET_SECRET_KEY]?: string
 }>
+
+export type EventsFilter = 'All' | 'Bookmarked' | 'Mine'
