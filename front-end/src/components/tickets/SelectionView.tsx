@@ -80,10 +80,14 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
                             showFloatingHeading
                         />
 
-                        <Spacer size={24} />
+                        <Spacer size={32} />
+
+                        <h2 style={{ fontSize: 24 }}>Ticket type for {attendee.name || 'this person'}</h2>
+
+                        <Spacer size={8} />
 
                         <RadioGroup
-                            label='Ticket type for this person'
+                            label=''
                             options={attendancePurchaseOptions}
                             value={attendee.ticket_type}
                             onChange={val => purchaseFormState.setAttendeeProperty(attendee, 'ticket_type', val)}

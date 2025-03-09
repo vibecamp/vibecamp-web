@@ -3,6 +3,7 @@ import React from 'react'
 import { TABLE_ROWS } from '../../../../back-end/types/db-types'
 import { AttendeeInfo } from '../../../../back-end/types/misc'
 import { Store } from '../../hooks/useStore'
+import Checkbox from '../core/Checkbox'
 import InfoBlurb from '../core/InfoBlurb'
 import Input from '../core/Input'
 import RadioGroup from '../core/RadioGroup'
@@ -17,8 +18,8 @@ export type Props = {
     festival: (NonNullable<Store['festivals']['state']['result']>)[number] | undefined
 }
 
-const INFO_BLURB_SPACE = 12
-const FIELD_SPACE = 24
+const INFO_BLURB_SPACE = 8
+const FIELD_SPACE = 32
 
 export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, isChild, showFloatingHeading, festival }: Props) => {
     return (
@@ -94,6 +95,27 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
                 <InfoBlurb>
                     This age should be at the time of {festival.festival_name} ({festival.start_date.format('MM/DD/YYYY')} - {festival.end_date.format('MM/DD/YYYY')})
                 </InfoBlurb>}
+
+            <Spacer size={FIELD_SPACE} />
+
+            <Checkbox
+                value={attendeeInfo.share_ticket_status_with_selflathing}
+                onChange={val => setAttendeeProperty(attendeeInfo, 'share_ticket_status_with_selflathing', val)}
+            >
+                <div>
+                    Share {attendeeInfo.is_primary_for_account ? 'my' : 'this person\'s'} ticket purchase status with <a href='https://x.com/selflathing' target='_blank' rel="noreferrer">selflathing</a>'s <a href='https://areyouvibing.app' target='_blank' rel="noreferrer">"are you vibing" app</a>
+                </div>
+            </Checkbox>
+
+            <Spacer size={8} />
+
+            <InfoBlurb>
+                This will let people know which
+                festivals {attendeeInfo.is_primary_for_account ? 'you have' : 'this person has'} a ticket to (and nothing else!).
+                The app allows people to say "I'll go if these other people go!", so by checking
+                this box, you're letting those people know you're going.
+            </InfoBlurb>
+
         </>
     )
 })
