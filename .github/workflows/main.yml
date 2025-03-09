@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: "2.1.4"
+          deno-version: "2.1.10"
       - name: Typecheck
         working-directory: back-end
         run: deno task check
