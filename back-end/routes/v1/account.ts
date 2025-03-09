@@ -71,7 +71,8 @@ export default function register(router: Router) {
             application_status: applicationStatus,
             is_team_member: account.is_team_member,
             is_low_income: account.is_low_income,
-            attendees: attendees.map(({ notes: _, ...attendee }) => attendee),
+            attendees: attendees.map(({ notes: _, ...attendee }) => attendee)
+              .toSorted((a) => a.is_primary_for_account ? -1 : 0),
             badges: badges.rows,
             purchases,
             cabins: cabins.rows,
