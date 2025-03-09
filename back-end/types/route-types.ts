@@ -53,6 +53,11 @@ export type Routes = {
     body: NewApplication
     response: null
   }
+  '/account/update-badge-info': {
+    method: 'put'
+    body: Omit<Tables['badge_info'], 'badge_info_id'>
+    response: null
+  }
   '/login': {
     method: 'post'
     body: {

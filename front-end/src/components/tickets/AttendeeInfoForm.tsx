@@ -2,7 +2,7 @@ import React from 'react'
 
 import { TABLE_ROWS } from '../../../../back-end/types/db-types'
 import { AttendeeInfo } from '../../../../back-end/types/misc'
-import { Store,useStore } from '../../hooks/useStore'
+import { Store } from '../../hooks/useStore'
 import InfoBlurb from '../core/InfoBlurb'
 import Input from '../core/Input'
 import RadioGroup from '../core/RadioGroup'
@@ -21,8 +21,6 @@ const INFO_BLURB_SPACE = 12
 const FIELD_SPACE = 24
 
 export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, isChild, showFloatingHeading, festival }: Props) => {
-    const store = useStore()
-
     return (
         <>
             {showFloatingHeading && attendeeInfo.name &&
@@ -75,7 +73,7 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
             <Spacer size={INFO_BLURB_SPACE} />
 
             <InfoBlurb>
-                {`If ${attendeeInfo.is_primary_for_account ? 'you' : 'they'} provide ${attendeeInfo.is_primary_for_account ? 'your' : 'their'} Discord handle, we can give ${attendeeInfo.is_primary_for_account ? 'you' : 'them'} attendee 
+                {`If ${attendeeInfo.is_primary_for_account ? 'you' : 'they'} provide ${attendeeInfo.is_primary_for_account ? 'your' : 'their'} Discord handle, we can give ${attendeeInfo.is_primary_for_account ? 'you' : 'them'} attendee
                 status on the Vibecamp server and add ${attendeeInfo.is_primary_for_account ? 'you' : 'them'} to attendee-specific
                 channels`}
             </InfoBlurb>

@@ -3,7 +3,8 @@ import React, { useCallback } from 'react'
 import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 
-type Props = Omit<CommonFieldProps<boolean>, 'label'> & {
+type Props = Omit<CommonFieldProps<boolean>, 'label' | 'value'> & {
+    value: boolean | null,
     children: React.ReactNode
 }
 
@@ -16,7 +17,7 @@ export default React.memo(({ value, onChange, disabled, onBlur, error, children 
         <label className={'checkbox' + ' ' + (disabled ? 'disabled' : '')}>
             <input
                 type='checkbox'
-                checked={value}
+                checked={value ?? false}
                 onChange={handleChange}
                 onBlur={onBlur}
                 disabled={disabled}

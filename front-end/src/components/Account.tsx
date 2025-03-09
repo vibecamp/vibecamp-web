@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { Tables } from '../../../back-end/types/db-types'
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/utils/validation'
 import useForm, { fieldToProps } from '../hooks/useForm'
 import { usePromise } from '../hooks/usePromise'
 import { useStore } from '../hooks/useStore'
 import { DEFAULT_FORM_ERROR, doNothing, preventingDefault } from '../utils'
 import { vibefetch } from '../vibefetch'
+import { BadgeInfoForm } from './BadgeInfoForm'
 import Button from './core/Button'
 import Col from './core/Col'
 import ErrorMessage from './core/ErrorMessage'
@@ -51,6 +53,32 @@ export default React.memo(() => {
 
     const [editing, setEditing] = useState<'none' | 'email' | 'password'>('none')
     const stopEditing = useCallback(() => setEditing('none'), [])
+
+    const badges = useMemo(() => {
+        const accountInfo = store.accountInfo.state.result
+        const festivals = store.festivals.state.result
+        if (accountInfo == null || festivals == null) {
+            return []
+        }
+
+        return festivals
+            .filter(festival => {
+                const tickets = store.purchasedTicketsByFestival[festival.festival_id] ?? []
+                return !festival.pre_badge_integration && tickets.length > 0
+            })
+            .map(({ festival_id, festival_name }) => ({
+                festival_id,
+                festival_name,
+                attendees: accountInfo.attendees
+                    .map(({ attendee_id, name }) => ({
+                        attendee_id,
+                        attendee_name: name,
+                        badge_exists: accountInfo.badges.some(badge => badge.festival_id === festival_id && badge.attendee_id === attendee_id)
+                    }))
+            }))
+    }, [store.accountInfo.state.result, store.festivals.state.result, store.purchasedTicketsByFestival])
+
+    const [editingBadge, setEditingBadge] = useState<{ festival_id: Tables['festival']['festival_id'], attendee_id: Tables['attendee']['attendee_id'] }>()
 
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
@@ -100,6 +128,40 @@ export default React.memo(() => {
 
                                 <Spacer size={32} />
                             </form>}
+
+                        <h2 style={{ fontSize: 18, alignSelf: 'flex-start' }}>
+                            Badge info
+                        </h2>
+
+                        <Spacer size={16} />
+
+                        {badges.map(({ festival_id, festival_name, attendees }, festival_index) =>
+                            <div key={festival_id}>
+                                {festival_index > 0 && <Spacer size={16} />}
+
+                                <h3>{festival_name}</h3>
+                                <Spacer size={8} />
+                                <div style={{ border: 'var(--controls-border)', borderRadius: 4, background: 'var(--color-background-2)' }}>
+                                    {attendees.map(({ attendee_id, attendee_name, badge_exists }, i) =>
+                                        <div style={{ padding: '4px 8px', borderTop: i > 0 ? 'var(--controls-border)' : undefined, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} key={attendee_id}>
+                                            {attendee_name}&apos;s badge
+
+                                            <Button isPrimary={!badge_exists} isCompact style={{ flexGrow: 0, flexShrink: 0, width: 'auto' }} onClick={() => setEditingBadge({ festival_id, attendee_id })}>
+                                                {badge_exists ? 'Edit' : 'Add'}
+                                            </Button>
+                                        </div>)}
+                                </div>
+                            </div>)}
+
+                        <Modal side='right' isOpen={editingBadge != null} onClose={() => setEditingBadge(undefined)}>
+                            {() => editingBadge && <BadgeInfoForm {...editingBadge} onSubmitted={() => setEditingBadge(undefined)} />}
+                        </Modal>
+
+                        <Spacer size={32} />
+
+                        <hr />
+
+                        <Spacer size={32} />
 
                         <Input
                             label='Email address'

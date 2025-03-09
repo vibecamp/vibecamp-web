@@ -1,17 +1,18 @@
-import React, { ChangeEvent, HTMLInputTypeAttribute, useCallback, useState } from 'react'
+import React, { ChangeEvent, HTMLInputTypeAttribute, InputHTMLAttributes, useCallback, useState } from 'react'
 
 import { given } from '../../../../back-end/utils/misc'
 import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 
-type Props = CommonFieldProps<string> & {
+type Props = Omit<CommonFieldProps<string>, 'value'> & {
     placeholder?: string,
     type?: HTMLInputTypeAttribute,
     multiline?: boolean,
-    autocomplete?: 'new-password' | 'current-password'
+    autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete'],
+    value: string | null
 }
 
-export default React.memo(({ label, value, onChange, onBlur, disabled, placeholder, error, multiline, type, autocomplete }: Props) => {
+export default React.memo(({ label, value, onChange, onBlur, disabled, placeholder, error, multiline, type, autoComplete }: Props) => {
     const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         onChange(e.target.value)
     }, [onChange])
@@ -20,7 +21,7 @@ export default React.memo(({ label, value, onChange, onBlur, disabled, placehold
     const textareaHeight = given(textarea?.scrollHeight, scrollHeight => scrollHeight + 2) ?? undefined
 
     const sharedProps = {
-        value,
+        value: value ?? '',
         onChange: handleChange,
         onBlur,
         disabled,
@@ -42,7 +43,7 @@ export default React.memo(({ label, value, onChange, onBlur, disabled, placehold
                 : <input
                     {...sharedProps}
                     type={type}
-                    autoComplete={autocomplete}
+                    autoComplete={autoComplete}
                 />}
 
             <ErrorMessage error={error} />

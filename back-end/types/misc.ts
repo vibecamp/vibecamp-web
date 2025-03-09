@@ -20,7 +20,8 @@ export type FullAccountInfo =
   & {
     application_status: 'unsubmitted' | 'pending' | 'accepted' | 'rejected'
     // allowed_to_purchase: boolean,
-    attendees: Array<Tables['attendee']>
+    attendees: Array<Omit<Tables['attendee'], 'notes'>>
+    badges: Array<Tables['badge_info']>
     purchases: Array<Tables['purchase']>
     // inviteCodes: Array<Tables['invite_code'] & {
     //     used_by: string | null

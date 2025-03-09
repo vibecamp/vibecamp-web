@@ -27,16 +27,22 @@ export default function register(router: Router) {
       const {
         accounts,
         attendees,
+        badges,
         purchases,
         cabins,
-      } = await withDBTransaction(async (db) => {
-        return await allPromises({
+      } = await withDBTransaction((db) =>
+        allPromises({
           accounts: db.queryTable('account', {
             where: ['account_id', '=', account_id],
           }),
           attendees: db.queryTable('attendee', {
             where: ['associated_account_id', '=', account_id],
           }),
+          badges: db.queryObject<Tables['badge_info']>`
+            select badge_info.* from badge_info
+            left join attendee on attendee.attendee_id = badge_info.attendee_id
+            where attendee.associated_account_id = ${account_id}
+          `,
           purchases: db.queryTable('purchase', {
             where: ['owned_by_account_id', '=', account_id],
           }),
@@ -51,7 +57,7 @@ export default function register(router: Router) {
             where attendee_cabin.cabin_id is not null and attendee.associated_account_id = ${account_id}
           `,
         })
-      })
+      )
 
       const account = accounts[0]
 
@@ -65,7 +71,8 @@ export default function register(router: Router) {
             application_status: applicationStatus,
             is_team_member: account.is_team_member,
             is_low_income: account.is_low_income,
-            attendees,
+            attendees: attendees.map(({ notes: _, ...attendee }) => attendee),
+            badges: badges.rows,
             purchases,
             cabins: cabins.rows,
           },
@@ -328,6 +335,41 @@ export default function register(router: Router) {
           '=',
           account_id,
         ]])
+
+        return [null, Status.OK]
+      })
+    },
+  })
+
+  defineRoute(router, {
+    endpoint: '/account/update-badge-info',
+    method: 'put',
+    requireAuth: true,
+    handler: async (
+      { jwt: { account_id }, body: badgeInfo },
+    ) => {
+      return await withDBConnection(async (db) => {
+        const attendee = (await db.queryTable('attendee', {
+          where: ['attendee_id', '=', badgeInfo.attendee_id],
+        }))[0]
+
+        // verify that the authenticated account is allowed to modify this attendee's info
+        if (attendee?.associated_account_id !== account_id) {
+          return [null, Status.Unauthorized]
+        }
+
+        const existingBadge = (await db.queryTable('badge_info', {
+          where: ['attendee_id', '=', badgeInfo.attendee_id],
+        })).find((badge) => badge.festival_id === badgeInfo.festival_id)
+
+        if (existingBadge) {
+          await db.updateTable('badge_info', badgeInfo, [
+            ['attendee_id', '=', badgeInfo.attendee_id],
+            ['festival_id', '=', badgeInfo.festival_id],
+          ])
+        } else {
+          await db.insertTable('badge_info', badgeInfo)
+        }
 
         return [null, Status.OK]
       })

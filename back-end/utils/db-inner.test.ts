@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { assertEquals } from 'https://deno.land/std@0.160.0/testing/asserts.ts'
 import {
   deleteTableQuery,
@@ -54,7 +56,6 @@ Deno.test({
   fn() {
     const [query, params] = insertTableQuery(
       'account',
-      // @ts-ignore
       {
         email_address: 'foo@bar.com',
         is_seed_account: true,

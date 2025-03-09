@@ -104,7 +104,7 @@ export default React.memo(() => {
                         label='Email address'
                         type='email'
                         disabled={loginForm.submitting}
-                        autocomplete={mode === 'login' ? 'current-password' : 'new-password'}
+                        autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                         {...fieldToProps(loginForm.fields.emailAddress)}
                     />}
 
@@ -116,7 +116,7 @@ export default React.memo(() => {
                             label={mode === 'login' ? 'Password' : 'New password'}
                             type='password'
                             disabled={loginForm.submitting}
-                            autocomplete={mode === 'login' ? 'current-password' : 'new-password'}
+                            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                             {...fieldToProps(loginForm.fields.password)}
                         />
                     </>

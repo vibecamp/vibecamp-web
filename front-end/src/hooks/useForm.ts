@@ -45,8 +45,10 @@ export default function useForm<T extends Record<string, unknown>>({ initial, va
             newObj[key] = {
                 value: values[key],
                 set: val => {
-                    setValues({ ...values, [key]: val })
-                    setDirty(true)
+                    if (values[key] !== val) {
+                        setValues({ ...values, [key]: val })
+                        setDirty(true)
+                    }
                 },
                 error: validationActive[key] ? validators[key]?.(values[key], values) : undefined,
                 activateValidation: () => setValidationActive({ ...validationActive, [key]: true })
