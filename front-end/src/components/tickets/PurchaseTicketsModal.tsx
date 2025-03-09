@@ -1,11 +1,16 @@
 import React, { useCallback, useMemo } from 'react'
 
-import { Tables } from '../../../../back-end/types/db-types'
+import useBooleanState from '../../hooks/useBooleanState'
 import useHashState from '../../hooks/useHashState'
 import usePurchaseFormState from '../../hooks/usePurchaseFormState'
 import { useStore } from '../../hooks/useStore'
 import { wait } from '../../utils'
+import { BadgesList } from '../Account'
+import Button from '../core/Button'
+import Col from '../core/Col'
+import InfoBlurb from '../core/InfoBlurb'
 import MultiView from '../core/MultiView'
+import Spacer from '../core/Spacer'
 import StripePaymentForm from '../core/StripePaymentForm'
 import SelectionView from './SelectionView'
 
@@ -32,16 +37,32 @@ export default React.memo(() => {
 
     const festival = store.festivals.state.result?.find(f => f.festival_id === ticketPurchaseModalState)
 
+    const { state: onBadgesList, setTrue: goToBadges } = useBooleanState(true)
+
     const handlePurchaseCompletion = useCallback(async () => {
         // HACK: When the purchase flow completes, the webhook will take an
         // indeterminate amount of time to record the purchases. So, we wait a couple
         // seconds before refreshing the list, which should usually be enough
         await wait(2000)
 
-        setHashState({ currentView: 'Tickets', ticketPurchaseModalState: undefined })
+        goToBadges()
 
         await store.accountInfo.load()
-    }, [setHashState, store.accountInfo])
+    }, [goToBadges, store.accountInfo])
+
+    const attendeeBadges = useMemo(() => {
+        const accountInfo = store.accountInfo.state.result
+        if (accountInfo == null || festival == null) {
+            return []
+        }
+
+        return accountInfo.attendees
+            .map(({ attendee_id, name }) => ({
+                attendee_id,
+                name,
+                badge_exists: accountInfo.badges.some(badge => badge.festival_id === festival.festival_id && badge.attendee_id === attendee_id)
+            }))
+    }, [festival, store.accountInfo.state.result])
 
     return (
         <MultiView
@@ -52,7 +73,7 @@ export default React.memo(() => {
                         <SelectionView
                             purchaseFormState={purchaseFormState}
                             goToNext={purchaseFormState.goToTicketPayment}
-                            festival={store.festivals.state.result?.find(f => f.festival_id === hashState?.ticketPurchaseModalState)}
+                            festival={festival}
                         />
                     )
                 },
@@ -66,9 +87,36 @@ export default React.memo(() => {
                             onCompletePurchase={handlePurchaseCompletion}
                         />
                     )
+                },
+                {
+                    name: 'badges',
+                    content: (
+                        <Col padding={20} pageLevel>
+                            <h2 style={{ fontSize: 24 }}>
+                                Add badge info?
+                            </h2>
+
+                            <Spacer size={8} />
+
+                            <InfoBlurb>
+                                You can edit this later from the Account tab
+                            </InfoBlurb>
+
+                            <Spacer size={32} />
+
+                            {festival &&
+                                <BadgesList festival={festival} attendeeBadges={attendeeBadges} />}
+
+                            <Spacer size={32} />
+
+                            <Button onClick={() => setHashState({ currentView: 'Tickets', ticketPurchaseModalState: undefined })}>
+                                Close
+                            </Button>
+                        </Col>
+                    )
                 }
             ]}
-            currentView={hashState?.ticketPurchaseModalState === 'payment' ? 'payment' : 'selection'}
+            currentView={hashState?.ticketPurchaseModalState === 'payment' ? 'payment' : onBadgesList ? 'badges' : 'selection'}
         />
     )
 })

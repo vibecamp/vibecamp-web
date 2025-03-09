@@ -148,10 +148,10 @@ export const BadgeInfoForm: FC<Props> = React.memo(({ festival_id, attendee_id, 
                     twitter!
                 </InfoBlurb>
 
-                <Spacer size={8} />
+                <Spacer size={12} />
 
                 <Button onClick={openPictureHelp}>
-                    How do I get my twitter profile picture URL?
+                    How do I get my twitter profile picture?
                 </Button>
 
                 <Modal side='right' isOpen={pictureHelpIsOpen} onClose={closePictureHelp}>
@@ -202,6 +202,7 @@ export const BadgeInfoForm: FC<Props> = React.memo(({ festival_id, attendee_id, 
 
                 <Input
                     label='Badge bio (optional)'
+                    placeholder={'I\'m a super cool person, what can I say?'}
                     {...fieldToProps(fields.badge_bio)}
                     multiline
                 />
@@ -231,11 +232,13 @@ export const BadgeInfoForm: FC<Props> = React.memo(({ festival_id, attendee_id, 
                     We&apos;ll indicate this so other attendees can know if they might have met you there.
                 </InfoBlurb>
 
-                <Spacer size={32} />
+                <Spacer size={48} />
 
                 <Button isSubmit isPrimary isLoading={submitting} >
                     Save
                 </Button>
+
+                <Spacer size={32} />
             </form>
         </Col>
     )
