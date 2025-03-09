@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: denoland/setup-deno@v2
+      - uses: denoland/setup-deno@v1
         with:
-          deno-version: "2.2.3"
+          deno-version: "1.36.3"
       - name: Typecheck
         working-directory: back-end
         run: deno task check

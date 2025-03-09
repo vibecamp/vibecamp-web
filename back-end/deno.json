@@ -16,7 +16,7 @@
   "tasks": {
     "start": "deno task check && deno run --allow-net --allow-env index.ts",
     "dev": "deno run --allow-net --allow-env --allow-read --watch index.ts",
-    "check": "deno check . && deno test",
+    "check": "deno check index.ts && deno test",
     "typegen": "deno run --allow-all ./generate-db-types.ts",
     "stripe": "stripe listen --forward-to localhost:10000/purchase/record"
   },
