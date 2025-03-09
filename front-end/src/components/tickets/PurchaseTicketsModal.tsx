@@ -37,7 +37,7 @@ export default React.memo(() => {
 
     const festival = store.festivals.state.result?.find(f => f.festival_id === ticketPurchaseModalState)
 
-    const { state: onBadgesList, setTrue: goToBadges } = useBooleanState(true)
+    const { state: onBadgesList, setTrue: goToBadges } = useBooleanState(false)
 
     const handlePurchaseCompletion = useCallback(async () => {
         // HACK: When the purchase flow completes, the webhook will take an
