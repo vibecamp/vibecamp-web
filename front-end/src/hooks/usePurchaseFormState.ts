@@ -96,7 +96,8 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
                 {
                     purchases,
                     discount_code: discountCode || null,
-                    attendees: attendees.map(({ ticket_type: _, ...attendee }) => attendee)
+                    attendees: attendees.map(({ ticket_type: _, ...attendee }) => attendee),
+                    referral_info: new URLSearchParams(window.location.search).get('referral_info') ?? undefined
                 }
             )
             const { stripe_client_secret } = response ?? {}

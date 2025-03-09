@@ -47,7 +47,10 @@ export default function register(router: Router) {
     method: 'post',
     requireAuth: true,
     handler: async (
-      { jwt: { account_id }, body: { purchases, discount_code, attendees } },
+      {
+        jwt: { account_id },
+        body: { purchases, discount_code, attendees, referral_info },
+      },
     ) => {
       const availability = await purchaseTypeAvailability(account_id)
 
@@ -97,6 +100,7 @@ export default function register(router: Router) {
       const metadata: PurchaseMetadata = {
         accountId: account_id,
         discount_ids: discounts.map((d) => d.discount_id).join(','),
+        referral_info: referral_info?.substring(0, 500),
         ...objectFromEntries(
           objectEntries(sanitizedPurchases).map((
             [key, value],
@@ -129,7 +133,11 @@ export default function register(router: Router) {
   >()
 
   type PurchaseMetadata =
-    & { accountId: Tables['account']['account_id']; discount_ids?: string }
+    & {
+      accountId: Tables['account']['account_id']
+      discount_ids?: string
+      referral_info?: string
+    }
     & Record<Tables['purchase_type']['purchase_type_id'], string> // stripe converts numbers to strings for some reason
 
   router.post('/purchase/record', async (ctx) => {
