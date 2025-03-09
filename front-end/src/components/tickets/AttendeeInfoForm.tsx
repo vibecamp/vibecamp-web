@@ -103,7 +103,7 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
                 onChange={val => setAttendeeProperty(attendeeInfo, 'share_ticket_status_with_selflathing', val)}
             >
                 <div>
-                    Share {attendeeInfo.is_primary_for_account ? 'my' : 'this person\'s'} ticket purchase status with <a href='https://x.com/selflathing' target='_blank' rel="noreferrer">selflathing</a>'s <a href='https://areyouvibing.app' target='_blank' rel="noreferrer">"are you vibing" app</a>
+                    Share {attendeeInfo.is_primary_for_account ? 'my' : 'this person\'s'} ticket purchase status with <a href='https://x.com/selflathing' target='_blank' rel="noreferrer">selflathing</a>&apos;s <a href='https://areyouvibing.app' target='_blank' rel="noreferrer">&quot;are you vibing&quot; app</a>
                 </div>
             </Checkbox>
 
@@ -112,8 +112,8 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
             <InfoBlurb>
                 This will let people know which
                 festivals {attendeeInfo.is_primary_for_account ? 'you have' : 'this person has'} a ticket to (and nothing else!).
-                The app allows people to say "I'll go if these other people go!", so by checking
-                this box, you're letting those people know you're going.
+                The app allows people to say &quot;I&apos;ll go if these other people go!&quot;, so by checking
+                this box, you&apos;re letting those people know you&apos;re going.
             </InfoBlurb>
 
         </>
