@@ -154,6 +154,15 @@ export type Routes = {
     }
     response: { stripe_client_secret: string }
   }
+  '/purchase/selflathing/status': {
+    method: 'post'
+    body: {
+      secret_key: string
+      festival_id: string
+      attendees: string[]
+    }
+    response: Record<string, boolean>
+  }
 } & PublicTablesRoutes
 
 export type NewApplication = Omit<

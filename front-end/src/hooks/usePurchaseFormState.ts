@@ -201,5 +201,6 @@ const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
     has_allergy_tree_nuts: null,
     has_allergy_peanuts: null,
     has_allergy_wheat: null,
-    has_allergy_soy: null
+    has_allergy_soy: null,
+    share_ticket_status_with_selflathing: null
 }

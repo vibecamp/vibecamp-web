@@ -269,6 +269,47 @@ export default function register(router: Router) {
       }
     })
   })
+
+  defineRoute(router, {
+    endpoint: '/purchase/selflathing/status',
+    method: 'post',
+    requireAuth: false,
+    handler: async ({ body: { secret_key, festival_id, attendees } }) => {
+      if (secret_key !== env.SELF_LATHING_SECRET_KEY) {
+        return [null, Status.Unauthorized]
+      }
+
+      const cleanedAttendees = attendees.map((a) => a.replace(/^@/, ''))
+
+      return await withDBConnection(async (db) => {
+        const status: Record<string, boolean> = {}
+
+        for (const attendee of cleanedAttendees) {
+          const attendeePattern = `%${attendee}%`
+
+          const { count } = (await db.queryObject<{ count: BigInt }>`
+            select count(attendee.attendee_id)
+            from purchase
+              left join purchase_type on purchase_type.purchase_type_id = purchase.purchase_type_id
+              left join attendee on purchase.owned_by_account_id = attendee.associated_account_id
+            where
+              purchase_type.is_attendance_ticket = true and
+              festival_id = ${festival_id} and
+              share_ticket_status_with_selflathing = true and
+            (
+              attendee.name ilike ${attendeePattern} or
+              attendee.twitter_handle ilike ${attendeePattern} or
+              attendee.discord_handle ilike ${attendeePattern}
+            )
+          `).rows[0]!
+
+          status[attendee] = Number(count) > 0
+        }
+
+        return [status, Status.OK]
+      })
+    },
+  })
 }
 
 const messageHtml = (
