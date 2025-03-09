@@ -244,7 +244,7 @@ const EmailAddressEditor = React.memo(({ stopEditing }: { stopEditing: () => voi
                 <Spacer size={24} />
 
                 <Button isSubmit isPrimary isLoading={emailAddressForm.submitting} disabled={emailAddressForm.fields.emailAddress.value === store.accountInfo.state.result?.email_address}>
-                                Submit
+                    Submit
                 </Button>
             </Col>
         </form>
@@ -301,7 +301,7 @@ const PasswordEditor = React.memo(({ stopEditing }: { stopEditing: () => void })
                 <Spacer size={24} />
 
                 <Button isSubmit isPrimary isLoading={passwordForm.submitting}>
-                                Submit
+                    Submit
                 </Button>
             </Col>
         </form>

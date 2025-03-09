@@ -61,6 +61,12 @@
         "unused-imports/no-unused-imports": "error",
         "simple-import-sort/imports": "error",
         "no-console": ["error", { "allow": ["warn", "error"] }],
-        "no-inner-declarations": "off"
+        "no-inner-declarations": "off",
+        "object-curly-spacing": ["error", "always"],
+        "space-in-parens": ["error", "never"],
+        "react/jsx-indent": ["error", 4, {
+            "checkAttributes": true,
+            "indentLogicalExpressions": true
+        }]
     }
 }

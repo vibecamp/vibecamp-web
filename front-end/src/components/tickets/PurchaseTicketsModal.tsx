@@ -41,21 +41,25 @@ export default React.memo(() => {
         <MultiView
             views={[
                 {
-                    name: 'selection', content:
+                    name: 'selection',
+                    content: (
                         <SelectionView
                             purchaseFormState={purchaseFormState}
                             goToNext={purchaseFormState.goToTicketPayment}
                             festival={store.festivals.state.result?.find(f => f.festival_id === hashState?.ticketPurchaseModalState)}
                         />
+                    )
                 },
                 {
-                    name: 'payment', content:
+                    name: 'payment',
+                    content: (
                         <StripePaymentForm
                             stripeOptions={purchaseFormState.stripeOptions.state.result}
                             purchases={purchaseFormState.purchases}
                             discountCode={purchaseFormState.discountCode}
                             onCompletePurchase={handlePurchaseCompletion}
                         />
+                    )
                 }
             ]}
             currentView={hashState?.ticketPurchaseModalState === 'payment' ? 'payment' : 'selection'}

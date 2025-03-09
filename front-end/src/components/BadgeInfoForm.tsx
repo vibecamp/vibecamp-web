@@ -159,13 +159,13 @@ export const BadgeInfoForm: FC<Props> = React.memo(({ festival_id, attendee_id, 
                         <Col padding={20} pageLevel >
                             <ol style={{ margin: '1em', fontSize: 18 }}>
                                 <li>
-                                            Navigate to your&nbsp;
+                                    Navigate to your&nbsp;
                                     {possibleTwitterHandle
                                         ? <a href={`https://x.com/${possibleTwitterHandle}/photo`} target='_blank' rel="noreferrer">profile picture</a>
                                         : 'profile picture'}
                                 </li>
                                 <li>
-                                            Right-click it and copy the image URL
+                                    Right-click it and copy the image URL
                                 </li>
                             </ol>
 

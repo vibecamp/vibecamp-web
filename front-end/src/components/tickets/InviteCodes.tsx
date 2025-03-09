@@ -13,14 +13,14 @@ export default React.memo(() => {
     return (
         <>
             <h2>
-                    Your invite codes
+                Your invite codes
             </h2>
 
             <Spacer size={8} />
 
             <InfoBlurb>
-                    You can give these to other people you know and
-                    trust to allow them to buy tickets
+                You can give these to other people you know and
+                trust to allow them to buy tickets
             </InfoBlurb>
 
             <Spacer size={16} />

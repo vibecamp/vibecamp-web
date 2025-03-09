@@ -12,13 +12,13 @@ export default React.memo(({ eventSite }: { eventSite: Tables['event_site'] }) =
             </div>
 
             {eventSite.description &&
-            <>
-                <Spacer size={4} />
+                <>
+                    <Spacer size={4} />
 
-                <div>
-                    {eventSite.description}
-                </div>
-            </>}
+                    <div>
+                        {eventSite.description}
+                    </div>
+                </>}
 
             <Spacer size={4} />
 
