@@ -176,7 +176,7 @@ export default function register(router: Router) {
 
           await withDBTransaction(async (db) => {
             const discounts = discount_ids ? await db.queryTable('discount') : []
-            const discountIdArray = discount_ids?.split(',') || []
+            const discountIdArray = discount_ids?.split(',') ?? []
             
             for (const [purchaseType, count] of objectEntries(purchases)) {
               // Find any discount that applies to this purchase type
