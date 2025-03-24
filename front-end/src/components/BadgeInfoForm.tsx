@@ -144,8 +144,7 @@ export const BadgeInfoForm: FC<Props> = React.memo(({ festival_id, attendee_id, 
                 <InfoBlurb>
                     Your picture for your badge.
 
-                    Right now we ask people to link us to an image hosted elsewhere. That elsewhere can be
-                    twitter!
+                    Provide a URL that ends with .jpg, .jpeg, or .png. Twitter and Imgur links work!
                 </InfoBlurb>
 
                 <Spacer size={12} />
