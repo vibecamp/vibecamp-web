@@ -175,13 +175,23 @@ export default function register(router: Router) {
               : event.data.object.payment_intent
 
           await withDBTransaction(async (db) => {
+            const discounts = discount_ids ? await db.queryTable('discount') : []
+            const discountIdArray = discount_ids?.split(',') ?? []
+            
             for (const [purchaseType, count] of objectEntries(purchases)) {
+              // Find any discount that applies to this purchase type
+              const appliedDiscount = discounts.find(d => 
+                discountIdArray.includes(d.discount_id) && 
+                d.purchase_type_id === purchaseType
+              )?.discount_id ?? null;
+              
               for (let i = 0; i < count!; i++) {
                 await db.insertTable('purchase', {
                   owned_by_account_id: accountId,
                   purchase_type_id: purchaseType,
                   stripe_payment_intent,
                   is_test_purchase: usingStripeTestKey,
+                  applied_discount: appliedDiscount,
                 })
               }
             }
@@ -206,7 +216,6 @@ export default function register(router: Router) {
               where: ['account_id', '=', accountId],
             }))[0]!
 
-            const discounts = await db.queryTable('discount')
             const discountsArray = discount_ids?.split(',').map((id) =>
               discounts.find((d) =>
                 d.discount_id === id
