@@ -98,6 +98,20 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
 
             <Spacer size={FIELD_SPACE} />
 
+            <a
+                className='button secondary'
+                href="https://manage.kmail-lists.com/subscriptions/subscribe?a=XUCiTJ&g=WtMjJ6"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => localStorage.setItem('newsletterPromptDismissed', 'true')}
+            >
+                Opt in to Vibecamp email updates
+                <Spacer size={5} />
+                <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
+            </a>
+
+            <Spacer size={FIELD_SPACE} />
+
             <Checkbox
                 value={attendeeInfo.share_ticket_status_with_selflathing}
                 onChange={val => setAttendeeProperty(attendeeInfo, 'share_ticket_status_with_selflathing', val)}
