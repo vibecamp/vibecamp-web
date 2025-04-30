@@ -149,9 +149,10 @@ export default function register(router: Router) {
         passwordResetSecrets.set(secret, account.account_id)
         const email = passwordResetEmail(account, secret)
         await sendMail(email)
+        return [null, Status.OK]
       }
 
-      return [null, Status.OK]
+      return [null, Status.BadRequest]
     }),
   })
 
