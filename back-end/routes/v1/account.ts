@@ -136,7 +136,8 @@ export default function register(router: Router) {
     endpoint: '/account/send-password-reset-email',
     method: 'post',
     requireAuth: false,
-    handler: rateLimited(500, async ({ body: { email_address } }) => {
+    handler: rateLimited(500, async ({ body: { email_address: raw_email_address } }) => {
+      const email_address = raw_email_address.toLowerCase()
       const accountRes = await withDBConnection((db) =>
         db.queryTable('account', {
           where: ['email_address', '=', email_address],
