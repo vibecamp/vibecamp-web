@@ -108,7 +108,7 @@ export default React.memo(() => {
                                             <React.Fragment key={ticket.purchase_id}>
                                                 {index > 0 &&
                                                     <Spacer size={24} />}
-                                                <Ticket name={undefined} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
+                                                <Ticket name={undefined} description={store.purchaseTypes.state.result?.find(t => t.purchase_type_id === ticket.purchase_type_id)?.description ?? ''} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
                                             </React.Fragment>)}
 
                                         {cabinName &&

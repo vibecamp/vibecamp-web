@@ -5,6 +5,7 @@ import { Tables } from '../../../../back-end/types/db-types'
 
 type Props = {
     name: string | undefined,
+    description: string,
     ticketType: 'adult' | 'child' | undefined,
     ownedByAccountId: Tables['purchase']['owned_by_account_id']
 }
@@ -18,7 +19,7 @@ const QR_HEIGHT = '50%'
 const NAME_FONT_SIZE = 30
 const TYPE_FONT_SIZE = 18
 
-export default React.memo(({ name, ticketType, ownedByAccountId }: Props) => {
+export default React.memo(({ name, description, ticketType, ownedByAccountId }: Props) => {
     const [qrCodeZoom, setQrCodeZoom] = useState(false)
 
     const toggleQRCodeZoom = useCallback(() => setQrCodeZoom(v => !v), [])
@@ -74,6 +75,10 @@ export default React.memo(({ name, ticketType, ownedByAccountId }: Props) => {
                     </text>
                 </g> */}
             </svg>
+
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '50%', height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingLeft: 40, color: 'black' }}>
+                {description}
+            </div>
 
             <div onClick={toggleQRCodeZoom} style={qrCodeZoom ? QR_CODE_CONTAINER_ZOOMED_STYLE : QR_CODE_CONTAINER_STYLE}>
                 <QRCodeSVG
