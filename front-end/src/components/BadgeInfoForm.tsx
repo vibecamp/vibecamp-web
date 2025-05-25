@@ -228,7 +228,9 @@ export const BadgeInfoForm: FC<Props> = React.memo(({ festival_id, attendee_id, 
                 <Spacer size={8} />
 
                 <InfoBlurb>
-                    We&apos;ll indicate this so other attendees can know if they might have met you there.
+                    We&apos;ll indicate this so other attendees can know if they
+                    might have met you there. We already know if you bought
+                    tickets for later events!
                 </InfoBlurb>
 
                 <Spacer size={48} />
