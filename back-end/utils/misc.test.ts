@@ -1,8 +1,9 @@
-import { assertEquals } from 'https://deno.land/std@0.152.0/testing/asserts.ts'
+import { assert, assertEquals } from 'https://deno.land/std@0.152.0/testing/asserts.ts'
 import { stub } from 'https://deno.land/std@0.220.0/testing/mock.ts'
 
 import { Tables } from '../types/db-types.ts'
-import { purchaseBreakdown, purchaseTypeAvailable } from './misc.ts'
+import { checkInProgressEventOverlap, purchaseBreakdown, purchaseTypeAvailable } from './misc.ts'
+import dayjs from './dayjs.ts'
 
 Deno.test({
   name: 'purchaseBreakdown()',
@@ -397,7 +398,7 @@ Deno.test({
           purchaseType: {
             purchase_type_id:
               'ATTENDANCE_VIBECLIPSE_2024_OVER_16' as Tables['purchase_type'][
-                'purchase_type_id'
+              'purchase_type_id'
               ],
             price_in_cents: 55000,
             max_available: 600,
@@ -405,7 +406,7 @@ Deno.test({
             max_per_account: 2,
             festival_id:
               'a1fe0c91-5087-48d6-87b9-bdc1ef3716a6' as Tables['festival'][
-                'festival_id'
+              'festival_id'
               ],
             is_attendance_ticket: true,
             available_from: null,
@@ -422,7 +423,7 @@ Deno.test({
           purchaseType: {
             purchase_type_id:
               'VIBECAMP_3_BASIC_TICKET' as Tables['purchase_type'][
-                'purchase_type_id'
+              'purchase_type_id'
               ],
             price_in_cents: 42000,
             max_available: null,
@@ -430,7 +431,7 @@ Deno.test({
             max_per_account: 2,
             festival_id:
               '4821bd6a-9e16-4944-b9a1-afe3256ff18d' as Tables['festival'][
-                'festival_id'
+              'festival_id'
               ],
             is_attendance_ticket: true,
             available_from: null,
@@ -447,7 +448,7 @@ Deno.test({
           purchaseType: {
             purchase_type_id:
               'VIBECAMP_3_BUS_TO_BALTIMORE_1130AM' as Tables['purchase_type'][
-                'purchase_type_id'
+              'purchase_type_id'
               ],
             price_in_cents: 2700,
             max_available: 100,
@@ -456,7 +457,7 @@ Deno.test({
             max_per_account: null,
             festival_id:
               '4821bd6a-9e16-4944-b9a1-afe3256ff18d' as Tables['festival'][
-                'festival_id'
+              'festival_id'
               ],
             is_attendance_ticket: false,
             available_from: null,
@@ -581,4 +582,70 @@ Deno.test({
       false,
     )
   },
+})
+
+Deno.test({
+  name: 'checkInProgressEventOverlap | basic overlap',
+  fn() {
+    assert(checkInProgressEventOverlap(
+      // @ts-ignore
+      { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: undefined },
+      // @ts-ignore
+      { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: '12345' },
+      15
+    ))
+  }
+})
+
+Deno.test({
+  name: 'checkInProgressEventOverlap | overlap with buffer',
+  fn() {
+    assert(checkInProgressEventOverlap(
+      // @ts-ignore
+      { start_datetime: dayjs('2025-06-19 18:10:00'), end_datetime: null, event_site_location: 'Pool', event_id: undefined },
+      // @ts-ignore
+      { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: '12345' },
+      15
+    ))
+  }
+})
+
+Deno.test({
+  name: 'checkInProgressEventOverlap | same time and location, different day',
+  only: true,
+  fn() {
+    assert(!checkInProgressEventOverlap(
+      // @ts-ignore
+      { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: undefined },
+      // @ts-ignore
+      { start_datetime: dayjs('2025-06-20 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: '12345' },
+      15
+    ))
+  }
+})
+
+Deno.test({
+  name: 'checkInProgressEventOverlap | same time, different location',
+  fn() {
+    assert(!checkInProgressEventOverlap(
+      // @ts-ignore
+      { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: undefined },
+      // @ts-ignore
+      { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Field', event_id: '12345' },
+      15
+    ))
+  }
+})
+
+Deno.test({
+  name: 'checkInProgressEventOverlap | same event_id',
+  fn() {
+    assert(!checkInProgressEventOverlap(
+      // @ts-ignore
+      { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: '12345' },
+      // @ts-ignore
+      { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: '12345' },
+      15
+    ))
+  }
 })
