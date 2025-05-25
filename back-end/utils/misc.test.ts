@@ -612,7 +612,6 @@ Deno.test({
 
 Deno.test({
   name: 'checkInProgressEventOverlap | same time and location, different day',
-  only: true,
   fn() {
     assert(!checkInProgressEventOverlap(
       // @ts-ignore
