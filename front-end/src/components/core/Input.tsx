@@ -1,4 +1,4 @@
-import React, { ChangeEvent, HTMLInputTypeAttribute, InputHTMLAttributes, useCallback, useState } from 'react'
+import React, { ChangeEvent, CSSProperties, HTMLInputTypeAttribute, InputHTMLAttributes, useCallback, useState } from 'react'
 
 import { given } from '../../../../back-end/utils/misc'
 import { CommonFieldProps } from './_common'
@@ -9,10 +9,11 @@ type Props = Omit<CommonFieldProps<string>, 'value'> & {
     type?: HTMLInputTypeAttribute,
     multiline?: boolean,
     autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete'],
-    value: string | null
+    value: string | null,
+    style?: CSSProperties
 }
 
-export default React.memo(({ label, value, onChange, onBlur, disabled, placeholder, error, multiline, type, autoComplete }: Props) => {
+export default React.memo(({ label, value, onChange, onBlur, disabled, placeholder, error, multiline, type, autoComplete, style }: Props) => {
     const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         onChange(e.target.value)
     }, [onChange])
@@ -31,7 +32,7 @@ export default React.memo(({ label, value, onChange, onBlur, disabled, placehold
     }
 
     return (
-        <label className={'input' + ' ' + (disabled ? 'disabled' : '')}>
+        <label className={'input' + ' ' + (disabled ? 'disabled' : '')} style={style}>
             <div className='label'>{label}</div>
 
             {multiline

@@ -80,6 +80,7 @@ export default React.memo(() => {
                             placeholder='Search...'
                             value={searchString}
                             onChange={setSearchString}
+                            style={{ flexShrink: 1, width: 0 }}
                         />
 
                         <Spacer size={8} />
