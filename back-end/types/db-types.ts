@@ -153,6 +153,7 @@ export type Tables = {
     name: string,
     plaintext_location: string | null,
     start_datetime: Date,
+    will_be_filmed: boolean,
   },
   event_bookmark: {
     account_id: Tables['account']['account_id'],
@@ -266,7 +267,7 @@ export const TABLE_COLUMNS = {
   cabin: ["cabin_id","festival_site_id","max_occupancy","name","nickname","notes"],
   diet: ["description","diet_id"],
   discount: ["discount_code","discount_id","price_multiplier","purchase_type_id"],
-  event: ["created_by_account_id","description","end_datetime","event_id","event_site_location","event_type","name","plaintext_location","start_datetime"],
+  event: ["created_by_account_id","description","end_datetime","event_id","event_site_location","event_type","name","plaintext_location","start_datetime","will_be_filmed"],
   event_bookmark: ["account_id","event_id"],
   event_site: ["can_host_multiple_events","description","equipment","event_site_id","festival_site_id","location","name","people_cap","structure_type","theme"],
   event_type: ["event_type_id"],

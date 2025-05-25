@@ -93,11 +93,11 @@ export type Routes = {
     method: 'post'
     body: {
       event:
-        & Omit<EventJson, 'created_by_account_id' | 'event_id' | 'event_type'>
-        & {
-          event_id: Tables['event']['event_id'] | undefined
-          event_type: Tables['event']['event_type'] | undefined
-        }
+      & Omit<EventJson, 'created_by_account_id' | 'event_id' | 'event_type' | 'will_be_filmed'>
+      & {
+        event_id: Tables['event']['event_id'] | undefined
+        event_type: Tables['event']['event_type'] | undefined
+      }
     }
     response: { event: EventJson }
   }

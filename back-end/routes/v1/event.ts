@@ -54,6 +54,7 @@ export default function register(router: Router) {
               event.event_id,
               event.created_by_account_id,
               event.event_type,
+              event.will_be_filmed,
               attendee.name as creator_name,
               COUNT(event_bookmark.account_id) as bookmarks
             FROM event
@@ -74,6 +75,8 @@ export default function register(router: Router) {
               event.event_site_location,
               event.event_id,
               event.created_by_account_id,
+              event.event_type,
+              event.will_be_filmed,
               account.email_address,
               attendee.name
             ORDER BY

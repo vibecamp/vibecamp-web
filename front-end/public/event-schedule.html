@@ -92,7 +92,12 @@
                         .filter(event => dayjs.utc(event.start_datetime).isAfter(dayjs.utc()))
                         .map(event =>
                             `<tr>
-                                <td class="name">${event.name}</td>
+                                <td class="name">
+                                    ${event.name}
+                                    ${event.will_be_filmed ? `
+                                        <div style="color:red">This event will be filmed!</div>
+                                    ` : ''}
+                                </td>
                                 <td>${event.description}</td>
                                 <td>${event.plaintext_location || event.event_site_location_name || ''}</td>
                                 <td class="time">${dayjs.utc(event.start_datetime).format('dddd h:mma')}</td>

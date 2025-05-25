@@ -29,7 +29,7 @@ export default React.memo(({ event, editEvent, firstOfFestival, duringFestival }
                     {duringFestival}
                 </div>}
 
-            <div className={'card' + ' ' + 'eventCard' + ' ' + (event.created_by_account_id === '-1' ? 'official' : '') + ' ' + event.event_type}>
+            <div className={'card' + ' ' + 'eventCard' + ' ' + (event.created_by_account_id === '-1' ? 'official' : '') + ' ' + event.event_type + ' ' + (event.will_be_filmed ? 'will_be_filmed' : '')}>
                 <EventInfo event={event} editEvent={editEvent} />
             </div>
         </div>
@@ -137,6 +137,18 @@ export function EventInfo({ event, editEvent }: Pick<Props, 'event' | 'editEvent
                     {event.bookmarks}
                 </span>
             </div>
+
+            {event.will_be_filmed &&
+                <>
+                    <Spacer size={4} />
+
+                    <div className='info filmed' title='Will be filmed'>
+                        <Icon name='videocam'/>
+                        <span>
+                            This event will be filmed!
+                        </span>
+                    </div>
+                </>}
 
             <Spacer size={8} />
 

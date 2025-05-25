@@ -188,6 +188,7 @@ function CompactEvents({ events, editEvent }: { events: readonly DayjsEvent[], e
                 <a className='headings'>
                     <div className='time'>When</div>
                     <div className='name'>What</div>
+                    <div className='filmed'></div>
                 </a>
                 {events.map(e => {
                     return (
@@ -197,6 +198,10 @@ function CompactEvents({ events, editEvent }: { events: readonly DayjsEvent[], e
                         >
                             <div className='time'>{e.start_datetime.format('ddd h:mma')}</div>
                             <div className='name'>{e.name}</div>
+                            <div className='filmed'>
+                                {e.will_be_filmed &&
+                                    <Icon name='videocam' />}
+                            </div>
                         </a>
                     )
                 })}

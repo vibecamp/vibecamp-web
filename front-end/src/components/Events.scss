@@ -24,7 +24,20 @@
                 width: 120px;
             }
             &.name {
+                flex-grow:1;
+            }
 
+
+            &.filmed {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width:24px;
+
+                .icon {
+                    color: var(--color-danger);
+                    font-size: 1em;
+                }
             }
         }
     }
@@ -81,11 +94,11 @@
 
     &.TEAM_OFFICIAL {
         border-color: var(--color-accent-1);
-        
-        >.info.host {
+
+        .info.host {
             color: var(--color-accent-1);
 
-            >.icon {
+            .icon {
                 color: var(--color-accent-1);
             }
         }
@@ -94,13 +107,17 @@
     &.CAMPSITE_OFFICIAL {
         border-color: var(--color-accent-2);
         
-        >.info.host {
+        .info.host {
             color: var(--color-accent-2);
 
-            >.icon {
+            .icon {
                 color: var(--color-accent-2);
             }
         }
+    }
+
+    &.will_be_filmed {
+        border-color: var(--color-danger);
     }
 }
 
@@ -115,13 +132,13 @@
         align-items: center;
     }
 
-    >.info {
+    .info {
 
         > * {
             vertical-align: middle;
         }
 
-        >.icon {
+        .icon {
             flex-grow: 0;
             flex-shrink: 0;
             font-size: 18px;
@@ -130,4 +147,11 @@
         }
     }
 
+    .info.filmed {
+        color: var(--color-danger);
+
+        .icon {
+            color: var(--color-danger);
+        }
+    }
 }
