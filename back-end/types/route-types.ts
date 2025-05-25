@@ -99,7 +99,7 @@ export type Routes = {
         event_type: Tables['event']['event_type'] | undefined
       }
     }
-    response: { event: EventJson }
+    response: null
   }
   '/event/delete': {
     method: 'post'
@@ -195,7 +195,7 @@ export const PUBLIC_TABLES = [
 type PublicTables = typeof PUBLIC_TABLES
 
 type PublicTablesRoutes = {
-  [Table in PublicTables[number] as `/tables/${Table}`]: {
+  [Table in PublicTables[number]as `/tables/${Table}`]: {
     method: 'get'
     body: undefined
     response: Tables[Table][]

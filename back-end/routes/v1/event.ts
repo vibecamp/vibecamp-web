@@ -98,12 +98,29 @@ export default function register(router: Router) {
     },
   })
 
+  // HACK: The front-end currently has a bug where events sometimes get saved
+  // twice. This is creating duplicate events in the database. For now, we'll
+  // just detect and prevent duplicate requests.
+  const recentlySavedEventsJson = new Set<string>()
+  setInterval(() => {
+    recentlySavedEventsJson.clear()
+  }, 1_000)
+
   defineRoute(router, {
     endpoint: '/event/save',
     method: 'post',
     requireAuth: true,
     handler: async ({ jwt: { account_id }, body: { event } }) => {
       const { event_id } = event
+
+      {
+        const eventJson = JSON.stringify(event)
+        if (recentlySavedEventsJson.has(eventJson)) {
+          return [null, Status.OK] // this event was already saved a second ago
+        } else {
+          recentlySavedEventsJson.add(eventJson)
+        }
+      }
 
       return await withDBConnection(async (db) => {
         if (event_id) {
@@ -121,10 +138,7 @@ export default function register(router: Router) {
             event_id,
           ]]))[0]
 
-          return [
-            { event: stringifyStartAndEndDates(updatedEvent!) },
-            Status.OK,
-          ]
+          return [null, Status.OK]
         } else {
           // only ticketholders can create events
           // TODO: only allow on-site event creation for users with a ticket to
@@ -159,10 +173,7 @@ export default function register(router: Router) {
             created_by_account_id: account_id,
           })
 
-          return [
-            { event: stringifyStartAndEndDates(createdEvent!) },
-            Status.OK,
-          ]
+          return [null, Status.OK]
         }
       })
     },
