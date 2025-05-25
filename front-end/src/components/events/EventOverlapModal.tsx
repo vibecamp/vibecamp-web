@@ -29,17 +29,15 @@ export default React.memo(({ isOpen, onClose, onConfirm, overlappingEvents }: Pr
                             <tr>
                                 <th
                                     style={{
-                                        padding: '5px 10px',
-                                        width: '100px',
                                         textAlign: 'left',
                                     }}
                                 >
                                     When
                                 </th>
-                                <th style={{ padding: '5px 10px', textAlign: 'left' }}>
+                                <th style={{ textAlign: 'left' }}>
                                     What
                                 </th>
-                                <th style={{ padding: '5px 10px', textAlign: 'left' }}>
+                                <th style={{ textAlign: 'left' }}>
                                     Where
                                 </th>
                             </tr>
@@ -55,18 +53,15 @@ export default React.memo(({ isOpen, onClose, onConfirm, overlappingEvents }: Pr
                                 >
                                     <td
                                         style={{
-                                            padding: '5px 10px',
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
-                                            width: '100px',
                                         }}
                                     >
                                         {event.start_datetime.format('ddd h:mma')}
                                     </td>
                                     <td
                                         style={{
-                                            padding: '5px 10px',
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
@@ -76,7 +71,6 @@ export default React.memo(({ isOpen, onClose, onConfirm, overlappingEvents }: Pr
                                     </td>
                                     <td
                                         style={{
-                                            padding: '5px 10px',
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
