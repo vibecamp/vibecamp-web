@@ -48,6 +48,22 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
             <Spacer size={FIELD_SPACE} />
 
             <Input
+                label='Phone number (optional)'
+                placeholder='(123) 456-7890'
+                value={attendeeInfo.phone_number ?? ''}
+                onChange={val => setAttendeeProperty(attendeeInfo, 'phone_number', val)}
+                error={attendeeErrors.phone_number}
+            />
+
+            <Spacer size={INFO_BLURB_SPACE} />
+
+            <InfoBlurb>
+                {'We\'ll keep this private unless you instruct us to share it'}
+            </InfoBlurb>
+
+            <Spacer size={FIELD_SPACE} />
+
+            <Input
                 label='Twitter handle (optional)'
                 placeholder='@gptbrooke'
                 value={attendeeInfo.twitter_handle ?? ''}

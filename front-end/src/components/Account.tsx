@@ -1,9 +1,11 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Tables } from '../../../back-end/types/db-types'
+import { exists } from '../../../back-end/utils/misc'
 import { getEmailValidationError, getPasswordValidationError } from '../../../back-end/utils/validation'
 import useForm, { fieldToProps } from '../hooks/useForm'
 import { usePromise } from '../hooks/usePromise'
+import { getAttendeeErrors } from '../hooks/usePurchaseFormState'
 import { useStore } from '../hooks/useStore'
 import { DEFAULT_FORM_ERROR, doNothing, preventingDefault } from '../utils'
 import { vibefetch } from '../vibefetch'
@@ -36,8 +38,12 @@ export default React.memo(() => {
         }
     }, [primaryAttendee])
 
+    const attendeeErrors = useMemo(() => {
+        return primaryAttendee != null ? getAttendeeErrors({ ...primaryAttendee, ticket_type: 'foo' as any }) : {}
+    }, [primaryAttendee])
+
     const saveAttendeeInfo = usePromise(async () => {
-        if (primaryAttendee) {
+        if (primaryAttendee && Object.values(attendeeErrors).filter(exists).length === 0) {
             const { status, body } = await vibefetch(store.jwt, '/account/update-attendee', 'put', primaryAttendee)
 
             if (status !== 200 || body == null) {
@@ -47,7 +53,7 @@ export default React.memo(() => {
             setPrimaryAttendee(body)
             setPrimaryAttendeeModified(false)
         }
-    }, [primaryAttendee, store.jwt], { lazy: true })
+    }, [attendeeErrors, primaryAttendee, store.jwt], { lazy: true })
 
     const handleAttendeeFormSubmit = useMemo(() => preventingDefault(saveAttendeeInfo.load), [saveAttendeeInfo.load])
 
@@ -91,11 +97,11 @@ export default React.memo(() => {
                 : store.accountInfo.state.kind === 'error' || store.accountInfo.state.result == null
                     ? 'Failed to load'
                     : <>
-                        {primaryAttendee != null&&
+                        {primaryAttendee != null &&
                             <form onSubmit={handleAttendeeFormSubmit}>
                                 <AttendeeInfoForm
                                     attendeeInfo={primaryAttendee}
-                                    attendeeErrors={{}}
+                                    attendeeErrors={attendeeErrors}
                                     setAttendeeProperty={setAttendeeProperty}
                                     isChild={false}
                                     festival={undefined}

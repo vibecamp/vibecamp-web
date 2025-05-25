@@ -161,7 +161,7 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
 
 export type PurchaseFormState = ReturnType<typeof usePurchaseFormState>
 
-function getAttendeeErrors(attendee: AttendeeInfo & { ticket_type: Tables['purchase_type']['purchase_type_id'] | null }): Partial<Record<keyof AttendeeInfo, string> & { ticket_type: string }> {
+export function getAttendeeErrors(attendee: AttendeeInfo & { ticket_type: Tables['purchase_type']['purchase_type_id'] | null }): Partial<Record<keyof AttendeeInfo, string> & { ticket_type: string }> {
     const errors: Partial<Record<keyof AttendeeInfo, string> & { ticket_type: string }> = {}
 
     if (attendee.name === '') {
@@ -170,6 +170,10 @@ function getAttendeeErrors(attendee: AttendeeInfo & { ticket_type: Tables['purch
 
     if (attendee.twitter_handle?.startsWith('@')) {
         errors.twitter_handle = 'No @ needed, just the rest of the handle'
+    }
+
+    if (attendee.phone_number && !/^ ?\(? ?[0-9]{3} ?\)? ?[0-9]{3} ?-? ?[0-9]{4} ?$/.test(attendee.phone_number)) {
+        errors.phone_number = 'Please enter a valid phone number'
     }
 
     if (attendee.age_range == null) {
@@ -187,6 +191,7 @@ const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
     name: '',
     discord_handle: null,
     twitter_handle: null,
+    phone_number: null,
     interested_in_volunteering_as: null,
     interested_in_pre_call: false,
     planning_to_camp: false,
