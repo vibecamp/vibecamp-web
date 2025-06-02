@@ -177,6 +177,21 @@ export default React.memo(() => {
                     ? <Button onClick={() => setMode('forgot-password')}>Forgot your password?</Button>
                     : <Button onClick={() => setMode('login')}>Back to login</Button>}
 
+                <Spacer size={32} />
+
+                <hr style={{ borderColor: 'var(--color-secondary)' }} />
+
+                <Spacer size={32} />
+
+                <div style={{ textAlign: 'center' }}>
+                    More info about vibecamp, including pricing, can be found at <a href='https://vibe.camp' target='_blank' rel="noreferrer">vibe.camp</a>
+                </div>
+
+                <Spacer size={16} />
+
+                <div style={{ textAlign: 'center' }}>
+                    If you have trouble logging in, please email us at <a href='mailto:support@vibe.camp'>support@vibe.camp</a>
+                </div>
             </Col>
         </form>
     )
