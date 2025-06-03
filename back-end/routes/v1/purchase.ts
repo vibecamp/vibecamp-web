@@ -98,6 +98,7 @@ export default function register(router: Router) {
       const amount = totalCost(purchaseInfo)
 
       const metadata: PurchaseMetadata = {
+        createdByMyVibeCamp: 'true',
         accountId: account_id,
         discount_ids: discounts.map((d) => d.discount_id).join(','),
         referral_info: referral_info?.substring(0, 500),
@@ -134,6 +135,7 @@ export default function register(router: Router) {
 
   type PurchaseMetadata =
     & {
+      createdByMyVibeCamp?: 'true'
       accountId: Tables['account']['account_id']
       discount_ids?: string
       referral_info?: string
@@ -153,8 +155,15 @@ export default function register(router: Router) {
         {
           console.info(`\tHandled Stripe event type ${event.type}`)
 
-          const { accountId, discount_ids, ...purchasesRaw } = event.data.object
+          const { createdByMyVibeCamp, accountId, discount_ids, ...purchasesRaw } = event.data.object
             .metadata as PurchaseMetadata
+
+          if (!createdByMyVibeCamp) {
+            throw Error(
+              'Ignoring payment event that wasn\'t created by the my.vibe.camp front-end'
+            )
+          }
+
           const attendees = attendeeInfoByAccount.get(accountId)
           attendeeInfoByAccount.delete(accountId)
 
