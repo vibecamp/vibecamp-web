@@ -185,6 +185,9 @@ export default function register(router: Router) {
               : event.data.object.payment_intent
 
           await withDBTransaction(async (db) => {
+            const allDiscounts = await db.queryTable('discount')
+            const appliedDiscounts = discountIds.map(id => allDiscounts.find(d => d.discount_id === id)).filter(exists)
+
             for (const [purchaseType, count] of objectEntries(purchases)) {
               for (let i = 0; i < count!; i++) {
                 await db.insertTable('purchase', {
@@ -192,7 +195,7 @@ export default function register(router: Router) {
                   purchase_type_id: purchaseType,
                   stripe_payment_intent,
                   is_test_purchase: usingStripeTestKey,
-                  applied_discount: discountIds[0]
+                  applied_discount: appliedDiscounts.find(d => d?.purchase_type_id === purchaseType)?.discount_id
                 })
               }
             }
@@ -217,12 +220,8 @@ export default function register(router: Router) {
               where: ['account_id', '=', accountId],
             }))[0]!
 
-            const discounts = await db.queryTable('discount')
-            const discountsArray = discountIds.map((id) =>
-              discounts.find((d) => d.discount_id === id)
-            ).filter(exists) ?? []
             await sendMail(
-              await receiptEmail(account, purchases, discountsArray),
+              await receiptEmail(account, purchases, appliedDiscounts),
             )
           })
 
