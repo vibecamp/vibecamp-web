@@ -98,6 +98,7 @@ export default function register(router: Router) {
       const amount = totalCost(purchaseInfo)
 
       const metadata: PurchaseMetadata = {
+        createdByMyVibeCamp: 'true',
         accountId: account_id,
         discount_ids: discounts.map((d) => d.discount_id).join(','),
         referral_info: referral_info?.substring(0, 500),
@@ -134,6 +135,7 @@ export default function register(router: Router) {
 
   type PurchaseMetadata =
     & {
+      createdByMyVibeCamp?: 'true'
       accountId: Tables['account']['account_id']
       discount_ids?: string
       referral_info?: string
@@ -153,8 +155,16 @@ export default function register(router: Router) {
         {
           console.info(`\tHandled Stripe event type ${event.type}`)
 
-          const { accountId, discount_ids, ...purchasesRaw } = event.data.object
+          const { createdByMyVibeCamp, accountId, discount_ids: discount_ids_raw, ...purchasesRaw } = event.data.object
             .metadata as PurchaseMetadata
+          const discountIds = (discount_ids_raw?.split(',') ?? []) as Tables['discount']['discount_id'][]
+
+          if (!createdByMyVibeCamp) {
+            throw Error(
+              'Ignoring payment event that wasn\'t created by the my.vibe.camp front-end'
+            )
+          }
+
           const attendees = attendeeInfoByAccount.get(accountId)
           attendeeInfoByAccount.delete(accountId)
 
@@ -175,6 +185,9 @@ export default function register(router: Router) {
               : event.data.object.payment_intent
 
           await withDBTransaction(async (db) => {
+            const allDiscounts = await db.queryTable('discount')
+            const appliedDiscounts = discountIds.map(id => allDiscounts.find(d => d.discount_id === id)).filter(exists)
+
             for (const [purchaseType, count] of objectEntries(purchases)) {
               for (let i = 0; i < count!; i++) {
                 await db.insertTable('purchase', {
@@ -182,6 +195,7 @@ export default function register(router: Router) {
                   purchase_type_id: purchaseType,
                   stripe_payment_intent,
                   is_test_purchase: usingStripeTestKey,
+                  applied_discount: appliedDiscounts.find(d => d?.purchase_type_id === purchaseType)?.discount_id
                 })
               }
             }
@@ -206,14 +220,8 @@ export default function register(router: Router) {
               where: ['account_id', '=', accountId],
             }))[0]!
 
-            const discounts = await db.queryTable('discount')
-            const discountsArray = discount_ids?.split(',').map((id) =>
-              discounts.find((d) =>
-                d.discount_id === id
-              )
-            ).filter(exists) ?? []
             await sendMail(
-              await receiptEmail(account, purchases, discountsArray),
+              await receiptEmail(account, purchases, appliedDiscounts),
             )
           })
 
@@ -287,7 +295,7 @@ export default function register(router: Router) {
         for (const attendee of cleanedAttendees) {
           const attendeePattern = `%${attendee}%`
 
-          const { count } = (await db.queryObject<{ count: BigInt }>`
+          const { count } = (await db.queryObject<{ count: bigint }>`
             select count(attendee.attendee_id)
             from purchase
               left join purchase_type on purchase_type.purchase_type_id = purchase.purchase_type_id

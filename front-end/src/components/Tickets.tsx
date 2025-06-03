@@ -158,7 +158,7 @@ export default React.memo(() => {
                                                 </a>
                                             </>}
 
-                                        {festival.festival_name.includes('Vibe') &&
+                                        {/* {festival.festival_name.includes('Vibe') &&
                                             (<>
                                                 <Spacer size={16} />
 
@@ -173,7 +173,7 @@ export default React.memo(() => {
                                                     <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
                                                 </a>
                                             </>)
-                                        }
+                                        } */}
 
                                         <Spacer size={32} />
                                         <hr />
