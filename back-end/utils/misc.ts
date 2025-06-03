@@ -197,10 +197,11 @@ export function checkInProgressEventOverlap(
     return false
   }
 
-  const start1 = newEvent.start_datetime
-  const start2 = existingEvent.start_datetime
-  const end1 = newEvent.end_datetime
-  const end2 = existingEvent.end_datetime
+  // Convert both events to UTC for consistent comparison
+  const start1 = newEvent.start_datetime.utc(true)
+  const start2 = existingEvent.start_datetime.utc(true)
+  const end1 = newEvent.end_datetime?.utc(true)
+  const end2 = existingEvent.end_datetime?.utc(true)
 
   if (!end1) {
     if (!end2) {
