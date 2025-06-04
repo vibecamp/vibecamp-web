@@ -104,8 +104,8 @@ export default React.memo(() => {
                     <Row justify='stretch' align='center' padding='0 20px'>
                         <Button onClick={() => setHashState({ compactEventsView: !hashState?.compactEventsView })}>
                             {hashState?.compactEventsView === true
-                                ? 'Card view'
-                                : 'Compact view'}
+                                ? 'Switch to card view'
+                                : 'Switch to compact view'}
                         </Button>
                     </Row>
 

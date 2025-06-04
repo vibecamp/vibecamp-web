@@ -7,7 +7,7 @@
   gap: 8px;
 
   &:disabled {
-    filter: contrast(0.5);
+    filter: contrast(0.8);
 
     >label {
       cursor: default;

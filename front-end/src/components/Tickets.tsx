@@ -132,7 +132,7 @@ export default React.memo(() => {
 
                                         {festival.sales_are_open &&
                                             <>
-                                                <Spacer size={24} />
+                                                <Spacer size={16} />
 
                                                 <Button isPrimary onClick={openTicketPurchaseModal(festival.festival_id)}>
                                                     {tickets.length === 0
@@ -144,10 +144,10 @@ export default React.memo(() => {
                                         {festival.info_url &&
                                             <>
 
-                                                <Spacer size={16} />
+                                                <Spacer size={8} />
 
                                                 <a
-                                                    className='button primary'
+                                                    className='button'
                                                     href={festival.info_url}
                                                     target='_blank'
                                                     rel="noreferrer"
