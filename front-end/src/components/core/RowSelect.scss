@@ -36,6 +36,7 @@
             text-overflow: ellipsis;
 
             input[type="radio"] {
+                position: absolute;
                 appearance: none;
                 margin: 0;
             }
