@@ -114,14 +114,10 @@ export default React.memo(() => {
                     <div style={{ fontStyle: 'italic', paddingLeft: 20, paddingRight: 20 }}>
                         Note: Only events marked as
 
-                        <Spacer size={4} />
-
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'normal' }}>
-                            <Icon name='person' style={{ color: 'var(--color-secondary)', fontSize: 18, marginRight: 4 }} />
-                            Vibecamp team
-                        </div>
-
-                        <Spacer size={4} />
+                        &nbsp;
+                        <Icon name='person' style={{ color: 'var(--color-accent-1)', fontSize: 18, lineHeight: '19px', marginRight: 4, verticalAlign: 'top' }} />
+                        <span style={{ color: 'var(--color-accent-1)', fontStyle: 'normal' }}>Vibecamp team</span>
+                        &nbsp;
 
                         are created under the prerogative of Vibecamp LLC. All
                         other events represent the will and intentions of the
