@@ -41,6 +41,13 @@ export type Routes = {
     body: AttendeeInfo
     response: Tables['attendee']
   }
+  '/account/save-attendees': {
+    method: 'put',
+    body: {
+      attendees: AttendeeInfo[]
+    }
+    response: null
+  }
   '/account/submit-invite-code': {
     method: 'post'
     body: {
@@ -149,7 +156,6 @@ export type Routes = {
     body: {
       purchases: Purchases
       discount_code: string | null
-      attendees: AttendeeInfo[]
       referral_info?: string
     }
     response: { stripe_client_secret: string }

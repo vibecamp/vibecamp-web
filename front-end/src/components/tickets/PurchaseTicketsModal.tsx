@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo } from 'react'
 
-import useBooleanState from '../../hooks/useBooleanState'
 import useHashState from '../../hooks/useHashState'
 import usePurchaseFormState from '../../hooks/usePurchaseFormState'
 import { useStore } from '../../hooks/useStore'
 import { wait } from '../../utils'
+import { vibefetch } from '../../vibefetch'
 import { BadgesList } from '../Account'
 import Button from '../core/Button'
 import Col from '../core/Col'
@@ -29,7 +29,7 @@ export default React.memo(() => {
     const ticketPurchaseModalState = hashState?.ticketPurchaseModalState
     const isAtCampChampions = festivalsAtCampChampions != null && festivalsAtCampChampions.some(f => f.festival_id === ticketPurchaseModalState)
     const existingTickets =
-        ticketPurchaseModalState == null || ticketPurchaseModalState === 'payment'
+        ticketPurchaseModalState == null || ticketPurchaseModalState === 'payment' || ticketPurchaseModalState === 'badges'
             ? []
             : store.purchasedTicketsByFestival[ticketPurchaseModalState!]
     const hasTicketsForThisFestival = (existingTickets ?? []).length > 0
@@ -37,18 +37,25 @@ export default React.memo(() => {
 
     const festival = store.festivals.state.result?.find(f => f.festival_id === ticketPurchaseModalState)
 
-    const { state: onBadgesList, setTrue: goToBadges } = useBooleanState(false)
-
     const handlePurchaseCompletion = useCallback(async () => {
+        await vibefetch(
+            store.jwt,
+            '/account/save-attendees',
+            'put',
+            {
+                attendees: purchaseFormState.attendees.map(({ ticket_type: _, ...attendee }) => attendee),
+            }
+        )
+
         // HACK: When the purchase flow completes, the webhook will take an
         // indeterminate amount of time to record the purchases. So, we wait a couple
         // seconds before refreshing the list, which should usually be enough
         await wait(2000)
 
-        goToBadges()
+        setHashState({ ticketPurchaseModalState: 'badges' })
 
         await store.accountInfo.load()
-    }, [goToBadges, store.accountInfo])
+    }, [purchaseFormState.attendees, setHashState, store.accountInfo, store.jwt])
 
     const attendeeBadges = useMemo(() => {
         const accountInfo = store.accountInfo.state.result
@@ -116,7 +123,7 @@ export default React.memo(() => {
                     )
                 }
             ]}
-            currentView={hashState?.ticketPurchaseModalState === 'payment' ? 'payment' : onBadgesList ? 'badges' : 'selection'}
+            currentView={hashState?.ticketPurchaseModalState === 'payment' ? 'payment' : hashState?.ticketPurchaseModalState === 'badges' ? 'badges' : 'selection'}
         />
     )
 })

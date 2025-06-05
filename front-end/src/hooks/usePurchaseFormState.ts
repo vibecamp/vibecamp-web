@@ -96,7 +96,6 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
                 {
                     purchases,
                     discount_code: discountCode || null,
-                    attendees: attendees.map(({ ticket_type: _, ...attendee }) => attendee),
                     referral_info: new URLSearchParams(window.location.search).get('referral_info') ?? undefined
                 }
             )
@@ -115,7 +114,7 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
         } else {
             return undefined
         }
-    }, [attendees, discountCode, isValid, purchases, store.jwt, store.loggedIn])
+    }, [discountCode, isValid, purchases, store.jwt, store.loggedIn])
 
     const goToTicketPayment = useCallback(() => {
         setShowingErrors(true)

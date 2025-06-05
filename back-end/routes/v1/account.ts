@@ -217,6 +217,35 @@ export default function register(router: Router) {
   })
 
   defineRoute(router, {
+    endpoint: '/account/save-attendees',
+    method: 'put',
+    requireAuth: true,
+    handler: async ({ jwt: { account_id }, body: { attendees } }) => {
+      return await withDBConnection(async db => {
+        for (const { attendee_id, ...attendee } of attendees) {
+          if (attendee_id) {
+            const updated = await db.updateTable('attendee', attendee, [
+              ['associated_account_id', '=', account_id],
+              ['attendee_id', '=', attendee_id],
+            ])
+
+            if (updated.length === 0) {
+              console.error(`ERROR: Tried to update attendee ${attendee_id} under account ${account_id}, but it couldn't be found`)
+            }
+          } else {
+            await db.insertTable('attendee', {
+              ...attendee,
+              associated_account_id: account_id,
+            })
+          }
+        }
+
+        return [null, Status.OK]
+      })
+    }
+  })
+
+  defineRoute(router, {
     endpoint: '/account/submit-invite-code',
     method: 'post',
     requireAuth: true,

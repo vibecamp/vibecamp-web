@@ -12,7 +12,7 @@ import {
   totalCost,
 } from '../../utils/misc.ts'
 import { Tables } from '../../types/db-types.ts'
-import { Purchases, Routes } from '../../types/route-types.ts'
+import { Purchases } from '../../types/route-types.ts'
 import { receiptEmail, sendMail } from '../../utils/mailgun.ts'
 import env from '../../env.ts'
 
@@ -49,7 +49,7 @@ export default function register(router: Router) {
     handler: async (
       {
         jwt: { account_id },
-        body: { purchases, discount_code, attendees, referral_info },
+        body: { purchases, discount_code, referral_info },
       },
     ) => {
       const availability = await purchaseTypeAvailability(account_id)
@@ -118,8 +118,6 @@ export default function register(router: Router) {
         metadata,
       })
 
-      attendeeInfoByAccount.set(account_id, attendees)
-
       if (client_secret == null) {
         return [null, Status.InternalServerError]
       }
@@ -127,11 +125,6 @@ export default function register(router: Router) {
       return [{ stripe_client_secret: client_secret }, Status.OK]
     },
   })
-
-  const attendeeInfoByAccount = new Map<
-    Tables['account']['account_id'],
-    Routes['/purchase/create-intent']['body']['attendees']
-  >()
 
   type PurchaseMetadata =
     & {
@@ -165,15 +158,6 @@ export default function register(router: Router) {
             )
           }
 
-          const attendees = attendeeInfoByAccount.get(accountId)
-          attendeeInfoByAccount.delete(accountId)
-
-          if (attendees == null) {
-            throw Error(
-              `Attendees missing when recording purchase for account ${accountId}`,
-            )
-          }
-
           const purchases: Purchases = objectFromEntries(
             objectEntries(purchasesRaw)
               .map(([key, value]) => [key, Number(value)]),
@@ -196,22 +180,6 @@ export default function register(router: Router) {
                   stripe_payment_intent,
                   is_test_purchase: usingStripeTestKey,
                   applied_discount: appliedDiscounts.find(d => d?.purchase_type_id === purchaseType)?.discount_id
-                })
-              }
-            }
-
-            for (const { attendee_id, ...attendee } of attendees) {
-              if (attendee_id) {
-                await db.updateTable('attendee', {
-                  ...attendee,
-                  associated_account_id: accountId,
-                }, [
-                  ['attendee_id', '=', attendee_id],
-                ])
-              } else {
-                await db.insertTable('attendee', {
-                  ...attendee,
-                  associated_account_id: accountId,
                 })
               }
             }
