@@ -86,11 +86,13 @@ export default React.memo(() => {
     return (
         <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
             {store.accountInfo.state.kind === 'result' &&
-                <h1 style={{ fontSize: 24, alignSelf: 'flex-start' }}>
-                    My account
-                </h1>}
+                <>
+                    <h1 style={{ fontSize: 24, alignSelf: 'flex-start' }}>
+                        My account
+                    </h1>
 
-            <Spacer size={loadingOrError ? 300 : 24} />
+                    <Spacer size={24} />
+                </>}
 
             {loading
                 ? <LoadingDots size={100} color='var(--color-accent-1)' />
