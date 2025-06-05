@@ -18,6 +18,8 @@ import Spacer from './core/Spacer'
 import Event, { EventInfo } from './events/Event'
 import EventEditor from './events/EventEditor'
 
+const BACK_END_DOMAIN = env.BACK_END_ORIGIN.replace(/https?:\/\//, '')
+
 export default React.memo(() => {
     const { scrollToTop, scrollTop } = useSlideScroll()
     const showScrollButton = scrollTop > 100
@@ -105,7 +107,7 @@ export default React.memo(() => {
                             <Spacer size={8} />
 
                             <Row justify='stretch' align='center' padding='0 20px'>
-                                <a className='button' href={filter === 'Bookmarked' ? `webcal://${env.BACK_END_ORIGIN}/events.ics?account_id=${store.jwtPayload?.account_id}` : `webcal://${env.BACK_END_ORIGIN}/events.ics`}>
+                                <a className='button' href={filter === 'Bookmarked' ? `webcal://${BACK_END_DOMAIN}/events.ics?account_id=${store.jwtPayload?.account_id}` : `webcal://${BACK_END_DOMAIN}/events.ics`}>
                                     Add {filter === 'Bookmarked' ? 'bookmarks' : 'all events'} to your calendar app
                                     &nbsp;
                                     <Icon name='open_in_new' />
