@@ -99,6 +99,19 @@ export default React.memo(() => {
                         style={{ padding: '0 20px' }}
                     />
 
+                    {filter !== 'Mine' &&
+                        <>
+                            <Spacer size={8} />
+
+                            <Row justify='stretch' align='center' padding='0 20px'>
+                                <a className='button' href={filter === 'Bookmarked' ? `webcal://localhost:10000/events.ics?account_id=${store.jwtPayload?.account_id}` : 'webcal://localhost:10000/events.ics'}>
+                                    Add {filter === 'Bookmarked' ? 'bookmarks' : 'all events'} to your calendar app
+                                    &nbsp;
+                                    <Icon name='open_in_new' />
+                                </a>
+                            </Row>
+                        </>}
+
                     <Spacer size={8} />
 
                     <Row justify='stretch' align='center' padding='0 20px'>
