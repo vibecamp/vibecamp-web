@@ -15,15 +15,17 @@ import {
 } from '../../utils/validation.ts'
 import { passwordResetEmail, sendMail } from '../../utils/mailgun.ts'
 
-// We're hiding cabins for non-team members until the first day of the festival
+// Hiding cabins for non-team members until day before festival starts. Day
+// before instead of day of because this gets rid of risk of timezone issues
 const shouldShowCabinsForFestival = (festivalStartDate: Date, isTeamMember: boolean) => {
   if (isTeamMember) return true
-  
-  const festivalStart = new Date(festivalStartDate)
-  festivalStart.setHours(0, 0, 0, 0)
-  
+
+  const dayBefore = new Date(festivalStartDate)
+  dayBefore.setDate(dayBefore.getDate() - 1)
+  dayBefore.setHours(0, 0, 0, 0)
+
   const now = new Date()
-  return now >= festivalStart
+  return now >= dayBefore
 }
 
 export default function register(router: Router) {
