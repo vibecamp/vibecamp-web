@@ -15,6 +15,17 @@ import {
 } from '../../utils/validation.ts'
 import { passwordResetEmail, sendMail } from '../../utils/mailgun.ts'
 
+// We're hiding cabins for non-team members until the first day of the festival
+const shouldShowCabinsForFestival = (festivalStartDate: Date, isTeamMember: boolean) => {
+  if (isTeamMember) return true
+  
+  const festivalStart = new Date(festivalStartDate)
+  festivalStart.setHours(0, 0, 0, 0)
+  
+  const now = new Date()
+  return now >= festivalStart
+}
+
 export default function register(router: Router) {
   // purchase one or multiple tickets, fill out baseline required attendee info
   defineRoute(router, {
@@ -30,6 +41,7 @@ export default function register(router: Router) {
         badges,
         purchases,
         cabins,
+        festivals,
       } = await withDBTransaction((db) =>
         allPromises({
           accounts: db.queryTable('account', {
@@ -51,11 +63,15 @@ export default function register(router: Router) {
             attendee_id: Tables['attendee']['attendee_id']
             festival_id: Tables['festival']['festival_id']
           }>`
-            select cabin.name as cabin_name, attendee.attendee_id, festival_id from attendee
+            select cabin.name as cabin_name, attendee.attendee_id, festival.festival_id 
+            from attendee
             left join attendee_cabin on attendee.attendee_id = attendee_cabin.attendee_id
             left join cabin on attendee_cabin.cabin_id = cabin.cabin_id
+            left join festival_site on cabin.festival_site_id = festival_site.festival_site_id
+            left join festival on festival.festival_site_id = festival_site.festival_site_id
             where attendee_cabin.cabin_id is not null and attendee.associated_account_id = ${account_id}
           `,
+          festivals: db.queryTable('festival'),
         })
       )
 
@@ -63,6 +79,11 @@ export default function register(router: Router) {
 
       if (account != null) {
         const applicationStatus = await getApplicationStatus(account)
+
+        const filteredCabins = cabins.rows.filter(cabin => {
+          const festival = festivals.find(f => f.festival_id === cabin.festival_id)
+          return festival ? shouldShowCabinsForFestival(festival.start_date, account.is_team_member) : false
+        })
 
         return [
           {
@@ -75,7 +96,7 @@ export default function register(router: Router) {
               .toSorted((a) => a.is_primary_for_account ? -1 : 0),
             badges: badges.rows,
             purchases,
-            cabins: cabins.rows,
+            cabins: filteredCabins,
           },
           Status.OK,
         ]
