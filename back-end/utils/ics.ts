@@ -103,7 +103,7 @@ Deno.test({
         BEGIN:VCALENDAR
         VERSION:2.0
         PRODID:-//Vibecamp//Event Schedule//EN
-        X-WR-CALNAME: Vibecamp Event Schedule
+        X-WR-CALNAME:Vibecamp Event Schedule
         CALSCALE:GREGORIAN
         METHOD:PUBLISH
 
