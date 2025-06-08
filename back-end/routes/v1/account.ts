@@ -14,6 +14,29 @@ import {
   getUuidValidationError,
 } from '../../utils/validation.ts'
 import { passwordResetEmail, sendMail } from '../../utils/mailgun.ts'
+import dayjs, { Dayjs } from '../../utils/dayjs.ts'
+import { assert } from 'https://deno.land/std@0.160.0/testing/asserts.ts'
+import { stringifyDate } from './event.ts'
+
+// Hiding cabins for non-team members until day before festival starts. Day
+// before instead of day of because this gets rid of risk of timezone issues
+const shouldShowCabinsForFestival = (now: Dayjs, festivalStartDate: Dayjs, isTeamMember: boolean) => {
+  const dayBeforeFestival = festivalStartDate.subtract(1, 'day')
+  return isTeamMember || now.isAfter(dayBeforeFestival) || now.isSame(dayBeforeFestival)
+}
+
+Deno.test({
+  name: 'shouldShowCabinsForFestival()',
+  fn() {
+    const festival = dayjs('6/15/2024')
+    assert(shouldShowCabinsForFestival(dayjs('6/15/2030'), festival, false)) // festival is far in the past
+    assert(!shouldShowCabinsForFestival(dayjs('6/15/2020'), festival, false)) // festival is far in the future
+    assert(shouldShowCabinsForFestival(dayjs('6/15/2020'), festival, true)) // festival is far in the future, but we're a team member
+    assert(shouldShowCabinsForFestival(dayjs('6/16/2024'), festival, false)) // festival just started
+    assert(shouldShowCabinsForFestival(dayjs('6/14/2024'), festival, false)) // festival is about to start
+    assert(!shouldShowCabinsForFestival(dayjs('6/13/2024'), festival, false)) // festival isn't quite about to start
+  }
+})
 
 export default function register(router: Router) {
   // purchase one or multiple tickets, fill out baseline required attendee info
@@ -30,6 +53,7 @@ export default function register(router: Router) {
         badges,
         purchases,
         cabins,
+        festivals,
       } = await withDBTransaction((db) =>
         allPromises({
           accounts: db.queryTable('account', {
@@ -51,11 +75,15 @@ export default function register(router: Router) {
             attendee_id: Tables['attendee']['attendee_id']
             festival_id: Tables['festival']['festival_id']
           }>`
-            select cabin.name as cabin_name, attendee.attendee_id, festival_id from attendee
+            select cabin.name as cabin_name, attendee.attendee_id, festival.festival_id 
+            from attendee
             left join attendee_cabin on attendee.attendee_id = attendee_cabin.attendee_id
             left join cabin on attendee_cabin.cabin_id = cabin.cabin_id
+            left join festival_site on cabin.festival_site_id = festival_site.festival_site_id
+            left join festival on festival.festival_site_id = festival_site.festival_site_id
             where attendee_cabin.cabin_id is not null and attendee.associated_account_id = ${account_id}
           `,
+          festivals: db.queryTable('festival'),
         })
       )
 
@@ -63,6 +91,18 @@ export default function register(router: Router) {
 
       if (account != null) {
         const applicationStatus = await getApplicationStatus(account)
+
+        // @ts-ignore
+        const now = dayjs.utc()
+        const filteredCabins = cabins.rows.filter(cabin => {
+          const festival = festivals.find(f => f.festival_id === cabin.festival_id)
+          return festival != null && shouldShowCabinsForFestival(
+            now,
+            // @ts-ignore
+            dayjs.utc(stringifyDate(festival.start_date)),
+            account.is_team_member
+          )
+        })
 
         return [
           {
@@ -75,7 +115,7 @@ export default function register(router: Router) {
               .toSorted((a) => a.is_primary_for_account ? -1 : 0),
             badges: badges.rows,
             purchases,
-            cabins: cabins.rows,
+            cabins: filteredCabins,
           },
           Status.OK,
         ]

@@ -8,7 +8,7 @@ import { icsCalendar } from '../../utils/ics.ts'
 
 const UTC_OFFSET_MINUTES = dayjs().utcOffset()
 
-const stringifyDate = (date: Date) =>
+export const stringifyDate = (date: Date) =>
   dayjs.utc(date).add(UTC_OFFSET_MINUTES, 'minutes').toISOString()
 
 const stringifyStartAndEndDates = <T extends Tables['event']>(
