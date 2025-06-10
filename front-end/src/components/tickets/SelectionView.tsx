@@ -108,20 +108,11 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
                         <Spacer size={32} />
                     </React.Fragment>)}
 
-                <Button onClick={purchaseFormState.addAttendee} disabled={purchaseFormState.attendees.length === 6}>
+                <Button onClick={purchaseFormState.addAttendee}>
                     <Icon name='add' style={{ fontSize: 'inherit' }} />
                     <Spacer size={4} />
                     Bring another attendee
                 </Button>
-
-                {purchaseFormState.attendees.length === 6 &&
-                    <>
-                        <Spacer size={12} />
-
-                        <InfoBlurb>
-                            {'Ticket limit for one account reached'}
-                        </InfoBlurb>
-                    </>}
 
                 <Spacer size={12} />
 
