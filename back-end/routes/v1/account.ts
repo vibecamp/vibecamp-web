@@ -75,8 +75,7 @@ export default function register(router: Router) {
             attendee_id: Tables['attendee']['attendee_id']
             festival_id: Tables['festival']['festival_id']
           }>`
-            select cabin.name as cabin_name, attendee.attendee_id, attendee.festival_id 
-            from attendee
+            select cabin.name as cabin_name, attendee.attendee_id, festival_id from attendee
             left join attendee_cabin on attendee.attendee_id = attendee_cabin.attendee_id
             left join cabin on attendee_cabin.cabin_id = cabin.cabin_id
             where attendee_cabin.cabin_id is not null and attendee.associated_account_id = ${account_id}
