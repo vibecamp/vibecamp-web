@@ -39,6 +39,11 @@ export async function sendMail(email: Email) {
     },
   }
 
+  if (!env.MAILGUN_API_KEY) {
+    console.warn("MAILGUN_API_KEY is unset in the environment, so this email wasn't sent:\n", JSON.stringify(opts, null, 2))
+    return
+  }
+
   const res = await fetch(
     `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`,
     opts,

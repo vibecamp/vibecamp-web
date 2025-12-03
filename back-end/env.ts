@@ -13,12 +13,22 @@ function assertEnv(key: string): string {
   return val
 }
 
+function tryEnv(key: string): string | undefined {
+  const val = env[key] ?? Deno.env.get(key)
+
+  if (val == null || val === '') {
+    console.warn(`Env variable ${key} is unset. Some features may not work!`)
+  }
+
+  return val
+}
+
 export default {
   DB_URL: assertEnv('DB_URL'),
   STRIPE_SECRET_KEY: assertEnv('STRIPE_SECRET_KEY'),
   STRIPE_SIGNING_SECRET: assertEnv('STRIPE_SIGNING_SECRET'),
-  MAILGUN_API_KEY: assertEnv('MAILGUN_API_KEY'),
+  MAILGUN_API_KEY: tryEnv('MAILGUN_API_KEY'),
   DB_CONNECTION_POOL_SIZE: Number(assertEnv('DB_CONNECTION_POOL_SIZE')),
   FRONT_END_BASE_URL: assertEnv('FRONT_END_BASE_URL'),
-  SELF_LATHING_SECRET_KEY: assertEnv('SELF_LATHING_SECRET_KEY'),
+  SELF_LATHING_SECRET_KEY: tryEnv('SELF_LATHING_SECRET_KEY'),
 }
