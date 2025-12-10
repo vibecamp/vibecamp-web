@@ -45,7 +45,7 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
 
     const attendancePurchaseOptions = useMemo(() =>
         attendancePurchases.map(({ purchaseType }) => ({
-            label: `${purchaseType.description} ($${purchaseType.price_in_cents / 100})`,
+            label: `${purchaseType.description} ($${(purchaseType.price_in_cents / 100).toLocaleString()})`,
             value: purchaseType.purchase_type_id
         }))
     , [attendancePurchases])
