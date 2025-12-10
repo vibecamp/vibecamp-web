@@ -6,6 +6,8 @@
 // Nominal types for primary keys; explanation of this pattern: https://www.typescriptlang.org/play/typescript/language-extensions/nominal-typing.ts.html
 export const account__account_id_TypeSymbol = Symbol('account__account_id_Type'); export type account__account_id_Type = string & { [account__account_id_TypeSymbol]: undefined };
 export const account__application_id_TypeSymbol = Symbol('account__application_id_Type'); export type account__application_id_Type = string & { [account__application_id_TypeSymbol]: undefined };
+export const account_password_reset_secret__account_id_TypeSymbol = Symbol('account_password_reset_secret__account_id_Type'); export type account_password_reset_secret__account_id_Type = string & { [account_password_reset_secret__account_id_TypeSymbol]: undefined };
+export const account_password_reset_secret__account_password_reset_secret_id_TypeSymbol = Symbol('account_password_reset_secret__account_password_reset_secret_id_Type'); export type account_password_reset_secret__account_password_reset_secret_id_Type = string & { [account_password_reset_secret__account_password_reset_secret_id_TypeSymbol]: undefined };
 export const announcement__announcement_id_TypeSymbol = Symbol('announcement__announcement_id_Type'); export type announcement__announcement_id_Type = string & { [announcement__announcement_id_TypeSymbol]: undefined };
 export const application__application_id_TypeSymbol = Symbol('application__application_id_Type'); export type application__application_id_Type = string & { [application__application_id_TypeSymbol]: undefined };
 export const attendee__associated_account_id_TypeSymbol = Symbol('attendee__associated_account_id_Type'); export type attendee__associated_account_id_Type = string & { [attendee__associated_account_id_TypeSymbol]: undefined };
@@ -40,6 +42,9 @@ export const invite_code__used_by_account_id_TypeSymbol = Symbol('invite_code__u
 export const purchase__owned_by_account_id_TypeSymbol = Symbol('purchase__owned_by_account_id_Type'); export type purchase__owned_by_account_id_Type = string & { [purchase__owned_by_account_id_TypeSymbol]: undefined };
 export const purchase__purchase_id_TypeSymbol = Symbol('purchase__purchase_id_Type'); export type purchase__purchase_id_Type = string & { [purchase__purchase_id_TypeSymbol]: undefined };
 export const purchase__purchase_type_id_TypeSymbol = Symbol('purchase__purchase_type_id_Type'); export type purchase__purchase_type_id_Type = string & { [purchase__purchase_type_id_TypeSymbol]: undefined };
+export const purchase_sorted__owned_by_account_id_TypeSymbol = Symbol('purchase_sorted__owned_by_account_id_Type'); export type purchase_sorted__owned_by_account_id_Type = string & { [purchase_sorted__owned_by_account_id_TypeSymbol]: undefined };
+export const purchase_sorted__purchase_id_TypeSymbol = Symbol('purchase_sorted__purchase_id_Type'); export type purchase_sorted__purchase_id_Type = string & { [purchase_sorted__purchase_id_TypeSymbol]: undefined };
+export const purchase_sorted__purchase_type_id_TypeSymbol = Symbol('purchase_sorted__purchase_type_id_Type'); export type purchase_sorted__purchase_type_id_Type = string & { [purchase_sorted__purchase_type_id_TypeSymbol]: undefined };
 export const purchase_type__festival_id_TypeSymbol = Symbol('purchase_type__festival_id_Type'); export type purchase_type__festival_id_Type = string & { [purchase_type__festival_id_TypeSymbol]: undefined };
 export const purchase_type__purchase_type_id_TypeSymbol = Symbol('purchase_type__purchase_type_id_Type'); export type purchase_type__purchase_type_id_Type = string & { [purchase_type__purchase_type_id_TypeSymbol]: undefined };
 export const stored_image__owned_by_account_id_TypeSymbol = Symbol('stored_image__owned_by_account_id_Type'); export type stored_image__owned_by_account_id_Type = string & { [stored_image__owned_by_account_id_TypeSymbol]: undefined };
@@ -58,6 +63,11 @@ export type Tables = {
     notes: string,
     password_hash: string | null,
     password_salt: string | null,
+  },
+  account_password_reset_secret: {
+    account_id: Tables['account']['account_id'],
+    account_password_reset_secret_id: account_password_reset_secret__account_password_reset_secret_id_Type,
+    secret: string,
   },
   age_range: (typeof TABLE_ROWS)['age_range'][number]
   announcement: {
@@ -92,6 +102,7 @@ export type Tables = {
     attendee_id: attendee__attendee_id_Type,
     diet: Tables['diet']['diet_id'] | null,
     discord_handle: string | null,
+    email_address: string | null,
     has_allergy_eggs: boolean | null,
     has_allergy_fish: boolean | null,
     has_allergy_milk: boolean | null,
@@ -212,6 +223,16 @@ export type Tables = {
     purchased_on: Date,
     stripe_payment_intent: string | null,
   },
+  purchase_sorted: {
+    applied_discount: string | null,
+    checked_in: boolean | null,
+    is_test_purchase: boolean | null,
+    owned_by_account_id: purchase_sorted__owned_by_account_id_Type | null,
+    purchase_id: purchase_sorted__purchase_id_Type | null,
+    purchase_type_id: purchase_sorted__purchase_type_id_Type | null,
+    purchased_on: Date | null,
+    stripe_payment_intent: string | null,
+  },
   purchase_type: {
     available_from: Date | null,
     available_to: Date | null,
@@ -259,10 +280,11 @@ export const TABLE_ROWS = {
 
 export const TABLE_COLUMNS = {
   account: ["account_id","application_id","email_address","is_authorized_to_buy_tickets","is_low_income","is_seed_account","is_team_member","notes","password_hash","password_salt"],
+  account_password_reset_secret: ["account_id","account_password_reset_secret_id","secret"],
   age_range: ["age_range","description","end","start"],
   announcement: ["announced_at","announcement_id","content","title"],
   application: ["anything_else","application_id","attractive_virtues","experiences_hoping_to_share","group_activity","hoping_to_get_out_of_the_festival","how_found_out","identify_as","interested_in_volunteering","is_accepted","last_conversation","looking_forward_to_conversations","name","previous_events","strongest_virtues","submitted_on","twitter_handle"],
-  attendee: ["age","age_range","associated_account_id","attendee_id","diet","discord_handle","has_allergy_eggs","has_allergy_fish","has_allergy_milk","has_allergy_peanuts","has_allergy_shellfish","has_allergy_soy","has_allergy_tree_nuts","has_allergy_wheat","interested_in_pre_call","interested_in_volunteering_as","is_primary_for_account","medical_training","name","notes","phone_number","planning_to_camp","share_ticket_status_with_selflathing","twitter_handle"],
+  attendee: ["age","age_range","associated_account_id","attendee_id","diet","discord_handle","email_address","has_allergy_eggs","has_allergy_fish","has_allergy_milk","has_allergy_peanuts","has_allergy_shellfish","has_allergy_soy","has_allergy_tree_nuts","has_allergy_wheat","interested_in_pre_call","interested_in_volunteering_as","is_primary_for_account","medical_training","name","notes","phone_number","planning_to_camp","share_ticket_status_with_selflathing","twitter_handle"],
   attendee_cabin: ["attendee_id","cabin_id","festival_id"],
   badge_info: ["attended_vc_1","attended_vc_2","attendee_id","badge_bio","badge_info_id","badge_location","badge_name","badge_picture_image_id","badge_picture_url","badge_username","festival_id"],
   cabin: ["cabin_id","festival_site_id","max_occupancy","name","nickname","notes"],
@@ -277,6 +299,7 @@ export const TABLE_COLUMNS = {
   festival_site: ["festival_site_id","festival_site_name","location"],
   invite_code: ["code","created_by_account_id","festival_id","used_by_account_id"],
   purchase: ["applied_discount","checked_in","is_test_purchase","owned_by_account_id","purchase_id","purchase_type_id","purchased_on","stripe_payment_intent"],
+  purchase_sorted: ["applied_discount","checked_in","is_test_purchase","owned_by_account_id","purchase_id","purchase_type_id","purchased_on","stripe_payment_intent"],
   purchase_type: ["available_from","available_to","description","festival_id","hidden_from_ui","is_attendance_ticket","low_income_only","max_available","max_per_account","price_in_cents","purchase_type_id"],
   stored_image: ["image_data","owned_by_account_id","stored_image_id"],
   volunteer_type: ["description","volunteer_type_id"],

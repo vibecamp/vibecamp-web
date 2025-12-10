@@ -70,21 +70,19 @@ await withDBConnection(async (db) => {
   )
 
   const dbRowsStr = `export const TABLE_ROWS = {
-${
-    Object.entries(tableRows)
+${Object.entries(tableRows)
       .map(([tableName, rows]) =>
         `  ${tableName}: [
-${
-          rows
-            .map((row) => `    ${JSON.stringify(row)},`)
-            .toSorted()
-            .join('\n')
+${rows
+          .map((row) => `    ${JSON.stringify(row)},`)
+          .toSorted()
+          .join('\n')
         }
   ],`
       )
       .toSorted()
       .join('\n')
-  }
+    }
 } as const`
 
   // table schemas
@@ -112,9 +110,10 @@ ${
   )
 
   for (
-    const { table_name, column_name, data_type, is_nullable } of justColumns
+    const { table_name: table_name_raw, column_name, data_type, is_nullable } of justColumns
       .values()
   ) {
+    const table_name = table_name_raw.replaceAll(/[\s]/g, '_')
     const isPrimaryKey = column_name.endsWith('_id')
 
     const nominalTypeName = table_name + '__' + column_name + '_Type'
@@ -141,8 +140,8 @@ ${
         isForeignKeyTo
           ? `Tables['${isForeignKeyTo.table_name}']['${isForeignKeyTo.column_name}']`
           : isPrimaryKey
-          ? nominalTypeName
-          : TYPE_MAP[data_type] ?? 'unknown'
+            ? nominalTypeName
+            : TYPE_MAP[data_type] ?? 'unknown'
       ) + (is_nullable === 'YES' ? ' | null' : ''),
     })
   }
@@ -161,26 +160,23 @@ ${
       .join('\n')
 
   const dbColumnsStr = `export const TABLE_COLUMNS = {
-${
-    Object.entries(tables).map(([tableName, columns]) =>
-      `  ${tableName}: ${JSON.stringify(columns.map((c) => c.column_name))},`
-    ).join('\n')
-  }
+${Object.entries(tables).map(([tableName, columns]) =>
+    `  ${tableName}: ${JSON.stringify(columns.map((c) => c.column_name))},`
+  ).join('\n')
+    }
 } as const`
 
   const dbTypesStr = `export type Tables = {
-${
-    Object.entries(tables).map(([tableName, columns]) =>
-      TABLES_TO_DUMP.includes(tableName)
-        ? `  ${tableName}: (typeof TABLE_ROWS)['${tableName}'][number]`
-        : `  ${tableName}: {
-${
-          columns.map(({ column_name, type }) => `    ${column_name}: ${type},`)
-            .join('\n')
-        }
+${Object.entries(tables).map(([tableName, columns]) =>
+    TABLES_TO_DUMP.includes(tableName)
+      ? `  ${tableName}: (typeof TABLE_ROWS)['${tableName}'][number]`
+      : `  ${tableName}: {
+${columns.map(({ column_name, type }) => `    ${column_name}: ${type},`)
+        .join('\n')
+      }
   },`
-    ).join('\n')
-  }
+  ).join('\n')
+    }
 }
 
 export type TableName = keyof Tables`
@@ -188,6 +184,6 @@ export type TableName = keyof Tables`
   await Deno.writeTextFile(
     './types/db-types.ts',
     headingComment + '\n\n' + nominalTypesStr + '\n\n' + dbTypesStr + '\n\n' +
-      dbRowsStr + '\n\n' + dbColumnsStr,
+    dbRowsStr + '\n\n' + dbColumnsStr,
   )
 })
