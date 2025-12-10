@@ -61,6 +61,25 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
                 {'We\'ll keep this private unless you instruct us to share it'}
             </InfoBlurb>
 
+            {!attendeeInfo.is_primary_for_account &&
+                <>
+                    <Spacer size={FIELD_SPACE} />
+
+                    <Input
+                        label='Email address (optional)'
+                        placeholder='somebody@somewhere.com'
+                        value={attendeeInfo.email_address ?? ''}
+                        onChange={val => setAttendeeProperty(attendeeInfo, 'email_address', val)}
+                        error={attendeeErrors.email_address}
+                    />
+
+                    <Spacer size={INFO_BLURB_SPACE} />
+
+                    <InfoBlurb>
+                        {'We\'ll only use this email address to send the person communication about their ticket'}
+                    </InfoBlurb>
+                </>}
+
             <Spacer size={FIELD_SPACE} />
 
             <Input
