@@ -41,7 +41,7 @@ export default React.memo(({ value, onChange, onBlur, label, disabled, error, mi
                 value={strValue ?? ''}
                 onChange={handleChange}
                 disabled={disabled}
-                min={formatNoTimezone(min)}
+                min={formatNoTimezone(min) ?? ''}
                 onBlur={onBlur}
             />
 
@@ -50,4 +50,8 @@ export default React.memo(({ value, onChange, onBlur, label, disabled, error, mi
     )
 })
 
-export const formatNoTimezone = (d: Maybe<Dayjs>): string => given(d, d => d.format('YYYY-MM-DDTHH:mm')) ?? ''
+export function formatNoTimezone (d: Dayjs): string;
+export function formatNoTimezone (d: Maybe<Dayjs>): Maybe<string>;
+export function formatNoTimezone (d: Maybe<Dayjs>): Maybe<string> {
+    return given(d, d => d.format('YYYY-MM-DDTHH:mm'))
+}
