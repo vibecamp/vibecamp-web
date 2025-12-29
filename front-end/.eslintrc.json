@@ -67,6 +67,13 @@
         "react/jsx-indent": ["error", 4, {
             "checkAttributes": true,
             "indentLogicalExpressions": true
+        }],
+        "react/self-closing-comp": ["error", {
+            "component": true,
+            "html": true
+        }],
+        "react/jsx-tag-spacing": ["error", {
+            "beforeSelfClosing": "always"
         }]
     }
 }
