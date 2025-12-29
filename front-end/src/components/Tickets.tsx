@@ -7,6 +7,7 @@ import { useLocalStorageState } from '../hooks/useLocalStorageState'
 import { useStore } from '../hooks/useStore'
 import Button from './core/Button'
 import Col from './core/Col'
+import Icon from './core/Icon'
 import LoadingDots from './core/LoadingDots'
 import Modal from './core/Modal'
 import Spacer from './core/Spacer'
@@ -57,8 +58,24 @@ export default React.memo(() => {
 
                             <Spacer size={24} />
 
+                            <div className='card'>
+                                <a href='https://discord.gg/rtfUyZxu' target='_blank' rel="noreferrer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <img src='/discord.svg' width={22} height={22} />
+
+                                    <Spacer size={12} />
+
+                                    Join the Vibecamp discord!
+
+                                    <Spacer size={4} />
+
+                                    <Icon name='open_in_new' style={{ fontSize: '1em' }} />
+                                </a>
+                            </div>
+
                             {!newsletterPromptDismissed &&
                                 <>
+                                    <Spacer size={16} />
+
                                     <div className='card'>
                                         <div style={{ textAlign: 'center' }}>
                                             Want email announcements?
@@ -76,9 +93,9 @@ export default React.memo(() => {
                                             </Button>
                                         </div>
                                     </div>
-
-                                    <Spacer size={24} />
                                 </>}
+
+                            <Spacer size={24} />
 
                             {festivalsReversed
                                 ?.filter(festival =>
