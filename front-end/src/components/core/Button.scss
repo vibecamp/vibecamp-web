@@ -1,4 +1,3 @@
-
 .button {
     appearance: none;
     border: none;
@@ -28,7 +27,7 @@
 
     &.danger {
         color: var(--color-danger);
-        
+
         &.primary {
             color: rgba(255, 255, 255, 0.9);
             background: var(--color-danger);
@@ -38,6 +37,10 @@
     &.compact {
         padding: 5px 10px;
         min-height: 32px;
+    }
+
+    &.borderless {
+        border-color: transparent;
     }
 
     &:disabled {
