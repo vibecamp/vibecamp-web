@@ -202,7 +202,7 @@ function CompactEvents({ events, editEvent }: { events: readonly DayjsEvent[], e
                 <a className='headings'>
                     <div className='time'>When</div>
                     <div className='name'>What</div>
-                    <div className='filmed'></div>
+                    <div className='filmed' />
                 </a>
                 {events.map(e => {
                     return (

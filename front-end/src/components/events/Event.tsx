@@ -81,7 +81,7 @@ export function EventInfo({ event, editEvent }: Pick<Props, 'event' | 'editEvent
             <div className='eventName'>
                 <div>{event.name}</div>
 
-                <div style={{ flexGrow: 1, flexShrink: 1 }}></div>
+                <div style={{ flexGrow: 1, flexShrink: 1 }} />
 
                 {event.created_by_account_id === store.accountInfo.state.result?.account_id &&
                     <Button onClick={handleEditButtonClick} isCompact style={{ width: 'auto' }}>
@@ -132,7 +132,7 @@ export function EventInfo({ event, editEvent }: Pick<Props, 'event' | 'editEvent
             <Spacer size={4} />
 
             <div className='info' title='Bookmarked by'>
-                <Icon name='star'/>
+                <Icon name='star' />
                 <span>
                     {event.bookmarks}
                 </span>
@@ -143,7 +143,7 @@ export function EventInfo({ event, editEvent }: Pick<Props, 'event' | 'editEvent
                     <Spacer size={4} />
 
                     <div className='info filmed' title='Will be filmed'>
-                        <Icon name='videocam'/>
+                        <Icon name='videocam' />
                         <span>
                             This event will be filmed!
                         </span>

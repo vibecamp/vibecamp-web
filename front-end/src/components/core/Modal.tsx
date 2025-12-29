@@ -54,7 +54,7 @@ export default React.memo(({ isOpen, onClose, title, side, children }: Props) =>
                         </span>
 
                         {onClose != null &&
-                            <span className='balancer'></span>}
+                            <span className='balancer' />}
                     </div>}
 
                 <div className="content">
