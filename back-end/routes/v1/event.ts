@@ -26,6 +26,7 @@ export default function register(router: Router) {
   defineRoute(router, {
     endpoint: '/events',
     method: 'get',
+    requireAuth: true,
     handler: async () => {
       const events = await getAllEvents()
 
