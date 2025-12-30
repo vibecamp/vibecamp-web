@@ -9,10 +9,11 @@ import {
   getEmailValidationError,
   getPasswordValidationError,
 } from '../../utils/validation.ts'
+import env from '../../env.ts'
 
 const JWT_SECRET_KEY = await crypto.subtle.importKey(
   'raw',
-  new TextEncoder().encode('JWT_SECRET_KEY'),
+  new TextEncoder().encode(env.JWT_SECRET),
   { name: 'HMAC', hash: 'SHA-256' },
   true,
   ['sign', 'verify'],
