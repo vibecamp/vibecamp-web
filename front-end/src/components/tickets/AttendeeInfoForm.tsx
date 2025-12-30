@@ -3,7 +3,6 @@ import React from 'react'
 import { TABLE_ROWS } from '../../../../back-end/types/db-types'
 import { AttendeeInfo } from '../../../../back-end/types/misc'
 import { Store } from '../../hooks/useStore'
-import Checkbox from '../core/Checkbox'
 import InfoBlurb from '../core/InfoBlurb'
 import Input from '../core/Input'
 import RadioGroup from '../core/RadioGroup'
@@ -61,6 +60,25 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
                 {'We\'ll keep this private unless you instruct us to share it'}
             </InfoBlurb>
 
+            {!attendeeInfo.is_primary_for_account &&
+                <>
+                    <Spacer size={FIELD_SPACE} />
+
+                    <Input
+                        label='Email address (optional)'
+                        placeholder='somebody@somewhere.com'
+                        value={attendeeInfo.email_address ?? ''}
+                        onChange={val => setAttendeeProperty(attendeeInfo, 'email_address', val)}
+                        error={attendeeErrors.email_address}
+                    />
+
+                    <Spacer size={INFO_BLURB_SPACE} />
+
+                    <InfoBlurb>
+                        {'We\'ll only use this email address to send the person communication about their ticket'}
+                    </InfoBlurb>
+                </>}
+
             <Spacer size={FIELD_SPACE} />
 
             <Input
@@ -105,33 +123,10 @@ export default React.memo(({ attendeeInfo, attendeeErrors, setAttendeeProperty, 
                 error={attendeeErrors.age_range}
             />
 
-            {/* <Spacer size={INFO_BLURB_SPACE} /> */}
-
             {festival &&
                 <InfoBlurb>
                     This age should be at the time of {festival.festival_name} ({festival.start_date.format('MM/DD/YYYY')} - {festival.end_date.format('MM/DD/YYYY')})
                 </InfoBlurb>}
-
-            <Spacer size={FIELD_SPACE} />
-
-            <Checkbox
-                value={attendeeInfo.share_ticket_status_with_selflathing}
-                onChange={val => setAttendeeProperty(attendeeInfo, 'share_ticket_status_with_selflathing', val)}
-            >
-                <div>
-                    Share {attendeeInfo.is_primary_for_account ? 'my' : 'this person\'s'} ticket purchase status with the <a href='https://x.com/areyouvibing' target='_blank' rel="noreferrer">@areyouvibing</a> app
-                </div>
-            </Checkbox>
-
-            <Spacer size={8} />
-
-            <InfoBlurb>
-                This will let people know which
-                festivals {attendeeInfo.is_primary_for_account ? 'you have' : 'this person has'} a ticket to (and nothing else!).
-                The Are You Vibing app allows people to say &quot;I&apos;ll go if these other people go!&quot;, so by checking
-                this box, you&apos;re letting those people know you&apos;re going.
-            </InfoBlurb>
-
         </>
     )
 })

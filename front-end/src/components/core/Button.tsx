@@ -10,16 +10,17 @@ type Props = Pick<CommonFieldProps<never>, 'disabled'> & {
     isDanger?: boolean,
     isLoading?: boolean,
     isCompact?: boolean,
+    isBorderless?: boolean,
     children: React.ReactNode,
     className?: string,
     style?: CSSProperties
 }
 
-export default React.memo(({ isPrimary, isDanger, isCompact, className, style, isSubmit, disabled, isLoading, onClick, children }: Props) => {
+export default React.memo(({ isPrimary, isDanger, isCompact, isBorderless, className, style, isSubmit, disabled, isLoading, onClick, children }: Props) => {
 
     return (
         <button
-            className={'button' + ' ' + (isPrimary ? 'primary' : '') + ' ' + (isDanger ? 'danger' : '') + ' ' + (isCompact ? 'compact' : '') + ' ' + className}
+            className={'button' + ' ' + (isPrimary ? 'primary' : '') + ' ' + (isDanger ? 'danger' : '') + ' ' + (isCompact ? 'compact' : '') + ' ' + (isBorderless ? 'borderless' : '') + ' ' + className}
             style={style}
             type={isSubmit ? 'submit' : 'button'}
             disabled={disabled || isLoading}

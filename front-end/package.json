@@ -6,6 +6,7 @@
     "statics": "mkdir -p out/ && cp public/* out/",
     "dev": "npm run statics && sass src/index.scss out/app.css --watch & node build.js --watch & tsc --watch & npm run serve",
     "check": "eslint . && tsc",
+    "fix": "eslint . --fix",
     "build": "npm run check && npm run statics && npx sass src/index.scss out/app.css --style=compressed && node build.js --minify",
     "serve": "http-server out"
   },

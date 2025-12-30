@@ -1,9 +1,11 @@
-import React, { useMemo } from 'react'
+import React, { FormEvent, useCallback, useMemo, useState } from 'react'
 
+import useBooleanState from '../../hooks/useBooleanState'
 import { PurchaseFormState } from '../../hooks/usePurchaseFormState'
 import { DayjsFestival, useStore } from '../../hooks/useStore'
-import { preventingDefault, someValue } from '../../utils'
+import { someValue } from '../../utils'
 import Button from '../core/Button'
+import Checkbox from '../core/Checkbox'
 import Col from '../core/Col'
 import ErrorMessage from '../core/ErrorMessage'
 import Icon from '../core/Icon'
@@ -23,6 +25,9 @@ type Props = {
 
 export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => {
     const store = useStore()
+
+    const [acceptedTermsAndConditions, setAcceptedTermsAndConditions] = useState(false)
+    const { state: hasSubmitted, setTrue: setHasSubmitted } = useBooleanState(false)
 
     const festivalPurchases = useMemo(() =>
         store.purchaseTypeAvailability.state.result
@@ -45,7 +50,7 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
 
     const attendancePurchaseOptions = useMemo(() =>
         attendancePurchases.map(({ purchaseType }) => ({
-            label: `${purchaseType.description} ($${purchaseType.price_in_cents / 100})`,
+            label: `${purchaseType.description} ($${(purchaseType.price_in_cents / 100).toLocaleString()})`,
             value: purchaseType.purchase_type_id
         }))
     , [attendancePurchases])
@@ -54,12 +59,24 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
         !someValue(purchaseFormState.purchases, v => v != null && v > 0)
     , [purchaseFormState.purchases])
 
+    const handleSubmit = useCallback((e: FormEvent) => {
+        e.preventDefault()
+
+        setHasSubmitted()
+
+        if (!acceptedTermsAndConditions) {
+            return
+        }
+
+        goToNext()
+    }, [acceptedTermsAndConditions, goToNext, setHasSubmitted])
+
     if (festival == null) {
         return null
     }
 
     return (
-        <form onSubmit={preventingDefault(goToNext)} noValidate>
+        <form onSubmit={handleSubmit} noValidate>
             <Col padding={20} pageLevel>
 
                 {purchaseFormState.attendees.map((attendee, index) =>
@@ -222,6 +239,12 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
                 <Spacer size={32} />
 
                 <PriceBreakdown purchases={purchaseFormState.purchases} discountCode={purchaseFormState.discountCode} />
+
+                <Spacer size={32} />
+
+                <Checkbox value={acceptedTermsAndConditions} onChange={setAcceptedTermsAndConditions} error={hasSubmitted && !acceptedTermsAndConditions ? 'Please confirm you\'ve read the terms of attending Vibecamp' : undefined}>
+                    <span>I&apos;ve read and accepted the <a href="https://vibe.camp/terms" target='_blank' rel="noreferrer">Vibecamp Terms and Conditions</a></span>
+                </Checkbox>
 
                 <Spacer size={8} />
 

@@ -82,8 +82,8 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                 await vibefetch(store.jwt, '/event/save', 'post', {
                     event: {
                         ...event,
-                        start_datetime: formatNoTimezone(start_datetime),
-                        end_datetime: end_datetime && formatNoTimezone(end_datetime)
+                        start_datetime: formatNoTimezone(start_datetime!),
+                        end_datetime: formatNoTimezone(end_datetime) ?? null
                     }
                 })
                 await store.allEvents.load()

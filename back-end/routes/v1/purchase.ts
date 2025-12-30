@@ -251,6 +251,12 @@ export default function register(router: Router) {
     method: 'post',
     requireAuth: false,
     handler: async ({ body: { secret_key, festival_id, attendees } }) => {
+
+      if (!env.SELF_LATHING_SECRET_KEY) {
+        console.warn("SELF_LATHING_SECRET_KEY is unset in the environment, so attendee status was not reported")
+        return [null, Status.Unauthorized]
+      }
+
       if (secret_key !== env.SELF_LATHING_SECRET_KEY) {
         return [null, Status.Unauthorized]
       }

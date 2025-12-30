@@ -7,6 +7,7 @@ import { useLocalStorageState } from '../hooks/useLocalStorageState'
 import { useStore } from '../hooks/useStore'
 import Button from './core/Button'
 import Col from './core/Col'
+import Icon from './core/Icon'
 import LoadingDots from './core/LoadingDots'
 import Modal from './core/Modal'
 import Spacer from './core/Spacer'
@@ -57,8 +58,24 @@ export default React.memo(() => {
 
                             <Spacer size={24} />
 
+                            <div className='card'>
+                                <a href='https://discord.gg/rtfUyZxu' target='_blank' rel="noreferrer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <img src='/discord.svg' width={22} height={22} />
+
+                                    <Spacer size={12} />
+
+                                    Join the Vibecamp discord!
+
+                                    <Spacer size={4} />
+
+                                    <Icon name='open_in_new' style={{ fontSize: '1em' }} />
+                                </a>
+                            </div>
+
                             {!newsletterPromptDismissed &&
                                 <>
+                                    <Spacer size={16} />
+
                                     <div className='card'>
                                         <div style={{ textAlign: 'center' }}>
                                             Want email announcements?
@@ -76,89 +93,95 @@ export default React.memo(() => {
                                             </Button>
                                         </div>
                                     </div>
-
-                                    <Spacer size={24} />
                                 </>}
 
-                            {festivalsReversed?.map(festival => {
-                                const tickets = store.purchasedTicketsByFestival[festival.festival_id] ?? []
-                                const otherPurchases = store.nonTicketPurchasesByFestival[festival.festival_id] ?? []
+                            <Spacer size={24} />
 
-                                // HACK: Attendees under one account may have separate cabin names, which
-                                // is assumed not to be true as this is currently written
-                                const cabinName = store.accountInfo.state.result?.cabins.filter(c => c.festival_id === festival.festival_id)?.[0]?.cabin_name
+                            {festivalsReversed
+                                ?.filter(festival =>
+                                    festival.sales_are_open ||
+                                    (store.purchasedTicketsByFestival[festival.festival_id]?.length ?? 0) > 0 ||
+                                    (store.nonTicketPurchasesByFestival[festival.festival_id]?.length ?? 0) > 0
+                                )
+                                .map(festival => {
+                                    const tickets = store.purchasedTicketsByFestival[festival.festival_id] ?? []
+                                    const otherPurchases = store.nonTicketPurchasesByFestival[festival.festival_id] ?? []
 
-                                return (
-                                    <div key={festival.festival_id} style={festival.end_date.isBefore(dayjs.utc()) ? { filter: 'contrast(0.5)' } : undefined}>
-                                        <h2>
-                                            {festival.festival_name}
-                                        </h2>
+                                    // HACK: Attendees under one account may have separate cabin names, which
+                                    // is assumed not to be true as this is currently written
+                                    const cabinName = store.accountInfo.state.result?.cabins.filter(c => c.festival_id === festival.festival_id)?.[0]?.cabin_name
 
-                                        <Spacer size={16} />
+                                    return (
+                                        <div key={festival.festival_id} style={festival.end_date.isBefore(dayjs.utc()) ? { filter: 'contrast(0.5)' } : undefined}>
+                                            <h2>
+                                                {festival.festival_name}
+                                            </h2>
 
-                                        {tickets.length === 0 &&
-                                            <>
-                                                <div style={{ textAlign: 'center' }}>
-                                                    {'(after you purchase tickets they\'ll show up here)'}
-                                                </div>
-                                                <Spacer size={32} />
-                                            </>}
+                                            <Spacer size={16} />
 
-                                        {tickets.map((ticket, index) =>
-                                            <React.Fragment key={ticket.purchase_id}>
-                                                {index > 0 &&
-                                                    <Spacer size={24} />}
-                                                <Ticket name={undefined} description={store.purchaseTypes.state.result?.find(t => t.purchase_type_id === ticket.purchase_type_id)?.description ?? ''} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
-                                            </React.Fragment>)}
+                                            {tickets.length === 0 &&
+                                                <>
+                                                    <div style={{ textAlign: 'center' }}>
+                                                        {'(after you purchase tickets they\'ll show up here)'}
+                                                    </div>
+                                                    <Spacer size={32} />
+                                                </>}
 
-                                        {cabinName &&
-                                            <div>
-                                                Cabin: {cabinName}
-                                            </div>}
+                                            {tickets.map((ticket, index) =>
+                                                <React.Fragment key={ticket.purchase_id}>
+                                                    {index > 0 &&
+                                                        <Spacer size={24} />}
+                                                    <Ticket name={undefined} description={store.purchaseTypes.state.result?.find(t => t.purchase_type_id === ticket.purchase_type_id)?.description ?? ''} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
+                                                </React.Fragment>)}
 
-                                        {store.purchaseTypes.state.result && otherPurchases.length > 0 &&
-                                            <div>
-                                                Other purchases:
+                                            {cabinName &&
+                                                <div>
+                                                    Cabin: {cabinName}
+                                                </div>}
 
-                                                <Spacer size={4} />
+                                            {store.purchaseTypes.state.result && otherPurchases.length > 0 &&
+                                                <div>
+                                                    Other purchases:
 
-                                                <div style={{ border: 'var(--controls-border)', borderRadius: 4, background: 'var(--color-background-1)' }}>
-                                                    {otherPurchases.map((p, i) =>
-                                                        <div style={{ padding: '4px 8px', borderTop: i > 0 ? 'var(--controls-border)' : undefined }} key={p.purchase_id}>
-                                                            1x {store.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.description}
-                                                        </div>)}
-                                                </div>
-                                            </div>}
+                                                    <Spacer size={4} />
 
-                                        {festival.sales_are_open &&
-                                            <>
-                                                <Spacer size={16} />
+                                                    <div style={{ border: 'var(--controls-border)', borderRadius: 4, background: 'var(--color-background-1)' }}>
+                                                        {otherPurchases.map((p, i) =>
+                                                            <div style={{ padding: '4px 8px', borderTop: i > 0 ? 'var(--controls-border)' : undefined }} key={p.purchase_id}>
+                                                                1x {store.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.description}
+                                                            </div>)}
+                                                    </div>
+                                                </div>}
 
-                                                <Button isPrimary onClick={openTicketPurchaseModal(festival.festival_id)}>
-                                                    {tickets.length === 0
-                                                        ? 'Buy tickets'
-                                                        : 'Buy more tickets or bus/bedding'}
-                                                </Button>
-                                            </>}
+                                            {festival.sales_are_open &&
+                                                <>
+                                                    <Spacer size={16} />
 
-                                        {festival.info_url &&
-                                            <>
+                                                    <Button isPrimary onClick={openTicketPurchaseModal(festival.festival_id)}>
+                                                        {tickets.length === 0
+                                                            ? 'Buy tickets'
+                                                            : 'Buy more tickets or bus/bedding'}
+                                                    </Button>
+                                                </>}
 
-                                                <Spacer size={8} />
+                                            {festival.info_url &&
+                                                <>
 
-                                                <a
-                                                    className='button'
-                                                    href={festival.info_url}
-                                                    target='_blank'
-                                                    rel="noreferrer"
-                                                >
-                                                    Info about {festival.festival_name}
-                                                    <Spacer size={5} />
-                                                    <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
-                                                </a>
-                                            </>}
+                                                    <Spacer size={8} />
 
-                                        {/* {festival.festival_name.includes('Vibe') &&
+                                                    <a
+                                                        className='button'
+                                                        href={festival.info_url}
+                                                        target='_blank'
+                                                        rel="noreferrer"
+                                                    >
+                                                        Info about {festival.festival_name}
+                                                        <Spacer size={5} />
+                                                        <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
+                                                    </a>
+                                                </>}
+
+                                            {/* {festival.festival_name.includes('Vibe') &&
                                             (<>
                                                 <Spacer size={16} />
 
@@ -175,12 +198,12 @@ export default React.memo(() => {
                                             </>)
                                         } */}
 
-                                        <Spacer size={32} />
-                                        <hr />
-                                        <Spacer size={32} />
-                                    </div>
-                                )
-                            })}
+                                            <Spacer size={32} />
+                                            <hr />
+                                            <Spacer size={32} />
+                                        </div>
+                                    )
+                                })}
 
                             <Spacer size={24} />
 

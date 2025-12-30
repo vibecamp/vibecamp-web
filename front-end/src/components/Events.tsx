@@ -40,7 +40,7 @@ export default React.memo(() => {
             e.plaintext_location?.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()) ||
             e.event_site_location_name?.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()))
 
-        switch(filter) {
+        switch (filter) {
         case 'All': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')))
         case 'Bookmarked': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')) && store.bookmarks.state.result?.event_ids.includes(e.event_id))
         case 'Mine': return allEvents.filter(e => e.created_by_account_id === store.jwtPayload?.account_id)
@@ -50,7 +50,7 @@ export default React.memo(() => {
     const [eventBeingEdited, setEventBeingEdited] = useState<DayjsEvent | 'new' | undefined>(undefined)
 
     const editEvent = useCallback((eventId: string) => setEventBeingEdited(store.allEvents.state.result?.find(e => e.event_id === eventId)), [store.allEvents.state.result])
-    const createNewEvent = useCallback(() => setEventBeingEdited('new') , [])
+    const createNewEvent = useCallback(() => setEventBeingEdited('new'), [])
     const stopEditingEvent = useCallback(() => setEventBeingEdited(undefined), [])
 
     const loading = store.accountInfo.state.kind === 'loading' || store.allEvents.state.kind === 'loading'
@@ -135,9 +135,10 @@ export default React.memo(() => {
                         <span style={{ color: 'var(--color-accent-1)', fontStyle: 'normal' }}>Vibecamp team</span>
                         &nbsp;
 
-                        are created under the prerogative of Vibecamp LLC. All
-                        other events represent the will and intentions of the
-                        individuals hosting them.
+                        are run and endorsed by the Vibecamp org! All other
+                        events are run by individual attendees, who take
+                        responsibility for making sure everything stays safe
+                        and fun
                     </div>
 
                     <Spacer size={8} />
@@ -163,7 +164,7 @@ export default React.memo(() => {
     )
 })
 
-function Events({ events, editEvent }: {events: readonly DayjsEvent[], editEvent: (eventId: string) => void}) {
+function Events({ events, editEvent }: { events: readonly DayjsEvent[], editEvent: (eventId: string) => void }) {
     const store = useStore()
 
     let currentFestival: DayjsFestival | undefined
@@ -172,7 +173,7 @@ function Events({ events, editEvent }: {events: readonly DayjsEvent[], editEvent
         {events.map(e => {
             const festival = store.festivals.state.result?.find(f =>
                 e.start_datetime.isAfter(f.start_date.startOf('day')) &&
-            e.start_datetime.isBefore(f.end_date.endOf('day')))
+                e.start_datetime.isBefore(f.end_date.endOf('day')))
 
             const isFirst = festival !== currentFestival
             currentFestival = festival
@@ -201,7 +202,7 @@ function CompactEvents({ events, editEvent }: { events: readonly DayjsEvent[], e
                 <a className='headings'>
                     <div className='time'>When</div>
                     <div className='name'>What</div>
-                    <div className='filmed'></div>
+                    <div className='filmed' />
                 </a>
                 {events.map(e => {
                     return (

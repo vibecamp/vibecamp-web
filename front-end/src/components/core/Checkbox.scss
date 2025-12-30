@@ -1,6 +1,4 @@
 .checkbox {
-    display: flex;
-    align-items: baseline;
     cursor: pointer;
 
     &.disabled {
@@ -8,51 +6,56 @@
         filter: contrast(0.8);
     }
 
-    >input[type="checkbox"] {
+    >.square-and-label {
         display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: inherit;
+        align-items: baseline;
 
-        appearance: none;
-        width: var(--checkbox-size);
-        height: var(--checkbox-size);
-        border: var(--controls-border);
-        border-radius: 4px;
-        margin-right: 6px;
+        >input[type="checkbox"] {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: inherit;
 
-        flex-grow: 0;
-        flex-shrink: 0;
+            appearance: none;
+            width: var(--checkbox-size);
+            height: var(--checkbox-size);
+            border: var(--controls-border);
+            border-radius: 4px;
+            margin-right: 6px;
 
-        &::before {
-            content: 'check';
-
-            // copied from .material-symbols-outlined
-            font-family: 'Material Symbols Outlined';
-            font-weight: normal;
-            font-style: normal;
-            font-size: 24px;
-            line-height: 1;
-            letter-spacing: normal;
-            text-transform: none;
-            display: inline-block;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-            text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
-
-            color: rgba(255, 255, 255, 0.9);
-            opacity: 0;
-            font-size:14px;
-        }
-
-        &:checked {
-            background: var(--color-accent-1);
-            border-color: var(--color-accent-1);
+            flex-grow: 0;
+            flex-shrink: 0;
 
             &::before {
-                opacity: 1;
+                content: 'check';
+
+                // copied from .material-symbols-outlined
+                font-family: 'Material Symbols Outlined';
+                font-weight: normal;
+                font-style: normal;
+                font-size: 24px;
+                line-height: 1;
+                letter-spacing: normal;
+                text-transform: none;
+                display: inline-block;
+                white-space: nowrap;
+                word-wrap: normal;
+                direction: ltr;
+                text-rendering: optimizeLegibility;
+                -webkit-font-smoothing: antialiased;
+
+                color: rgba(255, 255, 255, 0.9);
+                opacity: 0;
+                font-size: 14px;
+            }
+
+            &:checked {
+                background: var(--color-accent-1);
+                border-color: var(--color-accent-1);
+
+                &::before {
+                    opacity: 1;
+                }
             }
         }
     }

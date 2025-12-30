@@ -4,6 +4,7 @@ import { Tables } from '../../../back-end/types/db-types'
 import { AttendeeInfo } from '../../../back-end/types/misc'
 import { Purchases } from '../../../back-end/types/route-types'
 import { objectValues } from '../../../back-end/utils/misc'
+import { getEmailValidationError } from '../../../back-end/utils/validation'
 import { Props as AttendeeInfoFormProps } from '../components/tickets/AttendeeInfoForm'
 import { vibefetch } from '../vibefetch'
 import useHashState from './useHashState'
@@ -21,6 +22,7 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
             ? [
                 {
                     ...(store.accountInfo.state.result?.attendees.find(a => a.is_primary_for_account) ?? BLANK_ATTENDEE),
+                    email_address: store.accountInfo.state.result?.email_address ?? null,
                     ticket_type: null,
                     is_primary_for_account: true
                 }
@@ -175,6 +177,10 @@ export function getAttendeeErrors(attendee: AttendeeInfo & { ticket_type: Tables
         errors.phone_number = 'Please enter a valid phone number'
     }
 
+    if (attendee.email_address && getEmailValidationError(attendee.email_address)) {
+        errors.email_address = getEmailValidationError(attendee.email_address)
+    }
+
     if (attendee.age_range == null) {
         errors.age_range = 'Please select an age range'
     }
@@ -206,5 +212,6 @@ const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
     has_allergy_peanuts: null,
     has_allergy_wheat: null,
     has_allergy_soy: null,
-    share_ticket_status_with_selflathing: null
+    share_ticket_status_with_selflathing: null,
+    email_address: null
 }

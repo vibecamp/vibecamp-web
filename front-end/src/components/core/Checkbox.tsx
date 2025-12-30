@@ -15,17 +15,19 @@ export default React.memo(({ value, onChange, disabled, onBlur, error, children 
 
     return (
         <label className={'checkbox' + ' ' + (disabled ? 'disabled' : '')}>
-            <input
-                type='checkbox'
-                checked={value ?? false}
-                onChange={handleChange}
-                onBlur={onBlur}
-                disabled={disabled}
-                aria-invalid={typeof error === 'string'}
-                aria-errormessage={typeof error === 'string' ? error : undefined}
-            />
+            <div className='square-and-label'>
+                <input
+                    type='checkbox'
+                    checked={value ?? false}
+                    onChange={handleChange}
+                    onBlur={onBlur}
+                    disabled={disabled}
+                    aria-invalid={typeof error === 'string'}
+                    aria-errormessage={typeof error === 'string' ? error : undefined}
+                />
 
-            {children}
+                {children}
+            </div>
 
             <ErrorMessage error={error} />
         </label>

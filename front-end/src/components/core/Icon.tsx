@@ -30,6 +30,7 @@ export type MaterialIconName =
     | 'info'
     | 'star'
     | 'videocam'
+    | 'close'
 
 export default React.memo(({ fill, style: _style, name }: Props) => {
     const style = {

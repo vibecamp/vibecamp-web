@@ -1,4 +1,4 @@
-import { Pool, PoolClient, Transaction } from 'postgres'
+import { Pool, PoolClient, QueryClient, Transaction } from 'postgres'
 import env from '../env.ts'
 import { TableName, Tables } from '../types/db-types.ts'
 import { _format } from 'https://deno.land/std@0.160.0/path/_util.ts'
@@ -43,7 +43,18 @@ function handleShutdown() {
 Deno.addSignalListener('SIGINT', handleShutdown)
 Deno.addSignalListener('SIGTERM', handleShutdown)
 
-export type DBClient = Pick<PoolClient, 'queryObject'> & CustomClientMethods
+export type VibecampDBClient = Pick<PoolClient, 'queryObject'> & CustomClientMethods
+
+export const extendDBClient = <T extends QueryClient>(client: T) => {
+  const extendedClient = client as T & VibecampDBClient
+
+  extendedClient.queryTable = queryTable(extendedClient)
+  extendedClient.insertTable = insertTable(extendedClient)
+  extendedClient.updateTable = updateTable(extendedClient)
+  extendedClient.deleteTable = deleteTable(extendedClient)
+
+  return extendedClient
+}
 
 /**
  * Acquire a DB connection from the pool, perform queries with it, and then
@@ -54,14 +65,10 @@ export type DBClient = Pick<PoolClient, 'queryObject'> & CustomClientMethods
  */
 export async function withDBConnection<TResult>(
   cb: (
-    db: DBClient & Pick<PoolClient, 'createTransaction'>,
+    db: VibecampDBClient & Pick<PoolClient, 'createTransaction'>,
   ) => Promise<TResult>,
 ): Promise<TResult> {
-  const client = await db.connect() as PoolClient & DBClient
-  client.queryTable = queryTable(client)
-  client.insertTable = insertTable(client)
-  client.updateTable = updateTable(client)
-  client.deleteTable = deleteTable(client)
+  const client = extendDBClient(await db.connect())
 
   try {
     const result = await cb(client)
@@ -79,13 +86,13 @@ export async function withDBConnection<TResult>(
  * finished
  */
 export async function withDBTransaction<TResult>(
-  cb: (db: DBClient) => Promise<TResult>,
+  cb: (db: VibecampDBClient) => Promise<TResult>,
 ): Promise<TResult> {
   return await withDBConnection(async (db) => {
     const transactionName = generateTransactionName()
     const transaction = db.createTransaction(transactionName, {
       isolation_level: 'serializable',
-    }) as Transaction & DBClient
+    }) as Transaction & VibecampDBClient
 
     try {
       await transaction.begin()
@@ -118,54 +125,54 @@ type CustomClientMethods = {
 }
 
 const queryTable = (db: Pick<PoolClient, 'queryObject'>) =>
-async <
-  TTableName extends TableName,
-  TColumnName extends keyof Tables[TTableName],
->(
-  table: TTableName,
-  opts: { where?: WhereClause<TTableName, TColumnName> } = {},
-): Promise<Tables[TTableName][]> => {
-  return (await db.queryObject<Tables[TTableName]>(
-    ...queryTableQuery(table, opts),
-  )).rows
-}
+  async <
+    TTableName extends TableName,
+    TColumnName extends keyof Tables[TTableName],
+  >(
+    table: TTableName,
+    opts: { where?: WhereClause<TTableName, TColumnName> } = {},
+  ): Promise<Tables[TTableName][]> => {
+    return (await db.queryObject<Tables[TTableName]>(
+      ...queryTableQuery(table, opts),
+    )).rows
+  }
 
 const insertTable = (db: Pick<PoolClient, 'queryObject'>) =>
-async <
-  TTableName extends TableName,
->(
-  table: TTableName,
-  row: Partial<Tables[TableName]>,
-): Promise<Tables[TTableName]> => {
-  return (await db.queryObject<Tables[TTableName]>(
-    ...insertTableQuery(table, row),
-  )).rows[0]!
-}
+  async <
+    TTableName extends TableName,
+  >(
+    table: TTableName,
+    row: Partial<Tables[TableName]>,
+  ): Promise<Tables[TTableName]> => {
+    return (await db.queryObject<Tables[TTableName]>(
+      ...insertTableQuery(table, row),
+    )).rows[0]!
+  }
 
 const updateTable = (db: Pick<PoolClient, 'queryObject'>) =>
-async <
-  TTableName extends TableName,
-  TColumnNames extends Array<keyof Tables[TTableName]>,
->(
-  table: TTableName,
-  row: Partial<Tables[TableName]>,
-  where: WhereClause<TTableName, TColumnNames[number]>[],
-): Promise<Tables[TTableName][]> => {
-  return (await db.queryObject<Tables[TTableName]>(
-    ...updateTableQuery(table, row, where),
-  )).rows
-}
+  async <
+    TTableName extends TableName,
+    TColumnNames extends Array<keyof Tables[TTableName]>,
+  >(
+    table: TTableName,
+    row: Partial<Tables[TableName]>,
+    where: WhereClause<TTableName, TColumnNames[number]>[],
+  ): Promise<Tables[TTableName][]> => {
+    return (await db.queryObject<Tables[TTableName]>(
+      ...updateTableQuery(table, row, where),
+    )).rows
+  }
 
 const deleteTable = (db: Pick<PoolClient, 'queryObject'>) =>
-async <
-  TTableName extends TableName,
-  TColumnNames extends Array<keyof Tables[TTableName]>,
->(
-  table: TTableName,
-  where: WhereClause<TTableName, TColumnNames[number]>[],
-): Promise<void> => {
-  await db.queryObject<Tables[TTableName]>(...deleteTableQuery(table, where))
-}
+  async <
+    TTableName extends TableName,
+    TColumnNames extends Array<keyof Tables[TTableName]>,
+  >(
+    table: TTableName,
+    where: WhereClause<TTableName, TColumnNames[number]>[],
+  ): Promise<void> => {
+    await db.queryObject<Tables[TTableName]>(...deleteTableQuery(table, where))
+  }
 
 /**
  * Get a unique and unused name for a transaction
