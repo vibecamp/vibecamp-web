@@ -91,11 +91,13 @@ export default function register(router: Router) {
             return [null, Status.Unauthorized]
           }
 
-          const updatedEvent = (await db.updateTable('event', event, [[
-            'event_id',
-            '=',
-            event_id,
-          ]]))[0]
+          await db.updateTable('event',
+            {
+              ...event,
+              last_modified: new Date().toISOString() as unknown as Date // we need a string to preserve the timezone
+            },
+            [['event_id', '=', event_id]]
+          )
 
           return [null, Status.OK]
         } else {
@@ -127,9 +129,10 @@ export default function register(router: Router) {
             }
           }
 
-          const createdEvent = await db.insertTable('event', {
+          await db.insertTable('event', {
             ...event,
             created_by_account_id: account_id,
+            last_modified: new Date().toISOString() as unknown as Date // we need a string to preserve the timezone
           })
 
           return [null, Status.OK]
