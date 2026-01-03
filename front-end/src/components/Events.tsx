@@ -27,8 +27,9 @@ export default React.memo(() => {
     const { hashState, setHashState } = useHashState()
     const filter = hashState?.eventsFilter ?? 'All'
     const setFilter = useCallback((filter: EventsFilter) => {
-        const eventsFilter: undefined | 'Bookmarked' | 'Mine' = filter === 'All' ? undefined : filter
-        setHashState({ eventsFilter })
+        setHashState({
+            eventsFilter: filter === 'All' ? undefined : filter
+        })
     }, [setHashState])
     const [searchString, setSearchString] = useState('')
 
@@ -42,8 +43,9 @@ export default React.memo(() => {
 
         switch (filter) {
         case 'All': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')))
-        case 'Bookmarked': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')) && store.bookmarks.state.result?.event_ids.includes(e.event_id))
+        case 'Starred': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')) && store.bookmarks.state.result?.event_ids.includes(e.event_id))
         case 'Mine': return allEvents.filter(e => e.created_by_account_id === store.jwtPayload?.account_id).toReversed()
+        case 'Past': return allEvents.filter(e => e.start_datetime.isBefore(dayjs().subtract(1, 'day'))).toReversed()
         }
     }, [filter, store.allEvents.state.result, store.bookmarks.state.result?.event_ids, store.jwtPayload?.account_id, searchString])
 
@@ -96,7 +98,7 @@ export default React.memo(() => {
                     <Spacer size={8} />
 
                     <RowSelect
-                        options={['All', 'Bookmarked', 'Mine']}
+                        options={['All', 'Starred', 'Mine', 'Past']}
                         value={filter}
                         onChange={setFilter}
                         style={{ padding: '0 20px' }}
@@ -107,8 +109,8 @@ export default React.memo(() => {
                             <Spacer size={8} />
 
                             <Row justify='stretch' align='center' padding='0 20px'>
-                                <a className='button' href={filter === 'Bookmarked' ? `webcal://${BACK_END_DOMAIN}/events.ics?account_id=${store.jwtPayload?.account_id}` : `webcal://${BACK_END_DOMAIN}/events.ics`}>
-                                    Add {filter === 'Bookmarked' ? 'bookmarks' : 'all events'} to your calendar app
+                                <a className='button' href={filter === 'Starred' ? `webcal://${BACK_END_DOMAIN}/events.ics?account_id=${store.jwtPayload?.account_id}` : `webcal://${BACK_END_DOMAIN}/events.ics`}>
+                                    Add {filter === 'Starred' ? 'bookmarks' : 'all events'} to your calendar app
                                     &nbsp;
                                     <Icon name='open_in_new' />
                                 </a>

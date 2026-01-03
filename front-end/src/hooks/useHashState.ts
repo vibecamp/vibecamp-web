@@ -44,4 +44,4 @@ type HashState = Readonly<{
     [PASSWORD_RESET_SECRET_KEY]?: string
 }>
 
-export type EventsFilter = 'All' | 'Bookmarked' | 'Mine'
+export type EventsFilter = 'All' | 'Starred' | 'Mine' | 'Past'
