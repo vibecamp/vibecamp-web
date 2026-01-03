@@ -82,6 +82,8 @@ export default function register(router: Router) {
       }
 
       return await withDBConnection(async (db) => {
+        const last_modified = new Date().toISOString() as unknown as Date // we need a string to preserve the timezone
+
         if (event_id) {
           // check that this account owns this event
           const existingEvent = (await db.queryTable('event', {
@@ -94,7 +96,8 @@ export default function register(router: Router) {
           await db.updateTable('event',
             {
               ...event,
-              last_modified: new Date().toISOString() as unknown as Date // we need a string to preserve the timezone
+              plaintext_location: event.event_site_location ? null : event.plaintext_location,
+              last_modified
             },
             [['event_id', '=', event_id]]
           )
@@ -132,7 +135,8 @@ export default function register(router: Router) {
           await db.insertTable('event', {
             ...event,
             created_by_account_id: account_id,
-            last_modified: new Date().toISOString() as unknown as Date // we need a string to preserve the timezone
+            plaintext_location: event.event_site_location ? null : event.plaintext_location,
+            last_modified
           })
 
           return [null, Status.OK]
