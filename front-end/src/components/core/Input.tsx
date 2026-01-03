@@ -1,4 +1,4 @@
-import React, { ChangeEvent, CSSProperties, HTMLInputTypeAttribute, InputHTMLAttributes, useCallback, useState } from 'react'
+import React, { ChangeEvent, CSSProperties, HTMLInputTypeAttribute, InputHTMLAttributes, ReactNode, useCallback, useState } from 'react'
 
 import { given } from '../../../../back-end/utils/misc'
 import { CommonFieldProps } from './_common'
@@ -12,10 +12,12 @@ type Props = Omit<CommonFieldProps<string>, 'value'> & {
     multiline?: boolean,
     autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete'],
     value: string | null,
-    style?: CSSProperties
+    style?: CSSProperties,
+    onEndButtonClick?: () => void,
+    endButtonLabel?: ReactNode
 }
 
-export default React.memo(({ label, value, onChange, onBlur, disabled, placeholderIcon, placeholder, error, multiline, type, autoComplete, style }: Props) => {
+export default React.memo(({ label, value, onChange, onBlur, disabled, placeholderIcon, placeholder, error, multiline, type, autoComplete, style, onEndButtonClick, endButtonLabel }: Props) => {
     const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         onChange(e.target.value)
     }, [onChange])
@@ -31,6 +33,7 @@ export default React.memo(({ label, value, onChange, onBlur, disabled, placehold
     }, [onBlur])
 
     const showPlaceholder = placeholder && !isFocused && !value
+    const showEndButton = onEndButtonClick || endButtonLabel
 
     const sharedProps = {
         value: value ?? '',
@@ -44,7 +47,7 @@ export default React.memo(({ label, value, onChange, onBlur, disabled, placehold
     }
 
     return (
-        <label className={'input' + ' ' + (disabled ? 'disabled' : '')} style={style}>
+        <label className={'input' + ' ' + (disabled ? 'disabled' : '') + ' ' + (multiline ? 'multiline' : '')} style={style}>
             <div className='label'>{label}</div>
 
             <div className='input-wrapper'>
@@ -66,6 +69,12 @@ export default React.memo(({ label, value, onChange, onBlur, disabled, placehold
                         type={type}
                         autoComplete={autoComplete}
                     />}
+
+                {showEndButton && (
+                    <button type='button' className='end-button' onClick={onEndButtonClick}>
+                        {endButtonLabel}
+                    </button>
+                )}
             </div>
 
             <ErrorMessage error={error} />

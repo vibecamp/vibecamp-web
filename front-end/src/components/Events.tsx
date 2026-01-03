@@ -32,6 +32,7 @@ export default React.memo(() => {
         })
     }, [setHashState])
     const [searchString, setSearchString] = useState('')
+    const clearSearch = useCallback(() => setSearchString(''), [])
 
     const visibleEvents = useMemo(() => {
         const allEvents = (store.allEvents.state.result ?? []).filter(e =>
@@ -80,21 +81,12 @@ export default React.memo(() => {
 
                     <Spacer size={8} />
 
-                    <Row justify='stretch' align='center' padding='0 20px'>
-                        <Input
-                            placeholderIcon='search'
-                            placeholder='Search...'
-                            value={searchString}
-                            onChange={setSearchString}
-                            style={{ flexShrink: 1, width: 0 }}
-                        />
-
-                        <Spacer size={8} />
-
-                        <Button style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => setSearchString('')} disabled={searchString === ''}>
-                            Clear search
-                        </Button>
-                    </Row>
+                    <RowSelect
+                        options={['Card view', 'Compact view']}
+                        value={hashState?.compactEventsView === true ? 'Compact view' : 'Card view'}
+                        onChange={view => setHashState({ compactEventsView: view === 'Compact view' })}
+                        style={{ padding: '0 20px' }}
+                    />
 
                     <Spacer size={8} />
 
@@ -104,6 +96,20 @@ export default React.memo(() => {
                         onChange={setFilter}
                         style={{ padding: '0 20px' }}
                     />
+
+                    <Spacer size={8} />
+
+                    <Row justify='stretch' align='center' padding='0 20px'>
+                        <Input
+                            placeholderIcon='search'
+                            placeholder='Search...'
+                            value={searchString}
+                            onChange={setSearchString}
+                            style={{ flexShrink: 1, width: 0 }}
+                            endButtonLabel={<Icon name='close' />}
+                            onEndButtonClick={clearSearch}
+                        />
+                    </Row>
 
                     {filter !== 'Mine' &&
                         <>
@@ -119,14 +125,6 @@ export default React.memo(() => {
                         </>}
 
                     <Spacer size={8} />
-
-                    <Row justify='stretch' align='center' padding='0 20px'>
-                        <Button onClick={() => setHashState({ compactEventsView: !hashState?.compactEventsView })}>
-                            {hashState?.compactEventsView === true
-                                ? 'Switch to card view'
-                                : 'Switch to compact view'}
-                        </Button>
-                    </Row>
 
                     <Spacer size={12} />
 
