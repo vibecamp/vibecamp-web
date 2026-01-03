@@ -45,8 +45,8 @@ export default React.memo(() => {
         switch (filter) {
         case 'All': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')))
         case 'Starred': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')) && store.bookmarks.state.result?.event_ids.includes(e.event_id))
-        case 'Mine': return allEvents.filter(e => e.created_by_account_id === store.jwtPayload?.account_id).toReversed()
-        case 'Past': return allEvents.filter(e => e.start_datetime.isBefore(dayjs().subtract(1, 'day'))).toReversed()
+        case 'Mine': return allEvents.filter(e => e.created_by_account_id === store.jwtPayload?.account_id).reverse()
+        case 'Past': return allEvents.filter(e => e.start_datetime.isBefore(dayjs().subtract(1, 'day'))).reverse()
         }
     }, [filter, store.allEvents.state.result, store.bookmarks.state.result?.event_ids, store.jwtPayload?.account_id, searchString])
 
