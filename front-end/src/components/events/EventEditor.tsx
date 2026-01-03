@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { TABLE_ROWS } from '../../../../back-end/types/db-types'
+import { TABLE_ROWS, Tables } from '../../../../back-end/types/db-types'
 import { given, objectEntries, objectFromEntries } from '../../../../back-end/utils/misc'
 import useBooleanState from '../../hooks/useBooleanState'
 import useForm, { fieldToProps } from '../../hooks/useForm'
@@ -132,10 +132,20 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
         if (!inProgressEvent.start_datetime || !inProgressEvent.event_site_location) return []
 
         return store.allEvents.state.result?.filter(e =>
-            checkInProgressEventOverlap(inProgressEvent, e, 15)) ?? []
+            checkInProgressEventOverlap(inProgressEvent, e)) ?? []
     }, [inProgressEvent, store.allEvents.state.result])
 
     const [overlapConfirmationState, setOverlapConfirmationState] = useState<'editing' | 'confirming' | 'confirmed'>('editing')
+
+    const handlePlaintextLocationChange = useCallback((value: string) => {
+        fields.plaintext_location.set(value)
+        fields.event_site_location.set(null)
+    }, [fields.plaintext_location, fields.event_site_location])
+
+    const handleEventSiteLocationChange = useCallback((value: Tables['event_site']['event_site_id'] | null) => {
+        fields.event_site_location.set(value)
+        fields.plaintext_location.set(null)
+    }, [fields.plaintext_location, fields.event_site_location])
 
     useEffect(() => {
         if (overlapConfirmationState === 'confirmed') {
@@ -226,6 +236,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                         multiline
                         {...fieldToProps(fields.plaintext_location)}
                         value={fields.plaintext_location.value ?? ''}
+                        onChange={handlePlaintextLocationChange}
                     />
                     : <>
                         <InfoBlurb>
@@ -249,26 +260,26 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                         <Spacer size={16} />
 
                         {locationType === 'Onsite'
-                            ? <>
-                                <RadioGroup
-                                    label='Campsite locations:'
-                                    options={
-                                        ongoingFestivalsEventSites
-                                            ?.map(s => ({
-                                                value: s.event_site_id,
-                                                label: s.name
-                                            })) ?? []
-                                    }
-                                    direction='row'
-                                    {...fieldToProps(fields.event_site_location)}
-                                />
-                            </>
+                            ? <RadioGroup
+                                label='Campsite locations:'
+                                options={
+                                    ongoingFestivalsEventSites
+                                        ?.map(s => ({
+                                            value: s.event_site_id,
+                                            label: s.name
+                                        })) ?? []
+                                }
+                                direction='row'
+                                {...fieldToProps(fields.event_site_location)}
+                                onChange={handleEventSiteLocationChange}
+                            />
                             : <Input
                                 label='Location'
                                 disabled={submitting}
                                 multiline
                                 {...fieldToProps(fields.plaintext_location)}
                                 value={fields.plaintext_location.value ?? ''}
+                                onChange={handlePlaintextLocationChange}
                             />}
                     </>}
 
