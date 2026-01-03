@@ -3,8 +3,10 @@ import React from 'react'
 import { DayjsEvent } from '../../hooks/useStore'
 import Button from '../core/Button'
 import Col from '../core/Col'
+import Icon from '../core/Icon'
 import Modal from '../core/Modal'
 import Spacer from '../core/Spacer'
+import { formatEventLocation, formatEventTime } from './Event'
 
 type Props = {
     isOpen: boolean,
@@ -17,71 +19,38 @@ export default React.memo(({ isOpen, onClose, onConfirm, overlappingEvents }: Pr
     return (
         <Modal isOpen={isOpen} side='right'>
             {() => (
-                <Col align='center' justify='center' padding={20} pageLevel>
+                <Col align='stretch' justify='center' padding={20} pageLevel>
                     <div style={{ fontSize: 22, textAlign: 'center' }}>
                         This event overlaps with the following. Schedule it anyway?
                     </div>
 
                     <Spacer size={16} />
 
-                    <table style={{ tableLayout: 'fixed', width: '100%', borderSpacing: 0 }}>
-                        <thead>
-                            <tr>
-                                <th
-                                    style={{
-                                        textAlign: 'left',
-                                    }}
-                                >
-                                    When
-                                </th>
-                                <th style={{ textAlign: 'left' }}>
-                                    What
-                                </th>
-                                <th style={{ textAlign: 'left' }}>
-                                    Where
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {overlappingEvents.map((event, index) => (
-                                <tr
-                                    key={event.event_id}
-                                    style={{
-                                        backgroundColor:
-                                            index % 2 ? 'transparent' : 'rgba(0, 0, 0, 0.1)',
-                                    }}
-                                >
-                                    <td
-                                        style={{
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                        }}
-                                    >
-                                        {event.start_datetime.format('ddd h:mma')}
-                                    </td>
-                                    <td
-                                        style={{
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                        }}
-                                    >
-                                        {event.name}
-                                    </td>
-                                    <td
-                                        style={{
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                        }}
-                                    >
-                                        {event.event_site_location_name}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <div style={{ maxHeight: '40vh', overflowY: 'auto' }}>
+                        {overlappingEvents.map((event, index) =>
+                            <div className='card' style={{ marginTop: index > 0 ? 12 : undefined }} key={event.event_id}>
+                                <div>
+                                    {event.name}
+                                </div>
+
+                                <Spacer size={8} />
+
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Icon name='schedule' style={{ fontSize: 18 }} />
+                                    <Spacer size={6} />
+                                    {formatEventTime(event)}
+                                </div>
+
+                                <Spacer size={8} />
+
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Icon name='location_on' style={{ fontSize: 18 }} />
+                                    <Spacer size={6} />
+                                    {formatEventLocation(event)}
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     <Spacer size={16} />
 

@@ -157,7 +157,7 @@ export function EventInfo({ event, editEvent }: Pick<Props, 'event' | 'editEvent
     )
 }
 
-const formatEventTime = (event: Props['event']) => {
+export const formatEventTime = (event: Props['event']) => {
     const now = dayjs.utc()
     const timeOnly = 'h:mma'
     const dateAndTime = (d: Dayjs) => (

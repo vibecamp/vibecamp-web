@@ -178,6 +178,7 @@ type FakeDayjs = {
   diff: (other: any, unit: 'minutes') => number,
   add: (n: number, unit: 'minutes') => FakeDayjs,
   subtract: (n: number, unit: 'minutes') => FakeDayjs,
+  isSame: (other: any) => boolean,
   isAfter: (other: any) => boolean,
   isBefore: (other: any) => boolean
 }
@@ -185,7 +186,6 @@ type FakeDayjs = {
 export function checkInProgressEventOverlap(
   newEvent: { start_datetime: FakeDayjs | null, end_datetime: FakeDayjs | null, event_site_location: string | null, event_id: string | undefined },
   existingEvent: { start_datetime: FakeDayjs, end_datetime: FakeDayjs | null, event_site_location: string | null, event_id: string },
-  bufferMinutes = 0
 ): boolean {
   if (
     !newEvent.start_datetime ||
@@ -206,23 +206,18 @@ export function checkInProgressEventOverlap(
   if (!end1) {
     if (!end2) {
       // if neither has an end time, just check if they start at the same time
-      return Math.abs(start1.diff(start2, 'minutes')) <= bufferMinutes
+      return start1.isSame(start2)
     } else {
       // if only 2 has an end time, see if 1 starts during 2
-      return start1.isAfter(start2.subtract(bufferMinutes, 'minutes'))
-        && start1.isBefore(end2.add(bufferMinutes, 'minutes'))
+      return start1.isAfter(start2) && start1.isBefore(end2)
     }
   } else {
     if (!end2) {
       // if only 1 has an end time, see if 2 starts during 1
-      return start2.isAfter(start1.subtract(bufferMinutes, 'minutes'))
-        && start2.isBefore(end1.add(bufferMinutes, 'minutes'))
+      return start2.isAfter(start1) && start2.isBefore(end1)
     } else {
       // if both have end times, test overlap
-      return (
-        start1.isBefore(end2.add(bufferMinutes, 'minutes')) &&
-        end1.isAfter(start2.subtract(bufferMinutes, 'minutes'))
-      )
+      return start1.isBefore(end2) && end1.isAfter(start2)
     }
   }
 }
