@@ -40,12 +40,14 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
         festivalPurchases
             .filter(({ purchaseType }) => purchaseType.is_attendance_ticket)
             .sort((a, b) => b.purchaseType.price_in_cents - a.purchaseType.price_in_cents)
+            .sort((a, b) => a.purchaseType.sort_order - b.purchaseType.sort_order)
     , [festivalPurchases])
 
     const otherPurchases = useMemo(() =>
         festivalPurchases
             .filter(({ purchaseType }) => !purchaseType.is_attendance_ticket)
             .sort((a, b) => a.purchaseType.description.localeCompare(b.purchaseType.description))
+            .sort((a, b) => a.purchaseType.sort_order - b.purchaseType.sort_order)
     , [festivalPurchases])
 
     const attendancePurchaseOptions = useMemo(() =>

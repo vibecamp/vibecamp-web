@@ -245,6 +245,7 @@ export type Tables = {
     max_per_account: number | null,
     price_in_cents: number,
     purchase_type_id: purchase_type__purchase_type_id_Type,
+    sort_order: number,
   },
   stored_image: {
     image_data: unknown,
@@ -300,7 +301,7 @@ export const TABLE_COLUMNS = {
   invite_code: ["code","created_by_account_id","festival_id","used_by_account_id"],
   purchase: ["applied_discount","checked_in","is_test_purchase","owned_by_account_id","purchase_id","purchase_type_id","purchased_on","stripe_payment_intent"],
   purchase_sorted: ["applied_discount","checked_in","is_test_purchase","owned_by_account_id","purchase_id","purchase_type_id","purchased_on","stripe_payment_intent"],
-  purchase_type: ["available_from","available_to","description","festival_id","hidden_from_ui","is_attendance_ticket","low_income_only","max_available","max_per_account","price_in_cents","purchase_type_id"],
+  purchase_type: ["available_from","available_to","description","festival_id","hidden_from_ui","is_attendance_ticket","low_income_only","max_available","max_per_account","price_in_cents","purchase_type_id","sort_order"],
   stored_image: ["image_data","owned_by_account_id","stored_image_id"],
   volunteer_type: ["description","volunteer_type_id"],
 } as const
