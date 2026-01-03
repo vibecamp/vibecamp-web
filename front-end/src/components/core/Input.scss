@@ -13,45 +13,63 @@
         color: var(--focus-color);
     }
 
-    >input::placeholder {
-        color: var(--color-secondary);
-    }
-    >textarea::placeholder {
-        color: var(--color-secondary);
-    }
-
-    >input,
-    >textarea {
-        appearance: none;
-        border: none;
-        background: none;
-
-        color: var(--color-primary);
-        border: var(--controls-border);
-        background: var(--color-background-1);
-        font-size: 16px;
-        font-weight: 300;
-        border-radius: 8px;
-        padding: 10px;
+    >.input-wrapper {
+        position: relative;
         margin-top: 5px;
 
-        transition: border-color 0.1s ease-out;
+        >.placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            padding: 10px;
+            color: var(--color-secondary);
+            font-size: 16px;
+            font-weight: 300;
+            pointer-events: none;
 
-        &:focus {
-            outline: none;
-            border-color: var(--focus-color);
-            box-shadow: 0px 0px 3px var(--focus-color);
+            >.icon {
+                font-size: 20px;
+            }
+        }
+
+        >input,
+        >textarea {
+            appearance: none;
+            border: none;
+            background: none;
+
+            width: 100%;
+            color: var(--color-primary);
+            border: var(--controls-border);
+            background: var(--color-background-1);
+            font-size: 16px;
+            font-weight: 300;
+            border-radius: 8px;
+            padding: 10px;
+
+            transition: border-color 0.1s ease-out;
+
+            &:focus {
+                outline: none;
+                border-color: var(--focus-color);
+                box-shadow: 0px 0px 3px var(--focus-color);
+            }
+        }
+
+        >textarea {
+            resize: none;
+            font-family: inherit;
         }
     }
 
-    >textarea {
-        resize: none;
-        font-family: inherit;
-    }
-
     &.disabled {
-        > input,
-        > textarea {
+        .input-wrapper > input,
+        .input-wrapper > textarea {
             filter: contrast(0.8);
         }
     }

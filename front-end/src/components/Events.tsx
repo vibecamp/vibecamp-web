@@ -82,6 +82,7 @@ export default React.memo(() => {
 
                     <Row justify='stretch' align='center' padding='0 20px'>
                         <Input
+                            placeholderIcon='search'
                             placeholder='Search...'
                             value={searchString}
                             onChange={setSearchString}
