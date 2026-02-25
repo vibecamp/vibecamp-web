@@ -59,7 +59,7 @@ export default React.memo(() => {
                             <Spacer size={24} />
 
                             <div className='card'>
-                                <a href='https://discord.gg/rtfUyZxu' target='_blank' rel="noreferrer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <a href='https://discord.gg/k6HzM3dNNy' target='_blank' rel="noreferrer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                     <img src='/discord.svg' width={22} height={22} />
 
                                     <Spacer size={12} />
