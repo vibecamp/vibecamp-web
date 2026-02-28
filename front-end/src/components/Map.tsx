@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react'
 import { MapContainer } from 'react-leaflet'
 import { TileLayer } from 'react-leaflet'
@@ -15,10 +16,10 @@ export default React.memo(() => {
             <Spacer size={16} />
 
             {typeof window !== 'undefined' &&
-                // @ts-expect-error Bad library types
+                // @ts-ignore Bad library types
                 <MapContainer center={[39.645899, -76.172219]} zoom={16} scrollWheelZoom={false} style={{ height: window.innerHeight * 0.6 }}>
                     <TileLayer
-                        // @ts-expect-error Bad library types
+                        // @ts-ignore Bad library types
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
