@@ -4,7 +4,10 @@
         "es2021": true
     },
     "ignorePatterns": [
-        "out/*"
+        "out/*",
+        ".next/*",
+        "next.config.js",
+        "sw.js"
     ],
     "extends": [
         "eslint:recommended",

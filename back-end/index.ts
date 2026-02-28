@@ -71,7 +71,7 @@ const ALLOWED_ORIGINS = new Set([
   'https://vibe.camp',
   'https://next.vibe.camp',
   'https://my.vibe.camp',
-  'http://localhost:8080',
+  'http://localhost:3000',
 ])
 
 // routes

@@ -19,16 +19,21 @@
     "jsx": "preserve",
     "incremental": true,
     "allowImportingTsExtensions": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     "next-sitemap.config.js",
-    "build.js",
-    "src/sw.js"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next"
   ]
 }

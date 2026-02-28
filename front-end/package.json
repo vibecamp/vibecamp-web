@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "statics": "mkdir -p out/ && cp public/* out/",
-    "dev": "npm run statics && sass src/index.scss out/app.css --watch & node build.js --watch & tsc --watch & npm run serve",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "check": "eslint . && tsc",
-    "fix": "eslint . --fix",
-    "build": "npm run check && npm run statics && npx sass src/index.scss out/app.css --style=compressed && node build.js --minify",
-    "serve": "http-server out"
+    "fix": "eslint . --fix"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^2.3.1",
@@ -19,7 +18,7 @@
     "@types/uuid": "^9.0.0",
     "dayjs": "^1.11.10",
     "debounce": "^1.2.1",
-    "esbuild": "^0.18.11",
+    "next": "^15.3.3",
     "jwt-decode": "^3.1.2",
     "leaflet": "^1.9.4",
     "markdown-it": "^13.0.1",
@@ -40,7 +39,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "eslint-plugin-unused-imports": "^3.0.0",
-    "http-server": "^14.1.1",
     "sass": "^1.63.6",
     "typescript": "5.1.6"
   },
