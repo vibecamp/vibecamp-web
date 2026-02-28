@@ -52,6 +52,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'ATTENDANCE_VIBECLIPSE_2024_2_TO_5',
@@ -65,6 +66,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'ATTENDANCE_VIBECLIPSE_2024_5_TO_10',
@@ -78,6 +80,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'ATTENDANCE_VIBECLIPSE_2024_DAY_PASS',
@@ -91,6 +94,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'ATTENDANCE_VIBECLIPSE_2024_OVER_16',
@@ -104,6 +108,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'BUS_330PM_VIBECLIPSE_2024',
@@ -117,6 +122,7 @@ Deno.test({
           'available_to': new Date('2024-04-02T05:00:00.000Z'),
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'BUS_430PM_VIBECLIPSE_2024',
@@ -130,6 +136,7 @@ Deno.test({
           'available_to': new Date('2024-04-02T05:00:00.000Z'),
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'BUS_730PM_VIBECLIPSE_2024',
@@ -144,6 +151,7 @@ Deno.test({
           'available_to': new Date('2024-04-02T05:00:00.000Z'),
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'BUS_830PM_VIBECLIPSE_2024',
@@ -158,6 +166,7 @@ Deno.test({
           'available_to': new Date('2024-04-02T05:00:00.000Z'),
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'PILLOW_WITH_CASE_VIBECLIPSE_2024',
@@ -171,6 +180,7 @@ Deno.test({
           'available_to': new Date('2024-03-26T05:00:00.000Z'),
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'SLEEPING_BAG_VIBECLIPSE_2024',
@@ -184,6 +194,7 @@ Deno.test({
           'available_to': new Date('2024-03-26T05:00:00.000Z'),
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_BASIC_TICKET',
@@ -197,6 +208,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_BASIC_TICKET_UNDER_8',
@@ -210,6 +222,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_BUS_FROM_BALTIMORE_1PM',
@@ -224,6 +237,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_BUS_FROM_BALTIMORE_4PM',
@@ -238,6 +252,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_BUS_FROM_PHILADELPHIA_1PM',
@@ -252,6 +267,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_BUS_FROM_PHILADELPHIA_415PM',
@@ -266,6 +282,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_BUS_TO_BALTIMORE_1130AM',
@@ -280,6 +297,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_BUS_TO_BALTIMORE_230PM',
@@ -294,6 +312,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_BUS_TO_PHILADELPHIA_1115AM',
@@ -308,6 +327,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_BUS_TO_PHILADELPHIA_215PM',
@@ -322,6 +342,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_CABIN_TICKET',
@@ -335,6 +356,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_CABIN_TICKET_UNDER_8',
@@ -348,6 +370,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_PILLOW',
@@ -361,6 +384,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_SHEETS_AND_BLANKET',
@@ -374,6 +398,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
         {
           'purchase_type_id': 'VIBECAMP_3_SLEEPING_BAG',
@@ -387,6 +412,7 @@ Deno.test({
           'available_to': null,
           hidden_from_ui: false,
           low_income_only: false,
+          sort_order: 0,
         },
       ]),
       [
@@ -413,6 +439,7 @@ Deno.test({
             available_to: null,
             hidden_from_ui: false,
             low_income_only: false,
+            sort_order: 0,
           },
         },
         {
@@ -438,6 +465,7 @@ Deno.test({
             available_to: null,
             hidden_from_ui: false,
             low_income_only: false,
+            sort_order: 0,
           },
         },
         {
@@ -464,6 +492,7 @@ Deno.test({
             available_to: null,
             hidden_from_ui: false,
             low_income_only: false,
+            sort_order: 0,
           },
         },
       ],
@@ -592,20 +621,18 @@ Deno.test({
       { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: undefined },
       // @ts-ignore
       { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: '12345' },
-      15
     ))
   }
 })
 
 Deno.test({
-  name: 'checkInProgressEventOverlap | overlap with buffer',
+  name: 'checkInProgressEventOverlap | no overlap when start times differ and no end times',
   fn() {
-    assert(checkInProgressEventOverlap(
+    assert(!checkInProgressEventOverlap(
       // @ts-ignore
       { start_datetime: dayjs('2025-06-19 18:10:00'), end_datetime: null, event_site_location: 'Pool', event_id: undefined },
       // @ts-ignore
       { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: '12345' },
-      15
     ))
   }
 })
@@ -618,7 +645,6 @@ Deno.test({
       { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: undefined },
       // @ts-ignore
       { start_datetime: dayjs('2025-06-20 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: '12345' },
-      15
     ))
   }
 })
@@ -631,7 +657,6 @@ Deno.test({
       { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: undefined },
       // @ts-ignore
       { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Field', event_id: '12345' },
-      15
     ))
   }
 })
@@ -644,7 +669,6 @@ Deno.test({
       { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: '12345' },
       // @ts-ignore
       { start_datetime: dayjs('2025-06-19 18:00:00'), end_datetime: null, event_site_location: 'Pool', event_id: '12345' },
-      15
     ))
   }
 })
