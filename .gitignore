@@ -7,6 +7,11 @@ node_modules
 
 # testing
 /coverage
+front-end/test-results/
+front-end/playwright-report/
+front-end/blob-report/
+front-end/playwright/.cache/
+front-end/.stripe-webhook-secret
 
 # next.js
 front-end/.next/
@@ -43,3 +48,5 @@ front-end/.vscode
 back-end/.env
 
 .zed
+
+.last-run.json

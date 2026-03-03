@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "check": "eslint . && tsc",
-    "fix": "eslint . --fix"
+    "fix": "eslint . --fix",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^2.3.1",
@@ -18,11 +21,11 @@
     "@types/uuid": "^9.0.0",
     "dayjs": "^1.11.10",
     "debounce": "^1.2.1",
-    "next": "^15.3.3",
     "jwt-decode": "^3.1.2",
     "leaflet": "^1.9.4",
     "markdown-it": "^13.0.1",
     "markdown-it-named-headings": "^1.1.0",
+    "next": "^15.3.3",
     "qrcode.react": "^3.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -30,6 +33,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/debounce": "^1.2.1",
     "@types/markdown-it": "^12.2.3",
     "@typescript-eslint/eslint-plugin": "^6.0.0",

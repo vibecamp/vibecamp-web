@@ -132,6 +132,10 @@ export const rateLimited = <
   ms: number,
   fn: (context: TContext) => Promise<TReturn>,
 ): (context: TContext) => Promise<[TReturn[0] | null, Status]> => {
+  if (Deno.env.get('DISABLE_RATE_LIMIT') === '1') {
+    return fn
+  }
+
   const lastRequestFor = new Map<string, number>()
 
   setInterval(() => {

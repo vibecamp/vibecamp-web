@@ -7,7 +7,9 @@
         "out/*",
         ".next/*",
         "next.config.js",
-        "sw.js"
+        "sw.js",
+        "tests/*",
+        "playwright.config.ts"
     ],
     "extends": [
         "eslint:recommended",
