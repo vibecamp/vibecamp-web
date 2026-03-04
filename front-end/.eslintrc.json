@@ -9,7 +9,8 @@
         "next.config.js",
         "sw.js",
         "tests/*",
-        "playwright.config.ts"
+        "playwright.config.ts",
+        "drizzle"
     ],
     "extends": [
         "eslint:recommended",

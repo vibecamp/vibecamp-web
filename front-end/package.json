@@ -10,7 +10,8 @@
     "fix": "eslint . --fix",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug"
+    "test:e2e:debug": "playwright test --debug",
+    "db:introspect": "drizzle-kit introspect"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^2.3.1",
@@ -21,11 +22,13 @@
     "@types/uuid": "^9.0.0",
     "dayjs": "^1.11.10",
     "debounce": "^1.2.1",
+    "drizzle-orm": "^0.45.1",
     "jwt-decode": "^3.1.2",
     "leaflet": "^1.9.4",
     "markdown-it": "^13.0.1",
     "markdown-it-named-headings": "^1.1.0",
     "next": "^15.3.3",
+    "postgres": "^3.4.8",
     "qrcode.react": "^3.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -38,6 +41,7 @@
     "@types/markdown-it": "^12.2.3",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "drizzle-kit": "^0.31.9",
     "eslint": "8.31.0",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
