@@ -14,6 +14,7 @@ const TYPE_MAP = {
   'timestamp': 'Date',
   'timestamp without time zone': 'Date',
   'timestamp with time zone': 'Date',
+  'ARRAY': 'unknown[]'
 } as const
 
 /**
