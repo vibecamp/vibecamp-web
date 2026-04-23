@@ -6,6 +6,7 @@ import useHashState from '../hooks/useHashState'
 import { useLocalStorageState } from '../hooks/useLocalStorageState'
 import { useStore } from '../hooks/useStore'
 import Button from './core/Button'
+import ButtonLink from './core/ButtonLink'
 import Col from './core/Col'
 import Icon from './core/Icon'
 import LoadingDots from './core/LoadingDots'
@@ -58,23 +59,27 @@ export default React.memo(() => {
 
                             <Spacer size={24} />
 
-                            <div className='card'>
-                                <a href='https://discord.gg/k6HzM3dNNy' target='_blank' rel="noreferrer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <img src='/discord.svg' width={22} height={22} />
+                            <ButtonLink isPrimary isCompact href='https://vibe.camp' style={{ textAlign: 'center' }} >
+                                Vibecamp Main Site <Spacer size={8} /> <Icon name='open_in_new' style={{ fontSize: '1em' }} />
+                            </ButtonLink>
 
-                                    <Spacer size={12} />
+                            <Spacer size={8} />
 
-                                    Join the Vibecamp discord!
+                            <ButtonLink isCompact href='https://discord.gg/k6HzM3dNNy' target='_blank' rel="noreferrer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <img src='/discord.svg' width={20} height={20} />
 
-                                    <Spacer size={4} />
+                                <Spacer size={12} />
 
-                                    <Icon name='open_in_new' style={{ fontSize: '1em' }} />
-                                </a>
-                            </div>
+                                Join the Vibecamp discord!
+
+                                <Spacer size={8} />
+
+                                <Icon name='open_in_new' style={{ fontSize: '1em' }} />
+                            </ButtonLink>
 
                             {!newsletterPromptDismissed &&
                                 <>
-                                    <Spacer size={16} />
+                                    <Spacer size={8} />
 
                                     <div className='card'>
                                         <div style={{ textAlign: 'center' }}>

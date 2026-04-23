@@ -7,8 +7,10 @@ import { useStore } from '../hooks/useStore'
 import { DEFAULT_FORM_ERROR } from '../utils'
 import { vibefetch } from '../vibefetch'
 import Button from './core/Button'
+import ButtonLink from './core/ButtonLink'
 import Col from './core/Col'
 import ErrorMessage from './core/ErrorMessage'
+import Icon from './core/Icon'
 import Input from './core/Input'
 import Spacer from './core/Spacer'
 import Stripes from './core/Stripes'
@@ -177,21 +179,22 @@ export default React.memo(() => {
                     ? <Button onClick={() => setMode('forgot-password')}>Forgot your password?</Button>
                     : <Button onClick={() => setMode('login')}>Back to login</Button>}
 
+                <Spacer size={16} />
+
+                <div style={{ textAlign: 'center' }}>
+                    If you have trouble logging in, please email us at <a href='mailto:support@vibe.camp'>support@vibe.camp</a>
+                </div>
+
                 <Spacer size={32} />
 
                 <hr style={{ borderColor: 'var(--color-secondary)' }} />
 
                 <Spacer size={32} />
 
-                <div style={{ textAlign: 'center' }}>
-                    More info about vibecamp, including pricing, can be found at <a href='https://vibe.camp' target='_blank' rel="noreferrer">vibe.camp</a>
-                </div>
+                <ButtonLink isPrimary href='https://vibe.camp' style={{ textAlign: 'center' }}>
+                    Vibecamp Main Site <Spacer size={8} /> <Icon name='open_in_new' style={{ fontSize: '1em' }} />
+                </ButtonLink>
 
-                <Spacer size={16} />
-
-                <div style={{ textAlign: 'center' }}>
-                    If you have trouble logging in, please email us at <a href='mailto:support@vibe.camp'>support@vibe.camp</a>
-                </div>
             </Col>
         </form>
     )

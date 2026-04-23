@@ -3,24 +3,32 @@ import React, { CSSProperties } from 'react'
 import { CommonFieldProps } from './_common'
 import LoadingDots from './LoadingDots'
 
-type Props = Pick<CommonFieldProps<never>, 'disabled'> & {
-    onClick?: () => void,
-    isSubmit?: boolean,
+export type ButtonStyleProps = {
     isPrimary?: boolean,
     isDanger?: boolean,
-    isLoading?: boolean,
     isCompact?: boolean,
     isBorderless?: boolean,
-    children: React.ReactNode,
     className?: string,
-    style?: CSSProperties
+    style?: CSSProperties,
+    children: React.ReactNode,
 }
 
-export default React.memo(({ isPrimary, isDanger, isCompact, isBorderless, className, style, isSubmit, disabled, isLoading, onClick, children }: Props) => {
+export function buttonClassName({ isPrimary, isDanger, isCompact, isBorderless, className }: ButtonStyleProps) {
+    return 'button' + ' ' + (isPrimary ? 'primary' : '') + ' ' + (isDanger ? 'danger' : '') + ' ' + (isCompact ? 'compact' : '') + ' ' + (isBorderless ? 'borderless' : '') + ' ' + className
+}
+
+type Props = ButtonStyleProps & Pick<CommonFieldProps<never>, 'disabled'> & {
+    onClick?: () => void,
+    isSubmit?: boolean,
+    isLoading?: boolean,
+}
+
+export default React.memo((props: Props) => {
+    const { style, isSubmit, disabled, isLoading, onClick, isPrimary, isDanger, children } = props
 
     return (
         <button
-            className={'button' + ' ' + (isPrimary ? 'primary' : '') + ' ' + (isDanger ? 'danger' : '') + ' ' + (isCompact ? 'compact' : '') + ' ' + (isBorderless ? 'borderless' : '') + ' ' + className}
+            className={buttonClassName(props)}
             style={style}
             type={isSubmit ? 'submit' : 'button'}
             disabled={disabled || isLoading}
