@@ -36,6 +36,7 @@
     "node_modules",
     ".next",
     "tests",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "drizzle"
   ]
 }
