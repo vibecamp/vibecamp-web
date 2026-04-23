@@ -122,6 +122,7 @@ export const eventSite = pgTable("event_site", {
 	equipment: text(),
 	peopleCap: integer("people_cap"),
 	structureType: text("structure_type").notNull(),
+	forbiddenForNewEvents: boolean("forbidden_for_new_events").default(false).notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.festivalSiteId],
