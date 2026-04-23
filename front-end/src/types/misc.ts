@@ -13,5 +13,6 @@ export type InProgressEvent = {
     event_type: Tables['event']['event_type'] | undefined,
     bookmarks?: unknown,
     created_by?: unknown,
-    creator_name?: unknown
+    creator_name?: unknown,
+    tags: Tables['event']['tags']
 }

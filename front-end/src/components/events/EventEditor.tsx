@@ -45,7 +45,8 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                     end_datetime: null,
                     plaintext_location: null,
                     event_site_location: null,
-                    event_type: undefined
+                    event_type: undefined,
+                    tags: []
                 }
                 : {
                     event_id: eventBeingEdited.event_id,
@@ -55,7 +56,8 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                     end_datetime: eventBeingEdited.end_datetime,
                     plaintext_location: eventBeingEdited.plaintext_location,
                     event_site_location: eventBeingEdited.event_site_location,
-                    event_type: eventBeingEdited.event_type
+                    event_type: eventBeingEdited.event_type,
+                    tags: eventBeingEdited.tags
                 }
         ),
         validators: {
