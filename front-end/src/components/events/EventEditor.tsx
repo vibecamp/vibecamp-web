@@ -121,7 +121,8 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
 
     const ongoingFestivalsEventSites = useMemo(() =>
         ongoingFestivals
-            .map(f => store.eventSites.state.result?.filter(s => s.festival_site_id === f.festival_site_id) ?? [])
+            .map(f =>
+                store.eventSites.state.result?.filter(s => s.festival_site_id === f.festival_site_id && !s.forbidden_for_new_events) ?? [])
             .flat()
     , [ongoingFestivals, store.eventSites.state.result])
 
