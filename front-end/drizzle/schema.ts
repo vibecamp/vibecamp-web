@@ -1,5 +1,11 @@
-import { pgTable, text, index, foreignKey, uuid, boolean, integer, timestamp, date, point, doublePrecision, pgView } from "drizzle-orm/pg-core"
+import { pgTable, text, index, foreignKey, uuid, boolean, integer, timestamp, date, point, doublePrecision, pgView, customType } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
+
+const bytea = customType<{ data: Buffer }>({
+	dataType() {
+		return "bytea";
+	},
+});
 
 
 
@@ -200,8 +206,7 @@ export const announcement = pgTable("announcement", {
 export const storedImage = pgTable("stored_image", {
 	storedImageId: uuid("stored_image_id").defaultRandom().notNull(),
 	ownedByAccountId: uuid("owned_by_account_id"),
-	// TODO: failed to parse database type 'bytea'
-	imageData: unknown("image_data").notNull(),
+	imageData: bytea("image_data").notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.ownedByAccountId],
