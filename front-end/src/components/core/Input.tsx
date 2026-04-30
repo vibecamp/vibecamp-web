@@ -1,6 +1,5 @@
-import React, { ChangeEvent, CSSProperties, HTMLInputTypeAttribute, InputHTMLAttributes, ReactNode, useCallback, useState } from 'react'
+import React, { ChangeEvent, CSSProperties, HTMLInputTypeAttribute, InputHTMLAttributes, ReactNode, useCallback, useLayoutEffect, useState } from 'react'
 
-import { given } from '../../../../back-end/utils/misc'
 import { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 import Icon, { MaterialIconName } from './Icon'
@@ -23,7 +22,13 @@ export default React.memo(({ label, value, onChange, onBlur, disabled, placehold
     }, [onChange])
 
     const [textarea, setTextarea] = useState<HTMLTextAreaElement | null>(null)
-    const textareaHeight = given(textarea?.scrollHeight, scrollHeight => scrollHeight + 2) ?? undefined
+
+    useLayoutEffect(() => {
+        if (textarea) {
+            textarea.style.height = 'auto'
+            textarea.style.height = `${textarea.scrollHeight + 2}px`
+        }
+    }, [textarea, value])
 
     const [isFocused, setIsFocused] = useState(false)
     const handleFocus = useCallback(() => setIsFocused(true), [])
@@ -61,7 +66,6 @@ export default React.memo(({ label, value, onChange, onBlur, disabled, placehold
                 {multiline
                     ? <textarea
                         {...sharedProps}
-                        style={{ height: textareaHeight }}
                         ref={setTextarea}
                     />
                     : <input
