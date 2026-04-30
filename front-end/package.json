@@ -8,6 +8,8 @@
     "start": "next start",
     "check": "eslint . && tsc",
     "fix": "eslint . --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
@@ -37,7 +39,10 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
     "@types/debounce": "^1.2.1",
+    "@types/jest": "^30.0.0",
     "@types/markdown-it": "^12.2.3",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
@@ -47,6 +52,8 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "eslint-plugin-unused-imports": "^3.0.0",
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
     "sass": "^1.63.6",
     "typescript": "5.1.6"
   },

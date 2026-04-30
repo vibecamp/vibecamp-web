@@ -1,6 +1,8 @@
 import { FormEvent, useCallback, useMemo, useState } from 'react'
 
+import { objectEntries } from '../../../back-end/utils/misc'
 import { CommonFieldProps } from '../components/core/_common'
+import useKeyedMemo from './useKeyedMemo'
 import { usePromise } from './usePromise'
 
 export type UseFormInit<T extends Record<string, unknown>> = {
@@ -39,23 +41,31 @@ export default function useForm<T extends Record<string, unknown>>({ initial, va
     })
     const [dirty, setDirty] = useState(false)
 
-    const fields = useMemo(() => {
-        const newObj = {} as Fields<T>
-        for (const key in values) {
-            newObj[key] = {
-                value: values[key],
-                set: val => {
-                    if (values[key] !== val) {
-                        setValues({ ...values, [key]: val })
-                        setDirty(true)
-                    }
-                },
-                error: validationActive[key] ? validators[key]?.(values[key], values) : undefined,
-                activateValidation: () => setValidationActive({ ...validationActive, [key]: true })
-            }
+    // Each field is memoized on its own value + error, so consumers spreading
+    // fieldToProps(fields.x) into memoized children can bail out of re-renders
+    // for untouched fields. The callbacks use the functional setter form so
+    // they don't need to close over sibling state.
+    const fieldInputs = Object.fromEntries(
+        objectEntries(values).map(([key, value]) => {
+            const error = validationActive[key] ? validators[key]?.(value, values) : undefined
+            return [key, [value, error] as const]
+        })
+    ) as Record<keyof T & string, readonly [unknown, string | undefined]>
+    const fields = useKeyedMemo(fieldInputs, (key, [value, error]) => ({
+        value: value as T[typeof key],
+        error,
+        set: (val: T[typeof key]) => {
+            // value is the current value at the time the field was created; in
+            // practice that matches the latest committed state because a fresh
+            // field is built whenever value/error changes.
+            if (value === val) return
+            setValues(p => p[key] === val ? p : { ...p, [key]: val })
+            setDirty(true)
+        },
+        activateValidation: () => {
+            setValidationActive(p => p[key] ? p : { ...p, [key]: true })
         }
-        return newObj
-    }, [validationActive, validators, values])
+    })) as unknown as Fields<T>
 
     const reset: Form<T>['reset'] = useCallback(to => {
         setValues(to ?? initial)
