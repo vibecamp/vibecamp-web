@@ -156,6 +156,7 @@ export type Tables = {
     purchase_type_id: Tables['purchase_type']['purchase_type_id'],
   },
   event: {
+    av_needs: string | null,
     created_by_account_id: Tables['account']['account_id'],
     description: string,
     end_datetime: Date | null,
@@ -295,7 +296,7 @@ export const TABLE_COLUMNS = {
   cabin: ["cabin_id", "festival_site_id", "max_occupancy", "name", "nickname", "notes"],
   diet: ["description", "diet_id"],
   discount: ["discount_code", "discount_id", "price_multiplier", "purchase_type_id"],
-  event: ["created_by_account_id", "description", "end_datetime", "event_id", "event_site_location", "event_type", "last_modified", "name", "plaintext_location", "start_datetime", "tags", "will_be_filmed"],
+  event: ["av_needs", "created_by_account_id", "description", "end_datetime", "event_id", "event_site_location", "event_type", "last_modified", "name", "plaintext_location", "start_datetime", "tags", "will_be_filmed"],
   event_bookmark: ["account_id", "event_id"],
   event_site: ["can_host_multiple_events", "description", "equipment", "event_site_id", "festival_site_id", "forbidden_for_new_events", "is_av_site", "location", "name", "people_cap", "structure_type", "theme"],
   event_type: ["event_type_id"],
