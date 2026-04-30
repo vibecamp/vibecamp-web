@@ -11,6 +11,7 @@ import Col from './core/Col'
 import Icon from './core/Icon'
 import LoadingDots from './core/LoadingDots'
 import Modal from './core/Modal'
+import Row from './core/Row'
 import Spacer from './core/Spacer'
 import PurchaseTicketsModal from './tickets/PurchaseTicketsModal'
 import Ticket from './tickets/Ticket'
@@ -59,23 +60,25 @@ export default React.memo(() => {
 
                             <Spacer size={24} />
 
-                            <ButtonLink isPrimary isCompact href='https://vibe.camp' style={{ textAlign: 'center' }} >
-                                Vibecamp Main Site <Spacer size={8} /> <Icon name='open_in_new' style={{ fontSize: '1em' }} />
-                            </ButtonLink>
-
-                            <Spacer size={8} />
-
-                            <ButtonLink isCompact href='https://discord.gg/k6HzM3dNNy' target='_blank' rel="noreferrer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                <img src='/discord.svg' width={20} height={20} />
-
-                                <Spacer size={12} />
-
-                                Join the Vibecamp discord!
+                            <Row>
+                                <ButtonLink isPrimary href='https://vibe.camp' style={{ textAlign: 'center' }} >
+                                    Main Site <Spacer size={8} /> <Icon name='open_in_new' style={{ fontSize: '1em' }} />
+                                </ButtonLink>
 
                                 <Spacer size={8} />
 
-                                <Icon name='open_in_new' style={{ fontSize: '1em' }} />
-                            </ButtonLink>
+                                <ButtonLink href='https://discord.gg/k6HzM3dNNy' target='_blank' rel="noreferrer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <img src='/discord.svg' width={20} height={20} />
+
+                                    <Spacer size={12} />
+
+                                    Discord
+
+                                    <Spacer size={8} />
+
+                                    <Icon name='open_in_new' style={{ fontSize: '1em' }} />
+                                </ButtonLink>
+                            </Row>
 
                             {!newsletterPromptDismissed &&
                                 <>
