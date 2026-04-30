@@ -2,6 +2,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import React, { useCallback, useMemo, useState } from 'react'
 
 import { Routes } from '../../../../back-end/types/route-types'
+import useHashState from '../../hooks/useHashState'
 import { usePromise } from '../../hooks/usePromise'
 import { useStore } from '../../hooks/useStore'
 import { urlsToLinks } from '../../utils'
@@ -38,6 +39,8 @@ export default React.memo(({ event, editEvent, firstOfFestival, duringFestival }
 
 export function EventInfo({ event, editEvent }: Pick<Props, 'event' | 'editEvent'>) {
     const store = useStore()
+    const { hashState, getHashStateString } = useHashState()
+    const alreadyViewing = hashState?.viewingEventDetails === event.event_id
 
     const [bookmarkStatusOptimistic, setBookmarkStatusOptimistic] = useState<boolean | null>(null)
     const bookmarked = bookmarkStatusOptimistic ?? store.bookmarks.state.result?.event_ids.includes(event.event_id)
@@ -79,7 +82,9 @@ export function EventInfo({ event, editEvent }: Pick<Props, 'event' | 'editEvent
     return (
         <div className='eventInfo'>
             <div className='eventName'>
-                <div>{event.name}</div>
+                {alreadyViewing
+                    ? <div>{event.name}</div>
+                    : <a href={'#' + getHashStateString({ viewingEventDetails: event.event_id })}>{event.name}</a>}
 
                 <div style={{ flexGrow: 1, flexShrink: 1 }} />
 

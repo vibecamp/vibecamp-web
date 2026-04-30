@@ -156,6 +156,8 @@ export default React.memo(() => {
                             ? <CompactEvents events={visibleEvents} editEvent={editEvent} />
                             : <Events events={visibleEvents} editEvent={editEvent} />}
 
+                    <ViewingEventDetailsModal events={visibleEvents} editEvent={editEvent} />
+
                     <Modal isOpen={eventBeingEdited != null} onClose={stopEditingEvent} side='right'>
                         {() =>
                             eventBeingEdited && <EventEditor eventBeingEdited={eventBeingEdited} onDone={stopEditingEvent} />}
@@ -164,6 +166,22 @@ export default React.memo(() => {
         </Col>
     )
 })
+
+function ViewingEventDetailsModal({ events, editEvent }: { events: readonly DayjsEvent[], editEvent: (eventId: string) => void }) {
+    const { hashState, setHashState } = useHashState()
+    const viewingEvent = useMemo(() => events.find(e => e.event_id === hashState?.viewingEventDetails), [events, hashState?.viewingEventDetails])
+    const close = useCallback(() => setHashState({ viewingEventDetails: undefined }), [setHashState])
+
+    return (
+        <Modal isOpen={viewingEvent != null} onClose={close} side='right'>
+            {() =>
+                viewingEvent &&
+                    <div style={{ padding: 20 }}>
+                        <EventInfo event={viewingEvent} editEvent={editEvent} />
+                    </div>}
+        </Modal>
+    )
+}
 
 function Events({ events, editEvent }: { events: readonly DayjsEvent[], editEvent: (eventId: string) => void }) {
     const store = useStore()
@@ -192,43 +210,31 @@ function Events({ events, editEvent }: { events: readonly DayjsEvent[], editEven
     </>
 }
 
-function CompactEvents({ events, editEvent }: { events: readonly DayjsEvent[], editEvent: (eventId: string) => void }) {
-    const { hashState, setHashState, getHashStateString } = useHashState()
-
-    const viewingEvent = useMemo(() => events.find(e => e.event_id === hashState?.viewingEventDetails), [events, hashState?.viewingEventDetails])
+function CompactEvents({ events }: { events: readonly DayjsEvent[], editEvent: (eventId: string) => void }) {
+    const { getHashStateString } = useHashState()
 
     return (
-        <>
-            <div className='compactEvents'>
-                <a className='headings'>
-                    <div className='time'>When</div>
-                    <div className='name'>What</div>
-                    <div className='filmed' />
-                </a>
-                {events.map(e => {
-                    return (
-                        <a
-                            href={'#' + getHashStateString({ viewingEventDetails: e.event_id })}
-                            key={e.event_id}
-                        >
-                            <div className='time'>{e.start_datetime.format('ddd h:mma')}</div>
-                            <div className='name'>{e.name}</div>
-                            <div className='filmed'>
-                                {e.will_be_filmed &&
-                                    <Icon name='videocam' />}
-                            </div>
-                        </a>
-                    )
-                })}
-            </div>
-
-            <Modal isOpen={viewingEvent != null} onClose={() => setHashState({ viewingEventDetails: undefined })} side='right'>
-                {() =>
-                    viewingEvent &&
-                        <div style={{ padding: 20 }}>
-                            <EventInfo event={viewingEvent} editEvent={editEvent} />
-                        </div>}
-            </Modal>
-        </>
+        <div className='compactEvents'>
+            <a className='headings'>
+                <div className='time'>When</div>
+                <div className='name'>What</div>
+                <div className='filmed' />
+            </a>
+            {events.map(e => {
+                return (
+                    <a
+                        href={'#' + getHashStateString({ viewingEventDetails: e.event_id })}
+                        key={e.event_id}
+                    >
+                        <div className='time'>{e.start_datetime.format('ddd h:mma')}</div>
+                        <div className='name'>{e.name}</div>
+                        <div className='filmed'>
+                            {e.will_be_filmed &&
+                                <Icon name='videocam' />}
+                        </div>
+                    </a>
+                )
+            })}
+        </div>
     )
 }
