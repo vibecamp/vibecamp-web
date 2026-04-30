@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check": "eslint . && tsc",
+    "check": "eslint . && tsc && jest",
     "fix": "eslint . --fix",
     "test": "jest",
     "test:watch": "jest --watch",
