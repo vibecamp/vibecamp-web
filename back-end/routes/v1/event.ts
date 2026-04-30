@@ -1,10 +1,11 @@
 import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
-import { withDBConnection } from '../../utils/db.ts'
+import { withDBConnection, VibecampDBClient } from '../../utils/db.ts'
 import { Tables } from '../../types/db-types.ts'
 import dayjs from '../../utils/dayjs.ts'
 import { given } from '../../utils/misc.ts'
 import { icsCalendar } from '../../utils/ics.ts'
+import { avNeedsEmail, sendMail } from '../../utils/mailgun.ts'
 
 const UTC_OFFSET_MINUTES = dayjs().utcOffset()
 
@@ -84,6 +85,10 @@ export default function register(router: Router) {
       return await withDBConnection(async (db) => {
         const last_modified = new Date().toISOString() as unknown as Date // we need a string to preserve the timezone
 
+        const av_needs = typeof event.av_needs === 'string' && event.av_needs.trim() !== ''
+          ? event.av_needs
+          : null
+
         if (event_id) {
           // check that this account owns this event
           const existingEvent = (await db.queryTable('event', {
@@ -97,10 +102,15 @@ export default function register(router: Router) {
             {
               ...event,
               plaintext_location: event.event_site_location ? null : event.plaintext_location,
+              av_needs,
               last_modified
             },
             [['event_id', '=', event_id]]
           )
+
+          if (existingEvent.av_needs == null && av_needs != null) {
+            await notifyAvNeeds(db, { ...event, av_needs }, account_id)
+          }
 
           return [null, Status.OK]
         } else {
@@ -136,8 +146,13 @@ export default function register(router: Router) {
             ...event,
             created_by_account_id: account_id,
             plaintext_location: event.event_site_location ? null : event.plaintext_location,
+            av_needs,
             last_modified
           })
+
+          if (av_needs != null) {
+            await notifyAvNeeds(db, { ...event, av_needs }, account_id)
+          }
 
           return [null, Status.OK]
         }
@@ -248,6 +263,7 @@ export async function getAllEvents() {
           event.created_by_account_id,
           event.event_type,
           event.will_be_filmed,
+          event.av_needs,
           attendee.name as creator_name,
           COUNT(event_bookmark.account_id) as bookmarks
         FROM event
@@ -270,6 +286,7 @@ export async function getAllEvents() {
           event.created_by_account_id,
           event.event_type,
           event.will_be_filmed,
+          event.av_needs,
           account.email_address,
           attendee.name
         ORDER BY
@@ -286,3 +303,48 @@ export async function getAllEvents() {
 }
 
 export type EventInfo = Awaited<ReturnType<typeof getAllEvents>>[number]
+
+async function notifyAvNeeds(
+  db: VibecampDBClient,
+  event: {
+    name: string
+    description: string
+    start_datetime: string | Date
+    end_datetime: string | Date | null
+    event_site_location: Tables['event']['event_site_location']
+    av_needs: string
+  },
+  account_id: Tables['account']['account_id'],
+) {
+  try {
+    const account = (await db.queryTable('account', {
+      where: ['account_id', '=', account_id],
+    }))[0]
+    const attendees = await db.queryTable('attendee', {
+      where: ['associated_account_id', '=', account_id],
+    })
+    const primaryAttendee = attendees.find(a => a.is_primary_for_account) ?? attendees[0]
+
+    const eventSite = event.event_site_location
+      ? (await db.queryTable('event_site', {
+        where: ['event_site_id', '=', event.event_site_location],
+      }))[0]
+      : undefined
+
+    if (account == null) return
+
+    await sendMail(avNeedsEmail(
+      {
+        name: event.name,
+        description: event.description,
+        start_datetime: new Date(event.start_datetime as string),
+        end_datetime: event.end_datetime ? new Date(event.end_datetime as string) : null,
+        av_needs: event.av_needs,
+      },
+      { name: primaryAttendee?.name ?? null, email_address: account.email_address },
+      eventSite?.name ?? null,
+    ))
+  } catch (err) {
+    console.error('Failed to send A/V needs email:', err)
+  }
+}

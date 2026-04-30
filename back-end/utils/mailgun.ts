@@ -88,10 +88,9 @@ export const receiptEmail = async (
     `<tr>
             <td>${purchaseType.description} x${count}</td>
             <td>
-                ${
-      discountMultiplier != null
-        ? `<s>$${formatCents(basePrice)}</s> $${formatCents(discountedPrice)}`
-        : `$${formatCents(basePrice)}`
+                ${discountMultiplier != null
+      ? `<s>$${formatCents(basePrice)}</s> $${formatCents(discountedPrice)}`
+      : `$${formatCents(basePrice)}`
     }
             </td>
         </tr>`
@@ -117,14 +116,13 @@ export const receiptEmail = async (
                 <table>
                     ${purchaseRows}
 
-                    ${
-      discounts.length > 0
+                    ${discounts.length > 0
         ? `<tr>
                             <td>Discount code:</td>
                             <td>${discounts[0]!.discount_code}</td>    
                         </tr>`
         : ''
-    }
+      }
                     
                     <tr>
                         <td>Total:</td>
@@ -142,13 +140,48 @@ export const receiptEmail = async (
   }
 }
 
+const escapeHtml = (s: string) =>
+  s
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+
+export const avNeedsEmail = (
+  event: Pick<Tables['event'], 'name' | 'description' | 'start_datetime' | 'end_datetime' | 'av_needs'>,
+  creator: { name: string | null, email_address: string },
+  eventSiteName: string | null,
+): Email => {
+  const fmtDate = (d: Date | null) =>
+    d == null ? '(none)' : new Date(d).toUTCString()
+
+  return {
+    to: env.AV_NEEDS_EMAIL,
+    subject: `New A/V request: ${event.name}`,
+    html: withContainer(`
+            <div class="container">
+                <h1>New A/V request</h1>
+                <h2>${escapeHtml(event.name)}</h2>
+                <p><b>Host:</b> ${escapeHtml(creator.name ?? '(unnamed)')} &lt;${escapeHtml(creator.email_address)}&gt;</p>
+                <p><b>Site:</b> ${escapeHtml(eventSiteName ?? '(unknown)')}</p>
+                <p><b>Start:</b> ${escapeHtml(fmtDate(event.start_datetime))}</p>
+                <p><b>End:</b> ${escapeHtml(fmtDate(event.end_datetime))}</p>
+                <h3>Event description</h3>
+                <p>${escapeHtml(event.description).replaceAll('\n', '<br>')}</p>
+                <h3>A/V needs</h3>
+                <p>${escapeHtml(event.av_needs ?? '').replaceAll('\n', '<br>')}</p>
+            </div>
+        `),
+  }
+}
+
 export const passwordResetEmail = (
   account: Pick<Tables['account'], 'email_address' | 'account_id'>,
   secret: string,
 ): Email => {
-  const resetUrl = `${env.FRONT_END_BASE_URL}#${
-    encodeURIComponent(JSON.stringify({ [PASSWORD_RESET_SECRET_KEY]: secret }))
-  }`
+  const resetUrl = `${env.FRONT_END_BASE_URL}#${encodeURIComponent(JSON.stringify({ [PASSWORD_RESET_SECRET_KEY]: secret }))
+    }`
 
   return {
     to: account.email_address,

@@ -48,4 +48,5 @@ export default {
   FRONT_END_BASE_URL: assertEnv('FRONT_END_BASE_URL'),
   SELF_LATHING_SECRET_KEY: tryEnv('SELF_LATHING_SECRET_KEY'),
   JWT_SECRET: assertEnv('JWT_SECRET'),
+  AV_NEEDS_EMAIL: assertEnv('AV_NEEDS_EMAIL'),
 }

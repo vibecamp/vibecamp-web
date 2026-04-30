@@ -10,6 +10,7 @@ import { InProgressEvent } from '../../types/misc'
 import { checkInProgressEventOverlap } from '../../utils'
 import { vibefetch } from '../../vibefetch'
 import Button from '../core/Button'
+import Checkbox from '../core/Checkbox'
 import Col from '../core/Col'
 import DateField, { formatNoTimezone } from '../core/DateField'
 import InfoBlurb from '../core/InfoBlurb'
@@ -34,6 +35,10 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
 
     const event_id = typeof eventBeingEdited === 'object' ? eventBeingEdited.event_id : undefined
 
+    const [avChecked, setAvChecked] = useState<boolean>(
+        eventBeingEdited === 'new' || eventBeingEdited.av_needs != null
+    )
+
     const { fields, values: inProgressEvent, handleSubmit, submitting } = useForm<InProgressEvent>({
         initial: (
             eventBeingEdited === 'new'
@@ -45,8 +50,9 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                     end_datetime: null,
                     plaintext_location: null,
                     event_site_location: null,
-                    event_type: undefined,
-                    tags: []
+                    event_type: 'UNOFFICIAL',
+                    tags: [],
+                    av_needs: null
                 }
                 : {
                     event_id: eventBeingEdited.event_id,
@@ -57,7 +63,8 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                     plaintext_location: eventBeingEdited.plaintext_location,
                     event_site_location: eventBeingEdited.event_site_location,
                     event_type: eventBeingEdited.event_type,
-                    tags: eventBeingEdited.tags
+                    tags: eventBeingEdited.tags,
+                    av_needs: eventBeingEdited.av_needs
                 }
         ),
         validators: {
@@ -75,15 +82,24 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
                 if (start_datetime != null && val != null && start_datetime >= val) {
                     return 'End date/time is before start date/time'
                 }
+            },
+            av_needs: (val, { event_site_location }) => {
+                const site = store.eventSites.state.result?.find(s => s.event_site_id === event_site_location)
+                if (site?.is_av_site && avChecked && (val == null || val.trim() === '')) {
+                    return 'Please describe your A/V needs'
+                }
             }
         },
         submit: async ({ start_datetime, end_datetime, bookmarks, created_by, creator_name, ...event }) => {
             if (overlappingEvents.length > 0 && overlapConfirmationState === 'editing') {
                 setOverlapConfirmationState('confirming')
             } else {
+                const submittingSite = store.eventSites.state.result?.find(s => s.event_site_id === event.event_site_location)
+                const av_needs = submittingSite?.is_av_site && avChecked ? event.av_needs : null
                 await vibefetch(store.jwt, '/event/save', 'post', {
                     event: {
                         ...event,
+                        av_needs,
                         start_datetime: formatNoTimezone(start_datetime!),
                         end_datetime: formatNoTimezone(end_datetime) ?? null
                     }
@@ -290,6 +306,42 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
 
                 {selectedSite &&
                     <EventSiteInfo eventSite={selectedSite} />}
+
+                {selectedSite?.is_av_site && <>
+                    <Spacer size={16} />
+
+                    <Checkbox
+                        value={avChecked}
+                        onChange={setAvChecked}
+                        disabled={submitting}
+                    >
+                        My event requires A/V equipment or support
+                    </Checkbox>
+
+                    {avChecked && <>
+                        <Spacer size={8} />
+
+                        <InfoBlurb>
+                            By checking this box, you are agreeing to the following:
+                            <br /><br />
+                            1. I, the event host, will work with Christian, Vibecamp&apos;s head of A/V, to ensure that my A/V needs are communicated beforehand.
+                            <br /><br />
+                            2. Vibecamp cannot guarantee the use of specific equipment.
+                            <br /><br />
+                            3. I, the event host, will submit my A/V requirements before <b>FRIDAY, JUNE 5TH, 2026</b>. Vibecamp will not support A/V requests that we receive after Friday, June 5th.
+                        </InfoBlurb>
+
+                        <Spacer size={8} />
+
+                        <Input
+                            label='Describe your A/V needs'
+                            disabled={submitting}
+                            multiline
+                            {...fieldToProps(fields.av_needs)}
+                            value={fields.av_needs.value ?? ''}
+                        />
+                    </>}
+                </>}
 
                 <Spacer size={16} />
 
