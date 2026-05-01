@@ -2,6 +2,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import React, { useCallback, useMemo, useState } from 'react'
 
 import { Routes } from '../../../../back-end/types/route-types'
+import env from '../../env'
 import useHashState from '../../hooks/useHashState'
 import { usePromise } from '../../hooks/usePromise'
 import { useStore } from '../../hooks/useStore'
@@ -11,6 +12,9 @@ import Button from '../core/Button'
 import Icon from '../core/Icon'
 import Spacer from '../core/Spacer'
 import EventDescription from './EventDescription'
+
+const IS_APPLE_PLATFORM = typeof navigator !== 'undefined' &&
+    /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)
 
 type Props = {
     event: Omit<Routes['/events']['response']['events'][number], 'start_datetime' | 'end_datetime'> & {
@@ -73,6 +77,23 @@ export function EventInfo({ event, editEvent }: Pick<Props, 'event' | 'editEvent
 
     const handleEditButtonClick = useCallback(() => editEvent(event.event_id), [editEvent, event.event_id])
 
+    const handleShareClick = useCallback(async () => {
+        const url = `${env.BACK_END_ORIGIN.replace(/\/$/, '')}/event/${event.event_id}`
+        const shareData = { title: event.name, url }
+        try {
+            if (typeof navigator.share === 'function') {
+                await navigator.share(shareData)
+            } else if (navigator.clipboard) {
+                await navigator.clipboard.writeText(url)
+            }
+        } catch (err) {
+            // User cancelled the share sheet, or clipboard write was denied — nothing to do.
+            if ((err as { name?: string }).name !== 'AbortError') {
+                console.error(err)
+            }
+        }
+    }, [event.event_id, event.name])
+
     const eventCreatorLabel = (
         event.event_type === 'TEAM_OFFICIAL' ? 'Vibecamp team' :
             event.event_type === 'CAMPSITE_OFFICIAL' ? 'Campsite' :
@@ -101,6 +122,12 @@ export function EventInfo({ event, editEvent }: Pick<Props, 'event' | 'editEvent
 
                 <Button onClick={toggleBookmark} isCompact style={{ width: 'auto' }}>
                     <Icon name='star' fill={bookmarked ? 1 : 0} style={{ fontSize: '1em' }} />
+                </Button>
+
+                <Spacer size={8} />
+
+                <Button onClick={handleShareClick} isCompact style={{ width: 'auto' }}>
+                    <Icon name={IS_APPLE_PLATFORM ? 'ios_share' : 'share'} style={{ fontSize: '1em' }} />
                 </Button>
             </div>
 

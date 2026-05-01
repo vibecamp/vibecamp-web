@@ -2,8 +2,9 @@ import { Router, Status } from 'oak'
 import { defineRoute } from './_common.ts'
 import { withDBConnection, VibecampDBClient } from '../../utils/db.ts'
 import { Tables } from '../../types/db-types.ts'
+import env from '../../env.ts'
 import dayjs from '../../utils/dayjs.ts'
-import { given } from '../../utils/misc.ts'
+import { escapeHtml, given } from '../../utils/misc.ts'
 import { icsCalendar } from '../../utils/ics.ts'
 import { avNeedsEmail, sendMail } from '../../utils/mailgun.ts'
 
@@ -231,6 +232,98 @@ export default function register(router: Router) {
       return [null, Status.OK]
     },
   })
+
+  // Share-preview redirect. Bots scraping Open Graph tags read this directly;
+  // humans get an instant client-side redirect into the SPA.
+  router.get('/event/:event_id', async (ctx) => {
+    const eventId = ctx.params.event_id as Tables['event']['event_id']
+
+    const event = await withDBConnection(async (db) => {
+      const rows = await db.queryObject<
+        & Pick<Tables['event'], 'event_id' | 'name' | 'description' | 'event_type'>
+        & { creator_name: Tables['attendee']['name'] | null }
+      >`
+        SELECT
+          event.event_id,
+          event.name,
+          event.description,
+          event.event_type,
+          attendee.name as creator_name
+        FROM event
+        LEFT JOIN account ON event.created_by_account_id = account.account_id
+        LEFT JOIN attendee ON
+          account.account_id = attendee.associated_account_id
+          AND attendee.is_primary_for_account = true
+        WHERE event.event_id = ${eventId}
+        LIMIT 1
+      `
+      return rows.rows[0]
+    })
+
+    ctx.response.type = 'text/html; charset=utf-8'
+
+    const spaUrl = `${env.FRONT_END_BASE_URL}#${encodeURIComponent(JSON.stringify({ currentView: 'Events', viewingEventDetails: eventId }))
+      }`
+
+    if (event == null) {
+      ctx.response.status = Status.NotFound
+      ctx.response.body = renderSharePage({
+        title: 'Vibecamp event',
+        description: 'This event could not be found. It may have been deleted.',
+        redirectUrl: `${env.FRONT_END_BASE_URL}#${encodeURIComponent(JSON.stringify({ currentView: 'Events' }))}`,
+      })
+      return
+    }
+
+    const showHostByline = event.event_type === 'UNOFFICIAL' && event.creator_name
+    const title = showHostByline
+      ? `${event.name} hosted by ${event.creator_name}`
+      : event.name
+
+    ctx.response.status = Status.OK
+    ctx.response.body = renderSharePage({
+      title,
+      description: event.description,
+      redirectUrl: spaUrl,
+    })
+  })
+}
+
+function renderSharePage({ title, description, redirectUrl }: {
+  title: string
+  description: string
+  redirectUrl: string
+}) {
+  const safeTitle = escapeHtml(title)
+  const safeDescription = escapeHtml(truncate(description, 300))
+  const safeRedirect = escapeHtml(redirectUrl)
+  const safeImage = escapeHtml(env.FRONT_END_BASE_URL.replace(/\/$/, '') + '/vibecamp.png')
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>${safeTitle}</title>
+<meta property="og:title" content="${safeTitle}">
+<meta property="og:description" content="${safeDescription}">
+<meta property="og:image" content="${safeImage}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="${safeRedirect}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="${safeTitle}">
+<meta name="twitter:description" content="${safeDescription}">
+<meta name="twitter:image" content="${safeImage}">
+<script>window.location.replace(${JSON.stringify(redirectUrl)})</script>
+</head>
+<body>
+<p>Redirecting to <a href="${safeRedirect}">${safeTitle}</a>&hellip;</p>
+</body>
+</html>`
+}
+
+function truncate(s: string, max: number) {
+  if (s.length <= max) return s
+  return s.slice(0, max - 1).trimEnd() + '…'
 }
 
 export async function getAllEvents() {

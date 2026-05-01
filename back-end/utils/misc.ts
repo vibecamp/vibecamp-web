@@ -34,6 +34,15 @@ export function objectEntries<TObject extends object>(
   return Object.entries(obj) as Array<[keyof TObject, TObject[keyof TObject]]>
 }
 
+export function escapeHtml(s: string) {
+  return s
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
 export function objectFromEntries<
   TKey extends string | number | symbol,
   TValue,

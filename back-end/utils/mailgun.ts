@@ -3,6 +3,7 @@ import { encode } from 'std/encoding/base64.ts'
 import { Purchases } from '../types/route-types.ts'
 import { Tables } from '../types/db-types.ts'
 import {
+  escapeHtml,
   formatCents,
   objectEntries,
   purchaseBreakdown,
@@ -139,14 +140,6 @@ export const receiptEmail = async (
         `),
   }
 }
-
-const escapeHtml = (s: string) =>
-  s
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
 
 export const avNeedsEmail = (
   event: Pick<Tables['event'], 'name' | 'description' | 'start_datetime' | 'end_datetime' | 'av_needs'>,
