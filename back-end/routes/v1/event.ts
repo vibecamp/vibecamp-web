@@ -297,22 +297,30 @@ function renderSharePage({ title, description, redirectUrl }: {
   const safeTitle = escapeHtml(title)
   const safeDescription = escapeHtml(truncate(description, 300))
   const safeRedirect = escapeHtml(redirectUrl)
-  const safeImage = escapeHtml(env.FRONT_END_BASE_URL.replace(/\/$/, '') + '/vibecamp.png')
+  const safeImage = escapeHtml(env.FRONT_END_BASE_URL.replace(/\/$/, '') + '/og-share.png')
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>${safeTitle}</title>
+<meta name="description" content="${safeDescription}">
+<meta property="og:site_name" content="Vibecamp">
 <meta property="og:title" content="${safeTitle}">
 <meta property="og:description" content="${safeDescription}">
 <meta property="og:image" content="${safeImage}">
+<meta property="og:image:secure_url" content="${safeImage}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Vibecamp">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${safeRedirect}">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${safeTitle}">
 <meta name="twitter:description" content="${safeDescription}">
 <meta name="twitter:image" content="${safeImage}">
+<meta name="twitter:image:alt" content="Vibecamp">
 <script>window.location.replace(${JSON.stringify(redirectUrl)})</script>
 </head>
 <body>
