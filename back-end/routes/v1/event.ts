@@ -237,6 +237,11 @@ export default function register(router: Router) {
   // humans get an instant client-side redirect into the SPA.
   router.get('/event/:event_id', async (ctx) => {
     const eventId = ctx.params.event_id as Tables['event']['event_id']
+    // Some crawlers (X/Twitterbot in particular) penalize pages that look like
+    // bait-and-switch — i.e. show OG tags then redirect — so we skip the
+    // redirect for known scrapers. Humans still get the JS redirect.
+    const isCrawler = /bot|crawler|spider|facebookexternalhit|slack|whatsapp|discord|linkedin|preview/i
+      .test(ctx.request.headers.get('user-agent') ?? '')
 
     const event = await withDBConnection(async (db) => {
       const rows = await db.queryObject<
@@ -271,6 +276,7 @@ export default function register(router: Router) {
         title: 'Vibecamp event',
         description: 'This event could not be found. It may have been deleted.',
         redirectUrl: `${env.FRONT_END_BASE_URL}#${encodeURIComponent(JSON.stringify({ currentView: 'Events' }))}`,
+        skipRedirect: isCrawler,
       })
       return
     }
@@ -285,14 +291,16 @@ export default function register(router: Router) {
       title,
       description: event.description,
       redirectUrl: spaUrl,
+      skipRedirect: isCrawler,
     })
   })
 }
 
-function renderSharePage({ title, description, redirectUrl }: {
+function renderSharePage({ title, description, redirectUrl, skipRedirect }: {
   title: string
   description: string
   redirectUrl: string
+  skipRedirect: boolean
 }) {
   const safeTitle = escapeHtml(title)
   const safeDescription = escapeHtml(truncate(description, 300))
@@ -321,7 +329,7 @@ function renderSharePage({ title, description, redirectUrl }: {
 <meta name="twitter:description" content="${safeDescription}">
 <meta name="twitter:image" content="${safeImage}">
 <meta name="twitter:image:alt" content="Vibecamp">
-<script>window.location.replace(${JSON.stringify(redirectUrl)})</script>
+${skipRedirect ? '' : `<script>window.location.replace(${JSON.stringify(redirectUrl)})</script>`}
 </head>
 <body>
 <p>Redirecting to <a href="${safeRedirect}">${safeTitle}</a>&hellip;</p>
