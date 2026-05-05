@@ -29,7 +29,7 @@ test.describe('Tickets', () => {
     // Requires Stripe CLI: brew install stripe/stripe-cli/stripe
     // Run with: TEST_STRIPE=1 npm run test:e2e
     test('Stripe purchase flow', async ({ page }) => {
-        test.skip(!process.env.TEST_STRIPE, 'Set TEST_STRIPE=1 to enable (requires Stripe CLI)')
+        // test.skip(!process.env.TEST_STRIPE, 'Set TEST_STRIPE=1 to enable (requires Stripe CLI)')
         test.setTimeout(120_000) // Stripe iframes can be slow
 
         const { jwt } = await signUpViaAPI()
@@ -40,7 +40,7 @@ test.describe('Tickets', () => {
         await expect(slide.getByRole('heading', { level: 2 }).first()).toBeVisible({ timeout: 15_000 })
 
         // Purchase modal should not be open yet
-        await expect(page.getByLabel('Attendee name')).not.toBeVisible()
+        await expect(slide.getByLabel('Attendee name')).not.toBeVisible()
 
         // Find a "Buy tickets" button (festival with sales_are_open)
         const buyButton = slide.getByRole('button', { name: /buy tickets/i }).first()
@@ -49,28 +49,29 @@ test.describe('Tickets', () => {
         // --- Selection view: fill attendee info (in the purchase modal) ---
 
         // Attendee form should now be visible
-        await expect(page.getByLabel('Attendee name')).toBeVisible({ timeout: 5_000 })
+        await expect(slide.getByLabel('Attendee name')).toBeVisible({ timeout: 5_000 })
 
         // Fill attendee name (required)
-        await page.getByLabel('Attendee name').fill('Test Attendee')
+        await slide.getByLabel('Attendee name').clear()
+        await slide.getByLabel('Attendee name').fill('Test Attendee')
 
         // Select an age range (required) — the fieldset has legend "I am..."
-        const ageGroup = page.locator('fieldset').filter({ hasText: 'I am...' })
+        const ageGroup = slide.locator('fieldset').filter({ hasText: 'I am...' })
         await ageGroup.locator('input[type="radio"]').first().check()
 
         // Select a ticket type (required) — the radio group with name="" (empty label)
-        await page.locator('fieldset input[type="radio"][name=""]').first().check()
+        await slide.locator('fieldset input[type="radio"][name=""]').first().check()
 
         // Accept terms and conditions
-        await page.locator('input[type="checkbox"]').first().check()
+        await slide.locator('input[type="checkbox"]').first().check()
 
         // Scope locators to nested MultiView slides inside the purchase modal
         // (selection=0, payment=1, badges=2)
-        const modalSlide = (index: number) => page.locator('.modal .multi-view .slide').nth(index)
-        const stripeFrame = page.frameLocator('iframe[name*="__privateStripeFrame"]').first()
+        const modalSlide = (index: number) => slide.locator('.modal .multi-view .slide').nth(index)
+        const stripeFrame = slide.frameLocator('iframe[name*="__privateStripeFrame"]').first()
 
         // Proceed to payment
-        await page.getByRole('button', { name: 'Proceed to payment' }).click()
+        await slide.getByRole('button', { name: 'Proceed to payment' }).click()
 
         // --- Payment view: fill Stripe card details ---
 
@@ -84,7 +85,7 @@ test.describe('Tickets', () => {
         await stripeFrame.locator('[name="postalCode"]').fill('12345')
 
         // Submit payment
-        await page.getByRole('button', { name: 'Pay now' }).click()
+        await slide.getByRole('button', { name: 'Pay now' }).click()
 
         // Wait for purchase to complete — badges step heading should be visible
         // in the third slide of the purchase modal's nested MultiView

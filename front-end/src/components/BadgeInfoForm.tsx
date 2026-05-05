@@ -16,7 +16,7 @@ import Spacer from './core/Spacer'
 type Props = {
     festival_id: Tables['festival']['festival_id']
     attendee_id: Tables['attendee']['attendee_id']
-    onSubmitted: () => void
+    onSubmitted?: () => void
 }
 
 export const BadgeInfoForm: FC<Props> = React.memo(({ festival_id, attendee_id, onSubmitted }) => {
@@ -28,16 +28,24 @@ export const BadgeInfoForm: FC<Props> = React.memo(({ festival_id, attendee_id, 
     const attendeeInfo = accountInfo?.attendees.find(a => a.attendee_id === attendee_id)
 
     const { fields, handleSubmit, submitting } = useForm<Omit<Tables['badge_info'], 'badge_info_id' | 'attendee_id' | 'festival_id'>>({
-        initial: existingBadge ?? {
-            badge_name: attendeeInfo?.name || '',
-            badge_username: attendeeInfo?.twitter_handle || attendeeInfo?.discord_handle || '',
-            badge_location: null,
-            badge_bio: null,
-            badge_picture_url: null,
-            badge_picture_image_id: null,
-            attended_vc_1: null,
-            attended_vc_2: null
-        },
+        initial: existingBadge != null
+            ? (() => {
+                // Strip identity columns so a prefill from a prior festival's
+                // badge can't carry that row's badge_info_id into the new
+                // INSERT (which would fail the PK uniqueness check).
+                const { badge_info_id: _id, attendee_id: _a, festival_id: _f, ...rest } = existingBadge
+                return rest
+            })()
+            : {
+                badge_name: attendeeInfo?.name || '',
+                badge_username: attendeeInfo?.twitter_handle || attendeeInfo?.discord_handle || '',
+                badge_location: null,
+                badge_bio: null,
+                badge_picture_url: null,
+                badge_picture_image_id: null,
+                attended_vc_1: null,
+                attended_vc_2: null
+            },
         validators: {
             badge_name: val => {
                 if (val === '') {
@@ -80,7 +88,7 @@ export const BadgeInfoForm: FC<Props> = React.memo(({ festival_id, attendee_id, 
                 festival_id
             })
             await store.accountInfo.load()
-            onSubmitted()
+            onSubmitted?.()
         }
     })
 

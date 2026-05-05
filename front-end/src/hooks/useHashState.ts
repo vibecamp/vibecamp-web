@@ -37,7 +37,8 @@ export default function useHashState() {
 
 type HashState = Readonly<{
     currentView?: 'Tickets' | 'Events' | 'Account',
-    ticketPurchaseModalState?: Tables['festival']['festival_id'] | 'payment' | 'badges',
+    ticketPurchaseModalState?: Tables['festival']['festival_id'] | 'payment' | 'gift-sent',
+    ticketPurchaseIsGift?: boolean,
     eventsFilter?: EventsFilter,
     viewingEventDetails?: Tables['event']['event_id'],
     compactEventsView?: boolean,

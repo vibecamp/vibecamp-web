@@ -1,5 +1,7 @@
 import React, { FormEvent, useCallback, useMemo, useState } from 'react'
 
+import { Tables } from '../../../../back-end/types/db-types'
+import { Purchases } from '../../../../back-end/types/route-types'
 import useBooleanState from '../../hooks/useBooleanState'
 import { PurchaseFormState } from '../../hooks/usePurchaseFormState'
 import { DayjsFestival, useStore } from '../../hooks/useStore'
@@ -29,33 +31,34 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
     const [acceptedTermsAndConditions, setAcceptedTermsAndConditions] = useState(false)
     const { state: hasSubmitted, setTrue: setHasSubmitted } = useBooleanState(false)
 
-    const festivalPurchases = useMemo(() =>
+    const festivalPurchaseTypes = useMemo(() =>
         store.purchaseTypeAvailability.state.result
             ?.filter(({ purchaseType, available }) =>
                 available > 0 &&
-                purchaseType.festival_id === festival?.festival_id) ?? []
+                purchaseType.festival_id === festival?.festival_id &&
+                !purchaseType.hidden_from_ui) ?? []
     , [festival?.festival_id, store.purchaseTypeAvailability.state.result])
 
-    const attendancePurchases = useMemo(() =>
-        festivalPurchases
+    const attendancePurchaseTypes = useMemo(() =>
+        festivalPurchaseTypes
             .filter(({ purchaseType }) => purchaseType.is_attendance_ticket)
             .sort((a, b) => b.purchaseType.price_in_cents - a.purchaseType.price_in_cents)
             .sort((a, b) => a.purchaseType.sort_order - b.purchaseType.sort_order)
-    , [festivalPurchases])
+    , [festivalPurchaseTypes])
 
-    const otherPurchases = useMemo(() =>
-        festivalPurchases
+    const otherPurchaseTypes = useMemo(() =>
+        festivalPurchaseTypes
             .filter(({ purchaseType }) => !purchaseType.is_attendance_ticket)
             .sort((a, b) => a.purchaseType.description.localeCompare(b.purchaseType.description))
             .sort((a, b) => a.purchaseType.sort_order - b.purchaseType.sort_order)
-    , [festivalPurchases])
+    , [festivalPurchaseTypes])
 
     const attendancePurchaseOptions = useMemo(() =>
-        attendancePurchases.map(({ purchaseType }) => ({
+        attendancePurchaseTypes.map(({ purchaseType }) => ({
             label: `${purchaseType.description} ($${(purchaseType.price_in_cents / 100).toLocaleString()})`,
             value: purchaseType.purchase_type_id
         }))
-    , [attendancePurchases])
+    , [attendancePurchaseTypes])
 
     const emptySelection = useMemo(() =>
         !someValue(purchaseFormState.purchases, v => v != null && v > 0)
@@ -77,11 +80,54 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
         return null
     }
 
+    const isGift = purchaseFormState.mode === 'gift'
+
     return (
         <form onSubmit={handleSubmit} noValidate>
             <Col padding={20} pageLevel>
 
-                {purchaseFormState.attendees.map((attendee, index) =>
+                {isGift &&
+                    <>
+                        <h2 style={{ fontSize: 24 }}>Buy a ticket for someone else</h2>
+
+                        <Spacer size={8} />
+
+                        <InfoBlurb>
+                            {`Enter the email address of the person you're buying
+                            for. They'll receive an email with the ticket and
+                            instructions to set up their account if they don't
+                            have one yet.`}
+                        </InfoBlurb>
+
+                        <Spacer size={16} />
+
+                        <Input
+                            label='Recipient email address'
+                            value={purchaseFormState.giftRecipientEmail}
+                            onChange={purchaseFormState.setGiftRecipientEmail}
+                            type='email'
+                            error={purchaseFormState.showingErrors ? purchaseFormState.giftRecipientEmailError : undefined}
+                        />
+
+                        <Spacer size={32} />
+                        <hr />
+                        <Spacer size={32} />
+
+                        <h2>Tickets</h2>
+
+                        <Spacer size={16} />
+
+                        {attendancePurchaseTypes.map(({ purchaseType, available }) =>
+                            <PurchaseTypeRow
+                                key={purchaseType.purchase_type_id}
+                                purchaseType={purchaseType}
+                                available={available}
+                                count={purchaseFormState.otherPurchases[purchaseType.purchase_type_id] ?? 0}
+                                setCount={purchaseFormState.setOtherPurchasesCount}
+                            />)}
+                    </>}
+
+                {!isGift && purchaseFormState.attendees.map((attendee, index) =>
                     <React.Fragment key={index}>
 
                         {index > 0 && <>
@@ -127,37 +173,40 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
                         <Spacer size={32} />
                     </React.Fragment>)}
 
-                <Button onClick={purchaseFormState.addAttendee}>
-                    <Icon name='add' style={{ fontSize: 'inherit' }} />
-                    <Spacer size={4} />
-                    Bring another attendee
-                </Button>
+                {!isGift &&
+                    <>
+                        <Button onClick={purchaseFormState.addAttendee}>
+                            <Icon name='add' style={{ fontSize: 'inherit' }} />
+                            <Spacer size={4} />
+                            Bring another attendee
+                        </Button>
 
-                <Spacer size={12} />
+                        <Spacer size={12} />
 
-                <InfoBlurb>
-                    {`You can purchase a ticket for up to one other adult attendee
-                    if you'd like. Their ticket and info will have to be managed
-                    through your account here, but they'll otherwise be a full
-                    attendee (with a badge and everything). You can purchase
-                    additional tickets for up to four minors.`}
-                    <Spacer size={8} />
-                    {`Minors over two will need their own tickets, but
-                    those will live under your account. Children under two years
-                    old do not need a ticket.`}
-                </InfoBlurb>
+                        <InfoBlurb>
+                            {`You can purchase a ticket for up to one other adult attendee
+                            if you'd like. Their ticket and info will have to be managed
+                            through your account here, but they'll otherwise be a full
+                            attendee (with a badge and everything). You can purchase
+                            additional tickets for up to four minors.`}
+                            <Spacer size={8} />
+                            {`Minors over two will need their own tickets, but
+                            those will live under your account. Children under two years
+                            old do not need a ticket.`}
+                        </InfoBlurb>
 
-                <Spacer size={12} />
+                        <Spacer size={12} />
 
-                <InfoBlurb>
-                    {`NOTE: App features like event creation are per-account!
-                    If you buy tickets for multiple people under this account,
-                    the others won't be able to create their own events, manage
-                    their own bookmarks, etc. Generally speaking each attendee
-                    should make their own account.`}
-                </InfoBlurb>
+                        <InfoBlurb>
+                            {`NOTE: App features like event creation are per-account!
+                            If you buy tickets for multiple people under this account,
+                            the others won't be able to create their own events, manage
+                            their own bookmarks, etc. Generally speaking each attendee
+                            should make their own account.`}
+                        </InfoBlurb>
+                    </>}
 
-                {otherPurchases.length > 0 &&
+                {otherPurchaseTypes.length > 0 &&
                     <>
                         <Spacer size={32} />
                         <hr />
@@ -169,30 +218,17 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
 
                         <Spacer size={24} />
 
-                        {otherPurchases.map(({ purchaseType, available }) =>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }} key={purchaseType.purchase_type_id}>
-                                <div>
-                                    {purchaseType.description} (${(purchaseType.price_in_cents / 100).toFixed(2)} each)
-                                </div>
-
-                                <Spacer size={24} />
-
-                                <NumberInput
-                                    value={purchaseFormState.otherPurchases[purchaseType.purchase_type_id] ?? 0}
-                                    onChange={val => {
-                                        if (val != null) {
-                                            purchaseFormState.setOtherPurchasesCount(purchaseType.purchase_type_id, val)
-                                        }
-                                    }}
-                                    style={{ width: 64 }}
-                                    min={0}
-                                    max={available}
-                                />
-                            </div>)}
-
+                        {otherPurchaseTypes.map(({ purchaseType, available }) =>
+                            <PurchaseTypeRow
+                                key={purchaseType.purchase_type_id}
+                                purchaseType={purchaseType}
+                                available={available}
+                                count={purchaseFormState.otherPurchases[purchaseType.purchase_type_id] ?? 0}
+                                setCount={purchaseFormState.setOtherPurchasesCount}
+                            />)}
                     </>}
 
-                {store.purchasedTicketsByFestival[festival.festival_id]?.length === 0 && festival.festival_name === 'Vibeclipse 2024' && // HACK
+                {!isGift && store.purchasedTicketsByFestival[festival.festival_id]?.length === 0 && festival.festival_name === 'Vibeclipse 2024' && // HACK
                     <>
                         <Spacer size={32} />
                         <hr />
@@ -259,5 +295,36 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
                 </Button>
             </Col>
         </form>
+    )
+})
+
+const PurchaseTypeRow = React.memo(({ purchaseType, available, count, setCount }: {
+    purchaseType: Tables['purchase_type'],
+    available: number,
+    count: number,
+    setCount: (purchaseType: keyof Purchases, count: number) => void
+}) => {
+    const handleChange = useCallback((val: number | null) => {
+        if (val != null) {
+            setCount(purchaseType.purchase_type_id, val)
+        }
+    }, [purchaseType.purchase_type_id, setCount])
+
+    return (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }}>
+            <div>
+                {purchaseType.description} (${(purchaseType.price_in_cents / 100).toFixed(2)} each)
+            </div>
+
+            <Spacer size={24} />
+
+            <NumberInput
+                value={count}
+                onChange={handleChange}
+                style={{ width: 64 }}
+                min={0}
+                max={available}
+            />
+        </div>
     )
 })

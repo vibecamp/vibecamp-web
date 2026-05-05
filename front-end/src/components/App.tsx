@@ -13,6 +13,7 @@ import Spacer from './core/Spacer'
 import Stripes from './core/Stripes'
 import Events from './Events'
 import Login from './Login'
+import RequiredInfoModals from './RequiredInfoModals'
 import Tickets from './Tickets'
 
 type View = {
@@ -85,6 +86,8 @@ export default React.memo(() => {
             <Modal isOpen={!store.loggedIn} side='left'>
                 {() => <Login />}
             </Modal>
+
+            {store.loggedIn && <RequiredInfoModals />}
         </StoreContext.Provider>
     )
 })

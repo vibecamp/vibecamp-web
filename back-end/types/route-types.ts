@@ -157,6 +157,7 @@ export type Routes = {
       purchases: Purchases
       discount_code: string | null
       referral_info?: string
+      gift_recipient_email?: string | null
     }
     response: { stripe_client_secret: string }
   }

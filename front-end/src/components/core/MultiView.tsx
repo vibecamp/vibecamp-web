@@ -25,7 +25,7 @@ function MultiView<TView>({ views, currentView }: Props<TView>) {
         } as CSSProperties}>
             <div className='sliding-container'>
                 {views.map(({ name, content }) =>
-                    <Slide key={String(name)}>
+                    <Slide key={String(name)} active={name === currentView}>
                         {content}
                     </Slide>)}
             </div>
@@ -33,7 +33,7 @@ function MultiView<TView>({ views, currentView }: Props<TView>) {
     )
 }
 
-const Slide: FC<{ children: ReactNode }> = React.memo(({ children }) => {
+const Slide: FC<{ children: ReactNode, active: boolean }> = React.memo(({ children, active }) => {
     const [ref, setRef] = useState<HTMLElement | null>(null)
     const [scrollTop, setScrollTop] = useState(0)
     const [scrollHeight, setScrollHeight] = useState(0)
@@ -47,7 +47,13 @@ const Slide: FC<{ children: ReactNode }> = React.memo(({ children }) => {
     const contextValue = useMemo(() => ({ scrollTop, scrollHeight, scrollToTop } as const), [scrollHeight, scrollToTop, scrollTop])
 
     return (
-        <div className='slide' ref={setRef}>
+        <div
+            className='slide'
+            ref={setRef}
+            // @ts-expect-error inert is a valid HTML attribute, not yet typed by React 18
+            inert={!active}
+            aria-hidden={!active}
+        >
             <SlideScrollContext.Provider value={contextValue}>
                 {children}
             </SlideScrollContext.Provider>

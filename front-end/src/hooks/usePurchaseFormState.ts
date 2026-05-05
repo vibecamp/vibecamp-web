@@ -13,13 +13,14 @@ import { useStore } from './useStore'
 
 export type AttendeeFormInfo = Readonly<AttendeeInfo & { ticket_type: Tables['purchase_type']['purchase_type_id'] | null }>
 
-export default function usePurchaseFormState({ isInitialPurchase, needsWaiverClicked }: { isInitialPurchase: boolean, needsWaiverClicked: boolean }) {
+export default function usePurchaseFormState({ isInitialPurchase, needsWaiverClicked, mode = 'self' }: { isInitialPurchase: boolean, needsWaiverClicked: boolean, mode?: 'self' | 'gift' }) {
     const store = useStore()
     const { setHashState } = useHashState()
 
     const [attendees, setAttendees] = useState<readonly AttendeeFormInfo[]>(
-        isInitialPurchase
-            ? [
+        mode === 'gift' || !isInitialPurchase
+            ? []
+            : [
                 {
                     ...(store.accountInfo.state.result?.attendees.find(a => a.is_primary_for_account) ?? BLANK_ATTENDEE),
                     email_address: store.accountInfo.state.result?.email_address ?? null,
@@ -27,13 +28,13 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
                     is_primary_for_account: true
                 }
             ]
-            : []
     )
 
     const [otherPurchases, setOtherPurchases] = useState<Readonly<Purchases>>({})
     const [hasClickedWaiver, setHasClickedWaiver] = useState(false)
     const handleWaiverClick = useCallback(() => setHasClickedWaiver(true), [])
     const [showingErrors, setShowingErrors] = useState(false)
+    const [giftRecipientEmail, setGiftRecipientEmail] = useState('')
 
     const numberOfAttendeesError = (
         attendees.length > 7
@@ -50,15 +51,26 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
     , [attendeeErrorsRaw, attendees, showingErrors])
 
     const hasClickedWaiverError = (
-        needsWaiverClicked && !hasClickedWaiver
+        mode === 'self' && needsWaiverClicked && !hasClickedWaiver
             ? 'Campsite waivers must be filled out'
+            : undefined
+    )
+
+    // The recipient signs the waiver themselves after sign-in; gifts skip
+    // attendee details entirely. Only the recipient email needs validating.
+    const giftRecipientEmailError = (
+        mode === 'gift' && (giftRecipientEmail === '' || getEmailValidationError(giftRecipientEmail))
+            ? (giftRecipientEmail === ''
+                ? 'Please enter the recipient\'s email address'
+                : 'Please enter a valid email address')
             : undefined
     )
 
     const isValid = (
         attendeeErrorsRaw.every(errors => objectValues(errors).every(err => err == null)) &&
         numberOfAttendeesError == null &&
-        hasClickedWaiverError == null
+        hasClickedWaiverError == null &&
+        giftRecipientEmailError == null
     )
 
     const purchases = useMemo(() => {
@@ -98,7 +110,8 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
                 {
                     purchases,
                     discount_code: discountCode || null,
-                    referral_info: new URLSearchParams(window.location.search).get('referral_info') ?? undefined
+                    referral_info: new URLSearchParams(window.location.search).get('referral_info') ?? undefined,
+                    gift_recipient_email: mode === 'gift' ? giftRecipientEmail : undefined
                 }
             )
             const { stripe_client_secret } = response ?? {}
@@ -116,7 +129,7 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
         } else {
             return undefined
         }
-    }, [discountCode, isValid, purchases, store.jwt, store.loggedIn])
+    }, [discountCode, giftRecipientEmail, isValid, mode, purchases, store.jwt, store.loggedIn])
 
     const goToTicketPayment = useCallback(() => {
         setShowingErrors(true)
@@ -127,8 +140,8 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
     }, [isValid, setHashState])
 
     const setOtherPurchasesCount = useCallback((purchaseType: keyof Purchases, count: number) => {
-        setOtherPurchases({ ...otherPurchases, [purchaseType]: count })
-    }, [otherPurchases])
+        setOtherPurchases(prev => ({ ...prev, [purchaseType]: count }))
+    }, [])
 
     const setAttendeeProperty = useCallback<AttendeeInfoFormProps['setAttendeeProperty']>((attendee, property, value) => {
         const index = attendees.indexOf(attendee as unknown as AttendeeFormInfo)
@@ -140,6 +153,7 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
     }, [attendees])
 
     return {
+        mode,
         stripeOptions,
         purchases,
         otherPurchases,
@@ -156,7 +170,10 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
         setAttendeeProperty,
         setOtherPurchasesCount,
         discountCode,
-        setDiscountCode
+        setDiscountCode,
+        giftRecipientEmail,
+        setGiftRecipientEmail,
+        giftRecipientEmailError
     }
 }
 
@@ -192,7 +209,7 @@ export function getAttendeeErrors(attendee: AttendeeInfo & { ticket_type: Tables
     return errors
 }
 
-const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
+export const BLANK_ATTENDEE: Readonly<Omit<AttendeeInfo, 'is_primary_for_account'>> = {
     name: '',
     discord_handle: null,
     twitter_handle: null,

@@ -5,7 +5,6 @@ import usePurchaseFormState from '../../hooks/usePurchaseFormState'
 import { useStore } from '../../hooks/useStore'
 import { wait } from '../../utils'
 import { vibefetch } from '../../vibefetch'
-import { BadgesList } from '../Account'
 import Button from '../core/Button'
 import Col from '../core/Col'
 import InfoBlurb from '../core/InfoBlurb'
@@ -14,7 +13,11 @@ import Spacer from '../core/Spacer'
 import StripePaymentForm from '../core/StripePaymentForm'
 import SelectionView from './SelectionView'
 
-export default React.memo(() => {
+type Props = {
+    mode?: 'self' | 'gift'
+}
+
+export default React.memo(({ mode = 'self' }: Props) => {
     const store = useStore()
     const { hashState, setHashState } = useHashState()
 
@@ -29,33 +32,39 @@ export default React.memo(() => {
     const ticketPurchaseModalState = hashState?.ticketPurchaseModalState
     const isAtCampChampions = festivalsAtCampChampions != null && festivalsAtCampChampions.some(f => f.festival_id === ticketPurchaseModalState)
     const existingTickets =
-        ticketPurchaseModalState == null || ticketPurchaseModalState === 'payment' || ticketPurchaseModalState === 'badges'
+        ticketPurchaseModalState == null || ticketPurchaseModalState === 'payment' || ticketPurchaseModalState === 'gift-sent'
             ? []
             : store.purchasedTicketsByFestival[ticketPurchaseModalState!]
     const hasTicketsForThisFestival = (existingTickets ?? []).length > 0
-    const purchaseFormState = usePurchaseFormState({ isInitialPurchase: !hasTicketsForThisFestival, needsWaiverClicked: isAtCampChampions && !hasTicketsForThisFestival })
+    const purchaseFormState = usePurchaseFormState({
+        isInitialPurchase: mode === 'gift' || !hasTicketsForThisFestival,
+        needsWaiverClicked: mode === 'self' && isAtCampChampions && !hasTicketsForThisFestival,
+        mode,
+    })
 
     const festival = store.festivals.state.result?.find(f => f.festival_id === ticketPurchaseModalState)
 
     const handlePurchaseCompletion = useCallback(async () => {
-        await vibefetch(
-            store.jwt,
-            '/account/save-attendees',
-            'put',
-            {
-                attendees: purchaseFormState.attendees.map(({ ticket_type: _, ...attendee }) => attendee),
-            }
-        )
+        if (mode === 'self') {
+            await vibefetch(
+                store.jwt,
+                '/account/save-attendees',
+                'put',
+                {
+                    attendees: purchaseFormState.attendees.map(({ ticket_type: _, ...attendee }) => attendee),
+                }
+            )
+        }
 
         // HACK: When the purchase flow completes, the webhook will take an
         // indeterminate amount of time to record the purchases. So, we wait a couple
         // seconds before refreshing the list, which should usually be enough
         await wait(2000)
 
-        setHashState({ ticketPurchaseModalState: 'badges' })
+        setHashState({ ticketPurchaseModalState: mode === 'gift' ? 'gift-sent' : undefined })
 
         await store.accountInfo.load()
-    }, [purchaseFormState.attendees, setHashState, store.accountInfo, store.jwt])
+    }, [mode, purchaseFormState.attendees, setHashState, store.accountInfo, store.jwt])
 
     const attendeeBadges = useMemo(() => {
         const accountInfo = store.accountInfo.state.result
@@ -96,23 +105,20 @@ export default React.memo(() => {
                     )
                 },
                 {
-                    name: 'badges',
+                    name: 'gift-sent',
                     content: (
                         <Col padding={20} pageLevel>
                             <h2 style={{ fontSize: 24 }}>
-                                Add badge info?
+                                Your gift has been sent!
                             </h2>
 
-                            <Spacer size={8} />
+                            <Spacer size={16} />
 
                             <InfoBlurb>
-                                You can edit this later from the Account tab
+                                {purchaseFormState.giftRecipientEmail
+                                    ? `${purchaseFormState.giftRecipientEmail} will receive an email with their ticket and instructions to set up their account.`
+                                    : 'The recipient will receive an email with their ticket and instructions to set up their account.'}
                             </InfoBlurb>
-
-                            <Spacer size={32} />
-
-                            {festival &&
-                                <BadgesList festival={festival} attendeeBadges={attendeeBadges} />}
 
                             <Spacer size={32} />
 
@@ -123,7 +129,11 @@ export default React.memo(() => {
                     )
                 }
             ]}
-            currentView={hashState?.ticketPurchaseModalState === 'payment' ? 'payment' : hashState?.ticketPurchaseModalState === 'badges' ? 'badges' : 'selection'}
+            currentView={
+                hashState?.ticketPurchaseModalState === 'payment' ? 'payment'
+                    : hashState?.ticketPurchaseModalState === 'gift-sent' ? 'gift-sent'
+                        : 'selection'
+            }
         />
     )
 })

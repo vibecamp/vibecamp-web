@@ -11,10 +11,13 @@ import {
   purchaseTypeAvailable,
   totalCost,
 } from '../../utils/misc.ts'
+import { getEmailValidationError } from '../../utils/validation.ts'
 import { Tables } from '../../types/db-types.ts'
 import { Purchases } from '../../types/route-types.ts'
-import { receiptEmail, sendMail } from '../../utils/mailgun.ts'
+import { giftEmail, receiptEmail, sendMail } from '../../utils/mailgun.ts'
 import env from '../../env.ts'
+import { passwordResetSecrets } from './account.ts'
+import { hashAndSaltPassword } from './auth.ts'
 
 export default function register(router: Router) {
   defineRoute(router, {
@@ -49,10 +52,34 @@ export default function register(router: Router) {
     handler: async (
       {
         jwt: { account_id },
-        body: { purchases, discount_code, referral_info },
+        body: { purchases, discount_code, referral_info, gift_recipient_email: rawGiftEmail },
       },
     ) => {
-      const availability = await purchaseTypeAvailability(account_id)
+      // Resolve gift target (if any). For an unknown email we leave the
+      // recipient_account_id as undefined; the webhook will create the
+      // account on payment success.
+      const giftRecipientEmail = rawGiftEmail?.toLowerCase()
+      let giftRecipientAccountId: Tables['account']['account_id'] | undefined
+      if (giftRecipientEmail != null && giftRecipientEmail !== '') {
+        if (getEmailValidationError(giftRecipientEmail)) {
+          return [null, Status.BadRequest]
+        }
+
+        const recipientAccount = await withDBConnection((db) =>
+          db.queryTable('account', {
+            where: ['email_address', '=', giftRecipientEmail!],
+          })
+        )
+        giftRecipientAccountId = recipientAccount[0]?.account_id
+      }
+
+      // Availability is computed against the eventual *owner* of the purchase:
+      // the recipient for gifts (or undefined for first-time gift recipients,
+      // which bypasses max_per_account), the purchaser otherwise.
+      const availabilityAccountId = giftRecipientEmail != null
+        ? giftRecipientAccountId
+        : account_id
+      const availability = await purchaseTypeAvailability(availabilityAccountId)
 
       for (
         const [purchaseTypeId, numberToPurchase] of objectEntries(purchases)
@@ -99,7 +126,16 @@ export default function register(router: Router) {
 
       const metadata: PurchaseMetadata = {
         createdByMyVibeCamp: 'true',
-        accountId: account_id,
+        // For gifts, the owner isn't known at intent-creation time (we may
+        // need to create the account on payment success). We carry the
+        // purchaser's id and the recipient email instead, and the webhook
+        // resolves the owner.
+        ...(giftRecipientEmail != null
+          ? {
+            purchaser_account_id: account_id,
+            gift_recipient_email: giftRecipientEmail,
+          }
+          : { accountId: account_id }),
         discount_ids: discounts.map((d) => d.discount_id).join(','),
         referral_info: referral_info?.substring(0, 500),
         ...objectFromEntries(
@@ -129,7 +165,9 @@ export default function register(router: Router) {
   type PurchaseMetadata =
     & {
       createdByMyVibeCamp?: 'true'
-      accountId: Tables['account']['account_id']
+      accountId?: Tables['account']['account_id']
+      purchaser_account_id?: Tables['account']['account_id']
+      gift_recipient_email?: string
       discount_ids?: string
       referral_info?: string
     }
@@ -148,8 +186,15 @@ export default function register(router: Router) {
         {
           console.info(`\tHandled Stripe event type ${event.type}`)
 
-          const { createdByMyVibeCamp, accountId, discount_ids: discount_ids_raw, ...purchasesRaw } = event.data.object
-            .metadata as PurchaseMetadata
+          const {
+            createdByMyVibeCamp,
+            accountId,
+            purchaser_account_id,
+            gift_recipient_email,
+            discount_ids: discount_ids_raw,
+            referral_info: _referral_info,
+            ...purchasesRaw
+          } = event.data.object.metadata as PurchaseMetadata
           const discountIds = (discount_ids_raw?.split(',') ?? []) as Tables['discount']['discount_id'][]
 
           if (!createdByMyVibeCamp) {
@@ -168,14 +213,71 @@ export default function register(router: Router) {
               ? event.data.object.payment_intent?.id
               : event.data.object.payment_intent
 
+          // Idempotency: Stripe can replay charge.succeeded. If we've already
+          // recorded purchases for this payment intent, return 200 and exit.
+          if (stripe_payment_intent != null) {
+            const existing = await withDBConnection((db) =>
+              db.queryTable('purchase', {
+                where: ['stripe_payment_intent', '=', stripe_payment_intent],
+              })
+            )
+            if (existing.length > 0) {
+              ctx.response.status = Status.OK
+              break
+            }
+          }
+
+          const isGift = gift_recipient_email != null
+
+          // For gifts, `secretToSend` is set inside the transaction iff a
+          // brand-new account was created. We only register the secret in the
+          // in-memory Map AFTER the transaction commits, so a rolled-back
+          // transaction can't leave a dangling secret pointing to nothing.
+          let secretToSend: { secret: string, account_id: Tables['account']['account_id'] } | undefined
+          let recipientAccount: Tables['account'] | undefined
+          let purchaserAccount: Tables['account'] | undefined
+
           await withDBTransaction(async (db) => {
             const allDiscounts = await db.queryTable('discount')
             const appliedDiscounts = discountIds.map(id => allDiscounts.find(d => d.discount_id === id)).filter(exists)
 
+            // Resolve the eventual purchase owner. For self-purchases this is
+            // the purchaser. For gifts, look up by email and create a
+            // passwordless account if none exists.
+            let owner_account_id: Tables['account']['account_id']
+            if (isGift) {
+              const found = (await db.queryTable('account', {
+                where: ['email_address', '=', gift_recipient_email!],
+              }))[0]
+              if (found != null) {
+                recipientAccount = found
+                owner_account_id = found.account_id
+              } else {
+                // Hash a random unguessable string into password_hash/salt
+                // rather than leaving them null. Nobody knows this password —
+                // it's never stored or transmitted — but populating the
+                // columns prevents /signup's passwordless-upgrade branch
+                // (auth.ts:84-86) from being abused to claim this account
+                // without proof of email ownership. The recipient's only
+                // path is the password-reset link in the gift email.
+                const { password_hash, password_salt } = await hashAndSaltPassword(crypto.randomUUID())
+                const created = await db.insertTable('account', {
+                  email_address: gift_recipient_email!,
+                  password_hash,
+                  password_salt,
+                })
+                recipientAccount = created
+                owner_account_id = created.account_id
+                secretToSend = { secret: crypto.randomUUID(), account_id: created.account_id }
+              }
+            } else {
+              owner_account_id = accountId!
+            }
+
             for (const [purchaseType, count] of objectEntries(purchases)) {
               for (let i = 0; i < count!; i++) {
                 await db.insertTable('purchase', {
-                  owned_by_account_id: accountId,
+                  owned_by_account_id: owner_account_id,
                   purchase_type_id: purchaseType,
                   stripe_payment_intent,
                   is_test_purchase: usingStripeTestKey,
@@ -184,14 +286,56 @@ export default function register(router: Router) {
               }
             }
 
-            const account = (await db.queryTable('account', {
-              where: ['account_id', '=', accountId],
-            }))[0]!
-
-            await sendMail(
-              await receiptEmail(account, purchases, appliedDiscounts),
-            )
+            // For self-purchases, send the receipt inside the transaction
+            // (preserves prior behavior). For gifts, the receipt and the gift
+            // email are sent AFTER the transaction commits — see below.
+            if (!isGift) {
+              const account = (await db.queryTable('account', {
+                where: ['account_id', '=', owner_account_id],
+              }))[0]!
+              await sendMail(
+                await receiptEmail(account, purchases, appliedDiscounts),
+              )
+            } else {
+              purchaserAccount = (await db.queryTable('account', {
+                where: ['account_id', '=', purchaser_account_id!],
+              }))[0]
+            }
           })
+
+          // Post-transaction work for gifts: register the reset secret (if a
+          // new account was created), then send the two emails. Each send is
+          // try/caught so an email failure can't trigger a Stripe retry that
+          // would re-record the purchase or re-create accounts.
+          if (isGift) {
+            if (secretToSend != null) {
+              passwordResetSecrets.set(secretToSend.secret, secretToSend.account_id)
+            }
+
+            try {
+              if (purchaserAccount != null) {
+                const allDiscounts = await withDBConnection((db) => db.queryTable('discount'))
+                const appliedDiscounts = discountIds.map(id => allDiscounts.find(d => d.discount_id === id)).filter(exists)
+                await sendMail(await receiptEmail(purchaserAccount, purchases, appliedDiscounts, { isGift: true }))
+              }
+            } catch (err) {
+              console.error('Failed to send gift receipt to purchaser:', err)
+            }
+
+            try {
+              if (recipientAccount != null) {
+                const purchaserName = await resolvePurchaserDisplayName(purchaser_account_id, purchaserAccount?.email_address)
+                await sendMail(await giftEmail(
+                  recipientAccount,
+                  purchaserName,
+                  purchases,
+                  secretToSend?.secret,
+                ))
+              }
+            } catch (err) {
+              console.error('Failed to send gift email to recipient:', err)
+            }
+          }
 
           ctx.response.status = Status.OK
         }
@@ -330,8 +474,22 @@ const messageHtml = (
   )
 }
 
+async function resolvePurchaserDisplayName(
+  account_id: Tables['account']['account_id'] | undefined,
+  fallbackEmail: string | undefined,
+): Promise<string> {
+  if (account_id == null) return fallbackEmail ?? 'A friend'
+  const attendees = await withDBConnection((db) =>
+    db.queryTable('attendee', {
+      where: ['associated_account_id', '=', account_id],
+    })
+  )
+  const primary = attendees.find((a) => a.is_primary_for_account)
+  return primary?.name ?? fallbackEmail ?? 'A friend'
+}
+
 async function purchaseTypeAvailability(
-  account_id: Tables['account']['account_id'],
+  account_id: Tables['account']['account_id'] | undefined,
 ) {
   const {
     account,
@@ -340,25 +498,29 @@ async function purchaseTypeAvailability(
     allPurchaseTypes,
     festivals,
   } = await withDBConnection(async (db) => ({
-    account: (await db.queryTable('account', {
-      where: ['account_id', '=', account_id],
-    }))[0],
-    accountPurchaseCounts: (await db.queryObject<
-      {
-        purchase_type_id: Tables['purchase_type']['purchase_type_id']
-        count: bigint
-      }
-    >`
-      SELECT purchase.purchase_type_id, COUNT(*)
-      FROM purchase, purchase_type
-      WHERE purchase_type.purchase_type_id = purchase.purchase_type_id
-        AND purchase.owned_by_account_id = ${account_id}
-      GROUP BY purchase.purchase_type_id
-    `).rows.map((row) => ({
-      ...row,
-      // `count` comes back from the client as a BigInt, which causes problems if not converted
-      count: Number(row.count),
-    })),
+    account: account_id == null
+      ? undefined
+      : (await db.queryTable('account', {
+        where: ['account_id', '=', account_id],
+      }))[0],
+    accountPurchaseCounts: account_id == null
+      ? []
+      : (await db.queryObject<
+        {
+          purchase_type_id: Tables['purchase_type']['purchase_type_id']
+          count: bigint
+        }
+      >`
+        SELECT purchase.purchase_type_id, COUNT(*)
+        FROM purchase, purchase_type
+        WHERE purchase_type.purchase_type_id = purchase.purchase_type_id
+          AND purchase.owned_by_account_id = ${account_id}
+        GROUP BY purchase.purchase_type_id
+      `).rows.map((row) => ({
+        ...row,
+        // `count` comes back from the client as a BigInt, which causes problems if not converted
+        count: Number(row.count),
+      })),
     allPurchaseCounts: (await db.queryObject<
       {
         purchase_type_id: Tables['purchase_type']['purchase_type_id']
@@ -377,7 +539,10 @@ async function purchaseTypeAvailability(
   }))
 
   return allPurchaseTypes.map((purchaseType) => {
-    if (account == null) {
+    // account == null AND account_id was supplied means the account_id was
+    // bogus — block. account_id == null is a legitimate "unknown recipient
+    // gift" and we treat them as a fresh non-low-income account.
+    if (account_id != null && account == null) {
       return { purchaseType, available: 0 }
     } else {
       const { purchase_type_id, max_available, max_per_account, festival_id } =

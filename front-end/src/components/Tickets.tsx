@@ -26,11 +26,15 @@ export default React.memo(() => {
     // const { application_status } = store.accountInfo.state.result ?? {}
 
     const closeTicketPurchaseModal = useCallback(() => {
-        setHashState({ ticketPurchaseModalState: undefined })
+        setHashState({ ticketPurchaseModalState: undefined, ticketPurchaseIsGift: undefined })
     }, [setHashState])
 
     const openTicketPurchaseModal = (festival_id: Tables['festival']['festival_id']) => () => {
-        setHashState({ ticketPurchaseModalState: festival_id })
+        setHashState({ ticketPurchaseModalState: festival_id, ticketPurchaseIsGift: undefined })
+    }
+
+    const openGiftPurchaseModal = (festival_id: Tables['festival']['festival_id']) => () => {
+        setHashState({ ticketPurchaseModalState: festival_id, ticketPurchaseIsGift: true })
     }
 
     const subscribeToNewsletter = useCallback(() => {
@@ -170,6 +174,12 @@ export default React.memo(() => {
                                                             ? 'Buy tickets'
                                                             : 'Buy more tickets or bus/bedding'}
                                                     </Button>
+
+                                                    <Spacer size={8} />
+
+                                                    <Button onClick={openGiftPurchaseModal(festival.festival_id)}>
+                                                        Buy a ticket for someone else
+                                                    </Button>
                                                 </>}
 
                                             {festival.info_url &&
@@ -223,12 +233,12 @@ export default React.memo(() => {
                         : null}
 
             <Modal
-                title='Ticket purchase'
+                title={hashState?.ticketPurchaseIsGift ? 'Buy a ticket for someone else' : 'Ticket purchase'}
                 isOpen={hashState?.ticketPurchaseModalState != null}
                 onClose={closeTicketPurchaseModal}
                 side='right'
             >
-                {() => store.accountInfo.state.result && <PurchaseTicketsModal />}
+                {() => store.accountInfo.state.result && <PurchaseTicketsModal mode={hashState?.ticketPurchaseIsGift ? 'gift' : 'self'} />}
             </Modal>
         </Col>
     )

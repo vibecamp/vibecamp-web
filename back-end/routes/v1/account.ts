@@ -18,6 +18,14 @@ import dayjs, { Dayjs } from '../../utils/dayjs.ts'
 import { assert } from 'https://deno.land/std@0.160.0/testing/asserts.ts'
 import { stringifyDate } from './event.ts'
 
+// In-memory store for one-shot password-reset secrets. Used both by the
+// /account/send-password-reset-email flow and by the gift-purchase webhook
+// (to mint a setup link for newly-created passwordless accounts).
+export const passwordResetSecrets = new Map<
+  string,
+  Tables['account']['account_id']
+>()
+
 // Hiding cabins for non-team members until day before festival starts. Day
 // before instead of day of because this gets rid of risk of timezone issues
 const shouldShowCabinsForFestival = (now: Dayjs, festivalStartDate: Dayjs, isTeamMember: boolean) => {
@@ -163,11 +171,6 @@ export default function register(router: Router) {
       return [null, Status.OK]
     },
   })
-
-  const passwordResetSecrets = new Map<
-    string,
-    Tables['account']['account_id']
-  >()
 
   defineRoute(router, {
     endpoint: '/account/send-password-reset-email',

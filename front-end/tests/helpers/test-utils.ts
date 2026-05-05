@@ -13,6 +13,10 @@ export function generateTestEmail(): string {
 /**
  * Sign up a new user via the UI login modal.
  * Returns the email used.
+ *
+ * After signup, the app immediately prompts new accounts with a "Tell us
+ * about you" modal asking for primary attendee info. We fill that in here
+ * so callers don't have to.
  */
 export async function signUpViaUI(page: Page): Promise<string> {
     const email = generateTestEmail()
@@ -31,10 +35,28 @@ export async function signUpViaUI(page: Page): Promise<string> {
     // Submit
     await page.getByRole('button', { name: 'Sign up' }).click()
 
-    // Wait for the login modal to close
-    await expect(page.locator('.modal.open')).not.toBeVisible({ timeout: 15_000 })
+    // The login modal closes; the "Tell us about you" modal opens in its
+    // place. Fill it in.
+    await fillPrimaryAttendeeFormViaUI(page)
 
     return email
+}
+
+/**
+ * Fill out the "Tell us about you" primary-attendee modal that appears
+ * automatically for accounts without a primary attendee record.
+ */
+async function fillPrimaryAttendeeFormViaUI(page: Page): Promise<void> {
+    const modal = page.locator('.modal.open')
+    await expect(modal).toBeVisible({ timeout: 15_000 })
+
+    await modal.getByLabel('Attendee name').fill('Test User')
+    await modal.getByLabel('21 or over').check()
+
+    await modal.getByRole('button', { name: 'Save' }).click()
+
+    // Modal should close once the attendee is saved.
+    await expect(page.locator('.modal.open')).not.toBeVisible({ timeout: 15_000 })
 }
 
 /**
@@ -71,6 +93,8 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 /**
  * Sign up a user via the API directly (faster than UI for non-auth tests).
  * Retries on 429 (rate limit) with exponential backoff.
+ * Also seeds a primary attendee record so the "Tell us about you" modal
+ * doesn't appear in subsequent UI interactions.
  * Returns { email, jwt }.
  */
 export async function signUpViaAPI(): Promise<{ email: string; jwt: string }> {
@@ -110,10 +134,59 @@ export async function signUpViaAPI(): Promise<{ email: string; jwt: string }> {
             throw new Error(`API signup failed: ${res.status} ${JSON.stringify(body)}`)
         }
 
+        await seedPrimaryAttendeeViaAPI(body.jwt)
+
         return { email, jwt: body.jwt }
     }
 
     throw new Error('API signup failed: exhausted retries')
+}
+
+/**
+ * Create a minimal primary attendee record for a freshly-created account.
+ * The app prompts for this info on first login; pre-seeding it lets
+ * non-auth tests skip past the modal.
+ */
+async function seedPrimaryAttendeeViaAPI(jwt: string): Promise<void> {
+    const res = await fetch(`${API_BASE}/account/save-attendees`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify({
+            attendees: [
+                {
+                    name: 'Test User',
+                    age_range: '21_OR_OVER',
+                    is_primary_for_account: true,
+                    discord_handle: null,
+                    twitter_handle: null,
+                    phone_number: null,
+                    email_address: null,
+                    age: null,
+                    interested_in_volunteering_as: null,
+                    interested_in_pre_call: false,
+                    planning_to_camp: false,
+                    medical_training: null,
+                    diet: null,
+                    has_allergy_milk: null,
+                    has_allergy_eggs: null,
+                    has_allergy_fish: null,
+                    has_allergy_shellfish: null,
+                    has_allergy_tree_nuts: null,
+                    has_allergy_peanuts: null,
+                    has_allergy_wheat: null,
+                    has_allergy_soy: null,
+                    share_ticket_status_with_selflathing: null,
+                },
+            ],
+        }),
+    })
+
+    if (!res.ok) {
+        throw new Error(`Failed to seed primary attendee: ${res.status}`)
+    }
 }
 
 /**
