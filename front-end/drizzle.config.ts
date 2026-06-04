@@ -1,10 +1,10 @@
-import { defineConfig } from "drizzle-kit";
+import { defineConfig } from 'drizzle-kit'
 
 export default defineConfig({
-  dialect: "postgresql",
-  out: "./drizzle",
-  dbCredentials: {
-    url: process.env.DB_URL!,
-    ssl: 'require',
-  },
-});
+    dialect: 'postgresql',
+    out: './drizzle',
+    dbCredentials: {
+        url: process.env.DB_URL!,
+        ssl: 'require',
+    },
+})

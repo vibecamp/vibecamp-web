@@ -45,6 +45,7 @@ export default function register(router: Router) {
 
     ctx.response.type = 'text/calendar'
     ctx.response.headers.append('Content-Disposition', 'inline; filename="events.ics"')
+    ctx.response.headers.append('Access-Control-Allow-Origin', '*')
 
     const account_id = ctx.request.url.searchParams.get('account_id') as Tables['account']['account_id'] | undefined
 
