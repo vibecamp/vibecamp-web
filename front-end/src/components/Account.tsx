@@ -84,7 +84,7 @@ export default React.memo(() => {
     }, [store.accountInfo.state.result, store.festivals.state.result, store.purchasedTicketsByFestival])
 
     return (
-        <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
+        <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined} className='account-page'>
             {store.accountInfo.state.kind === 'result' &&
                 <>
                     <h1 style={{ fontSize: 24, alignSelf: 'flex-start' }}>

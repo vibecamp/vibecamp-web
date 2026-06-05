@@ -233,6 +233,12 @@ a {
     }
 }
 
+.col.page-level.account-page {
+    @media (min-width: 768px) {
+        margin: 0;
+    }
+}
+
 .col.page-level.events-page {
     @media (min-width: 768px) {
         max-width: none;
