@@ -64,6 +64,7 @@ webServers.push({
     env: {
         ...backEndEnv,
         DISABLE_RATE_LIMIT: '1',
+        ALLOW_TEST_HOOKS: '1',
     },
 })
 

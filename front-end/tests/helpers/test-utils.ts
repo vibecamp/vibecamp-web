@@ -190,6 +190,27 @@ async function seedPrimaryAttendeeViaAPI(jwt: string): Promise<void> {
 }
 
 /**
+ * Poll the test-only back-end endpoint for a password-reset secret minted
+ * for the given email. Used by gift-flow tests to simulate the recipient
+ * clicking the password-reset link in their email.
+ *
+ * Requires the back-end to be running with ALLOW_TEST_HOOKS=1 (set by
+ * playwright.config.ts).
+ */
+export async function getPasswordResetSecret(email: string, timeoutMs = 30_000): Promise<string> {
+    const start = Date.now()
+    while (Date.now() - start < timeoutMs) {
+        const res = await fetch(`http://localhost:10000/test-hooks/password-reset-secret/${encodeURIComponent(email)}`)
+        if (res.ok) {
+            const body = await res.json() as { secret: string | null }
+            if (body.secret) return body.secret
+        }
+        await sleep(500)
+    }
+    throw new Error(`No password-reset secret found for ${email} after ${timeoutMs}ms`)
+}
+
+/**
  * Inject a JWT into localStorage and navigate to the app.
  * Fastest way to authenticate for non-auth tests.
  */

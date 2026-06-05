@@ -110,7 +110,7 @@ const Nav = React.memo((props: { views: readonly View[] }) => {
                     >
                         <Icon name={icon} fill={active ? 1 : 0} />
                         <Spacer size={4} />
-                        <span style={{ fontSize: 8 }}>{name}</span>
+                        <span className='nav-label'>{name}</span>
                     </a>
                 )
             })}
