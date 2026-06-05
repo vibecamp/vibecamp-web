@@ -63,12 +63,16 @@
                 font-size: 16px;
             }
 
-            >button,
-            >.balancer {
+            >button {
                 width: 80px;
                 height: 60px;
                 flex-grow: 0;
                 flex-shrink: 0;
+            }
+
+            >.close-button {
+                visibility: hidden;
+                pointer-events: none;
             }
 
             >.title {
@@ -88,6 +92,49 @@
             flex-shrink: 1;
             display:flex;
             flex-direction: column;
+        }
+    }
+
+    @media (min-width: 768px) {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+
+        &.closed,
+        &.opening,
+        &.closing {
+            &.left,
+            &.right {
+                >.dialog {
+                    transform: scale(0.85);
+                }
+            }
+        }
+
+        >dialog.dialog {
+            width: auto;
+            height: auto;
+            max-width: min(900px, 100%);
+            max-height: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: rgba(0, 0, 0, 0.25) 0px 12px 32px, rgba(0, 0, 0, 0.15) 0px 4px 12px;
+
+            >.header {
+                border-bottom: none;
+
+                >.back-button {
+                    display: none;
+                }
+
+                >.close-button {
+                    visibility: visible;
+                    pointer-events: auto;
+                    order: 1;
+                    width: 60px;
+                }
+            }
         }
     }
 }

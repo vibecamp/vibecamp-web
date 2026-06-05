@@ -36,14 +36,20 @@ export default React.memo(({ isOpen, onClose, title, side, children }: Props) =>
         return null
     }
 
+    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === e.currentTarget && onClose != null) {
+            onClose()
+        }
+    }
+
     return (
-        <div className={'modal' + ' ' + side + ' ' + modalState}>
+        <div className={'modal' + ' ' + side + ' ' + modalState} onClick={handleBackdropClick}>
             <dialog className='dialog' aria-modal={modalState === 'open'}>
 
                 {(onClose || title) &&
                     <div className='header'>
                         {onClose != null &&
-                            <button type='button' onClick={onClose}>
+                            <button type='button' onClick={onClose} className='back-button'>
                                 <Icon name='arrow_back_ios' />
 
                                 Back
@@ -54,7 +60,9 @@ export default React.memo(({ isOpen, onClose, title, side, children }: Props) =>
                         </span>
 
                         {onClose != null &&
-                            <span className='balancer' />}
+                            <button type='button' onClick={onClose} className='close-button'>
+                                <Icon name='close' />
+                            </button>}
                     </div>}
 
                 <div className="content">
