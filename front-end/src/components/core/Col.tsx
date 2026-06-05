@@ -5,13 +5,14 @@ type Props = {
     justify?: 'start' | 'center' | 'end' | 'space-between' | 'space-around',
     padding?: CSSProperties['padding'],
     pageLevel?: boolean,
+    className?: string,
     children: React.ReactNode
 }
 
-export default React.memo(({ pageLevel, padding, align, justify, children }: Props) => {
+export default React.memo(({ pageLevel, padding, align, justify, className, children }: Props) => {
     return (
         <div
-            className={`col ${pageLevel ? 'page-level' : ''}`}
+            className={`col ${pageLevel ? 'page-level' : ''} ${className ?? ''}`}
             style={{ alignItems: align, justifyContent: justify, padding: padding }}
         >
             {children}

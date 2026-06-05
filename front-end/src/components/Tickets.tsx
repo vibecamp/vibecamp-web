@@ -37,6 +37,93 @@ export default React.memo(() => {
         setHashState({ ticketPurchaseModalState: festival_id, ticketPurchaseIsGift: true })
     }
 
+    const renderFestivalCard = (festival: NonNullable<typeof store.festivals.state.result>[number]) => {
+        const tickets = store.purchasedTicketsByFestival[festival.festival_id] ?? []
+        const otherPurchases = store.nonTicketPurchasesByFestival[festival.festival_id] ?? []
+
+        // HACK: Attendees under one account may have separate cabin names, which
+        // is assumed not to be true as this is currently written
+        const cabinName = store.accountInfo.state.result?.cabins.filter(c => c.festival_id === festival.festival_id)?.[0]?.cabin_name
+
+        return (
+            <div key={festival.festival_id} className='festival-card' style={festival.end_date.isBefore(dayjs.utc()) ? { filter: 'contrast(0.5)' } : undefined}>
+                <h3>
+                    {festival.festival_name}
+                </h3>
+
+                <Spacer size={16} />
+
+                {tickets.length === 0 &&
+                    <>
+                        <div style={{ textAlign: 'center' }}>
+                            {'(after you purchase tickets they\'ll show up here)'}
+                        </div>
+                        <Spacer size={32} />
+                    </>}
+
+                {tickets.map((ticket, index) =>
+                    <React.Fragment key={ticket.purchase_id}>
+                        {index > 0 &&
+                            <Spacer size={24} />}
+                        <Ticket name={undefined} description={store.purchaseTypes.state.result?.find(t => t.purchase_type_id === ticket.purchase_type_id)?.description ?? ''} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
+                    </React.Fragment>)}
+
+                {cabinName &&
+                    <div>
+                        Cabin: {cabinName}
+                    </div>}
+
+                {store.purchaseTypes.state.result && otherPurchases.length > 0 &&
+                    <div>
+                        Other purchases:
+
+                        <Spacer size={4} />
+
+                        <div style={{ border: 'var(--controls-border)', borderRadius: 4, background: 'var(--color-background-1)' }}>
+                            {otherPurchases.map((p, i) =>
+                                <div style={{ padding: '4px 8px', borderTop: i > 0 ? 'var(--controls-border)' : undefined }} key={p.purchase_id}>
+                                    1x {store.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.description}
+                                </div>)}
+                        </div>
+                    </div>}
+
+                {festival.sales_are_open &&
+                    <>
+                        <Spacer size={16} />
+
+                        <Button isPrimary onClick={openTicketPurchaseModal(festival.festival_id)}>
+                            {tickets.length === 0
+                                ? 'Buy tickets'
+                                : 'Buy more tickets or bus/bedding'}
+                        </Button>
+
+                        <Spacer size={8} />
+
+                        <Button onClick={openGiftPurchaseModal(festival.festival_id)}>
+                            Buy a ticket for someone else
+                        </Button>
+                    </>}
+
+                {festival.info_url &&
+                    <>
+
+                        <Spacer size={8} />
+
+                        <a
+                            className='button'
+                            href={festival.info_url}
+                            target='_blank'
+                            rel="noreferrer"
+                        >
+                            Info about {festival.festival_name}
+                            <Spacer size={5} />
+                            <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
+                        </a>
+                    </>}
+            </div>
+        )
+    }
+
     const subscribeToNewsletter = useCallback(() => {
         window.open('https://manage.kmail-lists.com/subscriptions/subscribe?a=XUCiTJ&g=WtMjJ6', '_blank')
         setNewsletterPromptDismissed(true)
@@ -46,12 +133,25 @@ export default React.memo(() => {
         setNewsletterPromptDismissed(true)
     }, [setNewsletterPromptDismissed])
 
-    const festivalsReversed = useMemo(() =>
-        store.festivals.state.result?.slice().reverse()
-    , [store.festivals.state.result])
+    const { upcomingFestivals, pastFestivals } = useMemo(() => {
+        const visible = store.festivals.state.result
+            ?.slice()
+            .reverse()
+            .filter(festival =>
+                festival.sales_are_open ||
+                (store.purchasedTicketsByFestival[festival.festival_id]?.length ?? 0) > 0 ||
+                (store.nonTicketPurchasesByFestival[festival.festival_id]?.length ?? 0) > 0
+            ) ?? []
+
+        const now = dayjs.utc()
+        return {
+            upcomingFestivals: visible.filter(f => !f.end_date.isBefore(now)),
+            pastFestivals: visible.filter(f => f.end_date.isBefore(now))
+        }
+    }, [store.festivals.state.result, store.purchasedTicketsByFestival, store.nonTicketPurchasesByFestival])
 
     return (
-        <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
+        <Col padding={20} pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined} className='tickets-page'>
             {loading ?
                 <LoadingDots size={100} color='var(--color-accent-1)' />
                 : store.accountInfo.state.kind === 'error' || store.accountInfo.state.result == null ?
@@ -64,164 +164,76 @@ export default React.memo(() => {
 
                             <Spacer size={24} />
 
-                            <Row>
-                                <ButtonLink isPrimary href='https://vibe.camp' style={{ textAlign: 'center' }} >
-                                    Main Site <Spacer size={8} /> <Icon name='open_in_new' style={{ fontSize: '1em' }} />
-                                </ButtonLink>
-
-                                <Spacer size={8} />
-
-                                <ButtonLink href='https://discord.gg/k6HzM3dNNy' target='_blank' rel="noreferrer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <img src='/discord.svg' width={20} height={20} />
-
-                                    <Spacer size={12} />
-
-                                    Discord
+                            <div className='tickets-header-block'>
+                                <Row>
+                                    <ButtonLink isPrimary href='https://vibe.camp' style={{ textAlign: 'center' }} >
+                                        Main Site <Spacer size={8} /> <Icon name='open_in_new' style={{ fontSize: '1em' }} />
+                                    </ButtonLink>
 
                                     <Spacer size={8} />
 
-                                    <Icon name='open_in_new' style={{ fontSize: '1em' }} />
-                                </ButtonLink>
-                            </Row>
+                                    <ButtonLink href='https://discord.gg/k6HzM3dNNy' target='_blank' rel="noreferrer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <img src='/discord.svg' width={20} height={20} />
 
-                            {!newsletterPromptDismissed &&
-                                <>
-                                    <Spacer size={8} />
+                                        <Spacer size={12} />
 
-                                    <div className='card'>
-                                        <div style={{ textAlign: 'center' }}>
-                                            Want email announcements?
-                                        </div>
+                                        Discord
 
                                         <Spacer size={8} />
 
-                                        <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                            <Button isPrimary isCompact onClick={subscribeToNewsletter}>
-                                                Subscribe
-                                            </Button>
+                                        <Icon name='open_in_new' style={{ fontSize: '1em' }} />
+                                    </ButtonLink>
+                                </Row>
+
+                                {!newsletterPromptDismissed &&
+                                    <>
+                                        <Spacer size={8} />
+
+                                        <div className='card'>
+                                            <div style={{ textAlign: 'center' }}>
+                                                Want email announcements?
+                                            </div>
+
                                             <Spacer size={8} />
-                                            <Button isCompact onClick={dismissNewsletterPrompt}>
-                                                Dismiss
-                                            </Button>
+
+                                            <div style={{ display: 'flex', flexDirection: 'row' }}>
+                                                <Button isPrimary isCompact onClick={subscribeToNewsletter}>
+                                                    Subscribe
+                                                </Button>
+                                                <Spacer size={8} />
+                                                <Button isCompact onClick={dismissNewsletterPrompt}>
+                                                    Dismiss
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </>}
+                                    </>}
+                            </div>
 
                             <Spacer size={24} />
 
-                            {festivalsReversed
-                                ?.filter(festival =>
-                                    festival.sales_are_open ||
-                                    (store.purchasedTicketsByFestival[festival.festival_id]?.length ?? 0) > 0 ||
-                                    (store.nonTicketPurchasesByFestival[festival.festival_id]?.length ?? 0) > 0
-                                )
-                                .map(festival => {
-                                    const tickets = store.purchasedTicketsByFestival[festival.festival_id] ?? []
-                                    const otherPurchases = store.nonTicketPurchasesByFestival[festival.festival_id] ?? []
+                            {upcomingFestivals.length > 0 &&
+                                <div className='festivals-grid'>
+                                    {upcomingFestivals.map(renderFestivalCard)}
+                                </div>}
 
-                                    // HACK: Attendees under one account may have separate cabin names, which
-                                    // is assumed not to be true as this is currently written
-                                    const cabinName = store.accountInfo.state.result?.cabins.filter(c => c.festival_id === festival.festival_id)?.[0]?.cabin_name
+                            {pastFestivals.length > 0 &&
+                                <>
+                                    <Spacer size={48} />
 
-                                    return (
-                                        <div key={festival.festival_id} style={festival.end_date.isBefore(dayjs.utc()) ? { filter: 'contrast(0.5)' } : undefined}>
-                                            <h2>
-                                                {festival.festival_name}
-                                            </h2>
+                                    <hr />
 
-                                            <Spacer size={16} />
+                                    <Spacer size={48} />
 
-                                            {tickets.length === 0 &&
-                                                <>
-                                                    <div style={{ textAlign: 'center' }}>
-                                                        {'(after you purchase tickets they\'ll show up here)'}
-                                                    </div>
-                                                    <Spacer size={32} />
-                                                </>}
+                                    <h2 style={{ alignSelf: 'flex-start' }}>
+                                        Past events:
+                                    </h2>
 
-                                            {tickets.map((ticket, index) =>
-                                                <React.Fragment key={ticket.purchase_id}>
-                                                    {index > 0 &&
-                                                        <Spacer size={24} />}
-                                                    <Ticket name={undefined} description={store.purchaseTypes.state.result?.find(t => t.purchase_type_id === ticket.purchase_type_id)?.description ?? ''} ticketType='adult' ownedByAccountId={ticket.owned_by_account_id} />
-                                                </React.Fragment>)}
+                                    <Spacer size={24} />
 
-                                            {cabinName &&
-                                                <div>
-                                                    Cabin: {cabinName}
-                                                </div>}
-
-                                            {store.purchaseTypes.state.result && otherPurchases.length > 0 &&
-                                                <div>
-                                                    Other purchases:
-
-                                                    <Spacer size={4} />
-
-                                                    <div style={{ border: 'var(--controls-border)', borderRadius: 4, background: 'var(--color-background-1)' }}>
-                                                        {otherPurchases.map((p, i) =>
-                                                            <div style={{ padding: '4px 8px', borderTop: i > 0 ? 'var(--controls-border)' : undefined }} key={p.purchase_id}>
-                                                                1x {store.purchaseTypes.state.result?.find(t => t.purchase_type_id === p.purchase_type_id)?.description}
-                                                            </div>)}
-                                                    </div>
-                                                </div>}
-
-                                            {festival.sales_are_open &&
-                                                <>
-                                                    <Spacer size={16} />
-
-                                                    <Button isPrimary onClick={openTicketPurchaseModal(festival.festival_id)}>
-                                                        {tickets.length === 0
-                                                            ? 'Buy tickets'
-                                                            : 'Buy more tickets or bus/bedding'}
-                                                    </Button>
-
-                                                    <Spacer size={8} />
-
-                                                    <Button onClick={openGiftPurchaseModal(festival.festival_id)}>
-                                                        Buy a ticket for someone else
-                                                    </Button>
-                                                </>}
-
-                                            {festival.info_url &&
-                                                <>
-
-                                                    <Spacer size={8} />
-
-                                                    <a
-                                                        className='button'
-                                                        href={festival.info_url}
-                                                        target='_blank'
-                                                        rel="noreferrer"
-                                                    >
-                                                        Info about {festival.festival_name}
-                                                        <Spacer size={5} />
-                                                        <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
-                                                    </a>
-                                                </>}
-
-                                            {/* {festival.festival_name.includes('Vibe') &&
-                                            (<>
-                                                <Spacer size={16} />
-
-                                                <a
-                                                    className='button primary'
-                                                    href='https://docs.google.com/forms/d/1-H7RljNum3D9VP8qLY8b65sCB-xR62sczVvh2m5LRLQ/edit'
-                                                    target='_blank'
-                                                    rel="noreferrer"
-                                                >
-                                                    Need financial aid? Apply here
-                                                    <Spacer size={5} />
-                                                    <span className='material-symbols-outlined' style={{ fontSize: 18 }}>open_in_new</span>
-                                                </a>
-                                            </>)
-                                        } */}
-
-                                            <Spacer size={32} />
-                                            <hr />
-                                            <Spacer size={32} />
-                                        </div>
-                                    )
-                                })}
+                                    <div className='festivals-grid'>
+                                        {pastFestivals.map(renderFestivalCard)}
+                                    </div>
+                                </>}
 
                             <Spacer size={24} />
 

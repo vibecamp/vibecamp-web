@@ -233,6 +233,46 @@ a {
     }
 }
 
+.col.page-level.tickets-page {
+    @media (min-width: 768px) {
+        max-width: min(1200px, 100%);
+        margin: 0;
+    }
+
+    .tickets-header-block {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+
+        @media (min-width: 768px) {
+            max-width: 400px;
+        }
+    }
+
+    .festivals-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        width: 100%;
+
+        @media (min-width: 768px) {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 24px;
+            align-items: start;
+        }
+    }
+
+    .festival-card {
+        @media (min-width: 768px) {
+            border: var(--controls-border);
+            border-radius: 8px;
+            padding: 20px;
+            background: var(--color-background-1);
+        }
+    }
+}
+
 .invite-code {
     color: rgba(0, 0, 0, 0.9);
 
