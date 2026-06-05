@@ -60,7 +60,7 @@ export default React.memo(() => {
     const loadingOrError = loading || store.accountInfo.state.kind === 'error'
 
     return (
-        <Col padding='20px 0' pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined}>
+        <Col padding='20px 0' pageLevel justify={loadingOrError ? 'center' : undefined} align={loadingOrError ? 'center' : undefined} className='events-page'>
             {loading
                 ? <LoadingDots size={100} color='var(--color-accent-1)' />
                 : <>
@@ -81,48 +81,36 @@ export default React.memo(() => {
 
                     <Spacer size={8} />
 
-                    <RowSelect
-                        options={['Card view', 'Compact view']}
-                        value={hashState?.compactEventsView === true ? 'Compact view' : 'Card view'}
-                        onChange={view => setHashState({ compactEventsView: view === 'Compact view' })}
-                        style={{ padding: '0 20px' }}
-                    />
+                    <div className='events-controls'>
+                        <RowSelect
+                            options={['Card view', 'Compact view']}
+                            value={hashState?.compactEventsView === true ? 'Compact view' : 'Card view'}
+                            onChange={view => setHashState({ compactEventsView: view === 'Compact view' })}
+                        />
 
-                    <Spacer size={8} />
+                        <RowSelect
+                            options={['All', 'Starred', 'Mine', 'Past']}
+                            value={filter}
+                            onChange={setFilter}
+                        />
 
-                    <RowSelect
-                        options={['All', 'Starred', 'Mine', 'Past']}
-                        value={filter}
-                        onChange={setFilter}
-                        style={{ padding: '0 20px' }}
-                    />
-
-                    <Spacer size={8} />
-
-                    <Row justify='stretch' align='center' padding='0 20px'>
                         <Input
                             placeholderIcon='search'
                             placeholder='Search...'
                             value={searchString}
                             onChange={setSearchString}
-                            style={{ flexShrink: 1, width: 0 }}
                             endButtonLabel={<Icon name='close' />}
                             onEndButtonClick={clearSearch}
+                            style={{ maxWidth: 400 }}
                         />
-                    </Row>
 
-                    {filter !== 'Mine' &&
-                        <>
-                            <Spacer size={8} />
-
-                            <Row justify='stretch' align='center' padding='0 20px'>
-                                <a className='button' href={filter === 'Starred' ? `webcal://${BACK_END_DOMAIN}/events.ics?account_id=${store.jwtPayload?.account_id}` : `webcal://${BACK_END_DOMAIN}/events.ics`}>
-                                    Add {filter === 'Starred' ? 'bookmarks' : 'all events'} to your calendar app
-                                    &nbsp;
-                                    <Icon name='open_in_new' />
-                                </a>
-                            </Row>
-                        </>}
+                        {filter !== 'Mine' &&
+                            <a className='button' href={filter === 'Starred' ? `webcal://${BACK_END_DOMAIN}/events.ics?account_id=${store.jwtPayload?.account_id}` : `webcal://${BACK_END_DOMAIN}/events.ics`}>
+                                Add {filter === 'Starred' ? 'bookmarks' : 'all events'} to your calendar app
+                                &nbsp;
+                                <Icon name='open_in_new' style={{ fontSize: 20 }} />
+                            </a>}
+                    </div>
 
                     <Spacer size={8} />
 
@@ -188,26 +176,32 @@ function Events({ events, editEvent }: { events: readonly DayjsEvent[], editEven
 
     let currentFestival: DayjsFestival | undefined
 
-    return <>
-        {events.map(e => {
-            const festival = store.festivals.state.result?.find(f =>
-                e.start_datetime.isAfter(f.start_date.startOf('day')) &&
-                e.start_datetime.isBefore(f.end_date.endOf('day')))
+    return (
+        <div className='events-grid'>
+            {events.map(e => {
+                const festival = store.festivals.state.result?.find(f =>
+                    e.start_datetime.isAfter(f.start_date.startOf('day')) &&
+                    e.start_datetime.isBefore(f.end_date.endOf('day')))
 
-            const isFirst = festival !== currentFestival
-            currentFestival = festival
+                const isFirst = festival !== currentFestival
+                currentFestival = festival
 
-            return (
-                <Event
-                    event={e}
-                    editEvent={editEvent}
-                    duringFestival={currentFestival?.festival_name}
-                    firstOfFestival={isFirst}
-                    key={e.event_id}
-                />
-            )
-        })}
-    </>
+                return (
+                    <React.Fragment key={e.event_id}>
+                        {isFirst && festival &&
+                            <div className='festivalStart events-grid-row-heading'>
+                                {festival.festival_name}
+                            </div>}
+                        <Event
+                            event={e}
+                            editEvent={editEvent}
+                            duringFestival={currentFestival?.festival_name}
+                        />
+                    </React.Fragment>
+                )
+            })}
+        </div>
+    )
 }
 
 function CompactEvents({ events }: { events: readonly DayjsEvent[], editEvent: (eventId: string) => void }) {

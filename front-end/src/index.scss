@@ -233,9 +233,58 @@ a {
     }
 }
 
+.col.page-level.events-page {
+    @media (min-width: 768px) {
+        max-width: none;
+        margin: 0;
+    }
+
+    .events-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 0 20px;
+
+        @media (min-width: 768px) {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        > * {
+            flex-shrink: 0;
+        }
+    }
+
+    .events-grid {
+        display: flex;
+        flex-direction: column;
+
+        @media (min-width: 768px) {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 16px;
+            padding: 0 20px;
+            align-items: start;
+
+            .events-grid-row-heading {
+                grid-column: 1 / -1;
+            }
+
+            .eventCardWrapper {
+                padding: 0;
+
+                &.duringFestival {
+                    background: none;
+                }
+            }
+        }
+    }
+}
+
 .col.page-level.tickets-page {
     @media (min-width: 768px) {
-        max-width: min(1200px, 100%);
+        max-width: none;
         margin: 0;
     }
 
@@ -257,9 +306,10 @@ a {
 
         @media (min-width: 768px) {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(360px, 400px));
             gap: 24px;
             align-items: start;
+            justify-content: start;
         }
     }
 

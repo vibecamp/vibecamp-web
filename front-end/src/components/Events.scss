@@ -54,17 +54,13 @@
 
     &.duringFestival {
         background: rgba(255, 89, 0, 0.1);
-
-        &.firstOfFestival {
-            margin-top: 16px;
-        }
     }
+}
 
-    >.festivalStart {
-        padding: 7px 0 12px 0px;
-        text-align: center;
-        font-weight: bold;
-    }
+.festivalStart {
+    padding: 7px 20px 12px 20px;
+    text-align: center;
+    font-weight: bold;
 }
 
 .scrollToTopButton {

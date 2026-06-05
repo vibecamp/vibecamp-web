@@ -22,18 +22,12 @@ type Props = {
         end_datetime: Dayjs | null
     },
     editEvent: (eventId: string) => void,
-    firstOfFestival?: boolean,
     duringFestival?: string,
 }
 
-export default React.memo(({ event, editEvent, firstOfFestival, duringFestival }: Props) => {
+export default React.memo(({ event, editEvent, duringFestival }: Props) => {
     return (
-        <div className={'eventCardWrapper' + ' ' + (duringFestival ? 'duringFestival' : '') + ' ' + (firstOfFestival ? 'firstOfFestival' : '')}>
-            {firstOfFestival &&
-                <div className='festivalStart'>
-                    {duringFestival}
-                </div>}
-
+        <div className={'eventCardWrapper' + ' ' + (duringFestival ? 'duringFestival' : '')}>
             <div className={'card' + ' ' + 'eventCard' + ' ' + (event.created_by_account_id === '-1' ? 'official' : '') + ' ' + event.event_type + ' ' + (event.will_be_filmed ? 'will_be_filmed' : '')}>
                 <EventInfo event={event} editEvent={editEvent} />
             </div>
