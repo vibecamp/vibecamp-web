@@ -1,34 +1,107 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-import React from 'react'
-import { MapContainer } from 'react-leaflet'
-import { TileLayer } from 'react-leaflet'
-import { Marker } from 'react-leaflet'
-import { Popup } from 'react-leaflet'
+import React, { useCallback, useRef, useState } from 'react'
+import { ReactZoomPanPinchRef, TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch'
 
-import Spacer from './core/Spacer'
+import ButtonLink from './core/ButtonLink'
+import Icon from './core/Icon'
+
+const MIN_SCALE = 1
+const MAX_SCALE = 6
+const SLIDER_STEPS = 100
+
+const scaleToSlider = (scale: number) => {
+    const ratio = Math.log(scale / MIN_SCALE) / Math.log(MAX_SCALE / MIN_SCALE)
+    return Math.round(ratio * SLIDER_STEPS)
+}
+
+const sliderToScale = (slider: number) =>
+    MIN_SCALE * Math.pow(MAX_SCALE / MIN_SCALE, slider / SLIDER_STEPS)
 
 export default React.memo(() => {
+    const transformRef = useRef<ReactZoomPanPinchRef | null>(null)
+    const [sliderValue, setSliderValue] = useState(0)
+
+    const handleTransform = useCallback((_ref: ReactZoomPanPinchRef, state: { scale: number }) => {
+        setSliderValue(scaleToSlider(state.scale))
+    }, [])
+
+    const handleSliderChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const next = Number(e.target.value)
+        setSliderValue(next)
+        const targetScale = sliderToScale(next)
+        const instance = transformRef.current
+        if (instance) {
+            const { positionX, positionY } = instance.state
+            instance.setTransform(positionX, positionY, targetScale, 0)
+        }
+    }, [])
+
+    const handleZoomIn = useCallback(() => {
+        transformRef.current?.zoomIn()
+    }, [])
+
+    const handleZoomOut = useCallback(() => {
+        transformRef.current?.zoomOut()
+    }, [])
 
     return (
-        <>
-            <h1>Site map</h1>
-
-            <Spacer size={16} />
-
-            {typeof window !== 'undefined' &&
-                // @ts-ignore Bad library types
-                <MapContainer center={[39.645899, -76.172219]} zoom={16} scrollWheelZoom={false} style={{ height: window.innerHeight * 0.6 }}>
-                    <TileLayer
-                        // @ts-ignore Bad library types
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        <div className='map-view'>
+            <TransformWrapper
+                ref={transformRef}
+                initialScale={1}
+                minScale={MIN_SCALE}
+                maxScale={MAX_SCALE}
+                centerOnInit
+                limitToBounds
+                doubleClick={{ mode: 'reset' }}
+                wheel={{ step: 0.1 }}
+                onTransform={handleTransform}
+            >
+                <TransformComponent
+                    wrapperStyle={{ width: '100%', height: '100%' }}
+                    contentStyle={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                >
+                    <img
+                        src='/ramblewood-map.png'
+                        alt='Ramblewood site map'
+                        draggable={false}
+                        className='map-image'
                     />
-                    <Marker position={[39.645899, -76.172219]}>
-                        <Popup>
-                            A pretty CSS3 popup. <br /> Easily customizable.
-                        </Popup>
-                    </Marker>
-                </MapContainer>}
-        </>
+                </TransformComponent>
+            </TransformWrapper>
+
+            <div className='map-zoom-control'>
+                <button type='button' className='map-zoom-btn' onClick={handleZoomIn} aria-label='Zoom in'>
+                    <Icon name='add' />
+                </button>
+                <input
+                    type='range'
+                    min={0}
+                    max={SLIDER_STEPS}
+                    value={sliderValue}
+                    onChange={handleSliderChange}
+                    className='map-zoom-slider'
+                    aria-label='Zoom level'
+                />
+                <button type='button' className='map-zoom-btn' onClick={handleZoomOut} aria-label='Zoom out'>
+                    <Icon name='remove' />
+                </button>
+            </div>
+
+            <ButtonLink
+                href='/ramblewood-map.png'
+                download='ramblewood-map.png'
+                isCompact
+                className='map-download-btn'
+            >
+                <Icon name='file_download' style={{ marginRight: 6 }} />
+                Download
+            </ButtonLink>
+        </div>
     )
 })

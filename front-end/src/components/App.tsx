@@ -13,6 +13,7 @@ import Spacer from './core/Spacer'
 import Stripes from './core/Stripes'
 import Events from './Events'
 import Login from './Login'
+import Map from './Map'
 import RequiredInfoModals from './RequiredInfoModals'
 import Tickets from './Tickets'
 
@@ -48,10 +49,11 @@ export default React.memo(() => {
                 component: Events
             },
             // : null,
-            // Map: {
-            //     icon: 'map',
-            //     component: Map
-            // },
+            {
+                name: 'Map',
+                icon: 'map' as const,
+                component: Map
+            },
             // Info: {
             //     icon: 'info',
             //     component: Info

@@ -34,6 +34,8 @@ export type MaterialIconName =
     | 'search'
     | 'share'
     | 'ios_share'
+    | 'file_download'
+    | 'remove'
 
 export default React.memo(({ fill, style: _style, name }: Props) => {
     const style = {

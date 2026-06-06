@@ -2,10 +2,10 @@ import React, { AnchorHTMLAttributes, HTMLAttributeAnchorTarget } from 'react'
 
 import { buttonClassName,ButtonStyleProps } from './Button'
 
-type Props = ButtonStyleProps & Pick<AnchorHTMLAttributes<HTMLAttributeAnchorTarget>, 'href' | 'target'| 'rel'>
+type Props = ButtonStyleProps & Pick<AnchorHTMLAttributes<HTMLAttributeAnchorTarget>, 'href' | 'target'| 'rel' | 'download'>
 
 export default React.memo((props: Props) => {
-    const { href, target, rel, style, children } = props
+    const { href, target, rel, download, style, children } = props
 
     return (
         <a
@@ -14,6 +14,7 @@ export default React.memo((props: Props) => {
             href={href}
             target={target}
             rel={rel}
+            download={download}
         >
             {children}
         </a>
