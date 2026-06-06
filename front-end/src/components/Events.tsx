@@ -71,7 +71,7 @@ export default React.memo(() => {
                         </h1>
 
                         {someValue(store.purchasedTicketsByFestival, t => t != null && t.length > 0) &&
-                            <Button onClick={createNewEvent} isCompact style={{ width: 'auto' }}>
+                            <Button onClick={createNewEvent} isPrimary isCompact style={{ width: 'auto' }}>
                                 Create event
 
                                 <Spacer size={8} />
