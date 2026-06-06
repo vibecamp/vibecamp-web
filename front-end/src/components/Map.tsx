@@ -1,8 +1,30 @@
 import React, { useCallback, useRef, useState } from 'react'
 import { ReactZoomPanPinchRef, TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch'
 
-import ButtonLink from './core/ButtonLink'
+import Button from './core/Button'
 import Icon from './core/Icon'
+
+const MAP_IMAGE_URL = '/ramblewood-map.png'
+const MAP_FILENAME = 'ramblewood-map.png'
+
+const downloadMapImage = async () => {
+    const response = await fetch(MAP_IMAGE_URL)
+    const blob = await response.blob()
+
+    if (typeof navigator !== 'undefined' && 'canShare' in navigator) {
+        const file = new File([blob], MAP_FILENAME, { type: blob.type || 'image/png' })
+        await navigator.share({ files: [file], title: 'Ramblewood site map' })
+    }
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = MAP_FILENAME
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+}
 
 const MIN_SCALE = 1
 const MAX_SCALE = 6
@@ -41,6 +63,10 @@ export default React.memo(() => {
 
     const handleZoomOut = useCallback(() => {
         transformRef.current?.zoomOut()
+    }, [])
+
+    const handleDownload = useCallback(() => {
+        void downloadMapImage()
     }, [])
 
     return (
@@ -93,15 +119,14 @@ export default React.memo(() => {
                 </button>
             </div>
 
-            <ButtonLink
-                href='/ramblewood-map.png'
-                download='ramblewood-map.png'
+            <Button
+                onClick={handleDownload}
                 isCompact
                 className='map-download-btn'
             >
                 <Icon name='file_download' style={{ marginRight: 6 }} />
                 Download
-            </ButtonLink>
+            </Button>
         </div>
     )
 })
