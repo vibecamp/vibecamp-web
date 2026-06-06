@@ -161,3 +161,13 @@
         }
     }
 }
+
+@media (min-width: 768px) {
+    .events-calendar-link {
+        max-width: 340px;
+    }
+
+    .events-custom-schedule-link {
+        max-width: 250px;
+    }
+}

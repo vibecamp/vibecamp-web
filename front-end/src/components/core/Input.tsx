@@ -52,8 +52,8 @@ export default React.memo(({ label, value, onChange, onBlur, disabled, placehold
     }
 
     return (
-        <label className={'input' + ' ' + (disabled ? 'disabled' : '') + ' ' + (multiline ? 'multiline' : '')} style={style}>
-            <div className='label'>{label}</div>
+        <label className={'input' + ' ' + (disabled ? 'disabled' : '') + ' ' + (multiline ? 'multiline' : '') + (error ? 'hasError' : '')} style={style}>
+            {label && <div className='label'>{label}</div>}
 
             <div className='input-wrapper'>
                 {showPlaceholder && (

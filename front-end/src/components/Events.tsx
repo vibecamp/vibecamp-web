@@ -6,6 +6,7 @@ import useHashState, { EventsFilter } from '../hooks/useHashState'
 import { DayjsEvent, DayjsFestival, useStore } from '../hooks/useStore'
 import { someValue } from '../utils'
 import Button from './core/Button'
+import ButtonLink from './core/ButtonLink'
 import Col from './core/Col'
 import Icon from './core/Icon'
 import Input from './core/Input'
@@ -44,7 +45,7 @@ export default React.memo(() => {
 
         switch (filter) {
         case 'All': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')))
-        case 'Starred': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')) && store.bookmarks.state.result?.event_ids.includes(e.event_id))
+        case 'Bookmarks': return allEvents.filter(e => e.start_datetime.isAfter(dayjs().subtract(1, 'day')) && store.bookmarks.state.result?.event_ids.includes(e.event_id))
         case 'Mine': return allEvents.filter(e => e.created_by_account_id === store.jwtPayload?.account_id).reverse()
         case 'Past': return allEvents.filter(e => e.start_datetime.isBefore(dayjs().subtract(1, 'day'))).reverse()
         }
@@ -89,7 +90,7 @@ export default React.memo(() => {
                         />
 
                         <RowSelect
-                            options={['All', 'Starred', 'Mine', 'Past']}
+                            options={['All', 'Bookmarks', 'Mine', 'Past']}
                             value={filter}
                             onChange={setFilter}
                         />
@@ -105,11 +106,24 @@ export default React.memo(() => {
                         />
 
                         {filter !== 'Mine' &&
-                            <a className='button' href={filter === 'Starred' ? `webcal://${BACK_END_DOMAIN}/events.ics?account_id=${store.jwtPayload?.account_id}` : `webcal://${BACK_END_DOMAIN}/events.ics`}>
-                                Add {filter === 'Starred' ? 'bookmarks' : 'all events'} to your calendar app
+                            <ButtonLink
+                                href={filter === 'Bookmarks' ? `webcal://${BACK_END_DOMAIN}/events.ics?account_id=${store.jwtPayload?.account_id}` : `webcal://${BACK_END_DOMAIN}/events.ics`}
+                                className='events-calendar-link'
+                            >
+                                Add {filter === 'Bookmarks' ? 'bookmarks' : 'full schedule'} to your calendar app
                                 &nbsp;
                                 <Icon name='open_in_new' style={{ fontSize: 20 }} />
-                            </a>}
+                            </ButtonLink>}
+
+                        <ButtonLink
+                            href="https://vibecamp.mahan.io/"
+                            target='_blank'
+                            className='events-custom-schedule-link'
+                        >
+                            Make a custom schedule
+                            &nbsp;
+                            <Icon name='open_in_new' style={{ fontSize: 20 }} />
+                        </ButtonLink>
                     </div>
 
                     <Spacer size={8} />
