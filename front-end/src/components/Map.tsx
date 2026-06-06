@@ -4,32 +4,6 @@ import { ReactZoomPanPinchRef, TransformComponent, TransformWrapper } from 'reac
 import Button from './core/Button'
 import Icon from './core/Icon'
 
-const MAP_IMAGE_URL = '/ramblewood-map.png'
-const MAP_FILENAME = 'ramblewood-map.png'
-
-const downloadMapImage = async () => {
-    const response = await fetch(MAP_IMAGE_URL)
-    const arrayBuffer = await response.arrayBuffer()
-    const pngBlob = new Blob([arrayBuffer], { type: 'image/png' })
-
-    if (typeof navigator !== 'undefined' && 'canShare' in navigator) {
-        const file = new File([pngBlob], MAP_FILENAME, { type: 'image/png' })
-        if (navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file] })
-            return
-        }
-    }
-
-    const url = URL.createObjectURL(pngBlob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = MAP_FILENAME
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-}
-
 const MIN_SCALE = 1
 const MAX_SCALE = 6
 const SLIDER_STEPS = 100
@@ -55,9 +29,15 @@ export default React.memo(() => {
         setSliderValue(next)
         const targetScale = sliderToScale(next)
         const instance = transformRef.current
-        if (instance) {
-            const { positionX, positionY } = instance.state
-            instance.setTransform(positionX, positionY, targetScale, 0)
+        const wrapper = instance?.instance.wrapperComponent
+        if (instance && wrapper) {
+            const { positionX, positionY, scale } = instance.state
+            const ratio = targetScale / scale
+            const centerX = wrapper.offsetWidth / 2
+            const centerY = wrapper.offsetHeight / 2
+            const newX = centerX - (centerX - positionX) * ratio
+            const newY = centerY - (centerY - positionY) * ratio
+            instance.setTransform(newX, newY, targetScale, 0)
         }
     }, [])
 
@@ -97,13 +77,20 @@ export default React.memo(() => {
                     }}
                 >
                     <img
-                        src='/ramblewood-map.png'
+                        src='/ramblewood-map-naked.png'
                         alt='Ramblewood site map'
                         draggable={false}
                         className='map-image'
                     />
                 </TransformComponent>
             </TransformWrapper>
+
+            <img
+                src='/ramblewood-map-legend.png'
+                alt='Map legend'
+                className='map-legend'
+                draggable={false}
+            />
 
             <div className='map-zoom-control'>
                 <button type='button' className='map-zoom-btn' onClick={handleZoomIn} aria-label='Zoom in'>
@@ -129,8 +116,33 @@ export default React.memo(() => {
                 className='map-download-btn'
             >
                 <Icon name='file_download' style={{ marginRight: 6 }} />
-                Download
+                Download map
             </Button>
         </div>
     )
 })
+
+const downloadMapImage = async () => {
+    const MAP_FILENAME = 'ramblewood-map.png'
+
+    const response = await fetch('/ramblewood-map-complete.png')
+    const arrayBuffer = await response.arrayBuffer()
+    const pngBlob = new Blob([arrayBuffer], { type: 'image/png' })
+
+    if (typeof navigator !== 'undefined' && 'canShare' in navigator) {
+        const file = new File([pngBlob], MAP_FILENAME, { type: 'image/png' })
+        if (navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file] })
+            return
+        }
+    }
+
+    const url = URL.createObjectURL(pngBlob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = MAP_FILENAME
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+}

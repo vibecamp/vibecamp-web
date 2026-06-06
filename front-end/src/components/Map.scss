@@ -20,10 +20,24 @@
         -webkit-user-drag: none;
     }
 
+    > .map-legend {
+        position: absolute;
+        right: 16px;
+        bottom: env(safe-area-inset-bottom);
+        z-index: 2;
+
+        width: min(calc(100vw - 32px), 600px);
+        height: auto;
+
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+
     > .map-download-btn {
         position: absolute;
         right: 16px;
-        bottom: calc(16px + env(safe-area-inset-bottom));
+        top: calc(16px + env(safe-area-inset-top));
         z-index: 2;
 
         width: auto;
@@ -34,12 +48,16 @@
     }
 
     > .map-zoom-control {
+        display: none;
         position: absolute;
         right: 16px;
-        bottom: calc(16px + 42px + 8px + env(safe-area-inset-bottom));
+        bottom: calc(16px + 216px + env(safe-area-inset-bottom));
         z-index: 2;
 
-        display: flex;
+        @media (min-width: 768px) {
+            display: flex;
+        }
+
         flex-direction: column;
         align-items: center;
         gap: 8px;
