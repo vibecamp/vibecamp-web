@@ -23,7 +23,7 @@
     > .map-legend {
         position: absolute;
         right: 16px;
-        bottom: env(safe-area-inset-bottom);
+        bottom: 0;
         z-index: 2;
 
         width: min(calc(100vw - 32px), 600px);
