@@ -9,21 +9,25 @@ const MAP_FILENAME = 'ramblewood-map.png'
 
 const downloadMapImage = async () => {
     const response = await fetch(MAP_IMAGE_URL)
-    const blob = await response.blob()
+    const arrayBuffer = await response.arrayBuffer()
+    const pngBlob = new Blob([arrayBuffer], { type: 'image/png' })
 
     if (typeof navigator !== 'undefined' && 'canShare' in navigator) {
-        const file = new File([blob], MAP_FILENAME, { type: blob.type || 'image/png' })
-        await navigator.share({ files: [file], title: 'Ramblewood site map' })
-    } else {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = MAP_FILENAME
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+        const file = new File([pngBlob], MAP_FILENAME, { type: 'image/png' })
+        if (navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file] })
+            return
+        }
     }
+
+    const url = URL.createObjectURL(pngBlob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = MAP_FILENAME
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
 }
 
 const MIN_SCALE = 1
