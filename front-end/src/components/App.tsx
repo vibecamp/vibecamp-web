@@ -4,7 +4,6 @@ import { exists } from '../../../back-end/utils/misc'
 import useHashState from '../hooks/useHashState'
 import useIsOffline from '../hooks/useIsOffline'
 import { StoreContext, useNewStoreInstance } from '../hooks/useStore'
-import useWindowSize from '../hooks/useWindowSize'
 import Account from './Account'
 import Icon, { MaterialIconName } from './core/Icon'
 import Modal from './core/Modal'
@@ -26,7 +25,6 @@ type View = {
 export default React.memo(() => {
     const store = useNewStoreInstance()
     const { hashState, setHashState } = useHashState()
-    const { height } = useWindowSize()
 
     useEffect(() => {
         if (hashState?.currentView == null) {
@@ -65,13 +63,6 @@ export default React.memo(() => {
             }
         ].filter(exists)
     , [])
-
-    useEffect(() => {
-        const root = document.getElementById('root')
-        if (root != null) {
-            root.style.height = height + 'px'
-        }
-    }, [height])
 
     return (
         <StoreContext.Provider value={store}>

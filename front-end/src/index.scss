@@ -75,6 +75,7 @@ body {
 
 #root {
     height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     position:relative;
@@ -193,8 +194,8 @@ a {
     }
 
     @media (display-mode: standalone) {
-        padding-bottom: 20px;
-        min-height: 80px;
+        padding-bottom: env(safe-area-inset-bottom);
+        min-height: calc(60px + env(safe-area-inset-bottom));
     }
 
     @media (min-width: 768px) {
