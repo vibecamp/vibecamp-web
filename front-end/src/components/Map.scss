@@ -22,11 +22,11 @@
 
     > .map-legend {
         position: absolute;
-        right: 16px;
+        right: 8px;
         bottom: 0;
         z-index: 2;
 
-        width: min(calc(100vw - 32px), 600px);
+        width: min(calc(100vw - 16px), 600px);
         height: auto;
 
         pointer-events: none;
