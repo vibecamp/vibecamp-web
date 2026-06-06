@@ -14,16 +14,16 @@ const downloadMapImage = async () => {
     if (typeof navigator !== 'undefined' && 'canShare' in navigator) {
         const file = new File([blob], MAP_FILENAME, { type: blob.type || 'image/png' })
         await navigator.share({ files: [file], title: 'Ramblewood site map' })
+    } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = MAP_FILENAME
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
     }
-
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = MAP_FILENAME
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
 }
 
 const MIN_SCALE = 1
