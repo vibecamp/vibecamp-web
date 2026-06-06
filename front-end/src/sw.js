@@ -11,7 +11,6 @@ const APP_STATIC_RESOURCES = [
     '/favicon.ico',
     '/app.css',
     '/app.js',
-    '/leaflet.css',
     '/loading-spinner.gif',
     '/twitter.png',
     '/vibecamp.png',
