@@ -1,8 +1,7 @@
-import React, { FormEvent, useCallback, useMemo, useState } from 'react'
+import React, { FormEvent, useCallback, useMemo } from 'react'
 
 import { Tables } from '../../../../back-end/types/db-types'
 import { Purchases } from '../../../../back-end/types/route-types'
-import useBooleanState from '../../hooks/useBooleanState'
 import { PurchaseFormState } from '../../hooks/usePurchaseFormState'
 import { DayjsFestival, useStore } from '../../hooks/useStore'
 import { someValue } from '../../utils'
@@ -27,9 +26,6 @@ type Props = {
 
 export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => {
     const store = useStore()
-
-    const [acceptedTermsAndConditions, setAcceptedTermsAndConditions] = useState(false)
-    const { state: hasSubmitted, setTrue: setHasSubmitted } = useBooleanState(false)
 
     const festivalPurchaseTypes = useMemo(() =>
         store.purchaseTypeAvailability.state.result
@@ -67,14 +63,10 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
     const handleSubmit = useCallback((e: FormEvent) => {
         e.preventDefault()
 
-        setHasSubmitted()
-
-        if (!acceptedTermsAndConditions) {
-            return
-        }
-
+        // goToNext (goToTicketPayment) surfaces validation errors and only
+        // advances when the whole form — including terms acceptance — is valid.
         goToNext()
-    }, [acceptedTermsAndConditions, goToNext, setHasSubmitted])
+    }, [goToNext])
 
     if (festival == null) {
         return null
@@ -280,7 +272,7 @@ export default React.memo(({ purchaseFormState, goToNext, festival }: Props) => 
 
                 <Spacer size={32} />
 
-                <Checkbox value={acceptedTermsAndConditions} onChange={setAcceptedTermsAndConditions} error={hasSubmitted && !acceptedTermsAndConditions ? 'Please confirm you\'ve read the terms of attending Vibecamp' : undefined}>
+                <Checkbox value={purchaseFormState.acceptedTermsAndConditions} onChange={purchaseFormState.setAcceptedTermsAndConditions} error={purchaseFormState.showingErrors ? purchaseFormState.termsAndConditionsError : undefined}>
                     <span>I&apos;ve read and accepted the <a href="https://vibe.camp/terms" target='_blank' rel="noreferrer">Vibecamp Terms and Conditions</a></span>
                 </Checkbox>
 

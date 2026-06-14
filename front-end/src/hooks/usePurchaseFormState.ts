@@ -35,6 +35,7 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
     const handleWaiverClick = useCallback(() => setHasClickedWaiver(true), [])
     const [showingErrors, setShowingErrors] = useState(false)
     const [giftRecipientEmail, setGiftRecipientEmail] = useState('')
+    const [acceptedTermsAndConditions, setAcceptedTermsAndConditions] = useState(false)
 
     const numberOfAttendeesError = (
         attendees.length > 7
@@ -66,11 +67,24 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
             : undefined
     )
 
+    // The terms must be accepted before a purchase can proceed. This lives in
+    // the shared form state (rather than only in SelectionView) so it gates both
+    // navigation to the payment step and creation of the Stripe payment intent.
+    // Otherwise a user could reach the "Pay now" button without accepting the
+    // terms (e.g. via the URL hash, a reload, or browser back/forward), where
+    // the checkbox is no longer available.
+    const termsAndConditionsError = (
+        !acceptedTermsAndConditions
+            ? 'Please confirm you\'ve read the terms of attending Vibecamp'
+            : undefined
+    )
+
     const isValid = (
         attendeeErrorsRaw.every(errors => objectValues(errors).every(err => err == null)) &&
         numberOfAttendeesError == null &&
         hasClickedWaiverError == null &&
-        giftRecipientEmailError == null
+        giftRecipientEmailError == null &&
+        termsAndConditionsError == null
     )
 
     const purchases = useMemo(() => {
@@ -164,6 +178,9 @@ export default function usePurchaseFormState({ isInitialPurchase, needsWaiverCli
         attendeeErrors,
         numberOfAttendeesError,
         hasClickedWaiverError,
+        termsAndConditionsError,
+        acceptedTermsAndConditions,
+        setAcceptedTermsAndConditions,
         handleWaiverClick,
         addAttendee,
         removeAttendee,
