@@ -1,0 +1,170 @@
+.date-field {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    color: var(--color-tertiary);
+
+    transition: color 0.1s ease-out, opacity 0.1s ease-out;
+
+    --focus-color: rgb(0, 166, 255);
+
+    &:focus-within > .label {
+        color: var(--focus-color);
+    }
+
+    .date-field-picker {
+        display: block;
+        margin-top: 5px;
+    }
+
+    .react-datepicker-wrapper,
+    .react-datepicker__input-container {
+        display: block;
+        width: 100%;
+    }
+
+    .react-datepicker__input-container > input {
+        appearance: none;
+        border: none;
+        background: none;
+
+        width: 100%;
+        color: var(--color-primary);
+        border: var(--controls-border);
+        background: var(--color-background-1);
+        font-size: 16px;
+        font-weight: 300;
+        font-family: inherit;
+        border-radius: 8px;
+        padding: 10px;
+
+        transition: border-color 0.1s ease-out;
+
+        &::placeholder {
+            color: var(--color-secondary);
+        }
+
+        &:focus {
+            outline: none;
+            border-color: var(--focus-color);
+            box-shadow: 0px 0px 3px var(--focus-color);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            color-scheme: dark;
+        }
+    }
+
+    &.disabled .react-datepicker__input-container > input {
+        filter: contrast(0.8);
+    }
+
+    > .error-message {
+        margin-top: 4px;
+    }
+}
+
+.date-field-popper {
+    --focus-color: rgb(0, 166, 255);
+
+    z-index: 20;
+    font-family: inherit;
+
+    .react-datepicker {
+        font-family: inherit;
+        font-size: 13px;
+        color: var(--color-primary);
+        background: var(--color-background-1);
+        border: var(--controls-border);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .react-datepicker__header {
+        background: var(--color-background-2);
+        border-bottom: var(--controls-border);
+    }
+
+    .react-datepicker__current-month,
+    .react-datepicker-time__header,
+    .react-datepicker__day-name {
+        color: var(--color-primary);
+    }
+
+    .react-datepicker__day,
+    .react-datepicker__time-name {
+        color: var(--color-primary);
+
+        &:hover {
+            background: var(--color-background-2);
+        }
+    }
+
+    .react-datepicker__day--outside-month {
+        color: var(--color-secondary);
+    }
+
+    .react-datepicker__day--selected,
+    .react-datepicker__day--keyboard-selected {
+        background: var(--focus-color);
+        color: white;
+
+        &:hover {
+            background: var(--focus-color);
+        }
+    }
+
+    .react-datepicker__day--disabled {
+        color: var(--color-secondary);
+        cursor: not-allowed;
+
+        &:hover {
+            background: none;
+        }
+    }
+
+    .react-datepicker__time-container {
+        border-left: var(--controls-border);
+
+        .react-datepicker__time {
+            background: var(--color-background-1);
+
+            .react-datepicker__time-box {
+                .react-datepicker__time-list-item {
+                    color: var(--color-primary);
+
+                    &:hover {
+                        background: var(--color-background-2);
+                    }
+                }
+
+                .react-datepicker__time-list-item--selected {
+                    background: var(--focus-color);
+                    color: white;
+
+                    &:hover {
+                        background: var(--focus-color);
+                    }
+                }
+
+                .react-datepicker__time-list-item--disabled {
+                    color: var(--color-secondary);
+                }
+            }
+        }
+    }
+
+    .react-datepicker__navigation-icon::before {
+        border-color: var(--color-primary);
+    }
+
+    .react-datepicker__triangle {
+        fill: var(--color-background-2);
+        stroke: rgba(0, 0, 0, 0.3);
+        color: var(--color-background-2);
+
+        @media (prefers-color-scheme: dark) {
+            stroke: rgba(255, 255, 255, 0.3);
+        }
+    }
+}

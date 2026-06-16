@@ -12,7 +12,7 @@ import { vibefetch } from '../../vibefetch'
 import Button from '../core/Button'
 import Checkbox from '../core/Checkbox'
 import Col from '../core/Col'
-import DateField, { formatNoTimezone } from '../core/DateField'
+import DateTimeField, { formatNoTimezone } from '../core/DateTimeField'
 import InfoBlurb from '../core/InfoBlurb'
 import Input from '../core/Input'
 import Modal from '../core/Modal'
@@ -231,7 +231,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
 
                 <Spacer size={16} />
 
-                <DateField
+                <DateTimeField
                     label='Start'
                     disabled={submitting}
                     {...fieldToProps(fields.start_datetime)}
@@ -239,7 +239,7 @@ export default React.memo(({ eventBeingEdited, onDone }: Props) => {
 
                 <Spacer size={16} />
 
-                <DateField
+                <DateTimeField
                     label='End'
                     disabled={submitting}
                     min={fields.start_datetime.value}
