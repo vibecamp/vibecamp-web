@@ -8,6 +8,12 @@
 
     --focus-color: rgb(0, 166, 255);
 
+    // Undo global rules in index.scss that leak into react-datepicker's
+    // internal markup. The library assumes default browser styling.
+    .react-datepicker__input-container, .react-datepicker__input-container * {
+        transition: none;
+    }
+
     &:focus-within > .label {
         color: var(--focus-color);
     }
@@ -70,6 +76,20 @@
     z-index: 20;
     font-family: inherit;
 
+    // Undo global rules in index.scss that leak into react-datepicker's
+    // internal markup. The library assumes default browser styling for
+    // headings, `transition: all` causes hover flicker, etc.
+    *, ::before, ::after {
+        transition: none;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        display: revert;
+        align-items: revert;
+        font-weight: revert;
+        font-size: revert;
+    }
+
     .react-datepicker {
         font-family: inherit;
         font-size: 13px;
@@ -89,6 +109,8 @@
     .react-datepicker-time__header,
     .react-datepicker__day-name {
         color: var(--color-primary);
+        font-size: 14px;
+        font-weight: 500;
     }
 
     .react-datepicker__day,
