@@ -1,0 +1,67 @@
+name: app
+
+on:
+    push:
+        branches: [main, rewrite]
+        paths: ['app/**', '.gitignore', '.github/workflows/app.yml']
+    pull_request:
+        paths: ['app/**', '.gitignore', '.github/workflows/app.yml']
+
+defaults:
+    run:
+        working-directory: app
+
+env:
+    TZ: UTC
+
+jobs:
+    checks:
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:15-alpine
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_DB: vibecamp
+                ports: ['5432:5432']
+                options: >-
+                    --health-cmd "pg_isready -U postgres -d vibecamp"
+                    --health-interval 5s --health-timeout 3s --health-retries 10
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: app/.node-version
+            - run: corepack enable
+            - run: pnpm install --frozen-lockfile
+            - name: Lint and format (Biome)
+              run: pnpm biome ci .
+            - name: Typecheck
+              run: pnpm tsc --noEmit
+            - name: Destructive-DDL gate
+              run: |
+                  status=0
+                  for f in drizzle/0*.sql; do
+                      case "$f" in drizzle/0000_*) continue ;; esac
+                      if grep -qiE '\b(DROP|TRUNCATE|RENAME)\b|ALTER COLUMN .* TYPE|SET NOT NULL|DROP COLUMN' "$f" \
+                         && ! head -1 "$f" | grep -q '^-- ALLOW-DESTRUCTIVE:'; then
+                          echo "::error file=$f::destructive DDL without an ALLOW-DESTRUCTIVE sign-off"; status=1
+                      fi
+                  done
+                  exit $status
+            - name: Migrate from empty and compare with the committed schema
+              run: scripts/migrate-check.sh
+              env:
+                  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/vibecamp
+            - name: Tests
+              run: pnpm vitest run
+            - name: Build
+              run: pnpm build
+              env:
+                  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/vibecamp
+                  JWT_SECRET: ci-only
+                  STRIPE_SECRET_KEY: sk_test_ci
+                  STRIPE_WEBHOOK_SECRET: whsec_ci
+                  APP_BASE_URL: http://localhost:3000
+                  AV_NEEDS_EMAIL: av-needs@example.com

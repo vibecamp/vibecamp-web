@@ -1,0 +1,62 @@
+
+.row-select {
+
+    > .label {
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    > .options {
+        appearance: none;
+        padding: 0;
+        margin: 0;
+        min-height: 42px;
+        border: none;
+
+        position: relative;
+        border-radius: 8px;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(max-content, 1fr);
+        border: var(--controls-border);
+        overflow: hidden;
+        cursor: pointer;
+
+        > label {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 8px;
+            z-index: 1;
+            cursor: pointer;
+            white-space: nowrap;
+
+            input[type="radio"] {
+                position: absolute;
+                appearance: none;
+                margin: 0;
+            }
+
+            &.selected {
+                font-weight: bold;
+                color: rgba(255, 255, 255, 0.9);
+            }
+        }
+
+        &::before {
+            content: '';
+            height: 100%;
+            width: calc(100% / var(--selection-options));
+            position: absolute;
+            top: 0;
+            left: calc(100% / var(--selection-options) * var(--selection-index));
+            background: var(--color-accent-1);
+            transition: left 0.1s ease-out;
+        }
+    }
+}
+
+dialog {
+    color: inherit;
+}

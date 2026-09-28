@@ -74,6 +74,29 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
 ])
 
+// Cutover hook (see the private runbook): when MAINTENANCE_MODE=1, answer 503
+// to everything except GET /healthz and the Stripe webhook, so this hostname
+// keeps responding and payments already in flight can still be recorded while
+// the new app takes over. Inert unless the variable is set. Registered after
+// the CORS middleware so the CORS headers are still applied.
+const MAINTENANCE_MODE = Deno.env.get('MAINTENANCE_MODE') === '1'
+const MAINTENANCE_EXEMPT = new Set(['GET /healthz', 'POST /purchase/record'])
+
+app.use(async (ctx, next) => {
+  if (
+    MAINTENANCE_MODE &&
+    !MAINTENANCE_EXEMPT.has(`${ctx.request.method} ${ctx.request.url.pathname}`)
+  ) {
+    ctx.response.status = Status.ServiceUnavailable
+    ctx.response.body = 'null'
+    ctx.response.type = 'json'
+    ctx.response.headers.set('Retry-After', '3600')
+    return
+  }
+
+  await next()
+})
+
 // routes
 router.get('/healthz', async (ctx, next) => {
   ctx.response.status = Status.OK

@@ -1,0 +1,223 @@
+export const COPY = {
+    'app.title': 'My Vibecamp',
+    'app.description': "Let's vibe, y'all",
+
+    'nav.tickets': 'Tickets',
+    'nav.events': 'Events',
+    'nav.account': 'Account',
+    'app.offlineBanner': 'Currently offline',
+    'purchase.proceedToCheckout': 'Proceed to Checkout',
+    'purchase.noChargeYet': "Don't worry! Pressing this button won't charge you yet.",
+    'tickets.badgeMissing': 'Please fill out information for your badge.',
+    'tickets.actionRequired': 'Action required!',
+    'tickets.allSet': "You're all set!",
+    'events.linkCopied': 'Link copied to clipboard.',
+    'eventEditor.avAgreementDeadline': 'FRIDAY, JUNE 5TH, 2026',
+
+    'validation.passwordsDontMatch': "Passwords don't match",
+    'login.incorrectCredentials': 'Incorrect email or password',
+    'login.logoAlt': 'Vibecamp logo',
+    'common.emailAddressLabel': 'Email address',
+    'common.passwordLabel': 'Password',
+    'common.newPasswordLabel': 'New password',
+    'passwordReset.confirmNewPasswordLabel': 'Confirm new password',
+    'common.confirmPasswordLabel': 'Confirm password',
+    'passwordReset.emailSent': 'Email sent!',
+    'login.submit': 'Log in',
+    'signup.submit': 'Sign up',
+    'passwordReset.requestSubmit': 'Reset password',
+    'passwordReset.updateSubmit': 'Update password',
+    'login.createAccount': 'Create an account',
+    'signup.alreadyHaveAccount': 'I already have an account',
+    'login.forgotPassword': 'Forgot your password?',
+    'passwordReset.backToLogin': 'Back to login',
+    'login.troubleLoggingIn':
+        'If you have trouble logging in, please email us at {supportEmailLink}',
+    'login.supportEmailLinkText': 'support@vibe.camp',
+    'tickets.noTicketsYet': "(after you purchase tickets they'll show up here)",
+    'tickets.checkBackSoon': 'Check back soon to purchase tickets!',
+    'tickets.otherPurchasesHeading': 'Other purchases:',
+    'tickets.buyTickets': 'Buy tickets',
+    'tickets.buyMore': 'Buy more tickets',
+    'common.failedToLoad': 'Failed to load',
+    'purchase.discountCodeLabel': 'Discount code (optional)',
+    'purchase.acceptTerms': "I've read and accepted the {termsLink}",
+    'purchase.termsLinkText': 'Vibecamp Terms and Conditions',
+    'attendee.nameLabel': 'Attendee name',
+    'attendee.namePlaceholder': 'Brooke',
+    'attendee.nameBlurbSelf':
+        "Whatever name you'd like to go by (in comms, etc). Can be real or twitter display name or whatever. Does not need to be your legal name!",
+    'attendee.phoneLabel': 'Phone number (optional)',
+    'attendee.phonePlaceholder': '(123) 456-7890',
+    'attendee.phoneBlurb': "We'll keep this private unless you instruct us to share it",
+    'attendee.twitterLabel': 'Twitter handle (optional)',
+    'attendee.twitterPlaceholder': '@gptbrooke',
+    'attendee.twitterBlurb': 'Username, not display name!',
+    'attendee.discordLabel': 'Discord handle (optional)',
+    'attendee.discordPlaceholder': 'gptbrooke',
+    'attendee.discordBlurbSelf':
+        'If you provide your Discord handle, we can give you attendee status on the Vibecamp server and add you to attendee-specific channels',
+    'attendee.ageRangeLabelSelf': 'I am...',
+    'purchase.priceLineItem': '{description} x {count}',
+    'purchase.totalRow': 'Total:',
+
+    'account.title': 'My account',
+    'account.updateMyInfo': 'Update my info',
+    'account.badgeInfoHeading': 'Badge info',
+    'account.changeEmail': 'Change email',
+    'account.passwordMask': '········',
+    'account.changePassword': 'Change password',
+    'account.logOut': 'Log out',
+    'account.newEmailAddressLabel': 'New email address',
+    'common.submit': 'Submit',
+    'common.edit': 'Edit',
+    'validation.nameRequired': 'Please enter a name',
+    'badge.limit20': 'Please limit to 20 characters so it fits on the badge',
+    'badge.noAtSign': 'No need for the @ at the front',
+    'badge.limit160': 'Please limit to 160 characters so it fits on the badge',
+    'badge.invalidUrl': 'Invalid URL',
+    'badge.nameLabel': 'Name',
+    'badge.namePlaceholder': 'brooke',
+    'badge.nameBlurb':
+        'The name people recognize you by. Typically it would be your twitter display name or your real name, but it can be whatever you want.',
+    'badge.usernameLabel': 'Username (optional)',
+    'badge.usernamePlaceholder': 'gtpbrooke',
+    'badge.usernameBlurb':
+        'The name people can use to find and follow you. You might choose to use your twitter or bluesky handle, or maybe even your website domain or email address.',
+    'badge.pictureUrlLabel': 'Profile picture URL',
+    'badge.pictureUrlPlaceholder':
+        'https://pbs.twimg.com/profile_images/1782955833292402688/z_iNKZZF_400x400.jpg',
+    'badge.pictureUrlBlurb':
+        'Your picture for your badge. Provide a URL that ends with .jpg, .jpeg, or .png. Twitter and Imgur links work!',
+    'badge.pictureHelpButton': 'How do I get my twitter profile picture?',
+    'badge.pictureHelpStep1': 'Navigate to your {profilePictureLink}',
+    'badge.pictureHelpProfilePictureLinkText': 'profile picture',
+    'badge.pictureHelpStep2': 'Right-click it and copy the image URL',
+    'badge.locationLabel': 'Location (optional)',
+    'badge.locationPlaceholder': 'San Francisco',
+    'badge.locationBlurb':
+        'Where you live! Can be your city, country, region, planet, multiverse dimension, etc.',
+    'badge.bioLabel': 'Badge bio (optional)',
+    'badge.bioPlaceholder': "I'm a super cool person, what can I say?",
+    'badge.bioBlurb':
+        'A blurb about you. You might copy and paste your twitter bio, or write something specific to vibecamp.',
+    'common.save': 'Save',
+
+    'events.createEvent': 'Create event',
+    'events.cardView': 'Card view',
+    'events.compactView': 'Compact view',
+    'events.filterAll': 'All',
+    'events.filterBookmarks': 'Bookmarks',
+    'events.filterMine': 'Mine',
+    'events.filterPast': 'Past',
+    'events.searchPlaceholder': 'Search...',
+    'events.vibecampTeam': 'Vibecamp team',
+    'events.scrollToTop': 'Scroll to top',
+    'events.noEvents': '(no events)',
+    'events.compactWhenHeading': 'When',
+    'events.compactWhatHeading': 'What',
+    'events.compactTimeFormat': 'ddd h:mma',
+
+    'events.timeFormat': 'h:mma',
+    'events.dateTimeFormatThisYear': 'ddd, M/D [at] h:mma',
+    'events.dateTimeFormatOtherYear': 'ddd, M/D/YYYY [at] h:mma',
+    'events.timeRangeSeparator': ' - ',
+
+    'eventEditor.nameRequired': 'Please enter a name for the event',
+    'eventEditor.startRequired': 'Please select a start date/time',
+    'eventEditor.endBeforeStart': 'End date/time is before start date/time',
+    'eventEditor.avNeedsRequired': 'Please describe your A/V needs',
+    'eventEditor.nameLabel': 'Event name',
+    'eventEditor.descriptionLabel': 'Event description',
+    'eventEditor.startLabel': 'Start',
+    'eventEditor.endLabel': 'End',
+    'eventEditor.locationLabel': 'Location',
+    'eventEditor.locationBlurb': `Your event can take place at {festivalName}, or it can take place before/after.
+
+Campsite locations have limited capacity, and scheduling will be first-come-first-serve for a given place + time.`,
+    'eventEditor.theFestival': 'the festival',
+    'eventEditor.locationTypeLabel': 'My event will be...',
+    'eventEditor.locationOnsite': 'Onsite',
+    'eventEditor.locationOffsite': 'Offsite',
+    'eventEditor.campsiteLocationsLabel': 'Campsite locations:',
+    'eventEditor.avCheckbox': 'My event requires A/V equipment or support',
+    'eventEditor.avAgreement': `By checking this box, you are agreeing to the following:
+
+1. I, the event host, will work with Christian, Vibecamp's head of A/V, to ensure that my A/V needs are communicated beforehand.
+
+2. Vibecamp cannot guarantee the use of specific equipment.
+
+3. I, the event host, will submit my A/V requirements before FRIDAY, JUNE 5TH, 2026. Vibecamp will not support A/V requests that we receive after Friday, June 5th.`,
+    'eventEditor.avNeedsLabel': 'Describe your A/V needs',
+    'eventEditor.saveEvent': 'Save event',
+    'eventEditor.deleteEvent': 'Delete event',
+    'common.cancel': 'Cancel',
+
+    'eventEditor.siteInfoHeading': 'Location info',
+    'eventEditor.siteType': 'Type: {structureType}',
+    'eventEditor.siteMaxCapacity': 'Max capacity: {peopleCap}',
+    'eventEditor.siteEquipment': 'Available equipment: {equipment}',
+
+    'eventEditor.overlapPrompt': 'This event overlaps with the following. Schedule it anyway?',
+    'eventEditor.overlapConfirm': 'Yes, schedule anyway',
+
+    'eventEditor.deletePrompt': 'Are you sure you want to delete "{eventName}"?',
+    'eventEditor.deleteConfirm': 'Yes, delete the event',
+
+    'nav.help': 'Support',
+    'nav.legal': 'Legal',
+
+    'events.filtersTitle': 'Filters',
+    'events.filtersReset': 'Reset filters',
+
+    'tickets.addonsHeading': 'Add-ons',
+    'tickets.purchaseAddons': 'Purchase add-ons',
+
+    'purchase.discountRow': 'Discount',
+    'purchase.contributionLabel': 'Make an additional contribution to support Vibecamp!',
+    'purchase.contributionBlurb':
+        'Contributions help fund low-income tickets, art grants, and organizer salaries.',
+    'purchase.noTickets': 'No tickets available at this time. Check back soon!',
+    'purchase.invalidSelection': 'Invalid selection.',
+    'purchase.quoteChanged': 'The quoted price has changed. Please re-confirm.',
+    'purchase.paymentPending': 'Payment pending.',
+    'purchase.needsAttention':
+        'Your order needs manual attention. Please contact Vibecamp support by emailing {supportEmailLink}.',
+    'purchase.resumeOrder': 'Resume order.',
+
+    'validation.twitterNoAtSign': 'No @ needed, just the rest of the handle',
+    'validation.phoneInvalid': 'Please enter a valid phone number',
+    'validation.ageRangeRequired': 'Please select an age range',
+    'validation.emailRequired': 'Please enter your email',
+    'validation.emailInvalid': 'Please enter a valid email address',
+    'validation.passwordRequired': 'Please enter a password',
+    'validation.passwordTooShort': 'Password must be at least eight characters',
+    'validation.passwordNeedsLetter': 'Password must contain an alphabetic character',
+    'validation.passwordNeedsNumber': 'Password must contain a numeric character',
+
+    'common.defaultFormError': 'Something went wrong, please try again',
+
+    'email.receipt.purchaseRow': '{description} x{count}',
+    'email.receipt.subject': 'Vibecamp purchase receipt',
+    'email.receipt.accountId': 'Account ID: {accountId}',
+
+    'email.avNeeds.noDate': '(none)',
+    'email.avNeeds.subject': 'New A/V request: {eventName}',
+    'email.avNeeds.heading': 'New A/V request',
+    'email.avNeeds.host': 'Host: {name} <{email}>',
+    'email.avNeeds.unnamed': '(unnamed)',
+    'email.avNeeds.site': 'Site: {siteName}',
+    'email.avNeeds.unknownSite': '(unknown)',
+    'email.avNeeds.start': 'Start: {start}',
+    'email.avNeeds.end': 'End: {end}',
+    'email.avNeeds.needsHeading': 'A/V needs',
+
+    'email.passwordReset.subject': 'Vibecamp password reset',
+    'email.passwordReset.body':
+        "You've requested that your account password be reset. Nothing has happened yet, you can click the link below to set a new password on your my.vibe.camp account.",
+
+    'share.siteName': 'Vibecamp',
+    'share.hostedBy': '{eventName} hosted by {creatorName}',
+} as const
+
+export type CopyKey = keyof typeof COPY

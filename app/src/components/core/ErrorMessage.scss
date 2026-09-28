@@ -1,0 +1,15 @@
+.error-message {
+    color: var(--color-danger);
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.3;
+    transition:
+        opacity 0.12s ease-out,
+        max-height 0.12s ease-out;
+
+    &:not(.visible) {
+        pointer-events: none;
+        opacity: 0;
+        max-height: 0;
+    }
+}

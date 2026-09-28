@@ -1,0 +1,2800 @@
+{
+ "_meta": {
+  "columns": {},
+  "schemas": {},
+  "tables": {}
+ },
+ "dialect": "postgresql",
+ "enums": {},
+ "internal": {
+  "tables": {
+   "event": {
+    "columns": {
+     "tags": {
+      "dimensions": 1,
+      "isArray": true,
+      "rawType": "text"
+     }
+    }
+   }
+  }
+ },
+ "policies": {},
+ "roles": {},
+ "schemas": {},
+ "sequences": {},
+ "tables": {
+  "public.account": {
+   "checkConstraints": {},
+   "columns": {
+    "account_id": {
+     "default": "gen_random_uuid()",
+     "name": "account_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "email_address": {
+     "name": "email_address",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "notes": {
+     "default": "''''''",
+     "name": "notes",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "password_hash": {
+     "name": "password_hash",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "password_salt": {
+     "name": "password_salt",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {},
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "account",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {
+    "account_email_address_key": {
+     "columns": [
+      "email_address"
+     ],
+     "name": "account_email_address_key",
+     "nullsNotDistinct": false
+    }
+   }
+  },
+  "public.account_password_reset_secret": {
+   "checkConstraints": {},
+   "columns": {
+    "account_id": {
+     "name": "account_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "account_password_reset_secret_id": {
+     "default": "gen_random_uuid()",
+     "name": "account_password_reset_secret_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "created_at": {
+     "default": "now()",
+     "name": "created_at",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "secret": {
+     "name": "secret",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "used_at": {
+     "name": "used_at",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "account_password_reset_secret_account_id_fkey": {
+     "columnsFrom": [
+      "account_id"
+     ],
+     "columnsTo": [
+      "account_id"
+     ],
+     "name": "account_password_reset_secret_account_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "account_password_reset_secret",
+     "tableTo": "account"
+    }
+   },
+   "indexes": {
+    "account_password_reset_secret_secret_idx": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "secret",
+       "isExpression": false,
+       "nulls": "last",
+       "opclass": "text_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": false,
+     "method": "btree",
+     "name": "account_password_reset_secret_secret_idx",
+     "with": {}
+    }
+   },
+   "isRLSEnabled": false,
+   "name": "account_password_reset_secret",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.age_range": {
+   "checkConstraints": {},
+   "columns": {
+    "age_range": {
+     "name": "age_range",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "text"
+    },
+    "description": {
+     "name": "description",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "end": {
+     "name": "end",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "start": {
+     "name": "start",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {},
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "age_range",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.announcement": {
+   "checkConstraints": {},
+   "columns": {
+    "announced_at": {
+     "default": "now()",
+     "name": "announced_at",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "announcement_id": {
+     "default": "gen_random_uuid()",
+     "name": "announcement_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "content": {
+     "name": "content",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "title": {
+     "name": "title",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {},
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "announcement",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.application": {
+   "checkConstraints": {},
+   "columns": {
+    "anything_else": {
+     "name": "anything_else",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "application_id": {
+     "default": "gen_random_uuid()",
+     "name": "application_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "attractive_virtues": {
+     "name": "attractive_virtues",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "experiences_hoping_to_share": {
+     "name": "experiences_hoping_to_share",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "group_activity": {
+     "name": "group_activity",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "hoping_to_get_out_of_the_festival": {
+     "name": "hoping_to_get_out_of_the_festival",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "how_found_out": {
+     "name": "how_found_out",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "identify_as": {
+     "name": "identify_as",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "interested_in_volunteering": {
+     "name": "interested_in_volunteering",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "is_accepted": {
+     "name": "is_accepted",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "last_conversation": {
+     "name": "last_conversation",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "looking_forward_to_conversations": {
+     "name": "looking_forward_to_conversations",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "name": {
+     "name": "name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "previous_events": {
+     "name": "previous_events",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "strongest_virtues": {
+     "name": "strongest_virtues",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "submitted_on": {
+     "default": "now()",
+     "name": "submitted_on",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "twitter_handle": {
+     "name": "twitter_handle",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {},
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "application",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.attendee": {
+   "checkConstraints": {},
+   "columns": {
+    "age": {
+     "name": "age",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "age_range": {
+     "name": "age_range",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "associated_account_id": {
+     "name": "associated_account_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "attendee_id": {
+     "default": "gen_random_uuid()",
+     "name": "attendee_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "diet": {
+     "name": "diet",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "discord_handle": {
+     "name": "discord_handle",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "email_address": {
+     "name": "email_address",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "has_allergy_eggs": {
+     "name": "has_allergy_eggs",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "has_allergy_fish": {
+     "name": "has_allergy_fish",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "has_allergy_milk": {
+     "name": "has_allergy_milk",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "has_allergy_peanuts": {
+     "name": "has_allergy_peanuts",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "has_allergy_shellfish": {
+     "name": "has_allergy_shellfish",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "has_allergy_soy": {
+     "name": "has_allergy_soy",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "has_allergy_tree_nuts": {
+     "name": "has_allergy_tree_nuts",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "has_allergy_wheat": {
+     "name": "has_allergy_wheat",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "interested_in_pre_call": {
+     "default": false,
+     "name": "interested_in_pre_call",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "interested_in_volunteering_as": {
+     "name": "interested_in_volunteering_as",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "is_primary_for_account": {
+     "default": false,
+     "name": "is_primary_for_account",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "medical_training": {
+     "name": "medical_training",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "name": {
+     "name": "name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "notes": {
+     "default": "''''''",
+     "name": "notes",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "phone_number": {
+     "name": "phone_number",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "planning_to_camp": {
+     "default": false,
+     "name": "planning_to_camp",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "share_ticket_status_with_selflathing": {
+     "name": "share_ticket_status_with_selflathing",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "twitter_handle": {
+     "name": "twitter_handle",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "attendee_age_range_fkey": {
+     "columnsFrom": [
+      "age_range"
+     ],
+     "columnsTo": [
+      "age_range"
+     ],
+     "name": "attendee_age_range_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "attendee",
+     "tableTo": "age_range"
+    },
+    "attendee_associated_account_id_fkey": {
+     "columnsFrom": [
+      "associated_account_id"
+     ],
+     "columnsTo": [
+      "account_id"
+     ],
+     "name": "attendee_associated_account_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "attendee",
+     "tableTo": "account"
+    },
+    "attendee_interested_in_volunteering_fkey": {
+     "columnsFrom": [
+      "interested_in_volunteering_as"
+     ],
+     "columnsTo": [
+      "volunteer_type_id"
+     ],
+     "name": "attendee_interested_in_volunteering_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "attendee",
+     "tableTo": "volunteer_type"
+    },
+    "attendee_special_diet_fkey": {
+     "columnsFrom": [
+      "diet"
+     ],
+     "columnsTo": [
+      "diet_id"
+     ],
+     "name": "attendee_special_diet_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "attendee",
+     "tableTo": "diet"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "attendee",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.attendee_cabin": {
+   "checkConstraints": {},
+   "columns": {
+    "attendee_id": {
+     "name": "attendee_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "cabin_id": {
+     "name": "cabin_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "festival_id": {
+     "name": "festival_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "attendee_cabin_attendee_id_fkey": {
+     "columnsFrom": [
+      "attendee_id"
+     ],
+     "columnsTo": [
+      "attendee_id"
+     ],
+     "name": "attendee_cabin_attendee_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "attendee_cabin",
+     "tableTo": "attendee"
+    },
+    "attendee_cabin_cabin_id_fkey": {
+     "columnsFrom": [
+      "cabin_id"
+     ],
+     "columnsTo": [
+      "cabin_id"
+     ],
+     "name": "attendee_cabin_cabin_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "attendee_cabin",
+     "tableTo": "cabin"
+    },
+    "attendee_cabin_festival_id_fkey": {
+     "columnsFrom": [
+      "festival_id"
+     ],
+     "columnsTo": [
+      "festival_id"
+     ],
+     "name": "attendee_cabin_festival_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "attendee_cabin",
+     "tableTo": "festival"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "attendee_cabin",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {
+    "unique_attendee_festival": {
+     "columns": [
+      "attendee_id",
+      "festival_id"
+     ],
+     "name": "unique_attendee_festival",
+     "nullsNotDistinct": false
+    }
+   }
+  },
+  "public.badge_info": {
+   "checkConstraints": {},
+   "columns": {
+    "attended_vc_1": {
+     "name": "attended_vc_1",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "attended_vc_2": {
+     "name": "attended_vc_2",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "attendee_id": {
+     "name": "attendee_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "badge_bio": {
+     "name": "badge_bio",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "badge_info_id": {
+     "default": "gen_random_uuid()",
+     "name": "badge_info_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "badge_location": {
+     "name": "badge_location",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "badge_name": {
+     "name": "badge_name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "badge_picture_image_id": {
+     "name": "badge_picture_image_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "badge_picture_url": {
+     "name": "badge_picture_url",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "badge_username": {
+     "name": "badge_username",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "festival_id": {
+     "name": "festival_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "badge_info_attendee_id_fkey": {
+     "columnsFrom": [
+      "attendee_id"
+     ],
+     "columnsTo": [
+      "attendee_id"
+     ],
+     "name": "badge_info_attendee_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "badge_info",
+     "tableTo": "attendee"
+    },
+    "badge_info_badge_picture_image_id_fkey": {
+     "columnsFrom": [
+      "badge_picture_image_id"
+     ],
+     "columnsTo": [
+      "stored_image_id"
+     ],
+     "name": "badge_info_badge_picture_image_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "badge_info",
+     "tableTo": "stored_image"
+    },
+    "badge_info_festival_id_fkey": {
+     "columnsFrom": [
+      "festival_id"
+     ],
+     "columnsTo": [
+      "festival_id"
+     ],
+     "name": "badge_info_festival_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "badge_info",
+     "tableTo": "festival"
+    }
+   },
+   "indexes": {
+    "attendee_id": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "attendee_id",
+       "isExpression": false,
+       "nulls": "last",
+       "opclass": "uuid_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": false,
+     "method": "btree",
+     "name": "attendee_id",
+     "with": {}
+    },
+    "festival_id": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "festival_id",
+       "isExpression": false,
+       "nulls": "last",
+       "opclass": "uuid_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": false,
+     "method": "btree",
+     "name": "festival_id",
+     "with": {}
+    }
+   },
+   "isRLSEnabled": false,
+   "name": "badge_info",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.cabin": {
+   "checkConstraints": {},
+   "columns": {
+    "cabin_id": {
+     "default": "gen_random_uuid()",
+     "name": "cabin_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "festival_site_id": {
+     "name": "festival_site_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "max_occupancy": {
+     "name": "max_occupancy",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "name": {
+     "name": "name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "nickname": {
+     "name": "nickname",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "notes": {
+     "name": "notes",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "cabin_festival_site_id_fkey": {
+     "columnsFrom": [
+      "festival_site_id"
+     ],
+     "columnsTo": [
+      "festival_site_id"
+     ],
+     "name": "cabin_festival_site_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "cabin",
+     "tableTo": "festival_site"
+    }
+   },
+   "indexes": {
+    "fki_cabin_festival_site_id": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "festival_site_id",
+       "isExpression": false,
+       "nulls": "last",
+       "opclass": "uuid_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": false,
+     "method": "btree",
+     "name": "fki_cabin_festival_site_id",
+     "with": {}
+    },
+    "fki_cabin_festival_site_id_fkey": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "festival_site_id",
+       "isExpression": false,
+       "nulls": "last",
+       "opclass": "uuid_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": false,
+     "method": "btree",
+     "name": "fki_cabin_festival_site_id_fkey",
+     "with": {}
+    }
+   },
+   "isRLSEnabled": false,
+   "name": "cabin",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.checkout_order": {
+   "checkConstraints": {
+    "checkout_order_discounted_ticket_count_check": {
+     "name": "checkout_order_discounted_ticket_count_check",
+     "value": "discounted_ticket_count >= 0"
+    },
+    "checkout_order_status_check": {
+     "name": "checkout_order_status_check",
+     "value": "status = ANY (ARRAY['pending'::text, 'fulfilled'::text, 'closed'::text])"
+    }
+   },
+   "columns": {
+    "account_id": {
+     "name": "account_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "cart": {
+     "name": "cart",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "jsonb"
+    },
+    "checkout_order_id": {
+     "default": "gen_random_uuid()",
+     "name": "checkout_order_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "created_at": {
+     "default": "now()",
+     "name": "created_at",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "discount_code_id": {
+     "name": "discount_code_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "discounted_ticket_count": {
+     "default": 0,
+     "name": "discounted_ticket_count",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "festival_id": {
+     "name": "festival_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "fulfilled_at": {
+     "name": "fulfilled_at",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "needs_attention": {
+     "default": false,
+     "name": "needs_attention",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "payment_intent": {
+     "name": "payment_intent",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "quote": {
+     "name": "quote",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "jsonb"
+    },
+    "request_id": {
+     "name": "request_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "status": {
+     "default": "'pending'",
+     "name": "status",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "stripe_event_id": {
+     "name": "stripe_event_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "stripe_params": {
+     "name": "stripe_params",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "jsonb"
+    },
+    "stripe_session_id": {
+     "name": "stripe_session_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "stripe_url": {
+     "name": "stripe_url",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "target_ticket_id": {
+     "name": "target_ticket_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "checkout_order_account_id_fkey": {
+     "columnsFrom": [
+      "account_id"
+     ],
+     "columnsTo": [
+      "account_id"
+     ],
+     "name": "checkout_order_account_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "checkout_order",
+     "tableTo": "account"
+    },
+    "checkout_order_discount_code_id_fkey": {
+     "columnsFrom": [
+      "discount_code_id"
+     ],
+     "columnsTo": [
+      "discount_code_id"
+     ],
+     "name": "checkout_order_discount_code_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "checkout_order",
+     "tableTo": "discount_code"
+    },
+    "checkout_order_festival_id_fkey": {
+     "columnsFrom": [
+      "festival_id"
+     ],
+     "columnsTo": [
+      "festival_id"
+     ],
+     "name": "checkout_order_festival_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "checkout_order",
+     "tableTo": "festival"
+    },
+    "checkout_order_target_ticket_id_fkey": {
+     "columnsFrom": [
+      "target_ticket_id"
+     ],
+     "columnsTo": [
+      "purchase_id"
+     ],
+     "name": "checkout_order_target_ticket_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "checkout_order",
+     "tableTo": "purchase"
+    }
+   },
+   "indexes": {
+    "one_pending_addon_order": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "target_ticket_id",
+       "isExpression": false,
+       "nulls": "last",
+       "opclass": "uuid_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": true,
+     "method": "btree",
+     "name": "one_pending_addon_order",
+     "where": "(status = 'pending'::text)",
+     "with": {}
+    }
+   },
+   "isRLSEnabled": false,
+   "name": "checkout_order",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {
+    "checkout_order_account_id_request_id_key": {
+     "columns": [
+      "account_id",
+      "request_id"
+     ],
+     "name": "checkout_order_account_id_request_id_key",
+     "nullsNotDistinct": false
+    },
+    "checkout_order_payment_intent_key": {
+     "columns": [
+      "payment_intent"
+     ],
+     "name": "checkout_order_payment_intent_key",
+     "nullsNotDistinct": false
+    },
+    "checkout_order_stripe_session_id_key": {
+     "columns": [
+      "stripe_session_id"
+     ],
+     "name": "checkout_order_stripe_session_id_key",
+     "nullsNotDistinct": false
+    }
+   }
+  },
+  "public.diet": {
+   "checkConstraints": {},
+   "columns": {
+    "description": {
+     "name": "description",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "diet_id": {
+     "name": "diet_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {},
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "diet",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.discount": {
+   "checkConstraints": {},
+   "columns": {
+    "discount_code": {
+     "name": "discount_code",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "discount_id": {
+     "default": "gen_random_uuid()",
+     "name": "discount_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "price_multiplier": {
+     "name": "price_multiplier",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "double precision"
+    },
+    "purchase_type_id": {
+     "name": "purchase_type_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "discount_purchase_type_id_fkey": {
+     "columnsFrom": [
+      "purchase_type_id"
+     ],
+     "columnsTo": [
+      "purchase_type_id"
+     ],
+     "name": "discount_purchase_type_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "discount",
+     "tableTo": "purchase_type"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "discount",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.discount_code": {
+   "checkConstraints": {
+    "discount_code_check": {
+     "name": "discount_code_check",
+     "value": "(((percent_bps >= 1) AND (percent_bps <= 10000)) AND (fixed_cents IS NULL)) OR ((percent_bps IS NULL) AND (fixed_cents > 0))"
+    },
+    "discount_code_check1": {
+     "name": "discount_code_check1",
+     "value": "(percent_bps IS NOT NULL) OR (fixed_cents IS NOT NULL)"
+    },
+    "discount_code_check2": {
+     "name": "discount_code_check2",
+     "value": "(starts_at IS NULL) OR (ends_at IS NULL) OR (starts_at < ends_at)"
+    },
+    "discount_code_code_check": {
+     "name": "discount_code_code_check",
+     "value": "(code = upper(btrim(code))) AND (length(code) > 0)"
+    },
+    "discount_code_max_uses_check": {
+     "name": "discount_code_max_uses_check",
+     "value": "(max_uses IS NULL) OR (max_uses > 0)"
+    }
+   },
+   "columns": {
+    "code": {
+     "name": "code",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "discount_code_id": {
+     "default": "gen_random_uuid()",
+     "name": "discount_code_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "enabled": {
+     "default": true,
+     "name": "enabled",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "ends_at": {
+     "name": "ends_at",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "festival_id": {
+     "name": "festival_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "fixed_cents": {
+     "name": "fixed_cents",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "max_uses": {
+     "name": "max_uses",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "percent_bps": {
+     "name": "percent_bps",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "starts_at": {
+     "name": "starts_at",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "discount_code_festival_id_fkey": {
+     "columnsFrom": [
+      "festival_id"
+     ],
+     "columnsTo": [
+      "festival_id"
+     ],
+     "name": "discount_code_festival_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "discount_code",
+     "tableTo": "festival"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "discount_code",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {
+    "discount_code_festival_id_code_key": {
+     "columns": [
+      "code",
+      "festival_id"
+     ],
+     "name": "discount_code_festival_id_code_key",
+     "nullsNotDistinct": false
+    }
+   }
+  },
+  "public.discount_code_addon_type": {
+   "checkConstraints": {},
+   "columns": {
+    "discount_code_id": {
+     "name": "discount_code_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "purchase_type_id": {
+     "name": "purchase_type_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {
+    "discount_code_addon_type_pkey": {
+     "columns": [
+      "discount_code_id",
+      "purchase_type_id"
+     ],
+     "name": "discount_code_addon_type_pkey"
+    }
+   },
+   "foreignKeys": {
+    "discount_code_addon_type_discount_code_id_fkey": {
+     "columnsFrom": [
+      "discount_code_id"
+     ],
+     "columnsTo": [
+      "discount_code_id"
+     ],
+     "name": "discount_code_addon_type_discount_code_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "discount_code_addon_type",
+     "tableTo": "discount_code"
+    },
+    "discount_code_addon_type_purchase_type_id_fkey": {
+     "columnsFrom": [
+      "purchase_type_id"
+     ],
+     "columnsTo": [
+      "purchase_type_id"
+     ],
+     "name": "discount_code_addon_type_purchase_type_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "discount_code_addon_type",
+     "tableTo": "purchase_type"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "discount_code_addon_type",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.discount_code_ticket_type": {
+   "checkConstraints": {},
+   "columns": {
+    "discount_code_id": {
+     "name": "discount_code_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "purchase_type_id": {
+     "name": "purchase_type_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {
+    "discount_code_ticket_type_pkey": {
+     "columns": [
+      "discount_code_id",
+      "purchase_type_id"
+     ],
+     "name": "discount_code_ticket_type_pkey"
+    }
+   },
+   "foreignKeys": {
+    "discount_code_ticket_type_discount_code_id_fkey": {
+     "columnsFrom": [
+      "discount_code_id"
+     ],
+     "columnsTo": [
+      "discount_code_id"
+     ],
+     "name": "discount_code_ticket_type_discount_code_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "discount_code_ticket_type",
+     "tableTo": "discount_code"
+    },
+    "discount_code_ticket_type_purchase_type_id_fkey": {
+     "columnsFrom": [
+      "purchase_type_id"
+     ],
+     "columnsTo": [
+      "purchase_type_id"
+     ],
+     "name": "discount_code_ticket_type_purchase_type_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "discount_code_ticket_type",
+     "tableTo": "purchase_type"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "discount_code_ticket_type",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.event": {
+   "checkConstraints": {},
+   "columns": {
+    "av_needs": {
+     "name": "av_needs",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "created_by_account_id": {
+     "name": "created_by_account_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "description": {
+     "name": "description",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "end_datetime": {
+     "name": "end_datetime",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "timestamp"
+    },
+    "event_id": {
+     "default": "gen_random_uuid()",
+     "name": "event_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "event_site_location": {
+     "name": "event_site_location",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "event_type": {
+     "default": "'UNOFFICIAL'",
+     "name": "event_type",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "last_modified": {
+     "name": "last_modified",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "name": {
+     "name": "name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "plaintext_location": {
+     "name": "plaintext_location",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "start_datetime": {
+     "name": "start_datetime",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "timestamp"
+    },
+    "tags": {
+     "default": "'{\"RAY\"}'",
+     "name": "tags",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text[]"
+    },
+    "will_be_filmed": {
+     "default": false,
+     "name": "will_be_filmed",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "event_created_by_account_id_fkey": {
+     "columnsFrom": [
+      "created_by_account_id"
+     ],
+     "columnsTo": [
+      "account_id"
+     ],
+     "name": "event_created_by_account_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "event",
+     "tableTo": "account"
+    },
+    "event_event_site_location_fkey": {
+     "columnsFrom": [
+      "event_site_location"
+     ],
+     "columnsTo": [
+      "event_site_id"
+     ],
+     "name": "event_event_site_location_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "event",
+     "tableTo": "event_site"
+    },
+    "event_event_type_fkey": {
+     "columnsFrom": [
+      "event_type"
+     ],
+     "columnsTo": [
+      "event_type_id"
+     ],
+     "name": "event_event_type_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "event",
+     "tableTo": "event_type"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "event",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.event_bookmark": {
+   "checkConstraints": {},
+   "columns": {
+    "account_id": {
+     "name": "account_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "event_id": {
+     "name": "event_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "event_bookmark_account_id_fkey": {
+     "columnsFrom": [
+      "account_id"
+     ],
+     "columnsTo": [
+      "account_id"
+     ],
+     "name": "event_bookmark_account_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "event_bookmark",
+     "tableTo": "account"
+    },
+    "event_bookmark_event_id_fkey": {
+     "columnsFrom": [
+      "event_id"
+     ],
+     "columnsTo": [
+      "event_id"
+     ],
+     "name": "event_bookmark_event_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "event_bookmark",
+     "tableTo": "event"
+    }
+   },
+   "indexes": {
+    "event_bookmark_account_id_idx": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "account_id",
+       "isExpression": false,
+       "nulls": "last",
+       "opclass": "uuid_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": false,
+     "method": "btree",
+     "name": "event_bookmark_account_id_idx",
+     "with": {}
+    },
+    "event_bookmark_event_id_idx": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "event_id",
+       "isExpression": false,
+       "nulls": "last",
+       "opclass": "uuid_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": false,
+     "method": "btree",
+     "name": "event_bookmark_event_id_idx",
+     "with": {}
+    }
+   },
+   "isRLSEnabled": false,
+   "name": "event_bookmark",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.event_site": {
+   "checkConstraints": {},
+   "columns": {
+    "can_host_multiple_events": {
+     "name": "can_host_multiple_events",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "description": {
+     "name": "description",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "equipment": {
+     "name": "equipment",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "event_site_id": {
+     "default": "gen_random_uuid()",
+     "name": "event_site_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "festival_site_id": {
+     "name": "festival_site_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "forbidden_for_new_events": {
+     "default": false,
+     "name": "forbidden_for_new_events",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "is_av_site": {
+     "default": false,
+     "name": "is_av_site",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "location": {
+     "name": "location",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "point"
+    },
+    "name": {
+     "name": "name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "people_cap": {
+     "name": "people_cap",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "structure_type": {
+     "name": "structure_type",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "theme": {
+     "name": "theme",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "event_site_festival_site_id_fkey": {
+     "columnsFrom": [
+      "festival_site_id"
+     ],
+     "columnsTo": [
+      "festival_site_id"
+     ],
+     "name": "event_site_festival_site_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "event_site",
+     "tableTo": "festival_site"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "event_site",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.event_type": {
+   "checkConstraints": {},
+   "columns": {
+    "event_type_id": {
+     "name": "event_type_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {},
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "event_type",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.faq_node": {
+   "checkConstraints": {},
+   "columns": {
+    "content": {
+     "name": "content",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "faq_node_id": {
+     "default": "gen_random_uuid()",
+     "name": "faq_node_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "order": {
+     "name": "order",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "parent_faq_node_id": {
+     "name": "parent_faq_node_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "title": {
+     "name": "title",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "faq_node_parent_faq_node_id_fkey": {
+     "columnsFrom": [
+      "parent_faq_node_id"
+     ],
+     "columnsTo": [
+      "faq_node_id"
+     ],
+     "name": "faq_node_parent_faq_node_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "faq_node",
+     "tableTo": "faq_node"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "faq_node",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.festival": {
+   "checkConstraints": {},
+   "columns": {
+    "email_banner_image": {
+     "name": "email_banner_image",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "end_date": {
+     "name": "end_date",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "date"
+    },
+    "festival_id": {
+     "default": "gen_random_uuid()",
+     "name": "festival_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "festival_name": {
+     "name": "festival_name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "festival_site_id": {
+     "name": "festival_site_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "info_url": {
+     "name": "info_url",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "pre_badge_integration": {
+     "default": false,
+     "name": "pre_badge_integration",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "sales_are_open": {
+     "default": false,
+     "name": "sales_are_open",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "start_date": {
+     "name": "start_date",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "date"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "festival_festival_site_id_fkey": {
+     "columnsFrom": [
+      "festival_site_id"
+     ],
+     "columnsTo": [
+      "festival_site_id"
+     ],
+     "name": "festival_festival_site_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "festival",
+     "tableTo": "festival_site"
+    }
+   },
+   "indexes": {
+    "one_selling_festival": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "(true)",
+       "isExpression": true,
+       "nulls": "last",
+       "opclass": "bool_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": true,
+     "method": "btree",
+     "name": "one_selling_festival",
+     "where": "sales_are_open",
+     "with": {}
+    }
+   },
+   "isRLSEnabled": false,
+   "name": "festival",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {
+    "festival_festival_name_key": {
+     "columns": [
+      "festival_name"
+     ],
+     "name": "festival_festival_name_key",
+     "nullsNotDistinct": false
+    }
+   }
+  },
+  "public.festival_site": {
+   "checkConstraints": {},
+   "columns": {
+    "festival_site_id": {
+     "default": "gen_random_uuid()",
+     "name": "festival_site_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "festival_site_name": {
+     "name": "festival_site_name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "location": {
+     "name": "location",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "point"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {},
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "festival_site",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {
+    "festival_site_festival_site_name_key": {
+     "columns": [
+      "festival_site_name"
+     ],
+     "name": "festival_site_festival_site_name_key",
+     "nullsNotDistinct": false
+    }
+   }
+  },
+  "public.invite_code": {
+   "checkConstraints": {},
+   "columns": {
+    "code": {
+     "default": "gen_random_uuid()",
+     "name": "code",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "created_by_account_id": {
+     "name": "created_by_account_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "festival_id": {
+     "name": "festival_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "used_by_account_id": {
+     "name": "used_by_account_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "invite_code_created_by_account_id_fkey": {
+     "columnsFrom": [
+      "created_by_account_id"
+     ],
+     "columnsTo": [
+      "account_id"
+     ],
+     "name": "invite_code_created_by_account_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "invite_code",
+     "tableTo": "account"
+    },
+    "invite_code_festival_id_fkey": {
+     "columnsFrom": [
+      "festival_id"
+     ],
+     "columnsTo": [
+      "festival_id"
+     ],
+     "name": "invite_code_festival_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "invite_code",
+     "tableTo": "festival"
+    },
+    "invite_code_used_by_account_id_fkey": {
+     "columnsFrom": [
+      "used_by_account_id"
+     ],
+     "columnsTo": [
+      "account_id"
+     ],
+     "name": "invite_code_used_by_account_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "invite_code",
+     "tableTo": "account"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "invite_code",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.purchase": {
+   "checkConstraints": {
+    "purchase_check": {
+     "name": "purchase_check",
+     "value": "(discount_cents >= 0) AND (discount_cents <= gross_price_cents)"
+    },
+    "purchase_gross_price_cents_check": {
+     "name": "purchase_gross_price_cents_check",
+     "value": "gross_price_cents >= 0"
+    }
+   },
+   "columns": {
+    "additional_info_snapshot": {
+     "name": "additional_info_snapshot",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "applied_discount": {
+     "name": "applied_discount",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "checked_in": {
+     "name": "checked_in",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "checkout_order_id": {
+     "name": "checkout_order_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "details_snapshot": {
+     "name": "details_snapshot",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "discount_cents": {
+     "name": "discount_cents",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "gross_price_cents": {
+     "name": "gross_price_cents",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "is_test_purchase": {
+     "default": false,
+     "name": "is_test_purchase",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "owned_by_account_id": {
+     "name": "owned_by_account_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "parent_purchase_id": {
+     "name": "parent_purchase_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "product_name_snapshot": {
+     "name": "product_name_snapshot",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "purchase_id": {
+     "default": "gen_random_uuid()",
+     "name": "purchase_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "purchase_type_id": {
+     "name": "purchase_type_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "purchased_on": {
+     "default": "now()",
+     "name": "purchased_on",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "stripe_payment_intent": {
+     "name": "stripe_payment_intent",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "purchase_applied_discount_fkey": {
+     "columnsFrom": [
+      "applied_discount"
+     ],
+     "columnsTo": [
+      "discount_id"
+     ],
+     "name": "purchase_applied_discount_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "purchase",
+     "tableTo": "discount"
+    },
+    "purchase_checkout_order_id_fkey": {
+     "columnsFrom": [
+      "checkout_order_id"
+     ],
+     "columnsTo": [
+      "checkout_order_id"
+     ],
+     "name": "purchase_checkout_order_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "purchase",
+     "tableTo": "checkout_order"
+    },
+    "purchase_owned_by_account_id_fkey": {
+     "columnsFrom": [
+      "owned_by_account_id"
+     ],
+     "columnsTo": [
+      "account_id"
+     ],
+     "name": "purchase_owned_by_account_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "purchase",
+     "tableTo": "account"
+    },
+    "purchase_parent_purchase_id_fkey": {
+     "columnsFrom": [
+      "parent_purchase_id"
+     ],
+     "columnsTo": [
+      "purchase_id"
+     ],
+     "name": "purchase_parent_purchase_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "purchase",
+     "tableTo": "purchase"
+    },
+    "purchase_purchase_type_id_fkey": {
+     "columnsFrom": [
+      "purchase_type_id"
+     ],
+     "columnsTo": [
+      "purchase_type_id"
+     ],
+     "name": "purchase_purchase_type_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "purchase",
+     "tableTo": "purchase_type"
+    }
+   },
+   "indexes": {
+    "purchase_parent": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "parent_purchase_id",
+       "isExpression": false,
+       "nulls": "last",
+       "opclass": "uuid_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": false,
+     "method": "btree",
+     "name": "purchase_parent",
+     "with": {}
+    }
+   },
+   "isRLSEnabled": false,
+   "name": "purchase",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.purchase_type": {
+   "checkConstraints": {
+    "product_addon_cap": {
+     "name": "product_addon_cap",
+     "value": "(max_per_ticket IS NULL) OR (max_per_ticket > 0)"
+    }
+   },
+   "columns": {
+    "additional_info": {
+     "name": "additional_info",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "available_from": {
+     "name": "available_from",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "date"
+    },
+    "available_to": {
+     "name": "available_to",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "date"
+    },
+    "description": {
+     "name": "description",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "details": {
+     "name": "details",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "festival_id": {
+     "name": "festival_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "hidden_from_ui": {
+     "default": false,
+     "name": "hidden_from_ui",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "is_attendance_ticket": {
+     "default": false,
+     "name": "is_attendance_ticket",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "low_income_only": {
+     "default": false,
+     "name": "low_income_only",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "max_available": {
+     "name": "max_available",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "max_per_account": {
+     "name": "max_per_account",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "max_per_ticket": {
+     "default": 1,
+     "name": "max_per_ticket",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "price_in_cents": {
+     "name": "price_in_cents",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "purchase_type_id": {
+     "name": "purchase_type_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "text"
+    },
+    "sale_enabled": {
+     "default": false,
+     "name": "sale_enabled",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "sort_order": {
+     "default": 0,
+     "name": "sort_order",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "integer"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "purchase_type_festival_id_fkey": {
+     "columnsFrom": [
+      "festival_id"
+     ],
+     "columnsTo": [
+      "festival_id"
+     ],
+     "name": "purchase_type_festival_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "purchase_type",
+     "tableTo": "festival"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "purchase_type",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.purchase_type_addon": {
+   "checkConstraints": {},
+   "columns": {
+    "addon_type_id": {
+     "name": "addon_type_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "ticket_type_id": {
+     "name": "ticket_type_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {
+    "purchase_type_addon_pkey": {
+     "columns": [
+      "addon_type_id",
+      "ticket_type_id"
+     ],
+     "name": "purchase_type_addon_pkey"
+    }
+   },
+   "foreignKeys": {
+    "purchase_type_addon_addon_type_id_fkey": {
+     "columnsFrom": [
+      "addon_type_id"
+     ],
+     "columnsTo": [
+      "purchase_type_id"
+     ],
+     "name": "purchase_type_addon_addon_type_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "purchase_type_addon",
+     "tableTo": "purchase_type"
+    },
+    "purchase_type_addon_ticket_type_id_fkey": {
+     "columnsFrom": [
+      "ticket_type_id"
+     ],
+     "columnsTo": [
+      "purchase_type_id"
+     ],
+     "name": "purchase_type_addon_ticket_type_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "purchase_type_addon",
+     "tableTo": "purchase_type"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "purchase_type_addon",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.purchase_type_addon_exclusion": {
+   "checkConstraints": {
+    "purchase_type_addon_exclusion_check": {
+     "name": "purchase_type_addon_exclusion_check",
+     "value": "addon_a < addon_b"
+    }
+   },
+   "columns": {
+    "addon_a": {
+     "name": "addon_a",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "addon_b": {
+     "name": "addon_b",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {
+    "purchase_type_addon_exclusion_pkey": {
+     "columns": [
+      "addon_a",
+      "addon_b"
+     ],
+     "name": "purchase_type_addon_exclusion_pkey"
+    }
+   },
+   "foreignKeys": {
+    "purchase_type_addon_exclusion_addon_a_fkey": {
+     "columnsFrom": [
+      "addon_a"
+     ],
+     "columnsTo": [
+      "purchase_type_id"
+     ],
+     "name": "purchase_type_addon_exclusion_addon_a_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "purchase_type_addon_exclusion",
+     "tableTo": "purchase_type"
+    },
+    "purchase_type_addon_exclusion_addon_b_fkey": {
+     "columnsFrom": [
+      "addon_b"
+     ],
+     "columnsTo": [
+      "purchase_type_id"
+     ],
+     "name": "purchase_type_addon_exclusion_addon_b_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "purchase_type_addon_exclusion",
+     "tableTo": "purchase_type"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "purchase_type_addon_exclusion",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.stored_image": {
+   "checkConstraints": {},
+   "columns": {
+    "image_data": {
+     "name": "image_data",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "bytea"
+    },
+    "owned_by_account_id": {
+     "name": "owned_by_account_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "stored_image_id": {
+     "default": "gen_random_uuid()",
+     "name": "stored_image_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "stored_image_owned_by_account_id_fkey": {
+     "columnsFrom": [
+      "owned_by_account_id"
+     ],
+     "columnsTo": [
+      "account_id"
+     ],
+     "name": "stored_image_owned_by_account_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "stored_image",
+     "tableTo": "account"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "stored_image",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.ticket_badge": {
+   "checkConstraints": {
+    "ticket_badge_badge_bio_check": {
+     "name": "ticket_badge_badge_bio_check",
+     "value": "length(badge_bio) <= 160"
+    },
+    "ticket_badge_badge_location_check": {
+     "name": "ticket_badge_badge_location_check",
+     "value": "length(badge_location) <= 20"
+    },
+    "ticket_badge_badge_name_check": {
+     "name": "ticket_badge_badge_name_check",
+     "value": "(length(btrim(badge_name)) >= 1) AND (length(btrim(badge_name)) <= 20)"
+    },
+    "ticket_badge_badge_username_check": {
+     "name": "ticket_badge_badge_username_check",
+     "value": "(length(badge_username) <= 20) AND (badge_username !~~ '@%'::text)"
+    }
+   },
+   "columns": {
+    "badge_bio": {
+     "name": "badge_bio",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "badge_location": {
+     "name": "badge_location",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "badge_name": {
+     "name": "badge_name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "badge_picture_image_id": {
+     "name": "badge_picture_image_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "badge_picture_url": {
+     "name": "badge_picture_url",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "badge_username": {
+     "name": "badge_username",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "ticket_id": {
+     "name": "ticket_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "ticket_badge_badge_picture_image_id_fkey": {
+     "columnsFrom": [
+      "badge_picture_image_id"
+     ],
+     "columnsTo": [
+      "stored_image_id"
+     ],
+     "name": "ticket_badge_badge_picture_image_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "ticket_badge",
+     "tableTo": "stored_image"
+    },
+    "ticket_badge_ticket_id_fkey": {
+     "columnsFrom": [
+      "ticket_id"
+     ],
+     "columnsTo": [
+      "purchase_id"
+     ],
+     "name": "ticket_badge_ticket_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "ticket_badge",
+     "tableTo": "purchase"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "ticket_badge",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.volunteer_type": {
+   "checkConstraints": {},
+   "columns": {
+    "description": {
+     "name": "description",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "volunteer_type_id": {
+     "name": "volunteer_type_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {},
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "volunteer_type",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  }
+ },
+ "version": "7",
+ "views": {
+  "public.purchase sorted": {
+   "columns": {
+    "applied_discount": {
+     "name": "applied_discount",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "checked_in": {
+     "name": "checked_in",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "is_test_purchase": {
+     "name": "is_test_purchase",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "owned_by_account_id": {
+     "name": "owned_by_account_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "purchase_id": {
+     "name": "purchase_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "purchase_type_id": {
+     "name": "purchase_type_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "purchased_on": {
+     "name": "purchased_on",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "stripe_payment_intent": {
+     "name": "stripe_payment_intent",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "definition": "SELECT purchase.purchased_on, purchase.purchase_type_id, purchase.owned_by_account_id, purchase.purchase_id, purchase.stripe_payment_intent, purchase.checked_in, purchase.is_test_purchase, purchase.applied_discount FROM purchase ORDER BY purchase.purchased_on DESC",
+   "isExisting": false,
+   "materialized": false,
+   "name": "purchase sorted",
+   "schema": "public"
+  }
+ }
+}
