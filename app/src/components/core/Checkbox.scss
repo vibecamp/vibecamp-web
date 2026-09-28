@@ -1,0 +1,56 @@
+.checkbox {
+    cursor: pointer;
+
+    &.disabled {
+        cursor: default;
+        opacity: 0.6;
+    }
+
+    > .square-and-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 32px;
+
+        > input[type='checkbox'] {
+            appearance: none;
+            width: var(--checkbox-size);
+            height: var(--checkbox-size);
+            border: 2px solid var(--color-border-strong);
+            border-radius: 6px;
+            flex-shrink: 0;
+            margin: 0;
+            display: grid;
+            place-content: center;
+            cursor: inherit;
+            transition:
+                background-color 0.12s ease-out,
+                border-color 0.12s ease-out;
+
+            &::before {
+                content: 'check';
+                font-family: 'Material Symbols Outlined';
+                font-weight: normal;
+                font-style: normal;
+                font-size: 15px;
+                line-height: 1;
+                color: var(--color-on-accent);
+                opacity: 0;
+                transition: opacity 0.12s ease-out;
+            }
+
+            &:checked {
+                background: var(--color-accent-1);
+                border-color: var(--color-accent-1);
+
+                &::before {
+                    opacity: 1;
+                }
+            }
+        }
+    }
+
+    > .error-message {
+        margin-top: 4px;
+    }
+}

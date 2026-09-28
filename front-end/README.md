@@ -1,2 +1,0 @@
-# Vibecamp front-end
-

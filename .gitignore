@@ -31,7 +31,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # local env files
-.env*.local
+.env
 
 # vercel
 .vercel
@@ -50,3 +50,7 @@ back-end/.env
 .zed
 
 .last-run.json
+app/.next/
+app/out/
+app/test-results/
+app/playwright-report/

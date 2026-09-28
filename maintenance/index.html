@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Vibecamp</title>
+<style>
+  :root {
+    --color-primary: rgba(0, 0, 0, 0.8);
+    --color-tertiary: rgba(0, 0, 0, 0.7);
+    --color-accent-1: rgb(79, 176, 229);
+    --color-background-1: white;
+    --color-background-2: #fffae5;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-primary: rgba(255, 255, 255, 0.8);
+      --color-tertiary: rgba(255, 255, 255, 0.7);
+      --color-background-1: #222;
+      --color-background-2: #444;
+    }
+  }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: Roboto, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--color-background-2);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    box-sizing: border-box;
+    text-align: center;
+    line-height: 1.5;
+  }
+  main {
+    background: var(--color-background-1);
+    border-radius: 16px;
+    padding: 40px 28px;
+    max-width: 480px;
+    width: 100%;
+  }
+  .brand {
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent-1);
+    margin: 0 0 16px;
+  }
+  h1 { font-size: 1.6rem; font-weight: 500; margin: 0 0 12px; }
+  p { margin: 0 0 12px; color: var(--color-tertiary); }
+  .support { margin-top: 24px; font-size: 0.95rem; }
+  a { color: var(--color-accent-1); }
+</style>
+</head>
+<body>
+<main>
+  <p class="brand">Vibecamp</p>
+  <h1>We&rsquo;re currently undergoing scheduled maintenance. Be back soon!</h1>
+  <p class="support">Need help? Email <a href="mailto:support@vibe.camp">support@vibe.camp</a></p>
+</main>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations()
+      .then(function (registrations) { registrations.forEach(function (r) { r.unregister() }) })
+      .catch(function () {})
+  }
+  if ('caches' in window) {
+    caches.keys()
+      .then(function (keys) { keys.forEach(function (key) { caches.delete(key) }) })
+      .catch(function () {})
+  }
+</script>
+</body>
+</html>
