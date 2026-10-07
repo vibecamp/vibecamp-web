@@ -54,7 +54,6 @@ export async function hashAndSaltPassword(
     const password_salt = crypto.randomUUID()
     const saltedPassword = password + password_salt
 
-    const salt = (await bcrypt.genSalt(10)).replace(/^\$2b\$/, '$2a$')
-    const password_hash = await bcrypt.hash(saltedPassword, salt)
+    const password_hash = await bcrypt.hash(saltedPassword, 10)
     return { password_hash, password_salt }
 }

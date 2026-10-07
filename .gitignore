@@ -2,27 +2,11 @@
 
 # dependencies
 node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-front-end/test-results/
-front-end/playwright-report/
-front-end/blob-report/
-front-end/playwright/.cache/
-front-end/.stripe-webhook-secret
-
-# next.js
-front-end/.next/
-front-end/out/
-
-# production
-/build
 
 # misc
 .DS_Store
 *.pem
+.zed
 
 # debug
 npm-debug.log*
@@ -33,23 +17,11 @@ yarn-error.log*
 # local env files
 .env
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
-public/robots.txt
-sitemap-0.xml
-sitemap.xml
-
-front-end/.vscode
-back-end/.env
-
-.zed
-
-.last-run.json
+# app build and browser-check output
 app/.next/
 app/out/
 app/test-results/

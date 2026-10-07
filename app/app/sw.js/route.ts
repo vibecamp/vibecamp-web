@@ -1,5 +1,8 @@
 export const dynamic = 'force-dynamic'
 
+// Browsers that used the previous my.vibe.camp app still have its cache-first service worker
+// registered at /sw.js. Serving this replacement deletes those caches and unregisters it, so
+// returning visitors get this app instead of the cached old one. Keep through Vibecamp 6.
 const SELF_DESTRUCT = `self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (event) => {
     event.waitUntil((async () => {
