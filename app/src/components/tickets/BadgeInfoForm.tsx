@@ -154,9 +154,9 @@ export default function BadgeInfoForm({ ticket_id }: { ticket_id: string }) {
                                 </li>
                                 <li>{t('badge.pictureHelpStep2')}</li>
                             </ol>
-                            {/* biome-ignore lint/performance/noImgElement: static guidance screenshot sized by CSS, as the old app showed it */}
+                            {/* biome-ignore lint/performance/noImgElement: static guidance screenshot sized by CSS */}
                             <img src='/profile_pic_guidance_1.png' alt='' />
-                            {/* biome-ignore lint/performance/noImgElement: static guidance screenshot sized by CSS, as the old app showed it */}
+                            {/* biome-ignore lint/performance/noImgElement: static guidance screenshot sized by CSS */}
                             <img src='/profile_pic_guidance_2.png' alt='' />
                         </div>
                     )}

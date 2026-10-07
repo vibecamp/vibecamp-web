@@ -25,7 +25,7 @@ type FilterContext = {
 const includes = (haystack: string | null | undefined, needle: string) =>
     haystack?.toLocaleLowerCase().includes(needle) ?? false
 
-export function matchesSearch(event: FilterableEvent, searchString: string): boolean {
+function matchesSearch(event: FilterableEvent, searchString: string): boolean {
     const needle = searchString.toLocaleLowerCase()
     return (
         includes(event.name, needle) ||
