@@ -11,6 +11,7 @@ import { classNames } from '@/lib/ui'
 import Button from './core/Button'
 import Icon from './core/Icon'
 import Modal from './core/Modal'
+import { useMembersOnly } from './LoginPrompt'
 import { useResolvedPageHeader } from './PageHeader'
 
 const FILTER_LABELS = {
@@ -20,11 +21,14 @@ const FILTER_LABELS = {
     Past: 'events.filterPast',
 } as const satisfies Record<EventsFilter, string>
 
+const MEMBER_FILTERS: readonly EventsFilter[] = ['Bookmarks', 'Mine']
+
 export default function TopBar() {
     const pathname = usePathname()
     const search = useSearchParams()
     const router = useRouter()
     const store = useStore()
+    const membersOnly = useMembersOnly()
     const header = useResolvedPageHeader(pathname)
 
     const [menu, setMenu] = useState(false)
@@ -139,6 +143,12 @@ export default function TopBar() {
                             <Link
                                 href={ACCOUNT_PATH}
                                 className={pathname === ACCOUNT_PATH ? 'active' : undefined}
+                                onClick={(e) => {
+                                    if (membersOnly(ACCOUNT_PATH)) {
+                                        e.preventDefault()
+                                        setMenu(false)
+                                    }
+                                }}
                             >
                                 <Icon name='person' />
                                 {t('nav.account')}
@@ -171,9 +181,13 @@ export default function TopBar() {
                                         type='radio'
                                         name='event-filter'
                                         checked={(search.get('filter') ?? 'All') === filter}
-                                        onChange={() =>
+                                        onChange={() => {
+                                            if (MEMBER_FILTERS.includes(filter) && membersOnly()) {
+                                                setFilters(false)
+                                                return
+                                            }
                                             query({ filter: filter === 'All' ? null : filter })
-                                        }
+                                        }}
                                     />
                                     {t(FILTER_LABELS[filter])}
                                 </label>

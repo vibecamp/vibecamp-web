@@ -7,9 +7,9 @@ import type { Tables } from '@/db/types'
 import useBooleanState from '@/hooks/useBooleanState'
 import useForm, { fieldToProps } from '@/hooks/useForm'
 import { type DayjsEvent, useStore } from '@/hooks/useStore'
-import type { Dayjs } from '@/lib/dayjs'
+import dayjs, { type Dayjs } from '@/lib/dayjs'
 import { vibefetch } from '@/lib/fetch'
-import { checkInProgressEventOverlap } from '@/lib/rules'
+import { checkInProgressEventOverlap, festivalOf } from '@/lib/rules'
 import { DEFAULT_FORM_ERROR } from '@/lib/ui'
 import Button from '../core/Button'
 import Checkbox from '../core/Checkbox'
@@ -19,6 +19,8 @@ import InfoBlurb from '../core/InfoBlurb'
 import Input from '../core/Input'
 import RadioGroup from '../core/RadioGroup'
 import RowSelect from '../core/RowSelect'
+import { useToast } from '../Toast'
+import AdditionalInfo from '../tickets/AdditionalInfo'
 import EventDeletionModal from './EventDeletionModal'
 import EventOverlapModal from './EventOverlapModal'
 import EventSiteInfo from './EventSiteInfo'
@@ -33,6 +35,7 @@ type InProgressEvent = {
     event_site_location: Tables['event_site']['event_site_id'] | null
     tags: Tables['event']['tags']
     av_needs: string | null
+    public: boolean
 }
 
 type Props = {
@@ -46,6 +49,12 @@ const LOCATION_TYPE_OPTIONS = [
     t('eventEditor.locationOffsite'),
 ] as const
 type LocationType = (typeof LOCATION_TYPE_OPTIONS)[number]
+
+const withInfo = (label: string, info: string) => (
+    <span>
+        {label} <AdditionalInfo name={label} info={info} />
+    </span>
+)
 
 const emphasizeDeadline = (paragraph: string): ReactNode => {
     const deadline = t('eventEditor.avAgreementDeadline')
@@ -86,6 +95,7 @@ function paragraphs(
 
 export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Props) {
     const store = useStore()
+    const toast = useToast()
     const eventSites = store.eventSites
     const festivals = store.festivals
     const allEvents = store.allEvents.state.result
@@ -108,6 +118,7 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
                   event_site_location: null,
                   tags: [],
                   av_needs: null,
+                  public: true,
               }
             : {
                   event_id: eventBeingEdited.event_id,
@@ -119,6 +130,7 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
                   event_site_location: eventBeingEdited.event_site_location,
                   tags: eventBeingEdited.tags,
                   av_needs: eventBeingEdited.av_needs,
+                  public: eventBeingEdited.public,
               }
 
     const {
@@ -195,6 +207,10 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
                     end_datetime: formatNoTimezone(end_datetime) ?? null,
                 },
             })
+            if (res.status === 400 && !event.public) {
+                toast(t('eventEditor.ticketHoldersStartInvalid'))
+                return
+            }
             if (res.status !== 200) {
                 return DEFAULT_FORM_ERROR
             }
@@ -220,21 +236,36 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
     }
 
     const start = fields.start_datetime.value
-    const ongoingFestivals =
-        start != null
-            ? (festivals?.filter(
-                  (f) => start.isAfter(f.start_date) && start.isBefore(f.end_date),
-              ) ?? [])
-            : []
+    const eventFestival = start != null ? festivalOf(start, festivals) : undefined
 
-    const eventSiteOptions = ongoingFestivals
-        .flatMap(
-            (f) =>
-                eventSites?.filter(
-                    (s) => s.festival_site_id === f.festival_site_id && !s.forbidden_for_new_events,
-                ) ?? [],
-        )
-        .map((s) => ({ value: s.event_site_id, label: s.name }))
+    const visibilityFestival =
+        eventFestival ?? festivals?.find((f) => !f.end_date.isBefore(dayjs.utc(), 'day'))
+    const visibilityOptions: readonly { value: boolean; label: ReactNode }[] = [
+        {
+            value: true,
+            label: withInfo(
+                t('eventEditor.visibilityPublic'),
+                t('eventEditor.visibilityPublicInfo'),
+            ),
+        },
+        {
+            value: false,
+            label: withInfo(
+                t('eventEditor.visibilityTicketHolders'),
+                fill(t('eventEditor.visibilityTicketHoldersInfo'), {
+                    festivalName: visibilityFestival?.festival_name ?? t('eventEditor.theFestival'),
+                }),
+            ),
+        },
+    ]
+
+    const eventSiteOptions = (
+        eventSites?.filter(
+            (s) =>
+                s.festival_site_id === eventFestival?.festival_site_id &&
+                !s.forbidden_for_new_events,
+        ) ?? []
+    ).map((s) => ({ value: s.event_site_id, label: s.name }))
 
     const selectedSite = eventSites?.find(
         (site) => site.event_site_id === fields.event_site_location.value,
@@ -288,16 +319,14 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
                 {...fieldToProps(fields.end_datetime)}
             />
 
-            {ongoingFestivals.length === 0 ? (
+            {eventFestival == null ? (
                 locationInput
             ) : (
                 <>
                     <InfoBlurb>
                         {paragraphs(
                             fill(t('eventEditor.locationBlurb'), {
-                                festivalName:
-                                    ongoingFestivals[0]?.festival_name ??
-                                    t('eventEditor.theFestival'),
+                                festivalName: eventFestival.festival_name,
                             }),
                         )}
                     </InfoBlurb>
@@ -350,6 +379,13 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
                     )}
                 </>
             )}
+
+            <RadioGroup
+                label={t('eventEditor.visibilityLabel')}
+                options={visibilityOptions}
+                disabled={submitting}
+                {...fieldToProps(fields.public)}
+            />
 
             <ErrorMessage error={wholeFormError} />
 

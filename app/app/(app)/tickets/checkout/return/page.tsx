@@ -16,9 +16,7 @@ export default function CheckoutReturn() {
                 orderId={orderId}
                 onResolved={(state) => {
                     if (state.status === 'fulfilled') {
-                        void Promise.all([store.accountInfo.load(), store.catalog.load()]).then(
-                            () => router.replace(TICKETS_PATH),
-                        )
+                        void store.refreshAfterPurchase().then(() => router.replace(TICKETS_PATH))
                     } else if (state.status === 'closed') router.replace(TICKETS_PATH)
                 }}
             />

@@ -35,6 +35,9 @@ type RouteConfig<E extends keyof Routes> =
 
 type NextHandler = (req: NextRequest) => Promise<Response>
 
+// Responses depend on who is asking, so no browser or proxy may reuse them.
+const NO_STORE = { 'Cache-Control': 'private, no-store' }
+
 export function defineRoute<E extends keyof Routes>(
     config: RouteConfig<E>,
 ): { [M in Uppercase<Routes[E]['method']>]: NextHandler } {
@@ -63,6 +66,7 @@ export function defineRoute<E extends keyof Routes>(
                 return Response.json(
                     { error: err.code, detail: err.detail },
                     {
+                        headers: NO_STORE,
                         status:
                             err.status ??
                             (err.code === 'invalid_request'
@@ -83,7 +87,7 @@ export function defineRoute<E extends keyof Routes>(
 }
 
 function respond([result, status]: RouteResult<unknown>): Response {
-    return Response.json(result ?? null, { status })
+    return Response.json(result ?? null, { status, headers: NO_STORE })
 }
 
 export function rateLimited<E extends keyof Routes, Ctx extends BaseContext<E>>(

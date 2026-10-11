@@ -268,7 +268,7 @@ export default function PurchaseFlow({
                     cancelInitially={search.get('canceled') === '1'}
                     onResolved={(state) => {
                         if (state.status === 'fulfilled') {
-                            void store.accountInfo.load()
+                            void store.refreshAfterPurchase()
                             router.push(TICKETS_PATH)
                         } else if (state.status === 'closed') {
                             setPending(null)

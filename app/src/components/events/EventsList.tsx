@@ -9,10 +9,13 @@ import { type DayjsEvent, useStore } from '@/hooks/useStore'
 import dayjs from '@/lib/dayjs'
 import { EVENTS_FILTERS, type EventsFilter } from '@/lib/hash-redirect'
 import { eventPath, NEW_EVENT_PATH } from '@/lib/routes'
+import { festivalOf } from '@/lib/rules'
 import { classNames } from '@/lib/ui'
 import Icon from '../core/Icon'
+import { useMembersOnly } from '../LoginPrompt'
 import PageLoading from '../PageLoading'
 import { usePageScroll } from '../PageScroll'
+import { useToast } from '../Toast'
 import EventCard from './Event'
 import { filterEvents } from './filterEvents'
 
@@ -25,6 +28,8 @@ export default function EventsList() {
     const { scrollToTop, scrollTop } = usePageScroll()
     const showScrollButton = scrollTop > 200
     const hasTicket = useHasAttendanceTicket()
+    const membersOnly = useMembersOnly()
+    const toast = useToast()
 
     const rawFilter = searchParams.get('filter')
     const filter: EventsFilter = isEventsFilter(rawFilter) ? rawFilter : 'All'
@@ -53,7 +58,7 @@ export default function EventsList() {
     if (store.accountInfo.state.kind === 'error') return <PageLoading error />
 
     return (
-        <div className={classNames('page events-page', hasTicket && 'with-fab')}>
+        <div className='page events-page with-fab'>
             <button
                 type='button'
                 className={classNames('scroll-to-top', !showScrollButton && 'hidden')}
@@ -72,11 +77,20 @@ export default function EventsList() {
                 <CardEvents events={visibleEvents} />
             )}
 
-            {hasTicket && (
-                <Link href={NEW_EVENT_PATH} className='fab'>
-                    <Icon name='calendar_add_on' />
-                </Link>
-            )}
+            <Link
+                href={NEW_EVENT_PATH}
+                className='fab'
+                onClick={(e) => {
+                    if (membersOnly(NEW_EVENT_PATH)) {
+                        e.preventDefault()
+                    } else if (hasTicket === false) {
+                        e.preventDefault()
+                        toast(t('events.ticketRequiredToCreate'))
+                    }
+                }}
+            >
+                <Icon name='calendar_add_on' />
+            </Link>
         </div>
     )
 }
@@ -85,19 +99,14 @@ function CardEvents({ events }: { events: readonly DayjsEvent[] }) {
     const store = useStore()
     const festivals = store.festivals
 
-    const festivalOf = (e: DayjsEvent) =>
-        festivals?.find(
-            (f) =>
-                e.start_datetime.isAfter(f.start_date.startOf('day')) &&
-                e.start_datetime.isBefore(f.end_date.endOf('day')),
-        )
-
     return (
         <div className='events-grid'>
             {events.map((e, index) => {
-                const festival = festivalOf(e)
+                const festival = festivalOf(e.start_datetime, festivals)
                 const previous = events[index - 1]
-                const isFirst = festival !== (previous ? festivalOf(previous) : undefined)
+                const isFirst =
+                    festival !==
+                    (previous ? festivalOf(previous.start_datetime, festivals) : undefined)
 
                 return (
                     <Fragment key={e.event_id}>

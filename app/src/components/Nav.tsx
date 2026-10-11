@@ -4,9 +4,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { t } from '@/copy/t'
 import useIsOffline from '@/hooks/useIsOffline'
-import { EVENTS_PATH, TICKETS_PATH } from '@/lib/routes'
+import { EVENTS_PATH, isGuestPath, TICKETS_PATH } from '@/lib/routes'
 import { classNames } from '@/lib/ui'
 import Icon, { type MaterialIconName } from './core/Icon'
+import { useMembersOnly } from './LoginPrompt'
 
 type NavTab = {
     readonly href: string
@@ -25,6 +26,7 @@ const isTabActive = (pathname: string, href: string) =>
 export default function Nav() {
     const pathname = usePathname()
     const isOffline = useIsOffline()
+    const membersOnly = useMembersOnly()
 
     return (
         <nav className='nav'>
@@ -32,7 +34,14 @@ export default function Nav() {
                 const active = isTabActive(pathname, href)
 
                 return (
-                    <Link className={active ? 'active' : undefined} href={href} key={href}>
+                    <Link
+                        className={active ? 'active' : undefined}
+                        href={href}
+                        key={href}
+                        onClick={(e) => {
+                            if (!isGuestPath(href) && membersOnly(href)) e.preventDefault()
+                        }}
+                    >
                         <Icon name={icon} fill={active ? 1 : 0} />
                         <span className='nav-label'>{label}</span>
                         <span className='pill' />
