@@ -1,17 +1,53 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import ButtonLink from '@/components/core/ButtonLink'
+import Stripes from '@/components/core/Stripes'
 import PageLoading from '@/components/PageLoading'
+import { t } from '@/copy/t'
+import useNextPath from '@/hooks/useNextPath'
+import { useStore } from '@/hooks/useStore'
 import { hashToPath } from '@/lib/hash-redirect'
-import { DEFAULT_PATH } from '@/lib/routes'
+import { EVENTS_PATH, loginPath } from '@/lib/routes'
 
 export default function RootPage() {
+    const store = useStore()
     const router = useRouter()
+    const next = useNextPath()
+    const [showLanding, setShowLanding] = useState(false)
 
     useEffect(() => {
-        router.replace(hashToPath(window.location.hash) ?? DEFAULT_PATH)
-    }, [router])
+        if (!store.ready) {
+            return
+        }
+        const legacy = hashToPath(window.location.hash)
+        if (legacy != null) {
+            router.replace(legacy)
+        } else if (store.loggedIn) {
+            router.replace(next)
+        } else {
+            setShowLanding(true)
+        }
+    }, [next, router, store.loggedIn, store.ready])
 
-    return <PageLoading />
+    if (!showLanding) {
+        return <PageLoading />
+    }
+
+    return (
+        <main className='page-scroll'>
+            <div className='page centered'>
+                <Stripes position='top-left' />
+                <div className='auth-card'>
+                    {/* biome-ignore lint/performance/noImgElement: the logo is sized by CSS, no layout shift to optimise */}
+                    <img src='/vibecamp.png' className='logo' alt={t('login.logoAlt')} />
+                    <ButtonLink href={loginPath(next)} isPrimary>
+                        {t('login.submit')}
+                    </ButtonLink>
+                    <ButtonLink href={EVENTS_PATH}>{t('landing.viewAsGuest')}</ButtonLink>
+                </div>
+            </div>
+        </main>
+    )
 }

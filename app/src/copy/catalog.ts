@@ -30,6 +30,8 @@ export const COPY = {
     'login.createAccount': 'Create an account',
     'signup.alreadyHaveAccount': 'I already have an account',
     'login.forgotPassword': 'Forgot your password?',
+    'landing.viewAsGuest': 'View as guest',
+    'guest.loginPromptTitle': 'Log in to continue',
     'passwordReset.backToLogin': 'Back to login',
     'login.troubleLoggingIn':
         'If you have trouble logging in, please email us at {supportEmailLink}',
@@ -104,6 +106,7 @@ export const COPY = {
     'common.save': 'Save',
 
     'events.createEvent': 'Create event',
+    'events.ticketRequiredToCreate': 'Please purchase a ticket before creating events.',
     'events.cardView': 'Card view',
     'events.compactView': 'Compact view',
     'events.filterAll': 'All',
@@ -149,6 +152,13 @@ Campsite locations have limited capacity, and scheduling will be first-come-firs
 
 3. I, the event host, will submit my A/V requirements before FRIDAY, JUNE 5TH, 2026. Vibecamp will not support A/V requests that we receive after Friday, June 5th.`,
     'eventEditor.avNeedsLabel': 'Describe your A/V needs',
+    'eventEditor.visibilityLabel': 'Visibility',
+    'eventEditor.visibilityPublic': 'Public',
+    'eventEditor.visibilityTicketHolders': 'Ticket holders',
+    'eventEditor.visibilityPublicInfo': 'Event will be visible to anyone who visits my.vibe.camp',
+    'eventEditor.ticketHoldersStartInvalid': "This event's start time is invalid.",
+    'eventEditor.visibilityTicketHoldersInfo':
+        'Event will only be visible to people that have purchased a ticket to {festivalName}',
     'eventEditor.saveEvent': 'Save event',
     'eventEditor.deleteEvent': 'Delete event',
     'common.cancel': 'Cancel',

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useStore } from '@/hooks/useStore'
-import { EVENTS_PATH } from '@/lib/routes'
+import { EVENTS_PATH, eventPath, landingPath } from '@/lib/routes'
 import { usePageHeader } from '../PageHeader'
 import PageLoading from '../PageLoading'
 import { EventInfo, eventCardClassName } from './Event'
@@ -19,9 +19,9 @@ export default function EventDetails({ eventId }: { eventId: string }) {
     const unknownEvent = eventsState.kind === 'result' && event == null
     useEffect(() => {
         if (unknownEvent) {
-            router.replace(EVENTS_PATH)
+            router.replace(store.loggedIn ? EVENTS_PATH : landingPath(eventPath(eventId)))
         }
-    }, [router, unknownEvent])
+    }, [eventId, router, store.loggedIn, unknownEvent])
 
     if (event == null) {
         return <PageLoading error={eventsState.kind === 'error'} />

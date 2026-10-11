@@ -32,8 +32,12 @@ export function withNext(path: string, next: string): string {
 }
 
 export const loginPath = (next: string = DEFAULT_PATH) => withNext(LOGIN_PATH, next)
+export const landingPath = (next: string) => withNext('/', next)
 
-const PROTECTED_PATHS = [TICKETS_PATH, EVENTS_PATH, ACCOUNT_PATH] as const
-
-export const isProtectedPath = (path: string) =>
-    PROTECTED_PATHS.some((p) => path === p || path.startsWith(`${p}/`) || path.startsWith(`${p}?`))
+export function isGuestPath(path: string): boolean {
+    const pathname = path.split('?')[0] ?? ''
+    return (
+        pathname === EVENTS_PATH ||
+        (/^\/events\/[^/]+$/.test(pathname) && pathname !== NEW_EVENT_PATH)
+    )
+}

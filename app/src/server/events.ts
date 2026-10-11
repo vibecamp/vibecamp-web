@@ -5,6 +5,7 @@ import * as s from '@/db/schema'
 import type { Tables } from '@/db/types'
 import dayjs from '@/lib/dayjs'
 import type { Status } from '@/lib/define-route'
+import { festivalOf } from '@/lib/rules'
 import { avNeedsEmail, sendMail } from './mail'
 
 type AccountId = Tables['account']['account_id']
@@ -18,7 +19,26 @@ type EventRow = Tables['event'] & {
     event_site_location_name: string | null
 }
 
-export async function getAllEvents(): Promise<Routes['/events']['response']['events']> {
+export async function getAllEvents(
+    viewerAccountId?: AccountId,
+): Promise<Routes['/events']['response']['events']> {
+    const ticketFestivals =
+        viewerAccountId == null
+            ? []
+            : await db
+                  .select({ start_date: s.festival.start_date, end_date: s.festival.end_date })
+                  .from(s.purchase)
+                  .innerJoin(
+                      s.purchase_type,
+                      eq(s.purchase.purchase_type_id, s.purchase_type.purchase_type_id),
+                  )
+                  .innerJoin(s.festival, eq(s.purchase_type.festival_id, s.festival.festival_id))
+                  .where(
+                      and(
+                          eq(s.purchase.owned_by_account_id, viewerAccountId),
+                          eq(s.purchase_type.is_attendance_ticket, true),
+                      ),
+                  )
     const result = await db.execute<EventRow>(sql`
       SELECT * FROM
       (
@@ -35,6 +55,7 @@ export async function getAllEvents(): Promise<Routes['/events']['response']['eve
           event.event_type,
           event.will_be_filmed,
           event.av_needs,
+          event.public,
           event.tags,
           event.last_modified,
           attendee.name as creator_name,
@@ -60,6 +81,7 @@ export async function getAllEvents(): Promise<Routes['/events']['response']['eve
           event.event_type,
           event.will_be_filmed,
           event.av_needs,
+          event.public,
           event.tags,
           event.last_modified,
           account.email_address,
@@ -70,7 +92,14 @@ export async function getAllEvents(): Promise<Routes['/events']['response']['eve
       ORDER BY start_datetime
     `)
 
-    return result.rows.map(({ bookmarks, ...e }) => ({
+    const visible = result.rows.filter(
+        (e) =>
+            e.public ||
+            e.created_by_account_id === viewerAccountId ||
+            festivalOf(e.start_datetime, ticketFestivals) != null,
+    )
+
+    return visible.map(({ bookmarks, ...e }) => ({
         ...e,
         start_datetime: stringifyDate(e.start_datetime),
         end_datetime: e.end_datetime == null ? null : stringifyDate(e.end_datetime),
@@ -104,10 +133,20 @@ export async function saveEvent(
         plaintext_location: event.event_site_location ? null : event.plaintext_location,
         tags: event.tags,
         av_needs,
+        public: event.public,
         last_modified,
     }
 
     return transaction(async (tx) => {
+        if (!event.public) {
+            const festivals = await tx
+                .select({ start_date: s.festival.start_date, end_date: s.festival.end_date })
+                .from(s.festival)
+            if (festivalOf(event.start_datetime, festivals) == null) {
+                return 400
+            }
+        }
+
         if (event.event_id) {
             const existing = (
                 await tx.select().from(s.event).where(eq(s.event.event_id, event.event_id))
@@ -200,7 +239,7 @@ export async function getEventForShare(event_id: EventId) {
                 eq(s.attendee.is_primary_for_account, true),
             ),
         )
-        .where(eq(s.event.event_id, event_id))
+        .where(and(eq(s.event.event_id, event_id), eq(s.event.public, true)))
         .limit(1)
     return rows[0]
 }

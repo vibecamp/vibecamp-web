@@ -1523,6 +1523,13 @@
      "primaryKey": false,
      "type": "text"
     },
+    "public": {
+     "default": true,
+     "name": "public",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
     "start_datetime": {
      "name": "start_datetime",
      "notNull": true,

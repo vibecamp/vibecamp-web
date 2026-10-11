@@ -9,6 +9,7 @@ import { vibefetch } from '@/lib/fetch'
 import { editEventPath, eventPath } from '@/lib/routes'
 import { classNames } from '@/lib/ui'
 import Icon from '../core/Icon'
+import { useMembersOnly } from '../LoginPrompt'
 import { useToast } from '../Toast'
 import EventDescription from './EventDescription'
 import { formatEventLocation, formatEventTime } from './format'
@@ -40,6 +41,7 @@ export function EventInfo({
     const store = useStore()
     const router = useRouter()
     const toast = useToast()
+    const membersOnly = useMembersOnly()
 
     const [bookmarkStatusOptimistic, setBookmarkStatusOptimistic] = useState<boolean | null>(null)
     const bookmarked =
@@ -122,6 +124,7 @@ export function EventInfo({
                         className={classNames('icon-button', bookmarked && 'active')}
                         onClick={(e) => {
                             e.stopPropagation()
+                            if (membersOnly()) return
                             void toggleBookmark()
                         }}
                     >

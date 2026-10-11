@@ -1,4 +1,19 @@
-import type { Dayjs } from './dayjs'
+import dayjs, { type Dayjs } from './dayjs'
+
+type DateLike = string | Date | Dayjs
+
+// The day before and after count too, for events that start a little early or run a little late.
+export function festivalOf<F extends { start_date: DateLike; end_date: DateLike }>(
+    eventStart: DateLike,
+    festivals: readonly F[] | undefined,
+): F | undefined {
+    const start = dayjs.utc(eventStart)
+    return festivals?.find(
+        (f) =>
+            !start.isBefore(dayjs.utc(f.start_date).subtract(1, 'day')) &&
+            start.isBefore(dayjs.utc(f.end_date).add(2, 'day')),
+    )
+}
 
 type EventTimes = {
     start_datetime: Dayjs | null

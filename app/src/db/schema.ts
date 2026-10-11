@@ -253,38 +253,6 @@ export const event_bookmark = pgTable("event_bookmark", {
 		}),
 ]);
 
-export const event = pgTable("event", {
-	name: text().notNull(),
-	description: text().notNull(),
-	start_datetime: timestamp({ mode: 'string' }).notNull(),
-	end_datetime: timestamp({ mode: 'string' }),
-	plaintext_location: text(),
-	event_id: uuid().defaultRandom().primaryKey().notNull(),
-	created_by_account_id: uuid().notNull(),
-	event_site_location: uuid(),
-	event_type: text().default('UNOFFICIAL').notNull(),
-	will_be_filmed: boolean().default(false).notNull(),
-	last_modified: timestamp({ withTimezone: true, mode: 'string' }),
-	tags: text().array().default(["RAY"]).notNull(),
-	av_needs: text(),
-}, (table): PgTableExtraConfigValue[] => [
-	foreignKey({
-			columns: [table.created_by_account_id],
-			foreignColumns: [account.account_id],
-			name: "event_created_by_account_id_fkey"
-		}),
-	foreignKey({
-			columns: [table.event_site_location],
-			foreignColumns: [event_site.event_site_id],
-			name: "event_event_site_location_fkey"
-		}),
-	foreignKey({
-			columns: [table.event_type],
-			foreignColumns: [event_type.event_type_id],
-			name: "event_event_type_fkey"
-		}),
-]);
-
 export const event_site = pgTable("event_site", {
 	event_site_id: uuid().defaultRandom().primaryKey().notNull(),
 	festival_site_id: uuid().notNull(),
@@ -359,6 +327,39 @@ export const account_password_reset_secret = pgTable("account_password_reset_sec
 			columns: [table.account_id],
 			foreignColumns: [account.account_id],
 			name: "account_password_reset_secret_account_id_fkey"
+		}),
+]);
+
+export const event = pgTable("event", {
+	name: text().notNull(),
+	description: text().notNull(),
+	start_datetime: timestamp({ mode: 'string' }).notNull(),
+	end_datetime: timestamp({ mode: 'string' }),
+	plaintext_location: text(),
+	event_id: uuid().defaultRandom().primaryKey().notNull(),
+	created_by_account_id: uuid().notNull(),
+	event_site_location: uuid(),
+	event_type: text().default('UNOFFICIAL').notNull(),
+	will_be_filmed: boolean().default(false).notNull(),
+	last_modified: timestamp({ withTimezone: true, mode: 'string' }),
+	tags: text().array().default(["RAY"]).notNull(),
+	av_needs: text(),
+	public: boolean().default(true).notNull(),
+}, (table): PgTableExtraConfigValue[] => [
+	foreignKey({
+			columns: [table.created_by_account_id],
+			foreignColumns: [account.account_id],
+			name: "event_created_by_account_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.event_site_location],
+			foreignColumns: [event_site.event_site_id],
+			name: "event_event_site_location_fkey"
+		}),
+	foreignKey({
+			columns: [table.event_type],
+			foreignColumns: [event_type.event_type_id],
+			name: "event_event_type_fkey"
 		}),
 ]);
 

@@ -1,12 +1,13 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { classNames } from '@/lib/ui'
 import type { CommonFieldProps } from './_common'
 import ErrorMessage from './ErrorMessage'
 
 type Props<T> = Omit<CommonFieldProps<T>, 'value'> & {
     value: T | undefined
-    options: readonly { value: T; label: string }[]
+    options: readonly { value: T; label: ReactNode }[]
     direction?: 'column' | 'row'
 }
 
