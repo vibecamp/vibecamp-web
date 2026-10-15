@@ -3,6 +3,7 @@ import '../src/styles/index.scss'
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import HashRedirect from '@/components/HashRedirect'
+import NavDirection from '@/components/NavDirection'
 import { t } from '@/copy/t'
 import { env } from '@/env'
 import { StoreProvider } from '@/hooks/useStore'
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <div id='root'>
                     <StoreProvider>
                         <HashRedirect />
+                        <NavDirection />
                         {children}
                     </StoreProvider>
                 </div>

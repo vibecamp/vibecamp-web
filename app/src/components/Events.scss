@@ -156,6 +156,7 @@
     gap: var(--space-3);
     max-height: 40vh;
     overflow-y: auto;
+    scrollbar-gutter: stable;
 
     > .card {
         display: flex;

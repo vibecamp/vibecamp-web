@@ -1,9 +1,13 @@
 import { defineRoute } from '@/lib/define-route'
+import { getJwtPayload } from '@/server/auth'
 import { purchaseQuote } from '@/server/purchase'
 export const dynamic = 'force-dynamic'
 export const { POST } = defineRoute({
     endpoint: '/purchase/quote',
     method: 'post',
-    requireAuth: true,
-    handler: async ({ jwt, body }) => [(await purchaseQuote(jwt.account_id, body)).quote, 200],
+    requireAuth: false,
+    handler: async ({ req, body }) => [
+        (await purchaseQuote((await getJwtPayload(req))?.account_id ?? null, body)).quote,
+        200,
+    ],
 })

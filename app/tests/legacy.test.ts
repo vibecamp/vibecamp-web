@@ -1,6 +1,3 @@
-// Guarantees to people and data from before the October 2026 rewrite. These check that legacy
-// support still exists, not how the current app does things, so change the app freely.
-
 import { readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, it } from 'vitest'
@@ -32,7 +29,6 @@ it('sends links from the old app to a real page with the same event or festival'
             return new RegExp(`^/${segments.join('/')}$`)
         })
 
-    // The old app kept its state in the URL hash in exactly this form.
     const oldLink = (state: Record<string, string>) =>
         `#${encodeURIComponent(JSON.stringify(state))}`
     const event = '9c1f6a52-3b7e-4d2a-8f0e-5a6b7c8d9e01'
@@ -60,7 +56,6 @@ it('sends links from the old app to a real page with the same event or festival'
     }
 })
 
-// Remove together with app/sw.js/route.ts after Vibecamp 6.
 it('serves a /sw.js that clears and unregisters the old app service worker', async () => {
     const res = serviceWorker()
     expect(res.status).toBe(200)

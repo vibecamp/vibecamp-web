@@ -1,0 +1,30 @@
+.info-button {
+    appearance: none;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin: -4px 0;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: var(--color-tertiary);
+    vertical-align: middle;
+    cursor: pointer;
+    transition:
+        color var(--motion-s) var(--motion-ease),
+        background-color var(--motion-s) var(--motion-ease);
+
+    > svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    &:hover {
+        color: var(--color-accent-1-strong);
+        background: var(--color-accent-1-soft);
+    }
+}

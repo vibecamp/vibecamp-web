@@ -4,6 +4,6 @@ export const dynamic = 'force-dynamic'
 export const { GET } = defineRoute({
     endpoint: '/purchase/catalog',
     method: 'get',
-    requireAuth: true,
-    handler: async ({ jwt }) => [await purchaseCatalog(jwt.account_id), 200],
+    requireAuth: false,
+    handler: async () => [await purchaseCatalog(), 200],
 })

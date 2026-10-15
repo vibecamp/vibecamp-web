@@ -19,6 +19,8 @@ export const editEventPath = (eventId: string) => `${eventPath(eventId)}/edit`
 
 export const SUPPORT_EMAIL_HREF = `mailto:${t('login.supportEmailLinkText')}`
 export const TERMS_URL = 'https://vibe.camp/terms'
+export const DISCORD_URL = 'https://discord.gg/FnDCq3kXn4'
+export const TWITTER_URL = 'https://x.com/vibecamp_'
 
 export function safeNextPath(raw: string | null | undefined): string {
     return raw?.startsWith('/') && !raw.startsWith('//') ? raw : DEFAULT_PATH
@@ -38,6 +40,8 @@ export function isGuestPath(path: string): boolean {
     const pathname = path.split('?')[0] ?? ''
     return (
         pathname === EVENTS_PATH ||
-        (/^\/events\/[^/]+$/.test(pathname) && pathname !== NEW_EVENT_PATH)
+        (/^\/events\/[^/]+$/.test(pathname) && pathname !== NEW_EVENT_PATH) ||
+        pathname === TICKETS_PATH ||
+        /^\/tickets\/[^/]+\/buy$/.test(pathname)
     )
 }

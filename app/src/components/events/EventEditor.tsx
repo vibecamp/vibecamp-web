@@ -16,11 +16,11 @@ import Checkbox from '../core/Checkbox'
 import DateTimeField, { formatNoTimezone } from '../core/DateTimeField'
 import ErrorMessage from '../core/ErrorMessage'
 import InfoBlurb from '../core/InfoBlurb'
+import InfoButton from '../core/InfoButton'
 import Input from '../core/Input'
 import RadioGroup from '../core/RadioGroup'
 import RowSelect from '../core/RowSelect'
 import { useToast } from '../Toast'
-import AdditionalInfo from '../tickets/AdditionalInfo'
 import EventDeletionModal from './EventDeletionModal'
 import EventOverlapModal from './EventOverlapModal'
 import EventSiteInfo from './EventSiteInfo'
@@ -52,7 +52,7 @@ type LocationType = (typeof LOCATION_TYPE_OPTIONS)[number]
 
 const withInfo = (label: string, info: string) => (
     <span>
-        {label} <AdditionalInfo name={label} info={info} />
+        {label} <InfoButton name={label} info={info} />
     </span>
 )
 

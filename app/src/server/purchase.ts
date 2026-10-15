@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto'
-import { and, eq, inArray, sql } from 'drizzle-orm'
+import { and, eq, gte, inArray, or, sql } from 'drizzle-orm'
 import type Stripe from 'stripe'
 import { z } from 'zod'
 import { t } from '@/copy/t'
@@ -18,21 +18,52 @@ import {
 import { orderReceiptEmail, sendMail } from './mail'
 import { stripe } from './stripe'
 
-export async function purchaseCatalog(accountId: string): Promise<Catalog> {
-    const festivals = await db.select().from(s.festival).where(eq(s.festival.sales_are_open, true))
-    if (festivals.length > 1) throw new CartError('needs_attention')
-    const festival = festivals[0] ?? null
+export async function purchaseCatalog(): Promise<Catalog> {
+    const now = new Date().toISOString()
+    const iso = (time: string | null) => time && new Date(time).toISOString()
+    const onSale = (
+        p: Pick<
+            typeof s.purchase_type.$inferSelect,
+            'sale_enabled' | 'hidden_from_ui' | 'available_from' | 'available_to'
+        >,
+    ) => {
+        const from = iso(p.available_from)
+        const to = iso(p.available_to)
+        return (
+            p.sale_enabled &&
+            !p.hidden_from_ui &&
+            (from === null || from <= now) &&
+            (to === null || to > now)
+        )
+    }
+    const rows = await db
+        .select({
+            product: s.purchase_type,
+            festival: {
+                festival_id: s.festival.festival_id,
+                festival_name: s.festival.festival_name,
+                end_date: s.festival.end_date,
+            },
+        })
+        .from(s.purchase_type)
+        .innerJoin(s.festival, eq(s.festival.festival_id, s.purchase_type.festival_id))
+        .where(gte(s.festival.end_date, now.slice(0, 10)))
+    const selling = new Map(
+        rows
+            .filter(({ product }) => product.is_attendance_ticket && onSale(product))
+            .map(({ festival }) => [festival.festival_id, festival]),
+    )
+    if (selling.size > 1) throw new CartError('needs_attention')
+    const [festival] = selling.values()
     if (!festival) return { festival: null, products: [], compatibility: [], exclusions: [] }
-    const [products, counts, compatibility, exclusions] = await Promise.all([
-        db
-            .select()
-            .from(s.purchase_type)
-            .where(eq(s.purchase_type.festival_id, festival.festival_id)),
+    const products = rows
+        .filter((r) => r.festival.festival_id === festival.festival_id)
+        .map((r) => r.product)
+    const [counts, compatibility, exclusions] = await Promise.all([
         db
             .select({
                 id: s.purchase.purchase_type_id,
                 total: sql<number>`count(*)::int`,
-                owned: sql<number>`count(*) filter (where ${s.purchase.owned_by_account_id} = ${accountId})::int`,
             })
             .from(s.purchase)
             .groupBy(s.purchase.purchase_type_id),
@@ -47,36 +78,34 @@ export async function purchaseCatalog(accountId: string): Promise<Catalog> {
         exclusions: exclusions.filter((r) =>
             products.some((p) => p.purchase_type_id === r.addon_a),
         ),
-        products: products.map(({ low_income_only: _, max_available, max_per_account, ...p }) => {
-            const n = counts.find((c) => c.id === p.purchase_type_id)
+        products: products.map(({ low_income_only: _, max_available, ...p }) => {
+            const sold = products
+                .filter((q) =>
+                    p.cap_group
+                        ? q.cap_group === p.cap_group
+                        : q.purchase_type_id === p.purchase_type_id,
+                )
+                .reduce(
+                    (sum, q) => sum + (counts.find((c) => c.id === q.purchase_type_id)?.total ?? 0),
+                    0,
+                )
+            const open = onSale(p)
+            const remaining = max_available == null ? null : Math.max(0, max_available - sold)
             return {
                 ...p,
-                available:
-                    !p.sale_enabled ||
-                    p.hidden_from_ui ||
-                    festival.end_date < new Date().toISOString().slice(0, 10) ||
-                    (p.available_from !== null &&
-                        p.available_from > new Date().toISOString().slice(0, 10)) ||
-                    (p.available_to !== null &&
-                        p.available_to <= new Date().toISOString().slice(0, 10))
-                        ? 0
-                        : Math.max(
-                              0,
-                              Math.min(
-                                  max_available == null ? 1000 : max_available - (n?.total ?? 0),
-                                  max_per_account == null
-                                      ? 1000
-                                      : max_per_account - (n?.owned ?? 0),
-                              ),
-                          ),
+                available_from: iso(p.available_from),
+                available_to: iso(p.available_to),
+                available: open ? (remaining ?? 1000) : 0,
+                sold_out: open && remaining === 0,
+                remaining,
             }
         }),
     }
 }
 
-export async function purchaseQuote(accountId: string, input: unknown) {
+export async function purchaseQuote(accountId: string | null, input: unknown) {
     const cart = parseCart(input)
-    const catalog = await purchaseCatalog(accountId)
+    const catalog = await purchaseCatalog()
     let discount: Discount | null = null
     let target:
         | {
@@ -85,6 +114,7 @@ export async function purchaseQuote(accountId: string, input: unknown) {
           }
         | undefined
     if (cart.kind === 'addons') {
+        if (accountId === null) throw new CartError('invalid_request', undefined, 404)
         const ticket = (
             await db
                 .select()
@@ -269,7 +299,7 @@ export async function createCheckoutSession(accountId: string, input: unknown) {
     }
     if (quote.contribution_cents)
         grouped.set('contribution', {
-            name: t('purchase.contributionLabel'),
+            name: t('purchase.donationRow'),
             price: quote.contribution_cents,
             quantity: 1,
         })
@@ -397,13 +427,20 @@ export async function reconcileSession(
             .from(s.account)
             .where(eq(s.account.account_id, order.account_id))
             .for('update')
+        const typeIds = quote.units.map((u) => u.purchase_type_id)
         await tx
             .select()
             .from(s.purchase_type)
             .where(
-                inArray(
-                    s.purchase_type.purchase_type_id,
-                    quote.units.map((u) => u.purchase_type_id),
+                or(
+                    inArray(s.purchase_type.purchase_type_id, typeIds),
+                    inArray(
+                        s.purchase_type.cap_group,
+                        tx
+                            .select({ cap_group: s.purchase_type.cap_group })
+                            .from(s.purchase_type)
+                            .where(inArray(s.purchase_type.purchase_type_id, typeIds)),
+                    ),
                 ),
             )
             .orderBy(s.purchase_type.purchase_type_id)
@@ -445,7 +482,7 @@ export async function reconcileSession(
             })
             .where(eq(s.checkout_order.checkout_order_id, id))
         const over = await tx.execute(
-            sql`select 1 from purchase_type pt join purchase p using (purchase_type_id) where p.checkout_order_id = ${id} and (pt.max_available < (select count(*) from purchase all_p where all_p.purchase_type_id = pt.purchase_type_id) or pt.max_per_account < (select count(*) from purchase own_p where own_p.purchase_type_id = pt.purchase_type_id and own_p.owned_by_account_id = ${order.account_id})) limit 1`,
+            sql`select 1 from purchase_type pt join purchase p using (purchase_type_id) where p.checkout_order_id = ${id} and (pt.max_available < (select count(*) from purchase all_p join purchase_type all_t using (purchase_type_id) where all_t.purchase_type_id = pt.purchase_type_id or (all_t.cap_group = pt.cap_group and all_t.festival_id = pt.festival_id))) limit 1`,
         )
         const codeOver = order.discount_code_id
             ? (
@@ -467,14 +504,19 @@ export async function reconcileSession(
             account: (
                 await tx.select().from(s.account).where(eq(s.account.account_id, order.account_id))
             )[0],
+            festival: (
+                await tx
+                    .select({ name: s.festival.festival_name })
+                    .from(s.festival)
+                    .where(eq(s.festival.festival_id, order.festival_id))
+            )[0]?.name,
         }
     })
     if (receipt) {
         try {
-            invariant(receipt.account)
-            await sendMail(orderReceiptEmail(receipt.account, receipt.quote))
+            invariant(receipt.account && receipt.festival)
+            await sendMail(orderReceiptEmail(receipt.account, receipt.quote, receipt.festival))
         } catch (error) {
-            // The purchase is already recorded; a lost receipt is a support task, not a failed order.
             console.error('Receipt failed', id, error)
         }
     }

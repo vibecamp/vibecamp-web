@@ -1918,13 +1918,6 @@
      "primaryKey": false,
      "type": "boolean"
     },
-    "sales_are_open": {
-     "default": false,
-     "name": "sales_are_open",
-     "notNull": true,
-     "primaryKey": false,
-     "type": "boolean"
-    },
     "start_date": {
      "name": "start_date",
      "notNull": true,
@@ -1949,25 +1942,7 @@
      "tableTo": "festival_site"
     }
    },
-   "indexes": {
-    "one_selling_festival": {
-     "columns": [
-      {
-       "asc": true,
-       "expression": "(true)",
-       "isExpression": true,
-       "nulls": "last",
-       "opclass": "bool_ops"
-      }
-     ],
-     "concurrently": false,
-     "isUnique": true,
-     "method": "btree",
-     "name": "one_selling_festival",
-     "where": "sales_are_open",
-     "with": {}
-    }
-   },
+   "indexes": {},
    "isRLSEnabled": false,
    "name": "festival",
    "policies": {},
@@ -2202,6 +2177,12 @@
      "primaryKey": false,
      "type": "timestamp with time zone"
     },
+    "secret_index": {
+     "name": "secret_index",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
     "stripe_payment_intent": {
      "name": "stripe_payment_intent",
      "notNull": false,
@@ -2324,13 +2305,19 @@
      "name": "available_from",
      "notNull": false,
      "primaryKey": false,
-     "type": "date"
+     "type": "timestamp with time zone"
     },
     "available_to": {
      "name": "available_to",
      "notNull": false,
      "primaryKey": false,
-     "type": "date"
+     "type": "timestamp with time zone"
+    },
+    "cap_group": {
+     "name": "cap_group",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
     },
     "description": {
      "name": "description",
@@ -2373,12 +2360,6 @@
     },
     "max_available": {
      "name": "max_available",
-     "notNull": false,
-     "primaryKey": false,
-     "type": "integer"
-    },
-    "max_per_account": {
-     "name": "max_per_account",
      "notNull": false,
      "primaryKey": false,
      "type": "integer"

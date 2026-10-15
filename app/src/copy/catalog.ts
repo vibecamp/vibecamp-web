@@ -4,13 +4,11 @@ export const COPY = {
 
     'nav.tickets': 'Tickets',
     'nav.events': 'Events',
+    'nav.schedule': 'Schedule',
     'nav.account': 'Account',
     'app.offlineBanner': 'Currently offline',
     'purchase.proceedToCheckout': 'Proceed to Checkout',
     'purchase.noChargeYet': "Don't worry! Pressing this button won't charge you yet.",
-    'tickets.badgeMissing': 'Please fill out information for your badge.',
-    'tickets.actionRequired': 'Action required!',
-    'tickets.allSet': "You're all set!",
     'events.linkCopied': 'Link copied to clipboard.',
     'eventEditor.avAgreementDeadline': 'FRIDAY, JUNE 5TH, 2026',
 
@@ -65,7 +63,6 @@ export const COPY = {
 
     'account.title': 'My account',
     'account.updateMyInfo': 'Update my info',
-    'account.badgeInfoHeading': 'Badge info',
     'account.changeEmail': 'Change email',
     'account.passwordMask': '········',
     'account.changePassword': 'Change password',
@@ -74,35 +71,6 @@ export const COPY = {
     'common.submit': 'Submit',
     'common.edit': 'Edit',
     'validation.nameRequired': 'Please enter a name',
-    'badge.limit20': 'Please limit to 20 characters so it fits on the badge',
-    'badge.noAtSign': 'No need for the @ at the front',
-    'badge.limit160': 'Please limit to 160 characters so it fits on the badge',
-    'badge.invalidUrl': 'Invalid URL',
-    'badge.nameLabel': 'Name',
-    'badge.namePlaceholder': 'brooke',
-    'badge.nameBlurb':
-        'The name people recognize you by. Typically it would be your twitter display name or your real name, but it can be whatever you want.',
-    'badge.usernameLabel': 'Username (optional)',
-    'badge.usernamePlaceholder': 'gtpbrooke',
-    'badge.usernameBlurb':
-        'The name people can use to find and follow you. You might choose to use your twitter or bluesky handle, or maybe even your website domain or email address.',
-    'badge.pictureUrlLabel': 'Profile picture URL',
-    'badge.pictureUrlPlaceholder':
-        'https://pbs.twimg.com/profile_images/1782955833292402688/z_iNKZZF_400x400.jpg',
-    'badge.pictureUrlBlurb':
-        'Your picture for your badge. Provide a URL that ends with .jpg, .jpeg, or .png. Twitter and Imgur links work!',
-    'badge.pictureHelpButton': 'How do I get my twitter profile picture?',
-    'badge.pictureHelpStep1': 'Navigate to your {profilePictureLink}',
-    'badge.pictureHelpProfilePictureLinkText': 'profile picture',
-    'badge.pictureHelpStep2': 'Right-click it and copy the image URL',
-    'badge.locationLabel': 'Location (optional)',
-    'badge.locationPlaceholder': 'San Francisco',
-    'badge.locationBlurb':
-        'Where you live! Can be your city, country, region, planet, multiverse dimension, etc.',
-    'badge.bioLabel': 'Badge bio (optional)',
-    'badge.bioPlaceholder': "I'm a super cool person, what can I say?",
-    'badge.bioBlurb':
-        'A blurb about you. You might copy and paste your twitter bio, or write something specific to vibecamp.',
     'common.save': 'Save',
 
     'events.createEvent': 'Create event',
@@ -182,9 +150,27 @@ Campsite locations have limited capacity, and scheduling will be first-come-firs
 
     'tickets.addonsHeading': 'Add-ons',
     'tickets.purchaseAddons': 'Purchase add-ons',
+    'tickets.admitOne': 'ADMIT ONE',
+    'tickets.share': 'Share',
+    'tickets.exportFailed': 'Saving failed.',
+    'tickets.stageLabel': 'Your {festival} ticket: {name}',
+    'common.moreInfo': 'More info about {name}',
+    'common.add': 'Add',
+    'common.remove': 'Remove',
+    'common.close': 'Close',
+    'nav.menu': 'Menu',
+    'nav.back': 'Back',
+    'events.search': 'Search',
+    'events.closeSearch': 'Close search',
+    'events.filter': 'Filter',
+    'events.newEvent': 'New event',
 
     'purchase.discountRow': 'Discount',
     'purchase.contributionLabel': 'Make an additional contribution to support Vibecamp!',
+    'purchase.donationRow': 'Donation',
+    'purchase.soldOut': 'SOLD OUT',
+    'purchase.free': 'FREE',
+    'purchase.remaining': '({count} remaining)',
     'purchase.contributionBlurb':
         'Contributions help fund low-income tickets, art grants, and organizer salaries.',
     'purchase.noTickets': 'No tickets available at this time. Check back soon!',
@@ -209,6 +195,20 @@ Campsite locations have limited capacity, and scheduling will be first-come-firs
 
     'email.receipt.purchaseRow': '{description} x{count}',
     'email.receipt.subject': 'Vibecamp purchase receipt',
+    'email.receipt.thanks': 'Thank you for your purchase! We can’t wait to see you at {festival}.',
+    'email.receipt.logistics':
+        'You’ll receive a more comprehensive logistics email later with more details about how to prepare for Vibecamp.',
+    'email.receipt.discord':
+        'For now, check out our {discordServer}: there you can coordinate with other vibecampers to brainstorm event ideas, plan out cabin groups, organize pre-/post-camp Airbnbs, plot out a roadtrip route, and more!',
+    'email.receipt.discordServer': 'Discord server',
+    'email.receipt.goodies':
+        'It might also be helpful to start thinking about stickers or other goodies to give away—an easy way to make new friends at {festival}!',
+    'email.receipt.updates':
+        'To make sure you’re up to date with future announcements, subscribe to our newsletter and follow us on {twitter}. If you have any questions, post in the {discord} or mention/DM us on {twitter}.',
+    'email.receipt.discordLink': 'Discord',
+    'email.receipt.twitterLink': 'Twitter',
+    'email.receipt.signoff': 'Happy Vibecamping!',
+    'email.receipt.team': 'The Vibecamp Team',
     'email.receipt.accountId': 'Account ID: {accountId}',
 
     'email.avNeeds.noDate': '(none)',

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 type UsePromiseResult<T> = {
     state: RequestState<T>
-    load: () => Promise<void>
+    load: () => Promise<T | undefined>
 }
 
 type MutableRequestState<T> =
@@ -42,11 +42,13 @@ export function usePromise<T>(
             if (thisRequestId === latestRequestId.current) {
                 setState({ kind: 'result', result, error: undefined })
             }
+            return result
         } catch (error: unknown) {
             if (thisRequestId === latestRequestId.current) {
                 setState({ kind: 'error', result: undefined, error })
                 console.error(error)
             }
+            return undefined
         }
     }, [request])
 

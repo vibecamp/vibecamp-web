@@ -12,6 +12,10 @@ const schema = z.object({
         .transform((v) => (v ? v : undefined)),
     MAILGUN_DOMAIN: z.string().default('mail.vibe.camp'),
     APP_BASE_URL: z.url(),
+    TICKET_SECRET: z
+        .string()
+        .optional()
+        .transform((v) => (v ? v : undefined)),
     AV_NEEDS_EMAIL: z.email(),
 
     TZ: z.literal('UTC'),

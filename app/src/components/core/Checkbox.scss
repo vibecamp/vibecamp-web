@@ -28,13 +28,11 @@
                 border-color 0.12s ease-out;
 
             &::before {
-                content: 'check';
-                font-family: 'Material Symbols Outlined';
-                font-weight: normal;
-                font-style: normal;
-                font-size: 15px;
-                line-height: 1;
-                color: var(--color-on-accent);
+                content: '';
+                width: 15px;
+                height: 15px;
+                background: var(--color-on-accent);
+                mask: var(--icon-check) center / contain no-repeat;
                 opacity: 0;
                 transition: opacity 0.12s ease-out;
             }

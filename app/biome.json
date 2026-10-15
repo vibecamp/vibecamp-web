@@ -15,6 +15,7 @@
             "!drizzle/meta",
             "!next-env.d.ts",
             "!src/db/schema.ts",
+            "!src/components/core/icon-paths.ts",
             "!src/db/relations.ts",
             "!src/db/schema.snapshot.json",
             "!src/server/default-banner.ts"

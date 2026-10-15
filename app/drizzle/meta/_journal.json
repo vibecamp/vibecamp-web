@@ -4,6 +4,7 @@
     "entries": [
         { "idx": 0, "version": "7", "when": 1788829462347, "tag": "0000_baseline", "breakpoints": true },
         { "idx": 1, "version": "7", "when": 1789000000000, "tag": "0001_upgrade", "breakpoints": true },
-        { "idx": 2, "version": "7", "when": 1791367930878, "tag": "0002_event_visibility", "breakpoints": true }
+        { "idx": 2, "version": "7", "when": 1791367930878, "tag": "0002_event_visibility", "breakpoints": true },
+        { "idx": 3, "version": "7", "when": 1791758128218, "tag": "0003_ticket_flow", "breakpoints": true }
     ]
 }

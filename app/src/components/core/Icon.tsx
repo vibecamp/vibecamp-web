@@ -1,4 +1,7 @@
 import type { CSSProperties } from 'react'
+import { ICON_PATHS, ICON_VIEWBOX } from './icon-paths'
+
+export type MaterialIconName = keyof typeof ICON_PATHS
 
 type Props = {
     name: MaterialIconName
@@ -6,47 +9,18 @@ type Props = {
     style?: CSSProperties
 }
 
-export type MaterialIconName =
-    | 'menu'
-    | 'filter_list'
-    | 'calendar_add_on'
-    | 'edit_calendar'
-    | 'schedule'
-    | 'location_on'
-    | 'person'
-    | 'open_in_new'
-    | 'arrow_back'
-    | 'add'
-    | 'confirmation_number'
-    | 'calendar_today'
-    | 'info'
-    | 'close'
-    | 'search'
-    | 'share'
-    | 'remove'
-    | 'mail'
-    | 'gavel'
-    | 'chevron_right'
-    | 'badge'
-    | 'add_shopping_cart'
-    | 'shopping_bag'
-    | 'hourglass_top'
-    | 'error'
-    | 'check_circle'
-    | 'logout'
-    | 'warning'
-    | 'bookmark'
-
-export default function Icon({ fill, style: _style, name }: Props) {
-    const style = {
-        fontVariationSettings: `'FILL' ${fill}, 'wght' 400, 'GRAD' 0, 'opsz' 24`,
-        transition: 'font-variation-settings 0.1s ease-out',
-        ..._style,
-    }
-
+export default function Icon({ fill = 0, style, name }: Props) {
+    const paths = ICON_PATHS[name]
     return (
-        <span className='icon material-symbols-outlined' style={style}>
-            {name}
-        </span>
+        <svg className='icon' viewBox={ICON_VIEWBOX} aria-hidden style={style}>
+            {typeof paths === 'string' ? (
+                <path d={paths} />
+            ) : (
+                <>
+                    <path d={paths[0]} style={{ opacity: 1 - fill }} />
+                    <path d={paths[1]} style={{ opacity: fill }} />
+                </>
+            )}
+        </svg>
     )
 }

@@ -5,6 +5,7 @@
 @use '../components/core/DateTimeField';
 @use '../components/core/ErrorMessage';
 @use '../components/core/InfoBlurb';
+@use '../components/core/InfoButton';
 @use '../components/core/Input';
 @use '../components/core/LoadingDots';
 @use '../components/core/Modal';
@@ -71,6 +72,10 @@ html {
 
     --checkbox-size: 20px;
     --controls-border: 1px solid var(--color-border);
+
+    --motion-s: 160ms;
+    --motion-m: 260ms;
+    --motion-ease: cubic-bezier(0.23, 1, 0.32, 1);
 
     background: var(--color-background-1);
     color-scheme: light;
@@ -216,6 +221,103 @@ iframe {
     margin-bottom: var(--space-3);
 }
 
+.list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    border: var(--controls-border);
+    border-radius: var(--radius-l);
+    background: var(--color-background-1);
+    overflow: hidden;
+}
+
+.list.separated {
+    gap: var(--space-2);
+    border: none;
+    border-radius: 0;
+    background: none;
+    overflow: visible;
+
+    > .list-row {
+        border: var(--controls-border);
+        border-radius: var(--radius-l);
+        background: var(--color-background-1);
+        box-shadow: var(--shadow-1);
+    }
+}
+
+.list-row {
+    appearance: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: 56px;
+    padding: var(--space-3) var(--space-4);
+    border: none;
+    background: none;
+    color: var(--color-primary);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+
+    .list:not(.separated) > & + &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: var(--space-4);
+        right: 0;
+        border-top: var(--controls-border);
+    }
+
+    &:is(a, button) {
+        cursor: pointer;
+        transition: background-color var(--motion-s) var(--motion-ease);
+
+        &:hover {
+            background: color-mix(in srgb, var(--color-primary) 4%, var(--color-background-1));
+        }
+
+        &:active {
+            background: color-mix(in srgb, var(--color-primary) 8%, var(--color-background-1));
+        }
+    }
+
+    > .icon {
+        flex-shrink: 0;
+        color: var(--color-accent-1-strong);
+    }
+
+    > .icon:last-child:not(:first-child) {
+        margin-left: auto;
+        font-size: 20px;
+        color: var(--color-tertiary);
+    }
+
+    > .row-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        > .title {
+            font-weight: 500;
+        }
+
+        > .subtitle {
+            font-size: 14px;
+            color: var(--color-tertiary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+}
+
 .notice {
     display: flex;
     gap: var(--space-3);
@@ -291,8 +393,16 @@ iframe {
     color: #fff;
     font-size: 15px;
     box-shadow: var(--shadow-2);
-    animation: toast-in 0.18s ease-out;
+    animation: toast-in var(--motion-s) var(--motion-ease);
+    transition:
+        opacity var(--motion-s) var(--motion-ease),
+        transform var(--motion-s) var(--motion-ease);
     pointer-events: none;
+
+    &.leaving {
+        opacity: 0;
+        transform: translate(-50%, 8px);
+    }
 }
 
 @keyframes toast-in {
