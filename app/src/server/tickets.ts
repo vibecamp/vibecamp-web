@@ -1,79 +1,76 @@
-import { and, eq, gte } from 'drizzle-orm'
+import { and, eq, gte, isNull, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { db, type Tx } from '@/db'
+import { db } from '@/db'
 import * as s from '@/db/schema'
-import { badgeSchema, CartError, invariant } from '@/lib/cart'
+import { env } from '@/env'
+import { invariant } from '@/lib/cart'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-async function editableTicket(tx: Tx, accountId: string, ticketId: string) {
-    const ticket = (
-        await tx
-            .select()
-            .from(s.purchase)
-            .where(
-                and(
-                    eq(s.purchase.purchase_id, ticketId),
-                    eq(s.purchase.owned_by_account_id, accountId),
-                ),
-            )
-            .for('update')
-    )[0]
-    if (!ticket) throw new CartError('invalid_request', undefined, 404)
-    invariant(!ticket.parent_purchase_id)
-    const product = (
-        await tx
-            .select()
-            .from(s.purchase_type)
-            .where(eq(s.purchase_type.purchase_type_id, ticket.purchase_type_id))
-    )[0]
-    invariant(product?.is_attendance_ticket)
-    const festival = (
-        await tx.select().from(s.festival).where(eq(s.festival.festival_id, product.festival_id))
-    )[0]
-    invariant(festival && festival.end_date >= today())
-    return { ticket, product }
+const secretWords = env.TICKET_SECRET?.split(/\s+/).filter(Boolean) ?? []
+
+function ticketSecret(index: number | null) {
+    if (index === null) return null
+    const word = secretWords[index]
+    return word === undefined ? null : { position: index, word }
 }
 
-export async function saveTicketBadge(accountId: string, input: unknown) {
-    const body = z.strictObject({ ticket_id: z.uuid(), badge: badgeSchema }).safeParse(input)
-    invariant(body.success)
-    await db.transaction(async (tx) => {
-        const { ticket } = await editableTicket(tx, accountId, body.data.ticket_id)
-        await tx
-            .insert(s.ticket_badge)
-            .values({ ticket_id: ticket.purchase_id, ...body.data.badge })
-            .onConflictDoUpdate({ target: s.ticket_badge.ticket_id, set: body.data.badge })
-    })
-    return null
+async function assignTicketSecrets(accountId: string) {
+    if (secretWords.length === 0) return
+    const pending = await db
+        .select({ purchase_id: s.purchase.purchase_id, festival_id: s.festival.festival_id })
+        .from(s.purchase)
+        .innerJoin(
+            s.purchase_type,
+            eq(s.purchase.purchase_type_id, s.purchase_type.purchase_type_id),
+        )
+        .innerJoin(s.festival, eq(s.festival.festival_id, s.purchase_type.festival_id))
+        .where(
+            and(
+                eq(s.purchase.owned_by_account_id, accountId),
+                eq(s.purchase_type.is_attendance_ticket, true),
+                isNull(s.purchase.secret_index),
+                gte(s.festival.end_date, today()),
+            ),
+        )
+    for (const ticket of pending) {
+        await db.transaction(async (tx) => {
+            await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${ticket.festival_id}))`)
+            await tx.execute(sql`
+                UPDATE purchase SET secret_index = (
+                    SELECT n FROM generate_series(0, ${secretWords.length - 1}) AS n
+                    LEFT JOIN (
+                        SELECT p.secret_index, count(*) AS used
+                        FROM purchase p JOIN purchase_type t USING (purchase_type_id)
+                        WHERE t.festival_id = ${ticket.festival_id} AND p.secret_index IS NOT NULL
+                        GROUP BY p.secret_index
+                    ) taken ON taken.secret_index = n
+                    ORDER BY coalesce(taken.used, 0), random()
+                    LIMIT 1
+                )
+                WHERE purchase_id = ${ticket.purchase_id} AND secret_index IS NULL`)
+        })
+    }
 }
 
 export async function ownedTickets(accountId: string) {
-    const [rows, badges] = await Promise.all([
-        db
-            .select({ purchase: s.purchase, product: s.purchase_type, festival: s.festival })
-            .from(s.purchase)
-            .innerJoin(
-                s.purchase_type,
-                eq(s.purchase.purchase_type_id, s.purchase_type.purchase_type_id),
-            )
-            .innerJoin(s.festival, eq(s.festival.festival_id, s.purchase_type.festival_id))
-            .where(
-                and(
-                    eq(s.purchase.owned_by_account_id, accountId),
-                    gte(s.festival.end_date, today()),
-                ),
-            ),
-        db
-            .select({ badge: s.ticket_badge })
-            .from(s.ticket_badge)
-            .innerJoin(s.purchase, eq(s.ticket_badge.ticket_id, s.purchase.purchase_id))
-            .where(eq(s.purchase.owned_by_account_id, accountId)),
-    ])
-    return rows.map(({ purchase, product, festival }) => ({
+    await assignTicketSecrets(accountId)
+    const rows = await db
+        .select({ purchase: s.purchase, product: s.purchase_type, festival: s.festival })
+        .from(s.purchase)
+        .innerJoin(
+            s.purchase_type,
+            eq(s.purchase.purchase_type_id, s.purchase_type.purchase_type_id),
+        )
+        .innerJoin(s.festival, eq(s.festival.festival_id, s.purchase_type.festival_id))
+        .where(
+            and(eq(s.purchase.owned_by_account_id, accountId), gte(s.festival.end_date, today())),
+        )
+    return rows.map(({ purchase: { secret_index, ...purchase }, product, festival }) => ({
         ...purchase,
         festival_id: festival.festival_id,
         festival_name: festival.festival_name,
+        start_date: festival.start_date,
         end_date: festival.end_date,
         is_attendance_ticket: product.is_attendance_ticket,
         name: purchase.product_name_snapshot ?? product.description,
@@ -81,7 +78,7 @@ export async function ownedTickets(accountId: string) {
         additional_info: purchase.checkout_order_id
             ? purchase.additional_info_snapshot
             : product.additional_info,
-        badge: badges.find((b) => b.badge.ticket_id === purchase.purchase_id)?.badge ?? null,
+        secret: product.is_attendance_ticket ? ticketSecret(secret_index) : null,
     }))
 }
 export type OwnedTicket = Awaited<ReturnType<typeof ownedTickets>>[number]

@@ -1,23 +1,16 @@
-
-@font-face {
-    font-family: 'Material Symbols Outlined';
-    font-style: normal;
-    font-weight: 100 700;
-    src: url(/icons.woff2) format('woff2');
+:root {
+    --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 960 960'%3E%3Cpath d='M382 720 154 492 211 435 382 606 749 239 806 296 382 720Z'/%3E%3C/svg%3E");
 }
 
-.material-symbols-outlined {
-    font-family: 'Material Symbols Outlined';
-    font-weight: normal;
-    font-style: normal;
-    font-size: 24px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
+.icon {
     display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
+    flex-shrink: 0;
+    width: 1em;
+    height: 1em;
+    font-size: 24px;
+    fill: currentColor;
+
+    > path {
+        transition: opacity 0.1s ease-out;
+    }
 }

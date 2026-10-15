@@ -100,15 +100,18 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    scrollbar-gutter: stable both-edges;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     container-type: inline-size;
     container-name: page;
     position: relative;
     z-index: 1;
+    overflow-x: hidden;
 }
 
 .page {
+    animation: page-in var(--motion-m) var(--motion-ease);
     width: min(100%, var(--page-max));
     margin-inline: auto;
     padding: var(--space-4) var(--space-4) var(--space-6);
@@ -161,25 +164,32 @@
 
         > .icon {
             font-size: 26px;
-            transition: font-variation-settings 0.12s ease-out;
-        }
-
-        > .pill {
-            display: block;
-            width: 40px;
-            height: 3px;
-            border-radius: 3px;
-            background: transparent;
-            margin-top: 2px;
         }
 
         &.active {
             color: var(--color-accent-1-strong);
-
-            > .pill {
-                background: var(--color-accent-1);
-            }
         }
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: calc(env(safe-area-inset-bottom) + 6px);
+        width: calc(100% / var(--tabs));
+        height: 3px;
+        background: linear-gradient(var(--color-accent-1), var(--color-accent-1)) center / 40px 3px
+            no-repeat;
+        opacity: 0;
+        transform: translateX(calc(var(--active) * 100%));
+        transition:
+            transform var(--motion-m) var(--motion-ease),
+            opacity var(--motion-s) var(--motion-ease);
+        pointer-events: none;
+    }
+
+    &.has-active::after {
+        opacity: 1;
     }
 
     > .offline-banner {
@@ -251,10 +261,11 @@ dialog:not([open]) {
         calc(var(--space-4) + env(safe-area-inset-bottom)) max(var(--space-3), env(safe-area-inset-left));
     flex-direction: column;
     gap: var(--space-4);
-    animation: drawer-in 0.18s ease-out;
+    animation: drawer-in var(--motion-s) var(--motion-ease);
 
     &::backdrop {
         background: rgba(0, 0, 0, 0.45);
+        animation: backdrop-in var(--motion-m) ease;
     }
 
     > .drawer-header {
@@ -328,6 +339,41 @@ dialog:not([open]) {
     }
 }
 
+[data-nav='forward'] .page {
+    animation-name: page-in-forward;
+}
+
+[data-nav='back'] .page {
+    animation-name: page-in-back;
+}
+
+@keyframes page-in {
+    from {
+        opacity: 0;
+        transform: scale(0.99);
+    }
+}
+
+@keyframes page-in-forward {
+    from {
+        opacity: 0;
+        transform: translateX(16px);
+    }
+}
+
+@keyframes page-in-back {
+    from {
+        opacity: 0;
+        transform: translateX(-16px);
+    }
+}
+
+@keyframes backdrop-in {
+    from {
+        background-color: transparent;
+    }
+}
+
 @keyframes drawer-in {
     from {
         transform: translateX(-24px);
@@ -350,11 +396,12 @@ dialog:not([open]) {
     box-shadow: var(--shadow-2);
     padding: var(--space-4) var(--space-5) var(--space-5);
     overflow: auto;
-    animation: sheet-in 0.16s ease-out;
-
+    scrollbar-gutter: stable both-edges;
+    animation: sheet-in var(--motion-s) var(--motion-ease);
 
     &::backdrop {
         background: rgba(0, 0, 0, 0.45);
+        animation: backdrop-in var(--motion-m) ease;
     }
 
     > .sheet-header {
@@ -379,6 +426,56 @@ dialog:not([open]) {
     to {
         transform: none;
         opacity: 1;
+    }
+}
+
+@supports (overlay: auto) {
+    .sheet,
+    .drawer {
+        animation: none;
+        transition:
+            opacity var(--motion-s) var(--motion-ease),
+            transform var(--motion-s) var(--motion-ease),
+            overlay var(--motion-m) allow-discrete,
+            display var(--motion-m) allow-discrete;
+
+        &::backdrop {
+            animation: none;
+            transition: background-color var(--motion-m) ease;
+        }
+
+        &:not([open]) {
+            opacity: 0;
+
+            &::backdrop {
+                background-color: transparent;
+            }
+        }
+    }
+
+    .sheet:not([open]) {
+        transform: translateY(8px) scale(0.98);
+    }
+
+    .drawer:not([open]) {
+        transform: translateX(-24px);
+    }
+
+    @starting-style {
+        .sheet[open] {
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+        }
+
+        .drawer[open] {
+            opacity: 0;
+            transform: translateX(-24px);
+        }
+
+        .sheet[open]::backdrop,
+        .drawer[open]::backdrop {
+            background-color: transparent;
+        }
     }
 }
 
@@ -436,68 +533,6 @@ dialog:not([open]) {
                 &::after {
                     transform: scale(1);
                 }
-            }
-        }
-    }
-}
-
-.action-list {
-    display: flex;
-    flex-direction: column;
-    border: var(--controls-border);
-    border-radius: var(--radius-m);
-    background: var(--color-background-1);
-    overflow: hidden;
-
-    > a,
-    > button {
-        appearance: none;
-        background: none;
-        border: none;
-        border-top: var(--controls-border);
-        display: flex;
-        align-items: center;
-        gap: var(--space-3);
-        min-height: 52px;
-        padding: var(--space-2) var(--space-4);
-        text-align: left;
-        color: var(--color-primary);
-        cursor: pointer;
-        width: 100%;
-
-        &:first-child {
-            border-top: none;
-        }
-
-        &:hover:not(:disabled) {
-            background: var(--color-accent-1-soft);
-        }
-
-        &:disabled {
-            cursor: default;
-            color: var(--color-tertiary);
-        }
-
-        > .icon {
-            color: var(--color-accent-1-strong);
-            flex-shrink: 0;
-        }
-
-        > .label {
-            flex: 1 1 auto;
-            min-width: 0;
-        }
-
-        > .icon:not(:first-child) {
-            margin-left: auto;
-            color: inherit;
-            flex-shrink: 0;
-        }
-
-        &.danger {
-            color: var(--color-danger);
-            > .icon {
-                color: var(--color-danger);
             }
         }
     }

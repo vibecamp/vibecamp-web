@@ -1,5 +1,5 @@
 import type { Tables } from '@/db/types'
-import type { Badge, Cart, Catalog, Quote } from '@/lib/cart'
+import type { Cart, Catalog, Quote } from '@/lib/cart'
 import type { OrderStatus } from '@/server/purchase'
 import type { AttendeeInfo, FullAccountInfo } from './misc'
 
@@ -125,7 +125,6 @@ export type Routes = {
         body: { order_id: string; cancel?: true }
         response: OrderStatus
     }
-    '/ticket/badge': { method: 'put'; body: { ticket_id: string; badge: Badge }; response: null }
     '/account/profile': { method: 'put'; body: AttendeeInfo; response: null }
     '/reference': {
         method: 'get'

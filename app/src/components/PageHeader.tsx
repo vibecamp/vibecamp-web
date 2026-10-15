@@ -46,7 +46,6 @@ function defaultHeader(pathname: string): PageHeader {
     if (root === 'tickets') {
         if (second === 'owned' && third != null) {
             const detail = `${TICKETS_PATH}/owned/${third}`
-            if (fourth === 'badge') return { title: t('account.badgeInfoHeading'), back: detail }
             if (fourth === 'addons') return { title: t('tickets.purchaseAddons'), back: detail }
             return { title: t('nav.tickets'), back: TICKETS_PATH }
         }

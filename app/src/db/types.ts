@@ -2,7 +2,6 @@ import type * as s from './schema'
 
 export type Tables = {
     checkout_order: typeof s.checkout_order.$inferSelect
-    ticket_badge: typeof s.ticket_badge.$inferSelect
     discount_code: typeof s.discount_code.$inferSelect
     discount_code_ticket_type: typeof s.discount_code_ticket_type.$inferSelect
     discount_code_addon_type: typeof s.discount_code_addon_type.$inferSelect

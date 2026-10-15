@@ -35,7 +35,6 @@ type RouteConfig<E extends keyof Routes> =
 
 type NextHandler = (req: NextRequest) => Promise<Response>
 
-// Responses depend on who is asking, so no browser or proxy may reuse them.
 const NO_STORE = { 'Cache-Control': 'private, no-store' }
 
 export function defineRoute<E extends keyof Routes>(

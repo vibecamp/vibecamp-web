@@ -1,7 +1,8 @@
 'use client'
 
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { type MouseEvent, type ReactNode, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { t } from '@/copy/t'
 import Icon from './Icon'
 
 type Props = {
@@ -12,13 +13,38 @@ type Props = {
     children: () => ReactNode
 }
 
+const CLOSE_MS = 260
+
+const isOutside = (event: MouseEvent<HTMLDialogElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    return (
+        event.target === event.currentTarget &&
+        (event.clientX < rect.left ||
+            event.clientX > rect.right ||
+            event.clientY < rect.top ||
+            event.clientY > rect.bottom)
+    )
+}
+
 const FOCUSABLE =
     'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]'
 
 export default function Modal({ isOpen, onClose, title, side, children }: Props) {
     const ref = useRef<HTMLDialogElement>(null)
     const [mounted, setMounted] = useState(false)
+    const [shown, setShown] = useState(isOpen)
+    const content = useRef<ReactNode>(null)
+    const pressedOutside = useRef(false)
     useEffect(() => setMounted(true), [])
+
+    useEffect(() => {
+        if (isOpen) return
+        const timer = setTimeout(() => setShown(false), CLOSE_MS)
+        return () => clearTimeout(timer)
+    }, [isOpen])
+
+    if (isOpen && !shown) setShown(true)
+    if (isOpen) content.current = children()
 
     useEffect(() => {
         if (!mounted || !isOpen) return
@@ -60,28 +86,28 @@ export default function Modal({ isOpen, onClose, title, side, children }: Props)
                 onClose?.()
             }}
             onPointerDown={(event) => {
-                const rect = event.currentTarget.getBoundingClientRect()
-                if (
-                    event.target === event.currentTarget &&
-                    (event.clientX < rect.left ||
-                        event.clientX > rect.right ||
-                        event.clientY < rect.top ||
-                        event.clientY > rect.bottom)
-                )
-                    onClose?.()
+                pressedOutside.current = isOutside(event)
+            }}
+            onClick={(event) => {
+                if (pressedOutside.current && isOutside(event)) onClose?.()
             }}
         >
             {!drawer && (title || onClose) && (
                 <div className='sheet-header'>
                     <h2>{title}</h2>
                     {onClose && (
-                        <button type='button' className='icon-button' onClick={onClose}>
+                        <button
+                            type='button'
+                            className='icon-button'
+                            aria-label={t('common.close')}
+                            onClick={onClose}
+                        >
                             <Icon name='close' />
                         </button>
                     )}
                 </div>
             )}
-            {isOpen && children()}
+            {shown && content.current}
         </dialog>,
         document.body,
     )

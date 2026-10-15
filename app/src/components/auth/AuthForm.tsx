@@ -30,32 +30,34 @@ export default function AuthForm({
     children,
 }: Props) {
     return (
-        <div className='page centered'>
+        <>
             <Stripes position='top-left' />
-            <form className='auth-card' onSubmit={onSubmit} noValidate>
-                {/* biome-ignore lint/performance/noImgElement: the logo is sized by CSS, no layout shift to optimise */}
-                <img src='/vibecamp.png' className='logo' alt={t('login.logoAlt')} />
+            <div className='page centered'>
+                <form className='auth-card' onSubmit={onSubmit} noValidate>
+                    {/* biome-ignore lint/performance/noImgElement: the logo is sized by CSS, no layout shift to optimise */}
+                    <img src='/vibecamp.png' className='logo' alt={t('login.logoAlt')} />
 
-                <div className='stack'>{children}</div>
+                    <div className='stack'>{children}</div>
 
-                <ErrorMessage error={error} />
+                    <ErrorMessage error={error} />
 
-                {notice != null && <p className='auth-notice'>{notice}</p>}
+                    {notice != null && <p className='auth-notice'>{notice}</p>}
 
-                <Button isSubmit isPrimary isLoading={submitting} disabled={submitDisabled}>
-                    {submitLabel}
-                </Button>
+                    <Button isSubmit isPrimary isLoading={submitting} disabled={submitDisabled}>
+                        {submitLabel}
+                    </Button>
 
-                {links && <div className='auth-links'>{links}</div>}
+                    {links && <div className='auth-links'>{links}</div>}
 
-                <div className='auth-footnote'>
-                    {fillNodes(t('login.troubleLoggingIn'), {
-                        supportEmailLink: (
-                            <a href={SUPPORT_EMAIL_HREF}>{t('login.supportEmailLinkText')}</a>
-                        ),
-                    })}
-                </div>
-            </form>
-        </div>
+                    <div className='auth-footnote'>
+                        {fillNodes(t('login.troubleLoggingIn'), {
+                            supportEmailLink: (
+                                <a href={SUPPORT_EMAIL_HREF}>{t('login.supportEmailLinkText')}</a>
+                            ),
+                        })}
+                    </div>
+                </form>
+            </div>
+        </>
     )
 }

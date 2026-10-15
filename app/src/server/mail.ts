@@ -3,6 +3,7 @@ import { t } from '@/copy/t'
 import type { Tables } from '@/db/types'
 import { env } from '@/env'
 import { escapeHtml, objectEntries } from '@/lib/misc'
+import { DISCORD_URL, TWITTER_URL } from '@/lib/routes'
 
 const FROM = `Vibecamp <support@${env.MAILGUN_DOMAIN}>`
 const REPLY_TO = 'support@vibe.camp'
@@ -187,12 +188,17 @@ const withContainer = (content: string) => `
 export function orderReceiptEmail(
     account: Pick<Tables['account'], 'email_address'>,
     quote: import('@/lib/cart').Quote,
+    festival: string,
 ): Email {
+    const link = (href: string, text: string) => `<a href="${href}">${escapeHtml(text)}</a>`
+    const paragraph = (key: Parameters<typeof t>[0], values: Record<string, string> = {}) =>
+        `<p>${fill(escapeHtml(t(key)), values)}</p>`
+    const name = escapeHtml(festival)
     return {
         to: account.email_address,
         subject: t('email.receipt.subject'),
         html: withContainer(
-            `<div class="container"><table>${quote.units.map((u) => `<tr><td>${escapeHtml(u.name)}</td><td>$${(u.net_cents / 100).toFixed(2)}</td></tr>`).join('')}<tr><td>${escapeHtml(t('purchase.contributionLabel'))}</td><td>$${(quote.contribution_cents / 100).toFixed(2)}</td></tr><tr><td>${escapeHtml(t('purchase.totalRow'))}</td><td>$${(quote.total_cents / 100).toFixed(2)}</td></tr></table></div>`,
+            `<div class="container">${paragraph('email.receipt.thanks', { festival: name })}<table>${quote.units.map((u) => `<tr><td>${escapeHtml(u.name)}</td><td>${u.net_cents === 0 ? t('purchase.free') : `$${(u.net_cents / 100).toFixed(2)}`}</td></tr>`).join('')}${quote.contribution_cents > 0 ? `<tr><td>${escapeHtml(t('purchase.donationRow'))}</td><td>$${(quote.contribution_cents / 100).toFixed(2)}</td></tr>` : ''}<tr><td>${escapeHtml(t('purchase.totalRow'))}</td><td>$${(quote.total_cents / 100).toFixed(2)}</td></tr></table>${paragraph('email.receipt.logistics')}${paragraph('email.receipt.discord', { discordServer: link(DISCORD_URL, t('email.receipt.discordServer')) })}${paragraph('email.receipt.goodies', { festival: name })}${paragraph('email.receipt.updates', { discord: link(DISCORD_URL, t('email.receipt.discordLink')), twitter: link(TWITTER_URL, t('email.receipt.twitterLink')) })}${paragraph('email.receipt.signoff')}${paragraph('email.receipt.team')}</div>`,
         ),
     }
 }

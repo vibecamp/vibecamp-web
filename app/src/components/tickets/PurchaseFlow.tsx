@@ -5,42 +5,79 @@ import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { fill } from '@/copy/fill'
 import { t } from '@/copy/t'
 import { useStore } from '@/hooks/useStore'
-import { type Cart, contributionCents, type Product, type Quote, type QuoteUnit } from '@/lib/cart'
+import { type Cart, contributionCents, type Product, type Quote } from '@/lib/cart'
 import { vibefetch } from '@/lib/fetch'
 import { buyTicketsPath, SUPPORT_EMAIL_HREF, TERMS_URL, TICKETS_PATH } from '@/lib/routes'
-import { fillNodes } from '@/lib/ui'
+import { classNames, fillNodes } from '@/lib/ui'
 import type { OrderStatus } from '@/server/purchase'
 import Button from '../core/Button'
 import Icon from '../core/Icon'
 import InfoBlurb from '../core/InfoBlurb'
+import InfoButton from '../core/InfoButton'
 import Input from '../core/Input'
-import LoadingDots from '../core/LoadingDots'
+import { useMembersOnly } from '../LoginPrompt'
 import PageLoading from '../PageLoading'
-import AdditionalInfo from './AdditionalInfo'
 import CheckoutState from './CheckoutState'
 import Stepper from './Stepper'
-import TicketCard from './TicketCard'
 
 const money = (cents: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 
-type SummaryLine = { key: string; description: string; count: number; cents: number }
+const price = (cents: number) => (cents === 0 ? t('purchase.free') : money(cents))
 
-function summarize(units: readonly QuoteUnit[]): SummaryLine[] {
-    const lines = new Map<string, SummaryLine>()
-    for (const unit of units) {
+type SummaryRow = { key: string; label: string; cents: number; discount?: boolean }
+
+type SavedCart = { cart: Cart; contribution: string; accepted: boolean }
+
+const savedCartKey = (festivalId: string) => `vibecamp:cart:${festivalId}`
+
+function readSavedCart(festivalId: string): SavedCart | null {
+    try {
+        const raw = sessionStorage.getItem(savedCartKey(festivalId))
+        return raw ? (JSON.parse(raw) as SavedCart) : null
+    } catch {
+        return null
+    }
+}
+
+function summaryRows(quote: Quote): SummaryRow[] {
+    const lines = new Map<string, { description: string; count: number; cents: number }>()
+    for (const unit of quote.units) {
         const key = `${unit.purchase_type_id}:${unit.gross_cents}`
-        const line = lines.get(key) ?? {
-            key,
-            description: unit.name,
-            count: 0,
-            cents: 0,
-        }
+        const line = lines.get(key) ?? { description: unit.name, count: 0, cents: 0 }
         line.count++
         line.cents += unit.gross_cents
         lines.set(key, line)
     }
-    return [...lines.values()]
+    return [
+        ...[...lines].map(([key, line]) => ({
+            key,
+            label: fill(t('purchase.priceLineItem').replaceAll(' ', '\u00a0'), {
+                description: line.description,
+                count: line.count,
+            }),
+            cents: line.cents,
+        })),
+        ...(quote.discount_cents > 0
+            ? [
+                  {
+                      key: 'discount',
+                      label: t('purchase.discountRow'),
+                      cents: -quote.discount_cents,
+                      discount: true,
+                  },
+              ]
+            : []),
+        ...(quote.contribution_cents > 0
+            ? [
+                  {
+                      key: 'contribution',
+                      label: t('purchase.donationRow'),
+                      cents: quote.contribution_cents,
+                  },
+              ]
+            : []),
+    ]
 }
 
 export default function PurchaseFlow({
@@ -53,42 +90,54 @@ export default function PurchaseFlow({
     const store = useStore()
     const router = useRouter()
     const search = useSearchParams()
+    const membersOnly = useMembersOnly()
     const catalog = store.catalog.state.result
     const owned = store.accountInfo.state.result?.owned_tickets ?? []
     const target = owned.find((p) => p.purchase_id === ticketId)
+    const [saved] = useState(() => (ticketId ? null : readSavedCart(festivalId)))
     const [cart, setCart] = useState<Cart>(() =>
-        ticketId
-            ? {
-                  kind: 'addons',
-                  festival_id: festivalId,
-                  ticket_id: ticketId,
-                  addons: [],
-                  contribution_cents: 0,
-              }
-            : {
-                  kind: 'tickets',
-                  festival_id: festivalId,
-                  tickets: [],
-                  discount_code: null,
-                  contribution_cents: 0,
-              },
+        saved
+            ? saved.cart
+            : ticketId
+              ? {
+                    kind: 'addons',
+                    festival_id: festivalId,
+                    ticket_id: ticketId,
+                    addons: [],
+                    contribution_cents: 0,
+                }
+              : {
+                    kind: 'tickets',
+                    festival_id: festivalId,
+                    tickets: [],
+                    discount_code: null,
+                    contribution_cents: 0,
+                },
     )
-    const [contribution, setContribution] = useState('')
-    const [accepted, setAccepted] = useState(false)
-    const [quote, setQuote] = useState<Quote | null>(null)
+    const [contribution, setContribution] = useState(saved?.contribution ?? '')
+    const [accepted, setAccepted] = useState(saved?.accepted ?? false)
+    const [quote, setQuote] = useState<{ cart: Cart; value: Quote } | null>(null)
     const [quoting, setQuoting] = useState(false)
     const [error, setError] = useState<ReactNode>('')
     const [busy, setBusy] = useState(false)
     const [pending, setPending] = useState<OrderStatus | null>(null)
-    const requestId = useRef('')
+    const requestId = useRef(saved ? crypto.randomUUID() : '')
     const version = useRef(0)
 
-    const isEmpty = cart.kind === 'tickets' ? cart.tickets.length === 0 : cart.addons.length === 0
+    useEffect(() => {
+        try {
+            sessionStorage.removeItem(savedCartKey(festivalId))
+        } catch {}
+    }, [festivalId])
+
+    const isEmpty =
+        (cart.kind === 'tickets' ? cart.tickets.length === 0 : cart.addons.length === 0) &&
+        cart.contribution_cents === 0
 
     useEffect(() => {
         const current = ++version.current
-        setQuote(null)
         if (isEmpty) {
+            setQuote(null)
             setQuoting(false)
             setError('')
             return
@@ -99,7 +148,7 @@ export default function PurchaseFlow({
                 const res = await vibefetch(store.jwt, '/purchase/quote', 'post', cart)
                 if (version.current !== current) return
                 if (res.status === 200 && res.body) {
-                    setQuote(res.body)
+                    setQuote({ cart, value: res.body })
                     setError('')
                 } else setError(t('purchase.invalidSelection'))
             } catch {
@@ -125,9 +174,17 @@ export default function PurchaseFlow({
             })
     }, [search])
 
+    const closed =
+        !ticketId &&
+        !search.get('order_id') &&
+        catalog != null &&
+        catalog.festival?.festival_id !== festivalId
+    useEffect(() => {
+        if (closed) router.replace(TICKETS_PATH)
+    }, [closed, router])
+
     const change = (next: Cart) => {
         requestId.current = crypto.randomUUID()
-        setQuote(null)
         setCart(next)
     }
     const changeCount = (id: string, count: number) => {
@@ -162,14 +219,28 @@ export default function PurchaseFlow({
         )
     }
 
+    const fresh = quote?.cart === cart ? quote.value : null
+    const shown = isEmpty ? null : (quote?.value ?? null)
+    const total = useTweenedNumber(shown?.total_cents ?? 0)
+
     async function checkout() {
-        if (!quote || !accepted || busy) return
+        if (!fresh || !accepted || busy) return
+        if (!store.loggedIn) {
+            try {
+                sessionStorage.setItem(
+                    savedCartKey(festivalId),
+                    JSON.stringify({ cart, contribution, accepted } satisfies SavedCart),
+                )
+            } catch {}
+            membersOnly()
+            return
+        }
         setBusy(true)
         setError('')
         try {
             const res = await vibefetch(store.jwt, '/purchase/checkout-session', 'post', {
                 cart,
-                quote_hash: quote.hash,
+                quote_hash: fresh.hash,
                 request_id: requestId.current,
                 accepted_terms: true,
             })
@@ -179,7 +250,7 @@ export default function PurchaseFlow({
             }
             const failure = res.body as unknown as { error?: string; detail?: unknown }
             if (failure?.error === 'quote_changed') {
-                setQuote(failure.detail as Quote)
+                setQuote({ cart, value: failure.detail as Quote })
                 setError(t('purchase.quoteChanged'))
             } else if (failure?.error === 'checkout_pending') {
                 setPending(failure.detail as OrderStatus)
@@ -201,7 +272,7 @@ export default function PurchaseFlow({
         }
     }
 
-    if (!catalog) return <PageLoading />
+    if (!catalog || closed) return <PageLoading />
     if (catalog.festival?.festival_id !== festivalId || (ticketId && !target))
         return (
             <div className='page centered'>
@@ -209,16 +280,8 @@ export default function PurchaseFlow({
             </div>
         )
 
-    const now = new Date().toISOString().slice(0, 10)
     const products = catalog.products
-        .filter(
-            (p) =>
-                p.sale_enabled &&
-                !p.hidden_from_ui &&
-                p.available > 0 &&
-                (!p.available_from || p.available_from <= now) &&
-                (!p.available_to || p.available_to > now),
-        )
+        .filter((p) => p.available > 0 || p.sold_out)
         .sort(
             (a, b) =>
                 a.sort_order - b.sort_order || a.purchase_type_id.localeCompare(b.purchase_type_id),
@@ -252,7 +315,7 @@ export default function PurchaseFlow({
         )
     const contributionInvalid = contributionCents(contribution) === null
     const locked = busy || pending !== null
-    const canCheckout = quote !== null && accepted && !locked && !contributionInvalid && !quoting
+    const canCheckout = fresh !== null && accepted && !locked && !contributionInvalid && !quoting
 
     return (
         <form
@@ -268,8 +331,9 @@ export default function PurchaseFlow({
                     cancelInitially={search.get('canceled') === '1'}
                     onResolved={(state) => {
                         if (state.status === 'fulfilled') {
-                            void store.refreshAfterPurchase()
-                            router.push(TICKETS_PATH)
+                            router.replace(
+                                `${TICKETS_PATH}/checkout/return?order_id=${state.order_id}`,
+                            )
                         } else if (state.status === 'closed') {
                             setPending(null)
                             requestId.current = crypto.randomUUID()
@@ -286,7 +350,18 @@ export default function PurchaseFlow({
 
             <div className='purchase-layout'>
                 <fieldset className='purchase-main' disabled={locked}>
-                    {target && <TicketCard ticket={target} />}
+                    {target && (
+                        <div className='list'>
+                            <div className='list-row'>
+                                <span className='row-text'>
+                                    <span className='title'>{target.name}</span>
+                                    {target.details && (
+                                        <span className='subtitle'>{target.details}</span>
+                                    )}
+                                </span>
+                            </div>
+                        </div>
+                    )}
 
                     {cart.kind === 'tickets' && (
                         <section>
@@ -297,7 +372,11 @@ export default function PurchaseFlow({
                                 {products
                                     .filter((p) => p.is_attendance_ticket)
                                     .map((p) => (
-                                        <ProductRow product={p} key={p.purchase_type_id}>
+                                        <ProductRow
+                                            product={p}
+                                            soldOut={p.sold_out}
+                                            key={p.purchase_type_id}
+                                        >
                                             <Stepper
                                                 value={
                                                     cart.tickets.filter(
@@ -358,7 +437,11 @@ export default function PurchaseFlow({
                                         )
                                         const disabled = conflict || cap <= 0
                                         return (
-                                            <ProductRow product={p} key={p.purchase_type_id}>
+                                            <ProductRow
+                                                product={p}
+                                                soldOut={p.sold_out}
+                                                key={p.purchase_type_id}
+                                            >
                                                 {p.max_per_ticket === 1 ? (
                                                     <input
                                                         className='toggle'
@@ -426,47 +509,31 @@ export default function PurchaseFlow({
                 </fieldset>
 
                 <aside className='purchase-aside'>
-                    <div className='checkout-summary'>
-                        {quote ? (
-                            <div className='summary-lines'>
-                                {summarize(quote.units).map((line) => (
-                                    <div className='price-line' key={line.key}>
-                                        <span className='label'>
-                                            {fill(t('purchase.priceLineItem'), {
-                                                description: line.description,
-                                                count: line.count,
-                                            })}
-                                        </span>
-                                        <span className='amount'>{money(line.cents)}</span>
+                    <div
+                        className={classNames(
+                            'checkout-summary',
+                            shown !== null && shown !== fresh && 'stale',
+                        )}
+                    >
+                        <div className='summary-lines'>
+                            {shown &&
+                                summaryRows(shown).map((row) => (
+                                    <div className='summary-row' key={row.key}>
+                                        <div
+                                            className={classNames(
+                                                'price-line',
+                                                row.discount && 'discount',
+                                            )}
+                                        >
+                                            <span className='label'>{row.label}</span>
+                                            <span className='amount'>{price(row.cents)}</span>
+                                        </div>
                                     </div>
                                 ))}
-                                {quote.discount_cents > 0 && (
-                                    <div className='price-line discount'>
-                                        <span className='label'>{t('purchase.discountRow')}</span>
-                                        <span className='amount'>
-                                            {money(-quote.discount_cents)}
-                                        </span>
-                                    </div>
-                                )}
-                                {quote.contribution_cents > 0 && (
-                                    <div className='price-line'>
-                                        <span className='label'>
-                                            {t('purchase.contributionLabel')}
-                                        </span>
-                                        <span className='amount'>
-                                            {money(quote.contribution_cents)}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-                        ) : quoting ? (
-                            <div className='summary-placeholder'>
-                                <LoadingDots size={20} color='var(--color-accent-1)' />
-                            </div>
-                        ) : null}
+                        </div>
                         <div className='summary-total'>
                             <span>{t('purchase.totalRow')}</span>
-                            <span>{quote ? money(quote.total_cents) : money(0)}</span>
+                            <span className='amount'>{money(Math.round(total))}</span>
                         </div>
                         <label className='terms'>
                             <input
@@ -509,20 +576,67 @@ export default function PurchaseFlow({
     )
 }
 
-function ProductRow({ product, children }: { product: Product; children?: React.ReactNode }) {
+function ProductRow({
+    product,
+    soldOut = false,
+    children,
+}: {
+    product: Product
+    soldOut?: boolean
+    children?: React.ReactNode
+}) {
+    const words = product.description.split(' ')
+    const last = words.pop()
     return (
-        <div className='product-row'>
+        <div className={classNames('product-row', soldOut && 'sold-out')}>
             <div className='product-info'>
                 <div className='product-name'>
-                    <span>{product.description}</span>
-                    <AdditionalInfo name={product.description} info={product.additional_info} />
+                    {words.length > 0 && `${words.join(' ')} `}
+                    <span>
+                        {last}
+                        <InfoButton
+                            name={product.description}
+                            info={product.additional_info}
+                            disabled={soldOut}
+                        />
+                    </span>
                 </div>
-                <div className='product-price'>{money(product.price_in_cents)}</div>
+                <div className='product-price'>
+                    {price(product.price_in_cents)}
+                    {product.remaining !== null && !soldOut && !product.is_attendance_ticket && (
+                        <span className='remaining'>
+                            {fill(t('purchase.remaining'), { count: product.remaining })}
+                        </span>
+                    )}
+                </div>
                 {product.details && (
                     <div className='product-details preserve-lines'>{product.details}</div>
                 )}
             </div>
             {children && <div className='product-control'>{children}</div>}
+            {soldOut && <div className='sold-out-label'>{t('purchase.soldOut')}</div>}
         </div>
     )
+}
+
+function useTweenedNumber(target: number, ms = 350) {
+    const [value, setValue] = useState(target)
+    const current = useRef(target)
+    useEffect(() => {
+        const from = current.current
+        if (from === target || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            current.current = target
+            setValue(target)
+            return
+        }
+        const start = performance.now()
+        let frame = requestAnimationFrame(function step(now) {
+            const progress = Math.min(1, (now - start) / ms)
+            current.current = from + (target - from) * (1 - (1 - progress) ** 3)
+            setValue(current.current)
+            if (progress < 1) frame = requestAnimationFrame(step)
+        })
+        return () => cancelAnimationFrame(frame)
+    }, [target, ms])
+    return value
 }

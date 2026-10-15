@@ -58,28 +58,31 @@ export default function EventsList() {
     if (store.accountInfo.state.kind === 'error') return <PageLoading error />
 
     return (
-        <div className='page events-page with-fab'>
-            <button
-                type='button'
-                className={classNames('scroll-to-top', !showScrollButton && 'hidden')}
-                onClick={scrollToTop}
-                tabIndex={showScrollButton ? 0 : -1}
-            >
-                <Icon name='arrow_back' />
-                {t('events.scrollToTop')}
-            </button>
+        <>
+            <div className='page events-page with-fab'>
+                <button
+                    type='button'
+                    className={classNames('scroll-to-top', !showScrollButton && 'hidden')}
+                    onClick={scrollToTop}
+                    tabIndex={showScrollButton ? 0 : -1}
+                >
+                    <Icon name='arrow_back' />
+                    {t('events.scrollToTop')}
+                </button>
 
-            {visibleEvents.length === 0 ? (
-                <p className='empty-state'>{t('events.noEvents')}</p>
-            ) : compact ? (
-                <CompactEvents events={visibleEvents} />
-            ) : (
-                <CardEvents events={visibleEvents} />
-            )}
+                {visibleEvents.length === 0 ? (
+                    <p className='empty-state'>{t('events.noEvents')}</p>
+                ) : compact ? (
+                    <CompactEvents events={visibleEvents} />
+                ) : (
+                    <CardEvents events={visibleEvents} />
+                )}
+            </div>
 
             <Link
                 href={NEW_EVENT_PATH}
                 className='fab'
+                aria-label={t('events.newEvent')}
                 onClick={(e) => {
                     if (membersOnly(NEW_EVENT_PATH)) {
                         e.preventDefault()
@@ -91,7 +94,7 @@ export default function EventsList() {
             >
                 <Icon name='calendar_add_on' />
             </Link>
-        </div>
+        </>
     )
 }
 

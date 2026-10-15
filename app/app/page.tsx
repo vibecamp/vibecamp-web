@@ -37,8 +37,8 @@ export default function RootPage() {
 
     return (
         <main className='page-scroll'>
+            <Stripes position='top-left' />
             <div className='page centered'>
-                <Stripes position='top-left' />
                 <div className='auth-card'>
                     {/* biome-ignore lint/performance/noImgElement: the logo is sized by CSS, no layout shift to optimise */}
                     <img src='/vibecamp.png' className='logo' alt={t('login.logoAlt')} />

@@ -147,11 +147,9 @@ export const festival = pgTable("festival", {
 	festival_id: uuid().defaultRandom().primaryKey().notNull(),
 	festival_site_id: uuid().notNull(),
 	info_url: text(),
-	sales_are_open: boolean().default(false).notNull(),
 	email_banner_image: text(),
 	pre_badge_integration: boolean().default(false).notNull(),
 }, (table): PgTableExtraConfigValue[] => [
-	uniqueIndex("one_selling_festival").using("btree", sql`(true)`).where(sql`sales_are_open`),
 	foreignKey({
 			columns: [table.festival_site_id],
 			foreignColumns: [festival_site.festival_site_id],
@@ -368,11 +366,10 @@ export const purchase_type = pgTable("purchase_type", {
 	price_in_cents: integer().notNull(),
 	max_available: integer(),
 	description: text().notNull(),
-	max_per_account: integer(),
 	festival_id: uuid().notNull(),
 	is_attendance_ticket: boolean().default(false).notNull(),
-	available_from: date(),
-	available_to: date(),
+	available_from: timestamp({ withTimezone: true, mode: 'string' }),
+	available_to: timestamp({ withTimezone: true, mode: 'string' }),
 	hidden_from_ui: boolean().default(false).notNull(),
 	low_income_only: boolean().default(false).notNull(),
 	sort_order: integer().default(0).notNull(),
@@ -380,6 +377,7 @@ export const purchase_type = pgTable("purchase_type", {
 	details: text(),
 	additional_info: text(),
 	max_per_ticket: integer().default(1),
+	cap_group: text(),
 }, (table): PgTableExtraConfigValue[] => [
 	foreignKey({
 			columns: [table.festival_id],
@@ -477,6 +475,7 @@ export const purchase = pgTable("purchase", {
 	product_name_snapshot: text(),
 	details_snapshot: text(),
 	additional_info_snapshot: text(),
+	secret_index: integer(),
 }, (table): PgTableExtraConfigValue[] => [
 	index("purchase_parent").using("btree", table.parent_purchase_id.asc().nullsLast().op("uuid_ops")),
 	foreignKey({

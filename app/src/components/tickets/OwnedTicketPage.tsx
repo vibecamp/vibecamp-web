@@ -8,18 +8,13 @@ import { useStore } from '@/hooks/useStore'
 import { TICKETS_PATH } from '@/lib/routes'
 import type { OwnedTicket } from '@/server/tickets'
 import Icon from '../core/Icon'
+import InfoButton from '../core/InfoButton'
 import { usePageHeader } from '../PageHeader'
 import PageLoading from '../PageLoading'
-import AdditionalInfo from './AdditionalInfo'
-import BadgeInfoForm from './BadgeInfoForm'
 import PurchaseFlow from './PurchaseFlow'
-import TicketCard, { badgeMissing } from './TicketCard'
+import Ticket3D from './Ticket3D'
 
-export default function OwnedTicketPage({
-    view = 'detail',
-}: {
-    view?: 'detail' | 'badge' | 'addons'
-}) {
+export default function OwnedTicketPage({ view = 'detail' }: { view?: 'detail' | 'addons' }) {
     const { ticketId } = useParams<{ ticketId: string }>()
     const store = useStore()
     const owned = store.accountInfo.state.result?.owned_tickets
@@ -46,63 +41,24 @@ export default function OwnedTicketPage({
                 ),
         )
 
-    if (view === 'badge') return <BadgeInfoForm key={ticketId} ticket_id={ticketId} />
     if (view === 'addons')
         return <PurchaseFlow festivalId={ticket.festival_id} ticketId={ticketId} />
 
-    const badge = ticket.badge
-
     return (
         <div className='page'>
-            <TicketCard ticket={ticket} large />
+            <Ticket3D key={ticket.purchase_id} ticket={ticket} />
 
             {ticket.details && <p className='preserve-lines muted'>{ticket.details}</p>}
 
-            {badgeMissing(ticket) && (
-                <Link href={`${TICKETS_PATH}/owned/${ticketId}/badge`} className='notice warning'>
-                    <Icon name='badge' />
-                    <span>{t('tickets.badgeMissing')}</span>
-                    <Icon name='chevron_right' />
-                </Link>
-            )}
-
-            {
-                <div className='action-list'>
-                    <Link href={`${TICKETS_PATH}/owned/${ticketId}/badge`}>
-                        <Icon name='badge' />
-                        <span className='label'>{t('account.badgeInfoHeading')}</span>
+            {canBuyAddons && (
+                <div className='list'>
+                    <Link className='list-row' href={`${TICKETS_PATH}/owned/${ticketId}/addons`}>
+                        <Icon name='add_shopping_cart' />
+                        <span className='row-text'>
+                            <span className='title'>{t('tickets.purchaseAddons')}</span>
+                        </span>
                         <Icon name='chevron_right' />
                     </Link>
-                    {canBuyAddons && (
-                        <Link href={`${TICKETS_PATH}/owned/${ticketId}/addons`}>
-                            <Icon name='add_shopping_cart' />
-                            <span className='label'>{t('tickets.purchaseAddons')}</span>
-                            <Icon name='chevron_right' />
-                        </Link>
-                    )}
-                </div>
-            }
-
-            {badge?.badge_name && (
-                <div className='badge-summary'>
-                    {badge.badge_picture_url ? (
-                        // biome-ignore lint/performance/noImgElement: user-supplied URL on any host
-                        <img src={badge.badge_picture_url} alt='' />
-                    ) : (
-                        <div className='avatar-fallback'>
-                            <Icon name='person' />
-                        </div>
-                    )}
-                    <div className='badge-text'>
-                        <span className='badge-name'>{badge.badge_name}</span>
-                        {(badge.badge_username || badge.badge_location) && (
-                            <span className='badge-meta'>
-                                {[badge.badge_username, badge.badge_location]
-                                    .filter(Boolean)
-                                    .join(' · ')}
-                            </span>
-                        )}
-                    </div>
                 </div>
             )}
 
@@ -111,21 +67,23 @@ export default function OwnedTicketPage({
                     <div className='section-heading'>
                         <h2>{t('tickets.addonsHeading')}</h2>
                     </div>
-                    <ul className='plain-list'>
+                    <ul className='list'>
                         {groupAddons(addons).map((group) => (
-                            <li key={group.purchase_type_id}>
+                            <li className='list-row' key={group.purchase_type_id}>
                                 <Icon name='shopping_bag' />
-                                <span className='label'>
-                                    {group.count > 1
-                                        ? fill(t('email.receipt.purchaseRow'), {
-                                              description: group.name,
-                                              count: group.count,
-                                          })
-                                        : group.name}
-                                    <AdditionalInfo
-                                        name={group.name}
-                                        info={group.additional_info}
-                                    />
+                                <span className='row-text'>
+                                    <span className='title'>
+                                        {group.count > 1
+                                            ? fill(t('email.receipt.purchaseRow'), {
+                                                  description: group.name,
+                                                  count: group.count,
+                                              })
+                                            : group.name}
+                                        <InfoButton
+                                            name={group.name}
+                                            info={group.additional_info}
+                                        />
+                                    </span>
                                 </span>
                             </li>
                         ))}

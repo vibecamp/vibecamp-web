@@ -2,7 +2,6 @@ import dayjs, { type Dayjs } from './dayjs'
 
 type DateLike = string | Date | Dayjs
 
-// The day before and after count too, for events that start a little early or run a little late.
 export function festivalOf<F extends { start_date: DateLike; end_date: DateLike }>(
     eventStart: DateLike,
     festivals: readonly F[] | undefined,

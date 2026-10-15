@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import type { CSSProperties } from 'react'
 import { t } from '@/copy/t'
 import useIsOffline from '@/hooks/useIsOffline'
 import { EVENTS_PATH, isGuestPath, TICKETS_PATH } from '@/lib/routes'
@@ -17,7 +18,7 @@ type NavTab = {
 
 const NAV_TABS: readonly NavTab[] = [
     { href: TICKETS_PATH, icon: 'confirmation_number', label: t('nav.tickets') },
-    { href: EVENTS_PATH, icon: 'calendar_today', label: t('nav.events') },
+    { href: EVENTS_PATH, icon: 'calendar_today', label: t('nav.schedule') },
 ]
 
 const isTabActive = (pathname: string, href: string) =>
@@ -27,9 +28,14 @@ export default function Nav() {
     const pathname = usePathname()
     const isOffline = useIsOffline()
     const membersOnly = useMembersOnly()
+    const activeIndex = NAV_TABS.findIndex(({ href }) => isTabActive(pathname, href))
+    const indicator = {
+        '--tabs': NAV_TABS.length,
+        '--active': Math.max(activeIndex, 0),
+    } as CSSProperties
 
     return (
-        <nav className='nav'>
+        <nav className={classNames('nav', activeIndex >= 0 && 'has-active')} style={indicator}>
             {NAV_TABS.map(({ href, icon, label }) => {
                 const active = isTabActive(pathname, href)
 
@@ -44,7 +50,6 @@ export default function Nav() {
                     >
                         <Icon name={icon} fill={active ? 1 : 0} />
                         <span className='nav-label'>{label}</span>
-                        <span className='pill' />
                     </Link>
                 )
             })}

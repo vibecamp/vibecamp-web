@@ -69,9 +69,8 @@ function useNewStoreInstance() {
     )
 
     const catalog = usePromise(
-        async () =>
-            jwt ? (await vibefetch(jwt, '/purchase/catalog', 'get', undefined)).body : null,
-        [jwt],
+        async () => (await vibefetch(undefined, '/purchase/catalog', 'get', undefined)).body,
+        [],
     )
 
     const reference = usePromise(
@@ -132,9 +131,8 @@ function useNewStoreInstance() {
         return null
     }, [jwt, setJwt])
 
-    // A completed purchase changes owned tickets, product availability and which events are visible.
     const refreshAfterPurchase = useCallback(
-        () => Promise.all([accountInfo.load(), catalog.load(), allEvents.load()]),
+        async () => (await Promise.all([accountInfo.load(), catalog.load(), allEvents.load()]))[0],
         [accountInfo.load, allEvents.load, catalog.load],
     )
 

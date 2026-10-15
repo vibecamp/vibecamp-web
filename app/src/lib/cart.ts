@@ -12,7 +12,6 @@ const cartSchema = z.discriminatedUnion('kind', [
         kind: z.literal('tickets'),
         tickets: z
             .array(z.strictObject({ key: z.uuid(), purchase_type_id: z.string().min(1), addons }))
-            .min(1)
             .max(100),
         discount_code: z.string().max(100).nullable(),
     }),
@@ -20,7 +19,7 @@ const cartSchema = z.discriminatedUnion('kind', [
         ...common,
         kind: z.literal('addons'),
         ticket_id: z.uuid(),
-        addons: addons.min(1),
+        addons,
     }),
 ])
 export type Cart = z.infer<typeof cartSchema>
@@ -35,10 +34,13 @@ export type Product = {
     available_from: string | null
     available_to: string | null
     max_per_ticket: number | null
+    cap_group: string | null
     sort_order: number
     details: string | null
     additional_info: string | null
     available: number
+    sold_out: boolean
+    remaining: number | null
 }
 export type Catalog = {
     festival: { festival_id: string; festival_name: string; end_date: string } | null
@@ -111,7 +113,7 @@ export function quoteCart(
         purchase_type_id: string
         existing_addons: { purchase_type_id: string; quantity: number }[]
     },
-    today = new Date().toISOString().slice(0, 10),
+    now = new Date().toISOString(),
 ): Quote {
     const size =
         cart.kind === 'tickets'
@@ -121,10 +123,8 @@ export function quoteCart(
                   0,
               )
             : cart.addons.reduce((n, addon) => n + addon.quantity, 0)
-    invariant(size >= 1 && size <= 1000)
-    invariant(
-        catalog.festival?.festival_id === cart.festival_id && catalog.festival.end_date >= today,
-    )
+    invariant(size <= 1000 && (size >= 1 || cart.contribution_cents > 0))
+    invariant(catalog.festival?.festival_id === cart.festival_id)
     const products = new Map(catalog.products.map((p) => [p.purchase_type_id, p]))
     const counts = new Map<string, number>()
     const units: QuoteUnit[] = []
@@ -138,8 +138,8 @@ export function quoteCart(
                 p.is_attendance_ticket === ticket &&
                 p.sale_enabled &&
                 !p.hidden_from_ui &&
-                (!p.available_from || p.available_from <= today) &&
-                (!p.available_to || today < p.available_to) &&
+                (!p.available_from || p.available_from <= now) &&
+                (!p.available_to || now < p.available_to) &&
                 Number.isSafeInteger(p.price_in_cents) &&
                 p.price_in_cents >= 0,
         )
@@ -228,6 +228,17 @@ export function quoteCart(
         units.push(...bundle)
     }
     invariant(units.length <= 1000)
+    const pooled = new Map<string, number>()
+    for (const [id, n] of counts) {
+        const group = products.get(id)?.cap_group
+        if (group) pooled.set(group, (pooled.get(group) ?? 0) + n)
+    }
+    for (const [group, n] of pooled)
+        invariant(
+            catalog.products.every(
+                (p) => p.cap_group !== group || !counts.has(p.purchase_type_id) || n <= p.available,
+            ),
+        )
     if (cart.kind === 'tickets' && cart.discount_code)
         invariant(discount && discountedTickets > 0 && discountedTickets <= discount.remaining)
     const gross = units.reduce((n, u) => n + u.gross_cents, 0)
@@ -250,19 +261,3 @@ export function quoteCart(
         hash: '',
     }
 }
-export const badgeSchema = z.strictObject({
-    badge_name: z.string().trim().min(1).max(20),
-    badge_username: z
-        .string()
-        .max(20)
-        .refine((v) => !v.startsWith('@'))
-        .nullable(),
-    badge_location: z.string().max(20).nullable(),
-    badge_bio: z.string().max(160).nullable(),
-    badge_picture_url: z
-        .string()
-        .refine((v) => v === '' || (/^https?:\/\//.test(v) && URL.canParse(v)))
-        .nullable(),
-    badge_picture_image_id: z.null(),
-})
-export type Badge = z.infer<typeof badgeSchema>

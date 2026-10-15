@@ -75,12 +75,17 @@ export default function TopBar() {
 
     return (
         <header className='top-bar'>
-            <button type='button' className='icon-button' onClick={() => setMenu(true)}>
+            <button
+                type='button'
+                className='icon-button'
+                aria-label={t('nav.menu')}
+                onClick={() => setMenu(true)}
+            >
                 <Icon name='menu' />
             </button>
 
             {header.back && !searchOpen && (
-                <Link href={header.back} className='icon-button'>
+                <Link href={header.back} className='icon-button' aria-label={t('nav.back')}>
                     <Icon name='arrow_back' />
                 </Link>
             )}
@@ -103,12 +108,18 @@ export default function TopBar() {
                     <button
                         type='button'
                         className={classNames('icon-button', filterActive && 'active')}
+                        aria-label={t('events.filter')}
                         onClick={() => setFilters(true)}
                     >
                         <Icon name='filter_list' fill={filterActive ? 1 : 0} />
                         {filterActive && <span className='badge-dot' />}
                     </button>
-                    <button type='button' className='icon-button' onClick={closeSearch}>
+                    <button
+                        type='button'
+                        className='icon-button'
+                        aria-label={t('events.closeSearch')}
+                        onClick={closeSearch}
+                    >
                         <Icon name='close' />
                     </button>
                 </>
@@ -119,6 +130,7 @@ export default function TopBar() {
                         <button
                             type='button'
                             className='icon-button'
+                            aria-label={t('events.search')}
                             onClick={() => setExpanded(true)}
                         >
                             <Icon name='search' />

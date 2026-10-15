@@ -1,5 +1,6 @@
 'use client'
 
+import { t } from '@/copy/t'
 import { classNames } from '@/lib/ui'
 import Icon from '../core/Icon'
 
@@ -16,6 +17,7 @@ export default function Stepper({ value, min = 0, max, disabled, onChange }: Pro
         <div className={classNames('stepper', value === 0 && 'zero')}>
             <button
                 type='button'
+                aria-label={t('common.remove')}
                 disabled={disabled || value <= min}
                 onClick={() => onChange(value - 1)}
             >
@@ -24,6 +26,7 @@ export default function Stepper({ value, min = 0, max, disabled, onChange }: Pro
             <output>{value}</output>
             <button
                 type='button'
+                aria-label={t('common.add')}
                 disabled={disabled || value >= max}
                 onClick={() => onChange(value + 1)}
             >
