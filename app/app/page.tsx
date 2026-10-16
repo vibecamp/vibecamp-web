@@ -9,7 +9,7 @@ import { t } from '@/copy/t'
 import useNextPath from '@/hooks/useNextPath'
 import { useStore } from '@/hooks/useStore'
 import { hashToPath } from '@/lib/hash-redirect'
-import { EVENTS_PATH, loginPath } from '@/lib/routes'
+import { DEFAULT_PATH, loginPath } from '@/lib/routes'
 
 export default function RootPage() {
     const store = useStore()
@@ -45,7 +45,7 @@ export default function RootPage() {
                     <ButtonLink href={loginPath(next)} isPrimary>
                         {t('login.submit')}
                     </ButtonLink>
-                    <ButtonLink href={EVENTS_PATH}>{t('landing.viewAsGuest')}</ButtonLink>
+                    <ButtonLink href={DEFAULT_PATH}>{t('landing.viewAsGuest')}</ButtonLink>
                 </div>
             </div>
         </main>
