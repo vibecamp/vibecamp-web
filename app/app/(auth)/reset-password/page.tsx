@@ -1,9 +1,10 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import AuthForm from '@/components/auth/AuthForm'
 import ButtonLink from '@/components/core/ButtonLink'
 import Input from '@/components/core/Input'
+import { useNav } from '@/components/NavStack'
 import { t } from '@/copy/t'
 import useForm, { fieldToProps } from '@/hooks/useForm'
 import { useStore } from '@/hooks/useStore'
@@ -14,7 +15,7 @@ import { getPasswordValidationError } from '@/lib/validation'
 
 export default function ResetPasswordPage() {
     const store = useStore()
-    const router = useRouter()
+    const { replace } = useNav()
     const secret = useSearchParams().get('secret') ?? ''
 
     const form = useForm({
@@ -30,7 +31,7 @@ export default function ResetPasswordPage() {
                 }
             },
         },
-        submit: async ({ password }, reset) => {
+        submit: async ({ password }) => {
             const { body } = await vibefetch(null, '/account/reset-password', 'put', {
                 password,
                 secret,
@@ -42,15 +43,17 @@ export default function ResetPasswordPage() {
             }
 
             store.setJwt(jwt)
-            reset()
-            router.replace(DEFAULT_PATH)
+            replace(DEFAULT_PATH)
         },
     })
+
+    // after a successful reset the page is on its way out, so it stays busy until it leaves
+    const busy = form.submitting || form.succeeded
 
     return (
         <AuthForm
             onSubmit={form.handleSubmit}
-            submitting={form.submitting}
+            submitting={busy}
             submitLabel={t('passwordReset.updateSubmit')}
             error={form.wholeFormError}
             links={<ButtonLink href={LOGIN_PATH}>{t('passwordReset.backToLogin')}</ButtonLink>}
@@ -59,7 +62,7 @@ export default function ResetPasswordPage() {
                 label={t('common.newPasswordLabel')}
                 type='password'
                 autoComplete='new-password'
-                disabled={form.submitting}
+                disabled={busy}
                 {...fieldToProps(form.fields.password)}
             />
 
@@ -67,7 +70,7 @@ export default function ResetPasswordPage() {
                 label={t('passwordReset.confirmNewPasswordLabel')}
                 type='password'
                 autoComplete='new-password'
-                disabled={form.submitting}
+                disabled={busy}
                 {...fieldToProps(form.fields.passwordConfirmation)}
             />
         </AuthForm>

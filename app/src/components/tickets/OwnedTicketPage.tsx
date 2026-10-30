@@ -20,7 +20,7 @@ export default function OwnedTicketPage({ view = 'detail' }: { view?: 'detail' |
     const owned = store.accountInfo.state.result?.owned_tickets
     const ticket = owned?.find((p) => p.purchase_id === ticketId && p.is_attendance_ticket)
 
-    usePageHeader(view === 'detail' && ticket ? { title: ticket.name, back: TICKETS_PATH } : null)
+    usePageHeader(view === 'detail' ? { title: ticket?.name ?? '' } : null)
 
     if (!owned && store.accountInfo.state.kind !== 'error') return <PageLoading />
     if (!ticket) return <PageLoading error />

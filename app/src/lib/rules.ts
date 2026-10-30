@@ -17,7 +17,7 @@ export function festivalOf<F extends { start_date: DateLike; end_date: DateLike 
 type EventTimes = {
     start_datetime: Dayjs | null
     end_datetime: Dayjs | null
-    event_site_location: string | null
+    location_id: string | null
     event_id: string | undefined
 }
 
@@ -27,31 +27,18 @@ export function checkInProgressEventOverlap(
 ): boolean {
     if (
         !newEvent.start_datetime ||
-        !newEvent.event_site_location ||
-        !existingEvent.event_site_location ||
-        (newEvent.event_id &&
-            existingEvent.event_id &&
-            newEvent.event_id === existingEvent.event_id) ||
-        newEvent.event_site_location !== existingEvent.event_site_location
+        !newEvent.location_id ||
+        newEvent.location_id !== existingEvent.location_id ||
+        (newEvent.event_id && newEvent.event_id === existingEvent.event_id)
     ) {
         return false
     }
 
     const start1 = newEvent.start_datetime.utc(true)
     const start2 = existingEvent.start_datetime.utc(true)
-    const end1 = newEvent.end_datetime?.utc(true)
-    const end2 = existingEvent.end_datetime?.utc(true)
+    const end1 = newEvent.end_datetime?.utc(true) ?? start1
+    const end2 = existingEvent.end_datetime?.utc(true) ?? start2
 
-    if (!end1) {
-        if (!end2) {
-            return start1.isSame(start2)
-        }
-
-        return start1.isAfter(start2) && start1.isBefore(end2)
-    }
-    if (!end2) {
-        return start2.isAfter(start1) && start2.isBefore(end1)
-    }
-
-    return start1.isBefore(end2) && end1.isAfter(start2)
+    // an event without an end is a moment, which can only meet another by sharing its start
+    return (start1.isBefore(end2) && start2.isBefore(end1)) || start1.isSame(start2)
 }

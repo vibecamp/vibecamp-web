@@ -20,12 +20,17 @@ export type Tables = {
     discount: typeof s.discount.$inferSelect
     event: typeof s.event.$inferSelect
     event_bookmark: typeof s.event_bookmark.$inferSelect
-    event_site: typeof s.event_site.$inferSelect
     event_type: typeof s.event_type.$inferSelect
     faq_node: typeof s.faq_node.$inferSelect
     festival: typeof s.festival.$inferSelect
     festival_site: typeof s.festival_site.$inferSelect
     invite_code: typeof s.invite_code.$inferSelect
+    legacy_event_location: typeof s.legacy_event_location.$inferSelect
+    image: typeof s.image.$inferSelect
+    location: typeof s.location.$inferSelect
+    location_category: typeof s.location_category.$inferSelect
+    location_image: typeof s.location_image.$inferSelect
+    map: typeof s.map.$inferSelect
     purchase: typeof s.purchase.$inferSelect
     purchase_type: typeof s.purchase_type.$inferSelect
     stored_image: typeof s.stored_image.$inferSelect

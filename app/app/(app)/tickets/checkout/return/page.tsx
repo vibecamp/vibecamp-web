@@ -1,6 +1,7 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useNav } from '@/components/NavStack'
 import CheckoutState from '@/components/tickets/CheckoutState'
 import { useStore } from '@/hooks/useStore'
 import { TICKETS_PATH } from '@/lib/routes'
@@ -15,7 +16,7 @@ function afterPurchasePath(owned: readonly OwnedTicket[], orderId: string) {
 }
 
 export default function CheckoutReturn() {
-    const router = useRouter()
+    const nav = useNav()
     const store = useStore()
     const orderId = useSearchParams().get('order_id')
     if (!orderId) return null
@@ -28,11 +29,9 @@ export default function CheckoutReturn() {
                         void store
                             .refreshAfterPurchase()
                             .then((account) =>
-                                router.replace(
-                                    afterPurchasePath(account?.owned_tickets ?? [], orderId),
-                                ),
+                                nav.reset(afterPurchasePath(account?.owned_tickets ?? [], orderId)),
                             )
-                    } else if (state.status === 'closed') router.replace(TICKETS_PATH)
+                    } else if (state.status === 'closed') nav.replace(TICKETS_PATH)
                 }}
             />
         </div>

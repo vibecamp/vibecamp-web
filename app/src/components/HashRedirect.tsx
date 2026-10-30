@@ -1,18 +1,18 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { hashToPath } from '@/lib/hash-redirect'
+import { useNav } from './NavStack'
 
 export default function HashRedirect() {
-    const router = useRouter()
+    const { replace } = useNav()
 
     useEffect(() => {
         const path = hashToPath(window.location.hash)
         if (path != null) {
-            router.replace(path)
+            replace(path)
         }
-    }, [router])
+    }, [replace])
 
     return null
 }

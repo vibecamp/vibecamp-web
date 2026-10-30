@@ -5,7 +5,7 @@ import {
     type ReactNode,
     useCallback,
     useContext,
-    useEffect,
+    useLayoutEffect,
     useMemo,
     useState,
 } from 'react'
@@ -45,7 +45,8 @@ function useNewStoreInstance() {
     const [jwt, setJwtState] = useState<string | undefined>(undefined)
     const [ready, setReady] = useState(false)
 
-    useEffect(() => {
+    // read before the first client paint so the server's loading state goes straight to the app
+    useLayoutEffect(() => {
         setJwtState(readStoredJwt())
         setReady(true)
     }, [])
@@ -92,8 +93,15 @@ function useNewStoreInstance() {
         [reference.state.result],
     )
 
-    const eventSites = reference.state.result?.event_sites
+    const locations = reference.state.result?.locations
+    const locationCategories = reference.state.result?.location_categories
+    const map = reference.state.result?.map
     const ageRanges = reference.state.result?.age_ranges
+
+    const locationsById = useMemo(
+        () => new Map(locations?.map((l) => [l.location_id, l])),
+        [locations],
+    )
 
     const allEvents = usePromise(
         () =>
@@ -147,7 +155,11 @@ function useNewStoreInstance() {
             jwtPayload,
             catalog,
             festivals,
-            eventSites,
+            locations,
+            locationsById,
+            locationCategories,
+            map,
+            reference,
             ageRanges,
             allEvents,
             bookmarks,
@@ -159,8 +171,12 @@ function useNewStoreInstance() {
             ageRanges,
             allEvents,
             bookmarks,
-            eventSites,
             festivals,
+            locationCategories,
+            locations,
+            locationsById,
+            map,
+            reference,
             jwt,
             jwtPayload,
             logOut,

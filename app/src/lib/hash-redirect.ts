@@ -3,15 +3,17 @@ import {
     ACCOUNT_PATH,
     buyTicketsPath,
     DEFAULT_PATH,
-    EVENTS_PATH,
     eventPath,
+    MAP_PATH,
     RESET_PASSWORD_PATH,
+    SCHEDULE_PATH,
     TICKETS_PATH,
 } from '@/lib/routes'
 
 const VIEW_PATHS: Readonly<Record<string, string>> = {
     Tickets: TICKETS_PATH,
-    Events: EVENTS_PATH,
+    Events: SCHEDULE_PATH,
+    Map: MAP_PATH,
     Account: ACCOUNT_PATH,
 }
 
@@ -69,7 +71,7 @@ export function hashToPath(hash: string): string | null {
     }
 
     const view = VIEW_PATHS[str('currentView') ?? ''] ?? DEFAULT_PATH
-    if (view !== EVENTS_PATH) {
+    if (view !== SCHEDULE_PATH) {
         return view
     }
 
@@ -82,5 +84,5 @@ export function hashToPath(hash: string): string | null {
         params.set('compact', '1')
     }
     const query = params.toString()
-    return query === '' ? EVENTS_PATH : `${EVENTS_PATH}?${query}`
+    return query === '' ? SCHEDULE_PATH : `${SCHEDULE_PATH}?${query}`
 }

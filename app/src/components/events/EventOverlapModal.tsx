@@ -1,11 +1,13 @@
 'use client'
 
 import { t } from '@/copy/t'
-import type { DayjsEvent } from '@/hooks/useStore'
+import { type DayjsEvent, useStore } from '@/hooks/useStore'
+import { isMapped } from '@/lib/locations'
+import { locationPath } from '@/lib/routes'
 import Button from '../core/Button'
 import Icon from '../core/Icon'
 import Modal from '../core/Modal'
-import { formatEventLocation, formatEventTime } from './format'
+import { formatEventTime } from './format'
 
 type Props = {
     isOpen: boolean
@@ -20,6 +22,11 @@ export default function EventOverlapModal({
     onConfirm,
     overlappingEvents,
 }: Props) {
+    const { locationsById } = useStore()
+    const mapped = (locationId: string) => {
+        const location = locationsById.get(locationId)
+        return location != null && isMapped(location)
+    }
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             {() => (
@@ -36,7 +43,18 @@ export default function EventOverlapModal({
                                 </div>
                                 <div>
                                     <Icon name='location_on' />
-                                    {formatEventLocation(event)}
+                                    {mapped(event.location_id) ? (
+                                        // a new tab keeps the unsaved event form intact
+                                        <a
+                                            href={locationPath(event.location_id)}
+                                            target='_blank'
+                                            rel='noreferrer'
+                                        >
+                                            {event.location_name}
+                                        </a>
+                                    ) : (
+                                        <span>{event.location_name}</span>
+                                    )}
                                 </div>
                             </div>
                         ))}

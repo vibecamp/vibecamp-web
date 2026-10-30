@@ -77,6 +77,11 @@
     background: var(--color-background-1);
     border: var(--controls-border);
     cursor: pointer;
+    transition: transform 120ms var(--motion-ease);
+
+    &:active {
+        transform: scale(0.985);
+    }
 
 
     &.TEAM_OFFICIAL {

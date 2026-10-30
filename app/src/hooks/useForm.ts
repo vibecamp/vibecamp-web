@@ -19,6 +19,7 @@ export type Form<T extends Record<string, unknown>> = {
     values: T
     handleSubmit: (e?: FormEvent<HTMLFormElement>) => void
     submitting: boolean
+    succeeded: boolean
     wholeFormError: string | undefined
     reset: (to?: T) => void
     dirty: boolean
@@ -39,13 +40,7 @@ export default function useForm<T extends Record<string, unknown>>({
     submit,
 }: UseFormInit<T>): Form<T> {
     const [values, setValues] = useState(initial)
-    const [validationActive, setValidationActive] = useState(() => {
-        const newObj = {} as Record<keyof T, boolean>
-        for (const key in values) {
-            newObj[key] = false
-        }
-        return newObj
-    })
+    const [validationActive, setValidationActive] = useState(() => inactive(values))
     const [dirty, setDirty] = useState(false)
 
     const fieldInputs = Object.fromEntries(
@@ -69,7 +64,10 @@ export default function useForm<T extends Record<string, unknown>>({
 
     const reset: Form<T>['reset'] = useCallback(
         (to) => {
-            setValues(to ?? initial)
+            const next = to ?? initial
+            setValues(next)
+            // a reset form is a fresh form, so it mustn't show errors for the values it was reset to
+            setValidationActive(inactive(next))
             setDirty(false)
         },
         [initial],
@@ -104,6 +102,7 @@ export default function useForm<T extends Record<string, unknown>>({
             values,
             handleSubmit,
             submitting: submission.state.kind === 'loading',
+            succeeded: submission.state.kind === 'result' && submission.state.result == null,
             wholeFormError: submission.state.result ?? undefined,
             reset,
             dirty,
@@ -120,6 +119,12 @@ export default function useForm<T extends Record<string, unknown>>({
     )
 
     return result
+}
+
+function inactive<T extends Record<string, unknown>>(values: T) {
+    const flags = {} as Record<keyof T, boolean>
+    for (const key in values) flags[key] = false
+    return flags
 }
 
 export const fieldToProps = <T>(

@@ -1,11 +1,11 @@
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import useBooleanState from './useBooleanState'
 import useWindowEvent from './useWindowEvent'
 
 export default function useIsOffline() {
     const { state: isOffline, setTrue, setFalse } = useBooleanState(false)
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!navigator.onLine) {
             setTrue()
         }

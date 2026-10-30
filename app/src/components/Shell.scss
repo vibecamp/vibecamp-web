@@ -10,9 +10,27 @@
     background: var(--color-background-2);
     border-bottom: var(--controls-border);
 
-    > .title {
-        flex: 1 1 auto;
+}
+
+// the title and the page's search share one slot and cross-fade, the search arriving from below
+.top-bar-center {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+    align-items: center;
+
+    > * {
+        grid-area: 1 / 1;
         min-width: 0;
+    }
+
+    &.animated > * {
+        transition:
+            opacity var(--motion-m) var(--motion-ease),
+            transform var(--motion-m) var(--motion-ease);
+    }
+
+    > .title {
         font-size: 18px;
         font-weight: 500;
         white-space: nowrap;
@@ -21,36 +39,91 @@
         padding: 0 var(--space-2);
     }
 
-    > .search-field {
+    > .top-bar-search {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    &.searching {
+        > .title {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+
+        > .top-bar-search {
+            opacity: 1;
+            transform: none;
+        }
+    }
+}
+
+.search-field {
+    min-width: 0;
+    min-height: var(--touch);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+    border-radius: 999px;
+    border: var(--controls-border);
+    background: var(--color-background-1);
+
+    &:has(> .icon-button) {
+        padding-right: 0;
+    }
+
+    > .icon {
+        flex-shrink: 0;
+        color: var(--color-tertiary);
+        font-size: 20px;
+    }
+
+    > input {
         flex: 1 1 auto;
         min-width: 0;
-        min-height: var(--touch);
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
-        padding: 0 var(--space-3);
-        border-radius: 999px;
-        border: var(--controls-border);
-        background: var(--color-background-1);
+        border: none;
+        background: none;
+        font-size: 16px;
+        min-height: calc(var(--touch) - 2px);
 
-        > .icon {
-            flex-shrink: 0;
-            color: var(--color-tertiary);
-            font-size: 20px;
+        &:focus-visible {
+            box-shadow: none;
         }
 
-        > input {
-            flex: 1 1 auto;
-            min-width: 0;
-            border: none;
-            background: none;
-            font-size: 16px;
-            min-height: calc(var(--touch) - 2px);
-
-            &:focus-visible {
-                box-shadow: none;
-            }
+        // replaced by our own clear button, which every browser shows the same way
+        &::-webkit-search-cancel-button {
+            -webkit-appearance: none;
+            display: none;
         }
+    }
+
+    &:has(> .search-clear) {
+        padding-right: 0;
+    }
+
+    > .search-clear {
+        color: var(--color-tertiary);
+
+        .icon {
+            font-size: 18px;
+        }
+    }
+
+    > .icon-button {
+        width: calc(var(--touch) - 2px);
+        height: calc(var(--touch) - 2px);
+
+        > .badge-dot {
+            border-color: var(--color-background-1);
+        }
+    }
+}
+
+.page-search {
+    transition: opacity var(--motion-m) var(--motion-ease);
+
+    &.away {
+        opacity: 0;
     }
 }
 

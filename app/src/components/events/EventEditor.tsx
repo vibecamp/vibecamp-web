@@ -19,11 +19,12 @@ import InfoBlurb from '../core/InfoBlurb'
 import InfoButton from '../core/InfoButton'
 import Input from '../core/Input'
 import RadioGroup from '../core/RadioGroup'
-import RowSelect from '../core/RowSelect'
+import LocationFacts from '../locations/LocationFacts'
+import LocationPicker from '../locations/LocationPicker'
+import MapInset from '../map/MapInset'
 import { useToast } from '../Toast'
 import EventDeletionModal from './EventDeletionModal'
 import EventOverlapModal from './EventOverlapModal'
-import EventSiteInfo from './EventSiteInfo'
 
 type InProgressEvent = {
     event_id: Tables['event']['event_id'] | undefined
@@ -31,8 +32,7 @@ type InProgressEvent = {
     description: string
     start_datetime: Dayjs | null
     end_datetime: Dayjs | null
-    plaintext_location: string | null
-    event_site_location: Tables['event_site']['event_site_id'] | null
+    location_id: Tables['location']['location_id'] | null
     tags: Tables['event']['tags']
     av_needs: string | null
     public: boolean
@@ -43,12 +43,6 @@ type Props = {
     onDone: () => void
     onDeleted: () => void
 }
-
-const LOCATION_TYPE_OPTIONS = [
-    t('eventEditor.locationOnsite'),
-    t('eventEditor.locationOffsite'),
-] as const
-type LocationType = (typeof LOCATION_TYPE_OPTIONS)[number]
 
 const withInfo = (label: string, info: string) => (
     <span>
@@ -96,14 +90,14 @@ function paragraphs(
 export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Props) {
     const store = useStore()
     const toast = useToast()
-    const eventSites = store.eventSites
+    const { locationsById } = store
     const festivals = store.festivals
     const allEvents = store.allEvents.state.result
 
     const event_id = typeof eventBeingEdited === 'object' ? eventBeingEdited.event_id : undefined
 
     const [avChecked, setAvChecked] = useState<boolean>(
-        eventBeingEdited === 'new' || eventBeingEdited.av_needs != null,
+        eventBeingEdited !== 'new' && eventBeingEdited.av_needs != null,
     )
 
     const initial: InProgressEvent =
@@ -114,8 +108,7 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
                   description: '',
                   start_datetime: null,
                   end_datetime: null,
-                  plaintext_location: null,
-                  event_site_location: null,
+                  location_id: null,
                   tags: [],
                   av_needs: null,
                   public: true,
@@ -126,8 +119,7 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
                   description: eventBeingEdited.description,
                   start_datetime: eventBeingEdited.start_datetime,
                   end_datetime: eventBeingEdited.end_datetime,
-                  plaintext_location: eventBeingEdited.plaintext_location,
-                  event_site_location: eventBeingEdited.event_site_location,
+                  location_id: eventBeingEdited.location_id,
                   tags: eventBeingEdited.tags,
                   av_needs: eventBeingEdited.av_needs,
                   public: eventBeingEdited.public,
@@ -145,12 +137,6 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
         setTrue: openDeletionModal,
         setFalse: closeDeletionModal,
     } = useBooleanState(false)
-
-    const [locationType, setLocationType] = useState<LocationType>(
-        initial.plaintext_location != null && initial.event_site_location == null
-            ? t('eventEditor.locationOffsite')
-            : t('eventEditor.locationOnsite'),
-    )
 
     const {
         fields,
@@ -176,9 +162,14 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
                     return t('eventEditor.endBeforeStart')
                 }
             },
-            av_needs: (val, { event_site_location }) => {
-                const site = eventSites?.find((s) => s.event_site_id === event_site_location)
-                if (site?.is_av_site && avChecked && (val == null || val.trim() === '')) {
+            location_id: (val) => {
+                if (val == null) {
+                    return t('eventEditor.locationRequired')
+                }
+            },
+            av_needs: (val, { location_id }) => {
+                const place = location_id ? locationsById.get(location_id) : undefined
+                if (place?.has_av && avChecked && (val == null || val.trim() === '')) {
                     return t('eventEditor.avNeedsRequired')
                 }
             },
@@ -190,18 +181,18 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
             }
             overlapConfirmed.current = false
 
-            if (start_datetime == null) {
+            const { location_id } = event
+            if (start_datetime == null || location_id == null) {
                 return
             }
 
-            const submittingSite = eventSites?.find(
-                (s) => s.event_site_id === event.event_site_location,
-            )
-            const av_needs = submittingSite?.is_av_site && avChecked ? event.av_needs : null
+            const av_needs =
+                locationsById.get(location_id)?.has_av && avChecked ? event.av_needs : null
 
             const res = await vibefetch(store.jwt, '/event/save', 'post', {
                 event: {
                     ...event,
+                    location_id,
                     av_needs,
                     start_datetime: formatNoTimezone(start_datetime),
                     end_datetime: formatNoTimezone(end_datetime) ?? null,
@@ -224,15 +215,6 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
         overlapConfirmed.current = true
         closeOverlapModal()
         handleSubmit()
-    }
-
-    const changeLocationType = (type: LocationType) => {
-        setLocationType(type)
-        if (type === t('eventEditor.locationOnsite')) {
-            fields.plaintext_location.set(null)
-        } else {
-            fields.event_site_location.set(null)
-        }
     }
 
     const start = fields.start_datetime.value
@@ -259,37 +241,16 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
         },
     ]
 
-    const eventSiteOptions = (
-        eventSites?.filter(
-            (s) =>
-                s.festival_site_id === eventFestival?.festival_site_id &&
-                !s.forbidden_for_new_events,
-        ) ?? []
-    ).map((s) => ({ value: s.event_site_id, label: s.name }))
-
-    const selectedSite = eventSites?.find(
-        (site) => site.event_site_id === fields.event_site_location.value,
-    )
+    const selected = fields.location_id.value
+        ? locationsById.get(fields.location_id.value)
+        : undefined
 
     const overlappingEvents = useMemo(() => {
-        if (!inProgressEvent.start_datetime || !inProgressEvent.event_site_location) {
+        if (!inProgressEvent.start_datetime || !selected || selected.can_host_multiple_events) {
             return []
         }
         return allEvents?.filter((e) => checkInProgressEventOverlap(inProgressEvent, e)) ?? []
-    }, [allEvents, inProgressEvent])
-
-    const locationInput = (
-        <Input
-            label={t('eventEditor.locationLabel')}
-            disabled={submitting}
-            multiline
-            {...fieldToProps(fields.plaintext_location)}
-            onChange={(value) => {
-                fields.plaintext_location.set(value)
-                fields.event_site_location.set(null)
-            }}
-        />
-    )
+    }, [allEvents, inProgressEvent, selected])
 
     return (
         <form onSubmit={handleSubmit} noValidate className='stack'>
@@ -319,45 +280,17 @@ export default function EventEditor({ eventBeingEdited, onDone, onDeleted }: Pro
                 {...fieldToProps(fields.end_datetime)}
             />
 
-            {eventFestival == null ? (
-                locationInput
-            ) : (
-                <>
-                    <InfoBlurb>
-                        {paragraphs(
-                            fill(t('eventEditor.locationBlurb'), {
-                                festivalName: eventFestival.festival_name,
-                            }),
-                        )}
-                    </InfoBlurb>
+            <LocationPicker
+                currentId={initial.location_id}
+                disabled={submitting}
+                {...fieldToProps(fields.location_id)}
+            />
 
-                    <RowSelect
-                        label={t('eventEditor.locationTypeLabel')}
-                        options={LOCATION_TYPE_OPTIONS}
-                        value={locationType}
-                        onChange={changeLocationType}
-                    />
+            {selected && <MapInset location={selected} />}
 
-                    {locationType === t('eventEditor.locationOnsite') ? (
-                        <RadioGroup
-                            label={t('eventEditor.campsiteLocationsLabel')}
-                            options={eventSiteOptions}
-                            direction='row'
-                            {...fieldToProps(fields.event_site_location)}
-                            onChange={(value) => {
-                                fields.event_site_location.set(value)
-                                fields.plaintext_location.set(null)
-                            }}
-                        />
-                    ) : (
-                        locationInput
-                    )}
-                </>
-            )}
+            {selected && <LocationFacts location={selected} />}
 
-            {selectedSite && <EventSiteInfo eventSite={selectedSite} />}
-
-            {selectedSite?.is_av_site && (
+            {selected?.has_av && (
                 <>
                     <Checkbox value={avChecked} onChange={setAvChecked} disabled={submitting}>
                         {t('eventEditor.avCheckbox')}

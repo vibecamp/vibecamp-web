@@ -25,7 +25,7 @@ export default function LoginPage() {
             emailAddress: getEmailValidationError,
             password: getPasswordValidationError,
         },
-        submit: async ({ emailAddress, password }, reset) => {
+        submit: async ({ emailAddress, password }) => {
             const { body, status } = await vibefetch(null, '/login', 'post', {
                 email_address: emailAddress,
                 password,
@@ -41,14 +41,16 @@ export default function LoginPage() {
             }
 
             store.setJwt(jwt)
-            reset()
         },
     })
+
+    // once signed in the page is on its way out, so it stays busy rather than looking ready to retry
+    const busy = form.submitting || form.succeeded || store.loggedIn
 
     return (
         <AuthForm
             onSubmit={form.handleSubmit}
-            submitting={form.submitting}
+            submitting={busy}
             submitLabel={t('login.submit')}
             error={form.wholeFormError}
             links={
@@ -65,7 +67,7 @@ export default function LoginPage() {
                 label={t('common.emailAddressLabel')}
                 type='email'
                 autoComplete='email'
-                disabled={form.submitting}
+                disabled={busy}
                 {...fieldToProps(form.fields.emailAddress)}
             />
 
@@ -73,7 +75,7 @@ export default function LoginPage() {
                 label={t('common.passwordLabel')}
                 type='password'
                 autoComplete='current-password'
-                disabled={form.submitting}
+                disabled={busy}
                 {...fieldToProps(form.fields.password)}
             />
         </AuthForm>
