@@ -14,7 +14,7 @@ from fontTools.ttLib import TTFont
 NAMES = [
     'add', 'add_shopping_cart', 'arrow_back', 'bookmark', 'calendar_add_on', 'calendar_today',
     'chevron_right', 'close', 'confirmation_number', 'edit_calendar', 'error', 'filter_list', 'gavel',
-    'hourglass_top', 'info', 'location_on', 'logout', 'mail', 'menu', 'open_in_new',
+    'hourglass_top', 'info', 'location_on', 'logout', 'mail', 'map', 'menu', 'open_in_new',
     'person', 'remove', 'schedule', 'search', 'share', 'shopping_bag',
 ]
 APP = Path(__file__).resolve().parent.parent

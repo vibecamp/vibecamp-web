@@ -1,6 +1,6 @@
 // Generated from the migrated database; edit migrations instead.
 import type { PgTableExtraConfigValue } from "drizzle-orm/pg-core"
-import { pgTable, uuid, text, timestamp, boolean, unique, integer, foreignKey, index, uniqueIndex, date, point, doublePrecision, check, type AnyPgColumn, jsonb, primaryKey, pgView, customType } from "drizzle-orm/pg-core"
+import { pgTable, uuid, text, timestamp, boolean, unique, integer, foreignKey, index, date, point, doublePrecision, check, type AnyPgColumn, uniqueIndex, jsonb, primaryKey, pgView, customType } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType() { return "bytea" } })
@@ -251,27 +251,6 @@ export const event_bookmark = pgTable("event_bookmark", {
 		}),
 ]);
 
-export const event_site = pgTable("event_site", {
-	event_site_id: uuid().defaultRandom().primaryKey().notNull(),
-	festival_site_id: uuid().notNull(),
-	location: point(),
-	name: text().notNull(),
-	description: text(),
-	can_host_multiple_events: boolean().notNull(),
-	theme: text(),
-	equipment: text(),
-	people_cap: integer(),
-	structure_type: text().notNull(),
-	forbidden_for_new_events: boolean().default(false).notNull(),
-	is_av_site: boolean().default(false).notNull(),
-}, (table): PgTableExtraConfigValue[] => [
-	foreignKey({
-			columns: [table.festival_site_id],
-			foreignColumns: [festival_site.festival_site_id],
-			name: "event_site_festival_site_id_fkey"
-		}),
-]);
-
 export const event_type = pgTable("event_type", {
 	event_type_id: text().primaryKey().notNull(),
 });
@@ -326,65 +305,6 @@ export const account_password_reset_secret = pgTable("account_password_reset_sec
 			foreignColumns: [account.account_id],
 			name: "account_password_reset_secret_account_id_fkey"
 		}),
-]);
-
-export const event = pgTable("event", {
-	name: text().notNull(),
-	description: text().notNull(),
-	start_datetime: timestamp({ mode: 'string' }).notNull(),
-	end_datetime: timestamp({ mode: 'string' }),
-	plaintext_location: text(),
-	event_id: uuid().defaultRandom().primaryKey().notNull(),
-	created_by_account_id: uuid().notNull(),
-	event_site_location: uuid(),
-	event_type: text().default('UNOFFICIAL').notNull(),
-	will_be_filmed: boolean().default(false).notNull(),
-	last_modified: timestamp({ withTimezone: true, mode: 'string' }),
-	tags: text().array().default(["RAY"]).notNull(),
-	av_needs: text(),
-	public: boolean().default(true).notNull(),
-}, (table): PgTableExtraConfigValue[] => [
-	foreignKey({
-			columns: [table.created_by_account_id],
-			foreignColumns: [account.account_id],
-			name: "event_created_by_account_id_fkey"
-		}),
-	foreignKey({
-			columns: [table.event_site_location],
-			foreignColumns: [event_site.event_site_id],
-			name: "event_event_site_location_fkey"
-		}),
-	foreignKey({
-			columns: [table.event_type],
-			foreignColumns: [event_type.event_type_id],
-			name: "event_event_type_fkey"
-		}),
-]);
-
-export const purchase_type = pgTable("purchase_type", {
-	purchase_type_id: text().primaryKey().notNull(),
-	price_in_cents: integer().notNull(),
-	max_available: integer(),
-	description: text().notNull(),
-	festival_id: uuid().notNull(),
-	is_attendance_ticket: boolean().default(false).notNull(),
-	available_from: timestamp({ withTimezone: true, mode: 'string' }),
-	available_to: timestamp({ withTimezone: true, mode: 'string' }),
-	hidden_from_ui: boolean().default(false).notNull(),
-	low_income_only: boolean().default(false).notNull(),
-	sort_order: integer().default(0).notNull(),
-	sale_enabled: boolean().default(false).notNull(),
-	details: text(),
-	additional_info: text(),
-	max_per_ticket: integer().default(1),
-	cap_group: text(),
-}, (table): PgTableExtraConfigValue[] => [
-	foreignKey({
-			columns: [table.festival_id],
-			foreignColumns: [festival.festival_id],
-			name: "purchase_type_festival_id_fkey"
-		}),
-	check("product_addon_cap", sql`(max_per_ticket IS NULL) OR (max_per_ticket > 0)`),
 ]);
 
 export const discount_code = pgTable("discount_code", {
@@ -459,6 +379,63 @@ export const checkout_order = pgTable("checkout_order", {
 	check("checkout_order_discounted_ticket_count_check", sql`discounted_ticket_count >= 0`),
 ]);
 
+export const ticket_badge = pgTable("ticket_badge", {
+	ticket_id: uuid().primaryKey().notNull(),
+	badge_name: text().notNull(),
+	badge_username: text(),
+	badge_location: text(),
+	badge_bio: text(),
+	badge_picture_url: text(),
+	badge_picture_image_id: uuid(),
+}, (table): PgTableExtraConfigValue[] => [
+	foreignKey({
+			columns: [table.ticket_id],
+			foreignColumns: [purchase.purchase_id],
+			name: "ticket_badge_ticket_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.badge_picture_image_id],
+			foreignColumns: [stored_image.stored_image_id],
+			name: "ticket_badge_badge_picture_image_id_fkey"
+		}),
+	check("ticket_badge_badge_name_check", sql`(length(btrim(badge_name)) >= 1) AND (length(btrim(badge_name)) <= 20)`),
+	check("ticket_badge_badge_username_check", sql`(length(badge_username) <= 20) AND (badge_username !~~ '@%'::text)`),
+	check("ticket_badge_badge_location_check", sql`length(badge_location) <= 20`),
+	check("ticket_badge_badge_bio_check", sql`length(badge_bio) <= 160`),
+]);
+
+export const event = pgTable("event", {
+	name: text().notNull(),
+	description: text().notNull(),
+	start_datetime: timestamp({ mode: 'string' }).notNull(),
+	end_datetime: timestamp({ mode: 'string' }),
+	event_id: uuid().defaultRandom().primaryKey().notNull(),
+	created_by_account_id: uuid().notNull(),
+	location_id: uuid().notNull(),
+	event_type: text().default('UNOFFICIAL').notNull(),
+	will_be_filmed: boolean().default(false).notNull(),
+	last_modified: timestamp({ withTimezone: true, mode: 'string' }),
+	tags: text().array().default(["RAY"]).notNull(),
+	av_needs: text(),
+	public: boolean().default(true).notNull(),
+}, (table): PgTableExtraConfigValue[] => [
+	foreignKey({
+			columns: [table.created_by_account_id],
+			foreignColumns: [account.account_id],
+			name: "event_created_by_account_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.event_type],
+			foreignColumns: [event_type.event_type_id],
+			name: "event_event_type_fkey"
+		}),
+	foreignKey({
+			columns: [table.location_id],
+			foreignColumns: [location.location_id],
+			name: "event_location_id_fkey"
+		}),
+]);
+
 export const purchase = pgTable("purchase", {
 	purchased_on: timestamp({ withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	purchase_type_id: text().notNull(),
@@ -507,29 +484,105 @@ export const purchase = pgTable("purchase", {
 	check("purchase_check", sql`(discount_cents >= 0) AND (discount_cents <= gross_price_cents)`),
 ]);
 
-export const ticket_badge = pgTable("ticket_badge", {
-	ticket_id: uuid().primaryKey().notNull(),
-	badge_name: text().notNull(),
-	badge_username: text(),
-	badge_location: text(),
-	badge_bio: text(),
-	badge_picture_url: text(),
-	badge_picture_image_id: uuid(),
+export const purchase_type = pgTable("purchase_type", {
+	purchase_type_id: text().primaryKey().notNull(),
+	price_in_cents: integer().notNull(),
+	max_available: integer(),
+	description: text().notNull(),
+	festival_id: uuid().notNull(),
+	is_attendance_ticket: boolean().default(false).notNull(),
+	available_from: timestamp({ withTimezone: true, mode: 'string' }),
+	available_to: timestamp({ withTimezone: true, mode: 'string' }),
+	hidden_from_ui: boolean().default(false).notNull(),
+	low_income_only: boolean().default(false).notNull(),
+	sort_order: integer().default(0).notNull(),
+	sale_enabled: boolean().default(false).notNull(),
+	details: text(),
+	additional_info: text(),
+	max_per_ticket: integer().default(1),
+	cap_group: text(),
 }, (table): PgTableExtraConfigValue[] => [
 	foreignKey({
-			columns: [table.ticket_id],
-			foreignColumns: [purchase.purchase_id],
-			name: "ticket_badge_ticket_id_fkey"
+			columns: [table.festival_id],
+			foreignColumns: [festival.festival_id],
+			name: "purchase_type_festival_id_fkey"
 		}),
+	check("product_addon_cap", sql`(max_per_ticket IS NULL) OR (max_per_ticket > 0)`),
+]);
+
+export const location_category = pgTable("location_category", {
+	location_category_id: uuid().defaultRandom().primaryKey().notNull(),
+	name: text().notNull(),
+	color: text().notNull(),
+	sort_order: integer().notNull(),
+}, (table): PgTableExtraConfigValue[] => [
+	unique("location_category_name_key").on(table.name),
+	unique("location_category_sort_order_key").on(table.sort_order),
+	check("location_category_name_check", sql`btrim(name) <> ''::text`),
+	check("location_category_color_check", sql`color ~ '^#[0-9a-f]{6}$'::text`),
+]);
+
+export const location = pgTable("location", {
+	location_id: uuid().defaultRandom().primaryKey().notNull(),
+	name: text().notNull(),
+	description: text(),
+	can_host_multiple_events: boolean().notNull(),
+	capacity: integer(),
+	events_allowed: boolean().default(true).notNull(),
+	has_av: boolean().default(false).notNull(),
+	pin_x: doublePrecision(),
+	pin_y: doublePrecision(),
+	latitude: doublePrecision(),
+	longitude: doublePrecision(),
+	deleted_at: timestamp({ withTimezone: true, mode: 'string' }),
+	location_category_id: uuid(),
+	aka: text(),
+}, (table): PgTableExtraConfigValue[] => [
+	uniqueIndex("location_name_key").using("btree", table.name.asc().nullsLast().op("text_ops")).where(sql`(deleted_at IS NULL)`),
 	foreignKey({
-			columns: [table.badge_picture_image_id],
-			foreignColumns: [stored_image.stored_image_id],
-			name: "ticket_badge_badge_picture_image_id_fkey"
+			columns: [table.location_category_id],
+			foreignColumns: [location_category.location_category_id],
+			name: "location_location_category_id_fkey"
 		}),
-	check("ticket_badge_badge_name_check", sql`(length(btrim(badge_name)) >= 1) AND (length(btrim(badge_name)) <= 20)`),
-	check("ticket_badge_badge_username_check", sql`(length(badge_username) <= 20) AND (badge_username !~~ '@%'::text)`),
-	check("ticket_badge_badge_location_check", sql`length(badge_location) <= 20`),
-	check("ticket_badge_badge_bio_check", sql`length(badge_bio) <= 160`),
+	check("location_aka_check", sql`(aka IS NULL) OR (btrim(aka) <> ''::text)`),
+	check("location_pin_check", sql`((pin_x IS NULL) = (pin_y IS NULL)) AND ((pin_x >= (0)::double precision) AND (pin_x <= (1)::double precision)) AND ((pin_y >= (0)::double precision) AND (pin_y <= (1)::double precision))`),
+	check("location_gps_check", sql`((latitude IS NULL) = (longitude IS NULL)) AND ((latitude >= ('-90'::integer)::double precision) AND (latitude <= (90)::double precision)) AND ((longitude >= ('-180'::integer)::double precision) AND (longitude <= (180)::double precision))`),
+]);
+
+export const image = pgTable("image", {
+	image_id: uuid().defaultRandom().primaryKey().notNull(),
+	content_type: text().notNull(),
+	width: integer().notNull(),
+	height: integer().notNull(),
+	data: bytea("data").notNull(),
+	created_at: timestamp({ withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table): PgTableExtraConfigValue[] => [
+	check("image_content_type_check", sql`content_type = ANY (ARRAY['image/png'::text, 'image/jpeg'::text, 'image/webp'::text])`),
+	check("image_width_check", sql`width > 0`),
+	check("image_height_check", sql`height > 0`),
+]);
+
+export const map = pgTable("map", {
+	map_id: uuid().defaultRandom().primaryKey().notNull(),
+	image_id: uuid().notNull(),
+	created_at: timestamp({ withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table): PgTableExtraConfigValue[] => [
+	foreignKey({
+			columns: [table.image_id],
+			foreignColumns: [image.image_id],
+			name: "map_image_id_fkey"
+		}),
+]);
+
+export const legacy_event_location = pgTable("legacy_event_location", {
+	event_id: uuid().primaryKey().notNull(),
+	location_text: text().notNull(),
+}, (table): PgTableExtraConfigValue[] => [
+	foreignKey({
+			columns: [table.event_id],
+			foreignColumns: [event.event_id],
+			name: "legacy_event_location_event_id_fkey"
+		}).onDelete("cascade"),
 ]);
 
 export const purchase_type_addon = pgTable("purchase_type_addon", {
@@ -599,6 +652,25 @@ export const discount_code_addon_type = pgTable("discount_code_addon_type", {
 			name: "discount_code_addon_type_purchase_type_id_fkey"
 		}),
 	primaryKey({ columns: [table.discount_code_id, table.purchase_type_id], name: "discount_code_addon_type_pkey"}),
+]);
+
+export const location_image = pgTable("location_image", {
+	location_id: uuid().notNull(),
+	image_id: uuid().notNull(),
+	sort_order: integer().notNull(),
+}, (table): PgTableExtraConfigValue[] => [
+	foreignKey({
+			columns: [table.location_id],
+			foreignColumns: [location.location_id],
+			name: "location_image_location_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.image_id],
+			foreignColumns: [image.image_id],
+			name: "location_image_image_id_fkey"
+		}),
+	primaryKey({ columns: [table.location_id, table.image_id], name: "location_image_pkey"}),
+	unique("location_image_sort_order_key").on(table.location_id, table.sort_order),
 ]);
 export const purchase_sorted = pgView("purchase sorted", {	purchased_on: timestamp({ withTimezone: true, mode: 'string' }),
 	purchase_type_id: text(),

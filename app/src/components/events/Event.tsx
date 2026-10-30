@@ -1,30 +1,37 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import Link from 'next/link'
+import { useRef, useState } from 'react'
 import { t } from '@/copy/t'
+import usePrefetchWhenVisible from '@/hooks/usePrefetchWhenVisible'
 import { usePromise } from '@/hooks/usePromise'
 import { type DayjsEvent, useStore } from '@/hooks/useStore'
 import { vibefetch } from '@/lib/fetch'
-import { editEventPath, eventPath } from '@/lib/routes'
+import { isMapped } from '@/lib/locations'
+import { editEventPath, eventPath, locationPath } from '@/lib/routes'
 import { classNames } from '@/lib/ui'
 import Icon from '../core/Icon'
 import { useMembersOnly } from '../LoginPrompt'
+import MapInset from '../map/MapInset'
+import { useNav } from '../NavStack'
 import { useToast } from '../Toast'
 import EventDescription from './EventDescription'
-import { formatEventLocation, formatEventTime } from './format'
+import { formatEventTime } from './format'
 
 export const eventCardClassName = (event: DayjsEvent, extra?: string | false) =>
     classNames('event-card', event.event_type === 'TEAM_OFFICIAL' && 'TEAM_OFFICIAL', extra)
 
 export default function EventCard({ event }: { event: DayjsEvent }) {
-    const router = useRouter()
+    const nav = useNav()
+    const ref = useRef<HTMLDivElement>(null)
+    usePrefetchWhenVisible(ref, eventPath(event.event_id))
     return (
         // biome-ignore lint/a11y/useKeyWithClickEvents: the card is a pointer shortcut; the actions inside are real buttons
         // biome-ignore lint/a11y/noStaticElementInteractions: same
         <div
+            ref={ref}
             className={eventCardClassName(event)}
-            onClick={() => router.push(eventPath(event.event_id))}
+            onClick={() => nav.push(eventPath(event.event_id))}
         >
             <EventInfo event={event} />
         </div>
@@ -39,7 +46,7 @@ export function EventInfo({
     alreadyViewing?: boolean
 }) {
     const store = useStore()
-    const router = useRouter()
+    const nav = useNav()
     const toast = useToast()
     const membersOnly = useMembersOnly()
 
@@ -95,7 +102,8 @@ export function EventInfo({
         event.event_type === 'TEAM_OFFICIAL' ? t('events.vibecampTeam') : event.creator_name
 
     const isCreator = event.created_by_account_id === store.accountInfo.state.result?.account_id
-    const location = formatEventLocation(event)
+    const location = store.locationsById.get(event.location_id)
+    const place = alreadyViewing ? location : undefined
 
     return (
         <div className='event-info'>
@@ -113,7 +121,7 @@ export function EventInfo({
                             className='icon-button'
                             onClick={(e) => {
                                 e.stopPropagation()
-                                router.push(editEventPath(event.event_id))
+                                nav.push(editEventPath(event.event_id))
                             }}
                         >
                             <Icon name='edit_calendar' />
@@ -156,18 +164,24 @@ export function EventInfo({
                     <span>{formatEventTime(event)}</span>
                 </div>
 
-                {location && (
-                    <div className='info'>
-                        <Icon name='location_on' />
-                        <span>{location}</span>
-                    </div>
-                )}
+                <div className='info'>
+                    <Icon name='location_on' />
+                    {alreadyViewing && location && isMapped(location) ? (
+                        <Link href={locationPath(event.location_id)} prefetch>
+                            {event.location_name}
+                        </Link>
+                    ) : (
+                        <span>{event.location_name}</span>
+                    )}
+                </div>
 
                 <div className='info'>
                     <Icon name='bookmark' />
                     <span>{event.bookmarks}</span>
                 </div>
             </div>
+
+            {place && <MapInset location={place} href={locationPath(place.location_id)} />}
 
             <EventDescription description={event.description} />
         </div>

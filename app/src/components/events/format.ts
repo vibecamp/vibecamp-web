@@ -1,7 +1,6 @@
 import { t } from '@/copy/t'
 import type { DayjsEvent } from '@/hooks/useStore'
 import dayjs, { type Dayjs } from '@/lib/dayjs'
-import { urlsToLinks } from '@/lib/ui'
 
 export const formatEventTime = (event: Pick<DayjsEvent, 'start_datetime' | 'end_datetime'>) => {
     const now = dayjs.utc()
@@ -22,10 +21,3 @@ export const formatEventTime = (event: Pick<DayjsEvent, 'start_datetime' | 'end_
     }
     return `${dateAndTime(event.start_datetime)}${separator}${dateAndTime(event.end_datetime)}`
 }
-
-export const formatEventLocation = (
-    event: Pick<DayjsEvent, 'plaintext_location' | 'event_site_location_name'>,
-) =>
-    event.plaintext_location
-        ? urlsToLinks(event.plaintext_location)
-        : event.event_site_location_name

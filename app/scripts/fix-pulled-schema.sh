@@ -7,7 +7,7 @@ sed -i \
     -e 's/}, (table) => \[/}, (table): PgTableExtraConfigValue[] => [/' \
     -e 's/^import { \(.*\) } from "drizzle-orm\/pg-core"$/import { \1, customType } from "drizzle-orm\/pg-core"/' \
     -e '/\/\/ TODO: failed to parse database type .bytea./d' \
-    -e 's/unknown("image_data")/bytea("image_data")/' \
+    -e 's/unknown("\([a-z_]*\)")/bytea("\1")/' \
     -e 's/export const "purchase sorted" = pgView(/export const purchase_sorted = pgView(/' \
     -e '/^import { sql } from "drizzle-orm"$/a\
 \

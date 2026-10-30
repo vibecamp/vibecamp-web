@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { t } from '@/copy/t'
+import { isFirstLoad } from '@/hooks/usePromise'
 import { useStore } from '@/hooks/useStore'
 import { formatDateRange } from '@/lib/dates'
 import { buyTicketsPath, TICKETS_PATH } from '@/lib/routes'
@@ -56,7 +57,10 @@ export default function TicketsView() {
         return () => clearTimeout(timer)
     }, [only, holder])
 
-    if (!owned) return <PageLoading error={store.accountInfo.state.kind === 'error'} />
+    // the catalog decides between the buy button and the empty-state wording, so wait for it too
+    if (!owned || isFirstLoad(store.catalog.state)) {
+        return <PageLoading error={store.accountInfo.state.kind === 'error'} />
+    }
 
     const groups = groupByFestival(owned)
 

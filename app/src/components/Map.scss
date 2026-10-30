@@ -1,0 +1,366 @@
+// the forest color at the edges of the map image, so the letterboxing reads as more forest
+$map-surround: #09542f;
+
+.page.map-page {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    padding: 0;
+}
+
+.page-scroll:has(> .map-page) {
+    overflow: hidden;
+    scrollbar-gutter: auto;
+}
+
+.map-view {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.map-loading > :not(.map-loading-cover) {
+    visibility: hidden;
+}
+
+// a cached image arrives within a frame, so the loading screen only fades in if the wait is real
+.map-loading-cover {
+    position: absolute;
+    inset: 0;
+    z-index: 1001;
+    display: flex;
+    background: var(--color-background-1);
+    animation: map-loading-in var(--motion-s) var(--motion-ease) 150ms both;
+}
+
+@keyframes map-loading-in {
+    from {
+        opacity: 0;
+    }
+}
+
+.map-canvas {
+    position: absolute;
+    inset: 0;
+    background: $map-surround;
+    outline-offset: -2px;
+
+    &.settling :is(.map-pin-marker, .map-pin, .map-pin-label) {
+        transition: none;
+    }
+
+    .ol-viewport {
+        cursor: grab;
+
+        &:active {
+            cursor: grabbing;
+        }
+    }
+}
+
+$pin-neutral: #5f6b7a;
+
+.map-pin {
+    display: block;
+    width: 24px;
+    height: 32px;
+    overflow: visible;
+    shape-rendering: geometricPrecision;
+    filter: drop-shadow(0 1px 0.5px rgb(0 0 0 / 0.4)) drop-shadow(0 2px 3px rgb(0 0 0 / 0.18));
+    transform-origin: 50% 100%;
+    // zoom sets the scale every frame, so only the hover emphasis is animated
+    scale: var(--pin-scale, 1);
+    transition: transform var(--motion-s) var(--motion-ease);
+
+    path {
+        fill: var(--pin, #{$pin-neutral});
+        stroke: color-mix(in srgb, var(--pin, #{$pin-neutral}) 60%, #000);
+        stroke-width: 1.25;
+    }
+
+    circle {
+        fill: #fff;
+    }
+}
+
+.map-pin-icon {
+    &:focus-visible {
+        outline: none;
+
+        .map-pin path {
+            stroke: #fff;
+            stroke-width: 2.5;
+        }
+    }
+}
+
+.map-pin-marker {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity var(--motion-s) var(--motion-ease);
+
+    &.pin-filtered {
+        opacity: 0;
+    }
+
+    &:hover .map-pin {
+        transform: scale(1.1);
+    }
+}
+
+.map-pin-label {
+    position: absolute;
+    top: calc(100% - 20px * var(--pin-scale, 1));
+    left: calc(50% + 12px * var(--pin-scale, 1) + 2px);
+    transform: translateY(-50%);
+    white-space: nowrap;
+    padding: 0 2px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        0 -1.5px 0 #000,
+        0 1.5px 0 #000,
+        -1.5px 0 0 #000,
+        1.5px 0 0 #000,
+        0 0 4px rgb(0 0 0 / 0.6);
+    pointer-events: none;
+
+    @media (min-width: 900px) {
+        font-size: 16px;
+    }
+    transition:
+        opacity var(--motion-s) var(--motion-ease),
+        visibility var(--motion-s);
+
+    [data-side='left'] > & {
+        left: auto;
+        right: calc(50% + 12px * var(--pin-scale, 1) + 2px);
+    }
+
+    .label-hidden > & {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+.map-zoom {
+    position: absolute;
+    right: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    gap: var(--space-1);
+
+    .icon-button {
+        background: var(--color-background-1);
+        box-shadow: var(--shadow-1);
+
+        &:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        display: flex;
+    }
+}
+
+$overlay-shadow: drop-shadow(0 1px 2px rgb(0 0 0 / 0.16)) drop-shadow(0 3px 10px rgb(0 0 0 / 0.14));
+
+.map-search {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    right: var(--space-3);
+    z-index: 1000;
+    filter: $overlay-shadow;
+    transition:
+        opacity var(--motion-m) var(--motion-ease),
+        transform var(--motion-m) var(--motion-ease);
+
+    .search-field {
+        border-color: transparent;
+    }
+
+    &.away {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+
+    @media (min-width: 700px) {
+        right: auto;
+        width: 22rem;
+    }
+}
+
+$filter-chip-height: 36px;
+$filter-collapsed: 44px;
+
+// collapsing wipes the chips toward the bottom-right corner, where the toggle fades in to take their place
+.map-filters {
+    position: absolute;
+    right: var(--space-3);
+    bottom: var(--space-3);
+    z-index: 1000;
+    max-width: calc(100% - 2 * var(--space-3));
+    filter: $overlay-shadow;
+}
+
+.map-filters-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 6px;
+    max-width: 36rem;
+    clip-path: inset(-8px round #{$filter-chip-height * 0.5});
+    transition: clip-path var(--motion-m) var(--motion-ease);
+
+    > * {
+        transition:
+            opacity 180ms var(--motion-ease) 60ms,
+            transform var(--motion-m) var(--motion-ease),
+            background-color var(--motion-s) var(--motion-ease),
+            color var(--motion-s) var(--motion-ease);
+    }
+
+    .collapsed > & {
+        clip-path: inset(
+            calc(100% - #{$filter-collapsed}) 0 0 calc(100% - #{$filter-collapsed}) round
+                #{$filter-collapsed * 0.5}
+        );
+
+        > * {
+            opacity: 0;
+            transform: translate(8px, 8px) scale(0.92);
+            transition-delay: 0ms;
+            transition-duration: 120ms, var(--motion-m), var(--motion-s), var(--motion-s);
+        }
+    }
+}
+
+.map-filters-toggle.icon-button {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: $filter-collapsed;
+    height: $filter-collapsed;
+    background: var(--color-background-1);
+    opacity: 0;
+    transform: scale(0.85);
+    transition:
+        opacity var(--motion-s) var(--motion-ease),
+        transform var(--motion-s) var(--motion-ease);
+
+    &:hover {
+        background: var(--color-background-1);
+    }
+
+    &:active {
+        transform: scale(0.94);
+    }
+
+    > .badge-dot {
+        border-color: var(--color-background-1);
+    }
+
+    .collapsed > & {
+        opacity: 1;
+        transform: none;
+        transition-delay: 80ms;
+    }
+}
+
+.map-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: $filter-chip-height;
+    padding: 0 14px 0 12px;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-background-1);
+    color: var(--color-primary);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:active {
+        transform: scale(0.96);
+    }
+
+    > .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--dot, #{$pin-neutral});
+        box-shadow: inset 0 0 0 1.5px var(--dot, #{$pin-neutral});
+        transition: background-color var(--motion-s) var(--motion-ease);
+    }
+
+    &[aria-pressed='false'] {
+        background: color-mix(in srgb, var(--color-background-1) 72%, transparent);
+        color: var(--color-tertiary);
+
+        > .dot {
+            background: transparent;
+        }
+    }
+}
+
+.map-inset {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-m);
+    background: $map-surround;
+    transition: transform 120ms var(--motion-ease);
+
+    &[href]:active {
+        transform: scale(0.985);
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+        pointer-events: none;
+    }
+
+    img {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 400%;
+        max-width: none;
+        height: auto;
+        transform: translate(calc(var(--x) * -100%), calc(var(--y) * -100%));
+    }
+
+    .map-pin {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        translate: -50% -100%;
+    }
+}

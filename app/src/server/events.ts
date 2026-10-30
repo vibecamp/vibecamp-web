@@ -1,4 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm'
+import { z } from 'zod'
 import type { Routes } from '@/contract/route-types'
 import { db, transaction } from '@/db'
 import * as s from '@/db/schema'
@@ -16,7 +17,7 @@ const stringifyDate = (value: string | Date) => dayjs.utc(value).toISOString()
 type EventRow = Tables['event'] & {
     creator_name: string | null
     bookmarks: string | number
-    event_site_location_name: string | null
+    location_name: string
 }
 
 export async function getAllEvents(
@@ -47,9 +48,8 @@ export async function getAllEvents(
           event.description,
           event.start_datetime,
           event.end_datetime,
-          event.plaintext_location,
-          event.event_site_location,
-          event_site.name as event_site_location_name,
+          event.location_id,
+          location.name as location_name,
           event.event_id,
           event.created_by_account_id,
           event.event_type,
@@ -64,7 +64,7 @@ export async function getAllEvents(
         LEFT JOIN account ON event.created_by_account_id = account.account_id
         LEFT JOIN attendee ON account.account_id = attendee.associated_account_id
         LEFT JOIN event_bookmark ON event_bookmark.event_id = event.event_id
-        LEFT JOIN event_site ON event_site.event_site_id = event.event_site_location
+        JOIN location ON location.location_id = event.location_id
         WHERE
           attendee.is_primary_for_account is null OR
           attendee.is_primary_for_account = true
@@ -73,9 +73,8 @@ export async function getAllEvents(
           event.description,
           event.start_datetime,
           event.end_datetime,
-          event.plaintext_location,
-          event_site.name,
-          event.event_site_location,
+          location.name,
+          event.location_id,
           event.event_id,
           event.created_by_account_id,
           event.event_type,
@@ -129,15 +128,26 @@ export async function saveEvent(
         description: event.description,
         start_datetime: event.start_datetime,
         end_datetime: event.end_datetime,
-        event_site_location: event.event_site_location,
-        plaintext_location: event.event_site_location ? null : event.plaintext_location,
+        location_id: event.location_id,
         tags: event.tags,
         av_needs,
         public: event.public,
         last_modified,
     }
 
+    if (!z.uuid().safeParse(event.location_id).success) {
+        return 400
+    }
+
     return transaction(async (tx) => {
+        const place = (
+            await tx.select().from(s.location).where(eq(s.location.location_id, event.location_id))
+        )[0]
+        if (place == null) {
+            return 400
+        }
+        const selectable = place.events_allowed && place.deleted_at == null
+
         if (!event.public) {
             const festivals = await tx
                 .select({ start_date: s.festival.start_date, end_date: s.festival.end_date })
@@ -153,6 +163,9 @@ export async function saveEvent(
             )[0]
             if (existing?.created_by_account_id !== account_id) {
                 return 401
+            }
+            if (!selectable && existing.location_id !== event.location_id) {
+                return 409
             }
             await tx.update(s.event).set(columns).where(eq(s.event.event_id, event.event_id))
 
@@ -173,6 +186,9 @@ export async function saveEvent(
         )
         if (!holdsTicket) {
             return 401
+        }
+        if (!selectable) {
+            return 409
         }
 
         await tx.insert(s.event).values({ ...columns, created_by_account_id: account_id })
@@ -250,23 +266,16 @@ async function notifyAvNeeds(
         description: string
         start_datetime: string
         end_datetime: string | null
-        event_site_location: string | null
+        location_id: string
         av_needs: string
     },
     account_id: AccountId,
 ) {
     try {
-        const [account, attendees, eventSite] = await Promise.all([
+        const [account, attendees, place] = await Promise.all([
             (await db.select().from(s.account).where(eq(s.account.account_id, account_id)))[0],
             db.select().from(s.attendee).where(eq(s.attendee.associated_account_id, account_id)),
-            event.event_site_location
-                ? (
-                      await db
-                          .select()
-                          .from(s.event_site)
-                          .where(eq(s.event_site.event_site_id, event.event_site_location))
-                  )[0]
-                : undefined,
+            db.select().from(s.location).where(eq(s.location.location_id, event.location_id)),
         ])
         if (account == null) return
         const primaryAttendee = attendees.find((a) => a.is_primary_for_account) ?? attendees[0]
@@ -281,7 +290,7 @@ async function notifyAvNeeds(
                     av_needs: event.av_needs,
                 },
                 { name: primaryAttendee?.name ?? null, email_address: account.email_address },
-                eventSite?.name ?? null,
+                place[0]?.name ?? null,
             ),
         )
     } catch (err) {

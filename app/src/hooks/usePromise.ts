@@ -11,7 +11,11 @@ type MutableRequestState<T> =
     | { kind: 'result'; result: Readonly<T>; error: undefined }
     | { kind: 'error'; result: Readonly<T> | undefined; error: unknown }
 
-type RequestState<T> = Readonly<MutableRequestState<T>>
+export type RequestState<T> = Readonly<MutableRequestState<T>>
+
+// true only before the first result: a reload keeps showing the previous result instead of an empty state
+export const isFirstLoad = <T>(state: RequestState<T>) =>
+    state.kind === 'loading' && state.result === undefined
 
 const IDLE_STATE = { kind: 'idle', result: undefined, error: undefined } as const
 const LOADING_STATE = { kind: 'loading', result: undefined, error: undefined } as const
@@ -29,12 +33,18 @@ export function usePromise<T>(
     const [stateRequest, setStateRequest] = useState(() => request)
 
     const latestRequestId = useRef<string | undefined>(undefined)
+    const loadedRequest = useRef<typeof request | undefined>(undefined)
     const load = useCallback(async () => {
         const thisRequestId = String(Math.random())
         latestRequestId.current = thisRequestId
+        // only a reload of the same request may keep showing its result; new inputs (e.g. another account) start clean
+        const reloading = !lazy && loadedRequest.current === request
+        loadedRequest.current = request
 
         setStateRequest(() => request)
-        setState(LOADING_STATE)
+        setState((prev) =>
+            reloading ? { kind: 'loading', result: prev.result, error: undefined } : LOADING_STATE,
+        )
 
         try {
             const result = await request()
@@ -50,7 +60,7 @@ export function usePromise<T>(
             }
             return undefined
         }
-    }, [request])
+    }, [lazy, request])
 
     useEffect(() => {
         if (!lazy) {

@@ -1,75 +1,35 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { t } from '@/copy/t'
+import useSettled from '@/hooks/useSettled'
 import { useStore } from '@/hooks/useStore'
-import { EVENTS_FILTERS, type EventsFilter } from '@/lib/hash-redirect'
-import { ACCOUNT_PATH, EVENTS_PATH, SUPPORT_EMAIL_HREF, TERMS_URL } from '@/lib/routes'
+import { ACCOUNT_PATH, SUPPORT_EMAIL_HREF, TERMS_URL } from '@/lib/routes'
 import { classNames } from '@/lib/ui'
-import Button from './core/Button'
 import Icon from './core/Icon'
 import Modal from './core/Modal'
+import SearchField from './core/SearchField'
 import { useMembersOnly } from './LoginPrompt'
+import { useNav } from './NavStack'
 import { useResolvedPageHeader } from './PageHeader'
-
-const FILTER_LABELS = {
-    All: 'events.filterAll',
-    Bookmarks: 'events.filterBookmarks',
-    Mine: 'events.filterMine',
-    Past: 'events.filterPast',
-} as const satisfies Record<EventsFilter, string>
-
-const MEMBER_FILTERS: readonly EventsFilter[] = ['Bookmarks', 'Mine']
 
 export default function TopBar() {
     const pathname = usePathname()
-    const search = useSearchParams()
-    const router = useRouter()
     const store = useStore()
     const membersOnly = useMembersOnly()
     const header = useResolvedPageHeader(pathname)
-
+    const nav = useNav()
     const [menu, setMenu] = useState(false)
-    const [filters, setFilters] = useState(false)
-    const [expanded, setExpanded] = useState(false)
-    const [closedQuery, setClosedQuery] = useState<string | null>(null)
-    const inputRef = useRef<HTMLInputElement>(null)
+    const searching = header.search?.inTopBar === true
+    // the cross-fade is for hand-offs within a page; a new page, or a page first claiming a search, shows at once
+    const settled = useSettled(`${pathname}|${header.search ? 'search' : ''}`)
 
-    const isEvents = pathname === EVENTS_PATH
-    const hasNonDefault = Boolean(search.get('q') || search.get('filter') || search.get('compact'))
-    const searchOpen =
-        isEvents && (expanded || (hasNonDefault && closedQuery !== search.toString()))
-    const filterActive = Boolean(search.get('filter') || search.get('compact'))
-
-    // biome-ignore lint/correctness/useExhaustiveDependencies: navigation closes panels
+    // biome-ignore lint/correctness/useExhaustiveDependencies: navigation closes the menu
     useEffect(() => {
         setMenu(false)
-        setFilters(false)
     }, [pathname])
-
-    useEffect(() => {
-        if (searchOpen) inputRef.current?.focus()
-    }, [searchOpen])
-
-    function query(changes: Record<string, string | null>) {
-        const params = new URLSearchParams(search.toString())
-        for (const [key, value] of Object.entries(changes)) {
-            if (value) params.set(key, value)
-            else params.delete(key)
-        }
-        router.replace(`${pathname}${params.size ? `?${params}` : ''}`, { scroll: false })
-    }
-
-    function closeSearch() {
-        const next = new URLSearchParams(search.toString())
-        next.delete('q')
-        setClosedQuery(next.toString())
-        query({ q: null })
-        setExpanded(false)
-        setFilters(false)
-    }
 
     const email = store.accountInfo.state.result?.email_address
 
@@ -84,61 +44,39 @@ export default function TopBar() {
                 <Icon name='menu' />
             </button>
 
-            {header.back && !searchOpen && (
-                <Link href={header.back} className='icon-button' aria-label={t('nav.back')}>
+            {nav.backHref && (
+                <Link
+                    href={nav.backHref}
+                    className='icon-button'
+                    aria-label={t('nav.back')}
+                    data-nav-manual
+                    onClick={(e) => {
+                        e.preventDefault()
+                        nav.back()
+                    }}
+                >
                     <Icon name='arrow_back' />
                 </Link>
             )}
 
-            {searchOpen ? (
-                <>
-                    <div className='search-field'>
-                        <Icon name='search' />
-                        <input
-                            ref={inputRef}
-                            type='search'
-                            placeholder={t('events.searchPlaceholder')}
-                            value={search.get('q') ?? ''}
-                            onChange={(e) => query({ q: e.target.value })}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Escape') closeSearch()
-                            }}
-                        />
-                    </div>
-                    <button
-                        type='button'
-                        className={classNames('icon-button', filterActive && 'active')}
-                        aria-label={t('events.filter')}
-                        onClick={() => setFilters(true)}
-                    >
-                        <Icon name='filter_list' fill={filterActive ? 1 : 0} />
-                        {filterActive && <span className='badge-dot' />}
-                    </button>
-                    <button
-                        type='button'
-                        className='icon-button'
-                        aria-label={t('events.closeSearch')}
-                        onClick={closeSearch}
-                    >
-                        <Icon name='close' />
-                    </button>
-                </>
-            ) : (
-                <>
-                    <h1 className='title'>{header.title}</h1>
-                    {isEvents && (
-                        <button
-                            type='button'
-                            className='icon-button'
-                            aria-label={t('events.search')}
-                            onClick={() => setExpanded(true)}
-                        >
-                            <Icon name='search' />
-                            {filterActive && <span className='badge-dot' />}
-                        </button>
-                    )}
-                </>
-            )}
+            <div
+                className={classNames(
+                    'top-bar-center',
+                    searching && 'searching',
+                    settled && 'animated',
+                )}
+            >
+                <h1 className='title' inert={searching}>
+                    {header.title}
+                </h1>
+                {header.search && (
+                    <SearchField
+                        search={header.search}
+                        className='top-bar-search'
+                        hidden={!searching}
+                    />
+                )}
+            </div>
 
             <Modal side='left' isOpen={menu} onClose={() => setMenu(false)}>
                 {() => (
@@ -176,55 +114,6 @@ export default function TopBar() {
                             </a>
                         </nav>
                     </>
-                )}
-            </Modal>
-
-            <Modal
-                isOpen={filters}
-                onClose={() => setFilters(false)}
-                title={t('events.filtersTitle')}
-            >
-                {() => (
-                    <div className='stack'>
-                        <div className='choice-list'>
-                            {EVENTS_FILTERS.map((filter) => (
-                                <label key={filter}>
-                                    <input
-                                        type='radio'
-                                        name='event-filter'
-                                        checked={(search.get('filter') ?? 'All') === filter}
-                                        onChange={() => {
-                                            if (MEMBER_FILTERS.includes(filter) && membersOnly()) {
-                                                setFilters(false)
-                                                return
-                                            }
-                                            query({ filter: filter === 'All' ? null : filter })
-                                        }}
-                                    />
-                                    {t(FILTER_LABELS[filter])}
-                                </label>
-                            ))}
-                            <hr />
-                            {[false, true].map((compact) => (
-                                <label key={String(compact)}>
-                                    <input
-                                        type='radio'
-                                        name='event-view'
-                                        checked={(search.get('compact') === '1') === compact}
-                                        onChange={() => query({ compact: compact ? '1' : null })}
-                                    />
-                                    {t(compact ? 'events.compactView' : 'events.cardView')}
-                                </label>
-                            ))}
-                        </div>
-                        <Button
-                            isBorderless
-                            disabled={!filterActive}
-                            onClick={() => query({ filter: null, compact: null })}
-                        >
-                            {t('events.filtersReset')}
-                        </Button>
-                    </div>
                 )}
             </Modal>
         </header>

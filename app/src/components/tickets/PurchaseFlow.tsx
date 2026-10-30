@@ -1,13 +1,19 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { fill } from '@/copy/fill'
 import { t } from '@/copy/t'
 import { useStore } from '@/hooks/useStore'
 import { type Cart, contributionCents, type Product, type Quote } from '@/lib/cart'
 import { vibefetch } from '@/lib/fetch'
-import { buyTicketsPath, SUPPORT_EMAIL_HREF, TERMS_URL, TICKETS_PATH } from '@/lib/routes'
+import {
+    buyTicketsPath,
+    CHECKOUT_RETURN_PATH,
+    SUPPORT_EMAIL_HREF,
+    TERMS_URL,
+    TICKETS_PATH,
+} from '@/lib/routes'
 import { classNames, fillNodes } from '@/lib/ui'
 import type { OrderStatus } from '@/server/purchase'
 import Button from '../core/Button'
@@ -16,6 +22,7 @@ import InfoBlurb from '../core/InfoBlurb'
 import InfoButton from '../core/InfoButton'
 import Input from '../core/Input'
 import { useMembersOnly } from '../LoginPrompt'
+import { useNav } from '../NavStack'
 import PageLoading from '../PageLoading'
 import CheckoutState from './CheckoutState'
 import Stepper from './Stepper'
@@ -88,7 +95,7 @@ export default function PurchaseFlow({
     ticketId?: string
 }) {
     const store = useStore()
-    const router = useRouter()
+    const nav = useNav()
     const search = useSearchParams()
     const membersOnly = useMembersOnly()
     const catalog = store.catalog.state.result
@@ -120,7 +127,9 @@ export default function PurchaseFlow({
     const [quoting, setQuoting] = useState(false)
     const [error, setError] = useState<ReactNode>('')
     const [busy, setBusy] = useState(false)
-    const [pending, setPending] = useState<OrderStatus | null>(null)
+    const [pending, setPending] = useState<OrderStatus | null>(() =>
+        pendingOrder(search.get('order_id')),
+    )
     const requestId = useRef(saved ? crypto.randomUUID() : '')
     const version = useRef(0)
 
@@ -165,13 +174,7 @@ export default function PurchaseFlow({
 
     useEffect(() => {
         const id = search.get('order_id')
-        if (id)
-            setPending({
-                order_id: id,
-                status: 'pending',
-                needs_attention: false,
-                resume_url: null,
-            })
+        if (id) setPending((current) => (current?.order_id === id ? current : pendingOrder(id)))
     }, [search])
 
     const closed =
@@ -180,8 +183,8 @@ export default function PurchaseFlow({
         catalog != null &&
         catalog.festival?.festival_id !== festivalId
     useEffect(() => {
-        if (closed) router.replace(TICKETS_PATH)
-    }, [closed, router])
+        if (closed) nav.replace(TICKETS_PATH)
+    }, [closed, nav.replace])
 
     const change = (next: Cart) => {
         requestId.current = crypto.randomUUID()
@@ -221,7 +224,8 @@ export default function PurchaseFlow({
 
     const fresh = quote?.cart === cart ? quote.value : null
     const shown = isEmpty ? null : (quote?.value ?? null)
-    const total = useTweenedNumber(shown?.total_cents ?? 0)
+    // unknown until the first quote, so a restored cart doesn't show $0.00 and then count up
+    const total = useTweenedNumber(shown ? shown.total_cents : isEmpty ? 0 : null)
 
     async function checkout() {
         if (!fresh || !accepted || busy) return
@@ -331,14 +335,12 @@ export default function PurchaseFlow({
                     cancelInitially={search.get('canceled') === '1'}
                     onResolved={(state) => {
                         if (state.status === 'fulfilled') {
-                            router.replace(
-                                `${TICKETS_PATH}/checkout/return?order_id=${state.order_id}`,
-                            )
+                            nav.replace(`${CHECKOUT_RETURN_PATH}?order_id=${state.order_id}`)
                         } else if (state.status === 'closed') {
                             setPending(null)
                             requestId.current = crypto.randomUUID()
                             setCart((current) => ({ ...current }))
-                            router.replace(
+                            nav.replace(
                                 ticketId
                                     ? `${TICKETS_PATH}/owned/${ticketId}/addons`
                                     : buyTicketsPath(festivalId),
@@ -533,7 +535,9 @@ export default function PurchaseFlow({
                         </div>
                         <div className='summary-total'>
                             <span>{t('purchase.totalRow')}</span>
-                            <span className='amount'>{money(Math.round(total))}</span>
+                            <span className='amount'>
+                                {total === null ? '—' : money(Math.round(total))}
+                            </span>
                         </div>
                         <label className='terms'>
                             <input
@@ -619,12 +623,23 @@ function ProductRow({
     )
 }
 
-function useTweenedNumber(target: number, ms = 350) {
+function pendingOrder(orderId: string | null): OrderStatus | null {
+    return orderId
+        ? { order_id: orderId, status: 'pending', needs_attention: false, resume_url: null }
+        : null
+}
+
+function useTweenedNumber(target: number | null, ms = 350) {
     const [value, setValue] = useState(target)
     const current = useRef(target)
-    useEffect(() => {
+    useLayoutEffect(() => {
         const from = current.current
-        if (from === target || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (
+            from === null ||
+            target === null ||
+            from === target ||
+            matchMedia('(prefers-reduced-motion: reduce)').matches
+        ) {
             current.current = target
             setValue(target)
             return

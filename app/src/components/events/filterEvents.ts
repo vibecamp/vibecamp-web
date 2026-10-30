@@ -8,8 +8,7 @@ type FilterableEvent = Pick<
     | 'name'
     | 'description'
     | 'creator_name'
-    | 'plaintext_location'
-    | 'event_site_location_name'
+    | 'location_name'
     | 'created_by_account_id'
     | 'start_datetime'
 >
@@ -31,8 +30,7 @@ function matchesSearch(event: FilterableEvent, searchString: string): boolean {
         includes(event.name, needle) ||
         includes(event.creator_name, needle) ||
         includes(event.description, needle) ||
-        includes(event.plaintext_location, needle) ||
-        includes(event.event_site_location_name, needle)
+        includes(event.location_name, needle)
     )
 }
 

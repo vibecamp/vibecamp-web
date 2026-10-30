@@ -31,7 +31,7 @@ export default function SignupPage() {
                 }
             },
         },
-        submit: async ({ emailAddress, password }, reset) => {
+        submit: async ({ emailAddress, password }) => {
             const { body } = await vibefetch(null, '/signup', 'post', {
                 email_address: emailAddress,
                 password,
@@ -43,14 +43,16 @@ export default function SignupPage() {
             }
 
             store.setJwt(jwt)
-            reset()
         },
     })
+
+    // once signed in the page is on its way out, so it stays busy rather than looking ready to retry
+    const busy = form.submitting || form.succeeded || store.loggedIn
 
     return (
         <AuthForm
             onSubmit={form.handleSubmit}
-            submitting={form.submitting}
+            submitting={busy}
             submitLabel={t('signup.submit')}
             error={form.wholeFormError}
             links={
@@ -67,7 +69,7 @@ export default function SignupPage() {
                 label={t('common.emailAddressLabel')}
                 type='email'
                 autoComplete='email'
-                disabled={form.submitting}
+                disabled={busy}
                 {...fieldToProps(form.fields.emailAddress)}
             />
 
@@ -75,7 +77,7 @@ export default function SignupPage() {
                 label={t('common.newPasswordLabel')}
                 type='password'
                 autoComplete='new-password'
-                disabled={form.submitting}
+                disabled={busy}
                 {...fieldToProps(form.fields.password)}
             />
 
@@ -83,7 +85,7 @@ export default function SignupPage() {
                 label={t('common.confirmPasswordLabel')}
                 type='password'
                 autoComplete='new-password'
-                disabled={form.submitting}
+                disabled={busy}
                 {...fieldToProps(form.fields.passwordConfirmation)}
             />
         </AuthForm>

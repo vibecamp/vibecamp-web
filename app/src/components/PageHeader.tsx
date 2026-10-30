@@ -1,65 +1,48 @@
 'use client'
 
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react'
-import { t } from '@/copy/t'
-import { EVENTS_PATH, eventPath, TICKETS_PATH } from '@/lib/routes'
+import { createContext, type ReactNode, useContext, useLayoutEffect, useState } from 'react'
+import { screenInfo } from '@/lib/nav'
+
+export type HeaderSearch = {
+    value: string
+    onChange: (value: string) => void
+    placeholder: string
+    inTopBar: boolean
+    filter?: { active: boolean; label: string; onClick: () => void }
+}
 
 export type PageHeader = {
-    title: string
-    back?: string
+    title?: string
+    search?: HeaderSearch
 }
 
 type Override = PageHeader | null
 
-const PageHeaderContext = createContext<{
-    override: Override
-    setOverride: (next: Override) => void
-}>({ override: null, setOverride: () => {} })
+const HeaderContext = createContext<Override>(null)
+// kept apart from the value so pages that set the header don't re-render when it changes
+const SetHeaderContext = createContext<(next: Override) => void>(() => {})
 
 export function PageHeaderProvider({ children }: { children: ReactNode }) {
     const [override, setOverride] = useState<Override>(null)
-    const value = useMemo(() => ({ override, setOverride }), [override])
-    return <PageHeaderContext.Provider value={value}>{children}</PageHeaderContext.Provider>
+    return (
+        <SetHeaderContext.Provider value={setOverride}>
+            <HeaderContext.Provider value={override}>{children}</HeaderContext.Provider>
+        </SetHeaderContext.Provider>
+    )
 }
 
 export function usePageHeader(header: PageHeader | null) {
-    const { setOverride } = useContext(PageHeaderContext)
+    const setOverride = useContext(SetHeaderContext)
+    const active = header != null
     const title = header?.title
-    const back = header?.back
-    useEffect(() => {
-        setOverride(title == null ? null : { title, back })
-        return () => setOverride(null)
-    }, [back, setOverride, title])
+    const search = header?.search
+    useLayoutEffect(() => {
+        setOverride(active ? { title, search } : null)
+    }, [active, search, setOverride, title])
+    useLayoutEffect(() => () => setOverride(null), [setOverride])
 }
 
-export function useResolvedPageHeader(pathname: string): PageHeader {
-    const { override } = useContext(PageHeaderContext)
-    return override ?? defaultHeader(pathname)
-}
-
-const segments = (pathname: string) => pathname.split('/').filter(Boolean)
-
-function defaultHeader(pathname: string): PageHeader {
-    const parts = segments(pathname)
-    const [root, second, third, fourth] = parts
-
-    if (root === 'tickets') {
-        if (second === 'owned' && third != null) {
-            const detail = `${TICKETS_PATH}/owned/${third}`
-            if (fourth === 'addons') return { title: t('tickets.purchaseAddons'), back: detail }
-            return { title: t('nav.tickets'), back: TICKETS_PATH }
-        }
-        if (third === 'buy') return { title: t('tickets.buyTickets'), back: TICKETS_PATH }
-        if (second === 'checkout') return { title: t('nav.tickets'), back: TICKETS_PATH }
-        return { title: t('nav.tickets') }
-    }
-    if (root === 'events') {
-        if (second === 'new') return { title: t('events.createEvent'), back: EVENTS_PATH }
-        if (second != null && third === 'edit')
-            return { title: t('common.edit'), back: eventPath(second) }
-        if (second != null) return { title: t('nav.events'), back: EVENTS_PATH }
-        return { title: t('nav.events') }
-    }
-    if (root === 'account') return { title: t('account.title') }
-    return { title: t('app.title') }
+export function useResolvedPageHeader(pathname: string): { title: string; search?: HeaderSearch } {
+    const override = useContext(HeaderContext)
+    return { title: override?.title ?? screenInfo(pathname).title, search: override?.search }
 }

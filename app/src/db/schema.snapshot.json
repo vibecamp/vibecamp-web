@@ -1492,12 +1492,6 @@
      "primaryKey": true,
      "type": "uuid"
     },
-    "event_site_location": {
-     "name": "event_site_location",
-     "notNull": false,
-     "primaryKey": false,
-     "type": "uuid"
-    },
     "event_type": {
      "default": "'UNOFFICIAL'",
      "name": "event_type",
@@ -1511,15 +1505,15 @@
      "primaryKey": false,
      "type": "timestamp with time zone"
     },
+    "location_id": {
+     "name": "location_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
     "name": {
      "name": "name",
      "notNull": true,
-     "primaryKey": false,
-     "type": "text"
-    },
-    "plaintext_location": {
-     "name": "plaintext_location",
-     "notNull": false,
      "primaryKey": false,
      "type": "text"
     },
@@ -1567,20 +1561,6 @@
      "tableFrom": "event",
      "tableTo": "account"
     },
-    "event_event_site_location_fkey": {
-     "columnsFrom": [
-      "event_site_location"
-     ],
-     "columnsTo": [
-      "event_site_id"
-     ],
-     "name": "event_event_site_location_fkey",
-     "onDelete": "no action",
-     "onUpdate": "no action",
-     "schemaTo": "public",
-     "tableFrom": "event",
-     "tableTo": "event_site"
-    },
     "event_event_type_fkey": {
      "columnsFrom": [
       "event_type"
@@ -1594,6 +1574,20 @@
      "schemaTo": "public",
      "tableFrom": "event",
      "tableTo": "event_type"
+    },
+    "event_location_id_fkey": {
+     "columnsFrom": [
+      "location_id"
+     ],
+     "columnsTo": [
+      "location_id"
+     ],
+     "name": "event_location_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "event",
+     "tableTo": "location"
     }
    },
    "indexes": {},
@@ -1686,109 +1680,6 @@
    },
    "isRLSEnabled": false,
    "name": "event_bookmark",
-   "policies": {},
-   "schema": "",
-   "uniqueConstraints": {}
-  },
-  "public.event_site": {
-   "checkConstraints": {},
-   "columns": {
-    "can_host_multiple_events": {
-     "name": "can_host_multiple_events",
-     "notNull": true,
-     "primaryKey": false,
-     "type": "boolean"
-    },
-    "description": {
-     "name": "description",
-     "notNull": false,
-     "primaryKey": false,
-     "type": "text"
-    },
-    "equipment": {
-     "name": "equipment",
-     "notNull": false,
-     "primaryKey": false,
-     "type": "text"
-    },
-    "event_site_id": {
-     "default": "gen_random_uuid()",
-     "name": "event_site_id",
-     "notNull": true,
-     "primaryKey": true,
-     "type": "uuid"
-    },
-    "festival_site_id": {
-     "name": "festival_site_id",
-     "notNull": true,
-     "primaryKey": false,
-     "type": "uuid"
-    },
-    "forbidden_for_new_events": {
-     "default": false,
-     "name": "forbidden_for_new_events",
-     "notNull": true,
-     "primaryKey": false,
-     "type": "boolean"
-    },
-    "is_av_site": {
-     "default": false,
-     "name": "is_av_site",
-     "notNull": true,
-     "primaryKey": false,
-     "type": "boolean"
-    },
-    "location": {
-     "name": "location",
-     "notNull": false,
-     "primaryKey": false,
-     "type": "point"
-    },
-    "name": {
-     "name": "name",
-     "notNull": true,
-     "primaryKey": false,
-     "type": "text"
-    },
-    "people_cap": {
-     "name": "people_cap",
-     "notNull": false,
-     "primaryKey": false,
-     "type": "integer"
-    },
-    "structure_type": {
-     "name": "structure_type",
-     "notNull": true,
-     "primaryKey": false,
-     "type": "text"
-    },
-    "theme": {
-     "name": "theme",
-     "notNull": false,
-     "primaryKey": false,
-     "type": "text"
-    }
-   },
-   "compositePrimaryKeys": {},
-   "foreignKeys": {
-    "event_site_festival_site_id_fkey": {
-     "columnsFrom": [
-      "festival_site_id"
-     ],
-     "columnsTo": [
-      "festival_site_id"
-     ],
-     "name": "event_site_festival_site_id_fkey",
-     "onDelete": "no action",
-     "onUpdate": "no action",
-     "schemaTo": "public",
-     "tableFrom": "event_site",
-     "tableTo": "festival_site"
-    }
-   },
-   "indexes": {},
-   "isRLSEnabled": false,
-   "name": "event_site",
    "policies": {},
    "schema": "",
    "uniqueConstraints": {}
@@ -1997,6 +1888,70 @@
     }
    }
   },
+  "public.image": {
+   "checkConstraints": {
+    "image_content_type_check": {
+     "name": "image_content_type_check",
+     "value": "content_type = ANY (ARRAY['image/png'::text, 'image/jpeg'::text, 'image/webp'::text])"
+    },
+    "image_height_check": {
+     "name": "image_height_check",
+     "value": "height > 0"
+    },
+    "image_width_check": {
+     "name": "image_width_check",
+     "value": "width > 0"
+    }
+   },
+   "columns": {
+    "content_type": {
+     "name": "content_type",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "created_at": {
+     "default": "now()",
+     "name": "created_at",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "data": {
+     "name": "data",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "bytea"
+    },
+    "height": {
+     "name": "height",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "image_id": {
+     "default": "gen_random_uuid()",
+     "name": "image_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "width": {
+     "name": "width",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "integer"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {},
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "image",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
   "public.invite_code": {
    "checkConstraints": {},
    "columns": {
@@ -2074,6 +2029,379 @@
    "indexes": {},
    "isRLSEnabled": false,
    "name": "invite_code",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.legacy_event_location": {
+   "checkConstraints": {},
+   "columns": {
+    "event_id": {
+     "name": "event_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "location_text": {
+     "name": "location_text",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "legacy_event_location_event_id_fkey": {
+     "columnsFrom": [
+      "event_id"
+     ],
+     "columnsTo": [
+      "event_id"
+     ],
+     "name": "legacy_event_location_event_id_fkey",
+     "onDelete": "cascade",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "legacy_event_location",
+     "tableTo": "event"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "legacy_event_location",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.location": {
+   "checkConstraints": {
+    "location_aka_check": {
+     "name": "location_aka_check",
+     "value": "(aka IS NULL) OR (btrim(aka) <> ''::text)"
+    },
+    "location_gps_check": {
+     "name": "location_gps_check",
+     "value": "((latitude IS NULL) = (longitude IS NULL)) AND ((latitude >= ('-90'::integer)::double precision) AND (latitude <= (90)::double precision)) AND ((longitude >= ('-180'::integer)::double precision) AND (longitude <= (180)::double precision))"
+    },
+    "location_pin_check": {
+     "name": "location_pin_check",
+     "value": "((pin_x IS NULL) = (pin_y IS NULL)) AND ((pin_x >= (0)::double precision) AND (pin_x <= (1)::double precision)) AND ((pin_y >= (0)::double precision) AND (pin_y <= (1)::double precision))"
+    }
+   },
+   "columns": {
+    "aka": {
+     "name": "aka",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "can_host_multiple_events": {
+     "name": "can_host_multiple_events",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "capacity": {
+     "name": "capacity",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "integer"
+    },
+    "deleted_at": {
+     "name": "deleted_at",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "description": {
+     "name": "description",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "events_allowed": {
+     "default": true,
+     "name": "events_allowed",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "has_av": {
+     "default": false,
+     "name": "has_av",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "boolean"
+    },
+    "latitude": {
+     "name": "latitude",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "double precision"
+    },
+    "location_category_id": {
+     "name": "location_category_id",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "location_id": {
+     "default": "gen_random_uuid()",
+     "name": "location_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "longitude": {
+     "name": "longitude",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "double precision"
+    },
+    "name": {
+     "name": "name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "pin_x": {
+     "name": "pin_x",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "double precision"
+    },
+    "pin_y": {
+     "name": "pin_y",
+     "notNull": false,
+     "primaryKey": false,
+     "type": "double precision"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "location_location_category_id_fkey": {
+     "columnsFrom": [
+      "location_category_id"
+     ],
+     "columnsTo": [
+      "location_category_id"
+     ],
+     "name": "location_location_category_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "location",
+     "tableTo": "location_category"
+    }
+   },
+   "indexes": {
+    "location_name_key": {
+     "columns": [
+      {
+       "asc": true,
+       "expression": "name",
+       "isExpression": false,
+       "nulls": "last",
+       "opclass": "text_ops"
+      }
+     ],
+     "concurrently": false,
+     "isUnique": true,
+     "method": "btree",
+     "name": "location_name_key",
+     "where": "(deleted_at IS NULL)",
+     "with": {}
+    }
+   },
+   "isRLSEnabled": false,
+   "name": "location",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {}
+  },
+  "public.location_category": {
+   "checkConstraints": {
+    "location_category_color_check": {
+     "name": "location_category_color_check",
+     "value": "color ~ '^#[0-9a-f]{6}$'::text"
+    },
+    "location_category_name_check": {
+     "name": "location_category_name_check",
+     "value": "btrim(name) <> ''::text"
+    }
+   },
+   "columns": {
+    "color": {
+     "name": "color",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "location_category_id": {
+     "default": "gen_random_uuid()",
+     "name": "location_category_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    },
+    "name": {
+     "name": "name",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "text"
+    },
+    "sort_order": {
+     "name": "sort_order",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "integer"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {},
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "location_category",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {
+    "location_category_name_key": {
+     "columns": [
+      "name"
+     ],
+     "name": "location_category_name_key",
+     "nullsNotDistinct": false
+    },
+    "location_category_sort_order_key": {
+     "columns": [
+      "sort_order"
+     ],
+     "name": "location_category_sort_order_key",
+     "nullsNotDistinct": false
+    }
+   }
+  },
+  "public.location_image": {
+   "checkConstraints": {},
+   "columns": {
+    "image_id": {
+     "name": "image_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "location_id": {
+     "name": "location_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "sort_order": {
+     "name": "sort_order",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "integer"
+    }
+   },
+   "compositePrimaryKeys": {
+    "location_image_pkey": {
+     "columns": [
+      "image_id",
+      "location_id"
+     ],
+     "name": "location_image_pkey"
+    }
+   },
+   "foreignKeys": {
+    "location_image_image_id_fkey": {
+     "columnsFrom": [
+      "image_id"
+     ],
+     "columnsTo": [
+      "image_id"
+     ],
+     "name": "location_image_image_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "location_image",
+     "tableTo": "image"
+    },
+    "location_image_location_id_fkey": {
+     "columnsFrom": [
+      "location_id"
+     ],
+     "columnsTo": [
+      "location_id"
+     ],
+     "name": "location_image_location_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "location_image",
+     "tableTo": "location"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "location_image",
+   "policies": {},
+   "schema": "",
+   "uniqueConstraints": {
+    "location_image_sort_order_key": {
+     "columns": [
+      "location_id",
+      "sort_order"
+     ],
+     "name": "location_image_sort_order_key",
+     "nullsNotDistinct": false
+    }
+   }
+  },
+  "public.map": {
+   "checkConstraints": {},
+   "columns": {
+    "created_at": {
+     "default": "now()",
+     "name": "created_at",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "timestamp with time zone"
+    },
+    "image_id": {
+     "name": "image_id",
+     "notNull": true,
+     "primaryKey": false,
+     "type": "uuid"
+    },
+    "map_id": {
+     "default": "gen_random_uuid()",
+     "name": "map_id",
+     "notNull": true,
+     "primaryKey": true,
+     "type": "uuid"
+    }
+   },
+   "compositePrimaryKeys": {},
+   "foreignKeys": {
+    "map_image_id_fkey": {
+     "columnsFrom": [
+      "image_id"
+     ],
+     "columnsTo": [
+      "image_id"
+     ],
+     "name": "map_image_id_fkey",
+     "onDelete": "no action",
+     "onUpdate": "no action",
+     "schemaTo": "public",
+     "tableFrom": "map",
+     "tableTo": "image"
+    }
+   },
+   "indexes": {},
+   "isRLSEnabled": false,
+   "name": "map",
    "policies": {},
    "schema": "",
    "uniqueConstraints": {}

@@ -65,7 +65,7 @@ export type Routes = {
             events: (EventJson & {
                 creator_name: string | null
                 bookmarks: number
-                event_site_location_name: Tables['event_site']['name'] | null
+                location_name: Tables['location']['name']
             })[]
         }
     }
@@ -131,11 +131,17 @@ export type Routes = {
         body: undefined
         response: {
             festivals: Tables['festival'][]
-            event_sites: Tables['event_site'][]
             age_ranges: Tables['age_range'][]
+            locations: LocationJson[]
+            location_categories: Tables['location_category'][]
+            map: ImageRef | null
         }
     }
 }
+
+export type ImageRef = Pick<Tables['image'], 'image_id' | 'width' | 'height'>
+
+export type LocationJson = Tables['location'] & { images: ImageRef[] }
 
 export type EventJson = Omit<Tables['event'], 'start_datetime' | 'end_datetime'> & {
     start_datetime: string

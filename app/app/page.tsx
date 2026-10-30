@@ -1,9 +1,9 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ButtonLink from '@/components/core/ButtonLink'
 import Stripes from '@/components/core/Stripes'
+import { useNav } from '@/components/NavStack'
 import PageLoading from '@/components/PageLoading'
 import { t } from '@/copy/t'
 import useNextPath from '@/hooks/useNextPath'
@@ -13,7 +13,7 @@ import { DEFAULT_PATH, loginPath } from '@/lib/routes'
 
 export default function RootPage() {
     const store = useStore()
-    const router = useRouter()
+    const { replace } = useNav()
     const next = useNextPath()
     const [showLanding, setShowLanding] = useState(false)
 
@@ -23,13 +23,13 @@ export default function RootPage() {
         }
         const legacy = hashToPath(window.location.hash)
         if (legacy != null) {
-            router.replace(legacy)
+            replace(legacy)
         } else if (store.loggedIn) {
-            router.replace(next)
+            replace(next)
         } else {
             setShowLanding(true)
         }
-    }, [next, router, store.loggedIn, store.ready])
+    }, [next, replace, store.loggedIn, store.ready])
 
     if (!showLanding) {
         return <PageLoading />

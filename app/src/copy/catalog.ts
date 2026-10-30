@@ -3,8 +3,8 @@ export const COPY = {
     'app.description': "Let's vibe, y'all",
 
     'nav.tickets': 'Tickets',
-    'nav.events': 'Events',
     'nav.schedule': 'Schedule',
+    'nav.map': 'Map',
     'nav.account': 'Account',
     'app.offlineBanner': 'Currently offline',
     'purchase.proceedToCheckout': 'Proceed to Checkout',
@@ -103,14 +103,12 @@ export const COPY = {
     'eventEditor.startLabel': 'Start',
     'eventEditor.endLabel': 'End',
     'eventEditor.locationLabel': 'Location',
-    'eventEditor.locationBlurb': `Your event can take place at {festivalName}, or it can take place before/after.
-
-Campsite locations have limited capacity, and scheduling will be first-come-first-serve for a given place + time.`,
     'eventEditor.theFestival': 'the festival',
-    'eventEditor.locationTypeLabel': 'My event will be...',
-    'eventEditor.locationOnsite': 'Onsite',
-    'eventEditor.locationOffsite': 'Offsite',
-    'eventEditor.campsiteLocationsLabel': 'Campsite locations:',
+    'eventEditor.locationSearch': 'Search locations',
+    'eventEditor.locationNoMatches': 'No matches',
+    'eventEditor.locationRequired': 'Location required',
+    'eventEditor.locationUncategorized': 'Uncategorized',
+    'eventEditor.locationUnmapped': 'Unmapped',
     'eventEditor.avCheckbox': 'My event requires A/V equipment or support',
     'eventEditor.avAgreement': `By checking this box, you are agreeing to the following:
 
@@ -131,10 +129,17 @@ Campsite locations have limited capacity, and scheduling will be first-come-firs
     'eventEditor.deleteEvent': 'Delete event',
     'common.cancel': 'Cancel',
 
-    'eventEditor.siteInfoHeading': 'Location info',
-    'eventEditor.siteType': 'Type: {structureType}',
-    'eventEditor.siteMaxCapacity': 'Max capacity: {peopleCap}',
-    'eventEditor.siteEquipment': 'Available equipment: {equipment}',
+    'map.imageAlt': 'Camp map',
+    'map.zoomIn': 'Zoom in',
+    'map.zoomOut': 'Zoom out',
+    'map.unavailable': 'Map unavailable',
+    'location.unavailable': 'Unavailable',
+    'location.googleMaps': 'Google Maps',
+    'location.appleMaps': 'Apple Maps',
+    'location.openStreetMap': 'OpenStreetMap',
+    'location.aka': 'aka {name}',
+    'location.upcomingEvents': 'Upcoming events',
+    'location.pastEvents': 'Past events',
 
     'eventEditor.overlapPrompt': 'This event overlaps with the following. Schedule it anyway?',
     'eventEditor.overlapConfirm': 'Yes, schedule anyway',
@@ -160,8 +165,6 @@ Campsite locations have limited capacity, and scheduling will be first-come-firs
     'common.close': 'Close',
     'nav.menu': 'Menu',
     'nav.back': 'Back',
-    'events.search': 'Search',
-    'events.closeSearch': 'Close search',
     'events.filter': 'Filter',
     'events.newEvent': 'New event',
 

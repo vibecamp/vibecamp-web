@@ -1,10 +1,11 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import useHasAttendanceTicket from '@/hooks/useHasAttendanceTicket'
 import { type DayjsEvent, useStore } from '@/hooks/useStore'
-import { EVENTS_PATH, eventPath } from '@/lib/routes'
+import { pathOf } from '@/lib/nav'
+import { eventPath, SCHEDULE_PATH } from '@/lib/routes'
+import { useNav } from '../NavStack'
 import PageLoading from '../PageLoading'
 import EventEditor from './EventEditor'
 
@@ -13,7 +14,7 @@ const isSettled = (kind: 'idle' | 'loading' | 'result' | 'error') =>
 
 export default function EventEditorPage({ eventId }: { eventId?: string }) {
     const store = useStore()
-    const router = useRouter()
+    const nav = useNav()
     const hasTicket = useHasAttendanceTicket()
     const eventsState = store.allEvents.state
     const accountState = store.accountInfo.state
@@ -35,22 +36,20 @@ export default function EventEditorPage({ eventId }: { eventId?: string }) {
     const redirectTo =
         eventId == null
             ? hasTicket === false
-                ? EVENTS_PATH
+                ? SCHEDULE_PATH
                 : undefined
             : resolved != null
               ? undefined
               : isSettled(eventsState.kind) && event == null
-                ? EVENTS_PATH
+                ? SCHEDULE_PATH
                 : event != null && isSettled(accountState.kind) && !isCreator
                   ? eventPath(eventId)
                   : undefined
     useEffect(() => {
         if (redirectTo != null) {
-            router.replace(redirectTo)
+            nav.replace(redirectTo)
         }
-    }, [redirectTo, router])
-
-    const backHref = eventId != null ? eventPath(eventId) : EVENTS_PATH
+    }, [redirectTo, nav.replace])
 
     const ready = resolved != null && (eventId == null ? hasTicket === true : true)
     if (!ready || resolved == null) {
@@ -61,8 +60,13 @@ export default function EventEditorPage({ eventId }: { eventId?: string }) {
         <div className='page narrow'>
             <EventEditor
                 eventBeingEdited={resolved}
-                onDone={() => router.push(backHref)}
-                onDeleted={() => router.push(EVENTS_PATH)}
+                onDone={() => nav.back()}
+                onDeleted={() =>
+                    nav.back({
+                        skip: (url) =>
+                            eventId != null && pathOf(url).startsWith(eventPath(eventId)),
+                    })
+                }
             />
         </div>
     )
